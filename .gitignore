@@ -1,0 +1,78 @@
+# ========================
+# Fichiers système
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# Python / Backend
+# ========================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Logs
+*.log
+*.sqlite3
+*.db
+
+# Environnement et secrets
+.env
+.env.*
+
+# Test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.hypothesis/
+
+# Alembic migrations (optionnel selon si tu veux versionner)
+# alembic/versions/
+
+# ========================
+# Node / Frontend (React, Next.js, etc.)
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build frontend
+/build
+/dist
+/.next
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ========================
+# Autres fichiers temporaires
+# ========================
+*.swp
+*.tmp
