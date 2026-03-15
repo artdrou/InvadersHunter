@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from app.api.routers import users, space_invader, user_progress
+from app.api.routers import users, space_invader, user_progress, auth
 
 
 app = FastAPI(title="Invaders Hunter Backend")
 
 app.include_router(users.router)
+app.include_router(auth.router)
 app.include_router(space_invader.router)
 app.include_router(user_progress.router)
 
