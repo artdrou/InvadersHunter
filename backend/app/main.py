@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import users, space_invader, user_progress
+from app.api.routers import users, space_invader, user_progress
 
 
 app = FastAPI(title="Invaders Hunter Backend")
