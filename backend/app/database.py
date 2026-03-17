@@ -11,6 +11,10 @@ if not DATABASE_URL:
         "DATABASE_URL is not set. Set it in your environment or .env file with Neon connection string."
     )
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={"sslmode": "require", "channel_binding": "require"}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

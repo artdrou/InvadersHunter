@@ -33,10 +33,7 @@ dist/
 
 # Environnement et secrets
 .env
-.env.*
-# *.env
-# *.env.* 
-# TODO: De comment env when repo goes public
+*.env
 
 # Test / coverage
 htmlcov/
