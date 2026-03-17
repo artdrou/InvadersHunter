@@ -33,7 +33,7 @@ dist/
 
 # Environnement et secrets
 .env
-.env.*
+*.env
 
 # Test / coverage
 htmlcov/

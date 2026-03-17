@@ -2,14 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserOut, UserUpdate
 from app.models.user import User
+from typing import List
 from app.database import SessionLocal, engine
 from app.core import security, email
 from passlib.context import CryptContext
 from app.dependencies import get_db
 from app.core.db_utils import safe_commit
 
+
 router = APIRouter(prefix="/users", tags=["Users"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+@router.get("/", response_model=List[UserOut])
+def list_users(db: Session = Depends(get_db)):
+    return db.query(User).all()
 
 @router.post("/", response_model=UserOut)
 async def create_user(
