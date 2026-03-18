@@ -38,13 +38,39 @@ export default function WebMap({ invaders }: Props) {
     if (!mapRef.current) return;
 
     invaders.forEach((invader) => {
-      new maplibregl.Marker()
+    const el = document.createElement("div");
+
+    el.style.width = "36px";
+    el.style.height = "20px";
+    el.style.display = "grid";
+    el.style.gridTemplateColumns = "repeat(9, 1fr)";
+    el.style.gridTemplateRows = "repeat(5, 1fr)";
+    el.style.gap = "1px";
+    el.style.cursor = "pointer";
+    el.style.filter = "drop-shadow(0 0 6px rgba(0, 114, 146, 0.9))";
+
+    const pixels = [
+        0, 0, 0, 1, 0, 1, 0, 0, 0,
+        0, 0, 1, 1, 1, 1, 1, 0, 0,
+        0, 0, 1, 0, 1, 0, 1, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 0, 1, 0, 1, 0, 1, 1,
+    ];
+
+    pixels.forEach((value) => {
+    const pixel = document.createElement("div");
+    pixel.style.backgroundColor = value ? "#1cffb7" : "transparent";
+    pixel.style.outline = value ? "0.01px solid #00b7e0" : "none";
+    el.appendChild(pixel);
+});
+
+    new maplibregl.Marker({ element: el })
         .setLngLat([invader.longitude, invader.latitude])
         .setPopup(
-          new maplibregl.Popup().setText(invader.name)
+        new maplibregl.Popup().setText(invader.name)
         )
         .addTo(mapRef.current!);
-    });
+});
   }, [invaders]);
 
   return <div style={{ width: "100%", height: "100%" }} ref={mapContainer} />;
