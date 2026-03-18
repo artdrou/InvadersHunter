@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
-import WebMap from "@/components/ui/web-map";
-import { api } from "@/services/api";
+import { WebMap } from "@/features/map";
+import { fetchInvaders, fetchProgress, mapInvadersWithProgress } from "@/features/invaders";
+import type { Invader, Capture } from "@/features/invaders";
 
 export default function MapScreen() {
-  const [invaders, setInvaders] = useState([]);
+    const [invaders, setInvaders] = useState<Invader[]>([]);
+    const [progress, setProgress] = useState<Capture[]>([]);
 
-  useEffect(() => {
-    api
-      .get("/invaders")
-      .then((res) => {
-        console.log("INVADERS:", res.data);
-        setInvaders(res.data);
-      })
-      .catch((err) => {
-        console.error("API ERROR:", err);
-      });
-  }, []);
-
+    useEffect(() => {
+        Promise.all([fetchInvaders(), fetchProgress()])
+            .then(([inv, prog]) => {
+                setInvaders(inv);
+                setProgress(prog);
+            })
+            .catch((err) => {
+                console.error("API ERROR:", err);
+            });
+    }, []);
+    const invadersWithState = mapInvadersWithProgress(invaders, progress);
   return (
     <View style={styles.container}>
-      <Text style={styles.debug}>Invaders: {invaders.length}</Text>
-      <WebMap invaders={invaders}/>
+      <Text style={styles.debug}>
+        Invaders: {invadersWithState.length}
+      </Text>
+
+      <WebMap invaders={invadersWithState} />
     </View>
   );
 }

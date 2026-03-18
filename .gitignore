@@ -71,6 +71,8 @@ yarn.lock
 *.sublime-project
 *.sublime-workspace
 
+.claude/
+
 # ========================
 # Autres fichiers temporaires
 # ========================
