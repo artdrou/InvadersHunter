@@ -12,6 +12,17 @@ from app.core.db_utils import safe_commit
 
 router = APIRouter(prefix="/progress", tags=["Progress"])
 
+# List all invaders flashed by one user
+@router.get("/user/{user_id}", response_model=List[InvaderOut])
+def get_user_invaders(user_id: int, db: Session = Depends(get_db)):
+    invaders = (
+        db.query(Invader)
+        .join(UserProgress, UserProgress.invader_id == Invader.id)
+        .filter(UserProgress.user_id == user_id)
+        .all()
+    )
+    return invaders
+
 # Add a capture
 @router.post("/", response_model=UserProgressOut)
 def add_capture(progress: UserProgressCreate, db: Session = Depends(get_db)):
@@ -94,13 +105,3 @@ def delete_capture(progress_id: int, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to delete capture")
 
-# List all invaders flashed by one user
-@router.get("/user/{user_id}", response_model=List[InvaderOut])
-def get_user_invaders(user_id: int, db: Session = Depends(get_db)):
-    invaders = (
-        db.query(Invader)
-        .join(UserProgress, UserProgress.invader_id == Invader.id)
-        .filter(UserProgress.user_id == user_id)
-        .all()
-    )
-    return invaders
