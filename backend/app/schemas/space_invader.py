@@ -25,6 +25,7 @@ class InvaderOut(BaseModel):
     id: int
     name: str
     description: str
+    points: int
     state: str
     latitude: float
     longitude: float

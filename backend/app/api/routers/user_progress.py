@@ -12,6 +12,11 @@ from app.core.db_utils import safe_commit
 
 router = APIRouter(prefix="/progress", tags=["Progress"])
 
+# List all invaders flashed
+@router.get("/", response_model=List[UserProgressOut])
+def list_captures(db: Session = Depends(get_db)):
+    return db.query(UserProgress).all()
+
 # List all invaders flashed by one user
 @router.get("/user/{user_id}", response_model=List[InvaderOut])
 def get_user_invaders(user_id: int, db: Session = Depends(get_db)):
