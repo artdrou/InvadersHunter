@@ -8,5 +8,14 @@ export async function fetchInvaders(): Promise<Invader[]> {
 
 export async function fetchProgress(userId: number): Promise<Capture[]> {
   const res = await api.get(`/progress/user/${userId}`);
-  return res.data.map((inv: { id: number }) => ({ invader_id: inv.id, user_id: userId }));
+  return res.data;
+}
+
+export async function flashInvader(userId: number, invaderId: number): Promise<Capture> {
+  const res = await api.post('/progress/', { user_id: userId, invader_id: invaderId });
+  return res.data;
+}
+
+export async function unflashInvader(progressId: number): Promise<void> {
+  await api.delete(`/progress/${progressId}`);
 }

@@ -5,11 +5,13 @@ export function mapInvadersWithProgress(
   progress: Capture[]
 ): InvaderWithState[] {
   return invaders.map((inv) => {
-    const isCaptured = progress.some((p) => p.invader_id === inv.id);
+    const capture = progress.find((p) => p.invader_id === inv.id);
 
     return {
       ...inv,
-      isCaptured
+      isCaptured: !!capture,
+      capturedAt: capture?.found_at,
+      progressId: capture?.id,
     };
   });
 }

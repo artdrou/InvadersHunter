@@ -2,21 +2,17 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createInvaderMarker } from "./invader-marker";
-
-type Invader = {
-  id: number;
-  latitude: number;
-  longitude: number;
-  name: string;
-};
+import type { InvaderWithState } from "@/features/invaders";
 
 type Props = {
-  invaders: Invader[];
+  invaders: InvaderWithState[];
+  onInvaderClick: (invader: InvaderWithState) => void;
 };
 
-export default function WebMap({ invaders }: Props) {
+export default function WebMap({ invaders, onInvaderClick }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -34,21 +30,23 @@ export default function WebMap({ invaders }: Props) {
     };
   }, []);
 
-  // 👉 ajout des markers
   useEffect(() => {
     if (!mapRef.current) return;
 
-    invaders.forEach((invader) => {
-    const el = createInvaderMarker(invader);
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
 
-    new maplibregl.Marker({ element: el })
+    invaders.forEach((invader) => {
+      const el = createInvaderMarker(invader);
+      el.addEventListener("click", () => onInvaderClick(invader));
+
+      const marker = new maplibregl.Marker({ element: el })
         .setLngLat([invader.longitude, invader.latitude])
-        .setPopup(
-        new maplibregl.Popup().setText(invader.name)
-        )
         .addTo(mapRef.current!);
-});
-  }, [invaders]);
+
+      markersRef.current.push(marker);
+    });
+  }, [invaders, onInvaderClick]);
 
   return <div style={{ width: "100%", height: "100%" }} ref={mapContainer} />;
 }

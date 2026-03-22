@@ -10,10 +10,14 @@ export type Invader = {
 };
 
 export type Capture = {
+  id: number;
   invader_id: number;
   user_id: number;
+  found_at: string;
 };
 
 export type InvaderWithState = Invader & {
   isCaptured: boolean;
+  capturedAt?: string;
+  progressId?: number;
 };

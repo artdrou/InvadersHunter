@@ -5,8 +5,6 @@ from app.schemas.user_progress import UserProgressCreate, UserProgressOut, UserP
 from app.models.user_progress import UserProgress
 from app.models.user import User
 from app.models.space_invader import Invader
-from app.database import SessionLocal
-from app.schemas.space_invader import InvaderOut
 from app.dependencies import get_db
 from app.core.db_utils import safe_commit
 
@@ -17,16 +15,10 @@ router = APIRouter(prefix="/progress", tags=["Progress"])
 def list_captures(db: Session = Depends(get_db)):
     return db.query(UserProgress).all()
 
-# List all invaders flashed by one user
-@router.get("/user/{user_id}", response_model=List[InvaderOut])
-def get_user_invaders(user_id: int, db: Session = Depends(get_db)):
-    invaders = (
-        db.query(Invader)
-        .join(UserProgress, UserProgress.invader_id == Invader.id)
-        .filter(UserProgress.user_id == user_id)
-        .all()
-    )
-    return invaders
+# List all captures by one user
+@router.get("/user/{user_id}", response_model=List[UserProgressOut])
+def get_user_captures(user_id: int, db: Session = Depends(get_db)):
+    return db.query(UserProgress).filter(UserProgress.user_id == user_id).all()
 
 # Add a capture
 @router.post("/", response_model=UserProgressOut)
