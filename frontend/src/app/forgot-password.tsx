@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
+import { useTheme } from '@/contexts/theme-context';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 
 type Step = 'request' | 'verify' | 'new-password';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
 
   const [step, setStep] = useState<Step>('request');
   const [username, setUsername] = useState('');
@@ -75,7 +79,7 @@ export default function ForgotPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="Username"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.textMuted}
             autoCapitalize="none"
             value={username}
             onChangeText={setUsername}
@@ -83,7 +87,7 @@ export default function ForgotPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.textMuted}
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
@@ -94,7 +98,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleRequest}
             disabled={loading}>
-            {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>Send code</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Send code</Text>}
           </Pressable>
         </View>
       )}
@@ -105,7 +109,7 @@ export default function ForgotPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="6-digit code"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.textMuted}
             keyboardType="numeric"
             maxLength={6}
             value={code}
@@ -116,7 +120,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleVerify}
             disabled={loading}>
-            {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>Verify</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Verify</Text>}
           </Pressable>
         </View>
       )}
@@ -127,7 +131,7 @@ export default function ForgotPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="New password"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.textMuted}
             secureTextEntry
             value={newPassword}
             onChangeText={setNewPassword}
@@ -142,7 +146,7 @@ export default function ForgotPasswordScreen() {
               ),
             ]}
             placeholder="Confirm password"
-            placeholderTextColor="#666"
+            placeholderTextColor={theme.textMuted}
             secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -152,7 +156,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleReset}
             disabled={loading}>
-            {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>Update password</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Update password</Text>}
           </Pressable>
         </View>
       )}
@@ -164,74 +168,76 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  title: {
-    color: '#ffd000',
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 48,
-    letterSpacing: 2,
-  },
-  subtitle: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  form: {
-    width: '100%',
-    maxWidth: 360,
-    gap: 16,
-  },
-  input: {
-    backgroundColor: '#111',
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  error: {
-    color: '#ff0062',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#ffd000',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  backLink: {
-    marginTop: 32,
-  },
-  backText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  inputValid: {
-    backgroundColor: '#0a2a1a',
-    borderColor: '#1cffb7',
-  },
-  inputInvalid: {
-    backgroundColor: '#2a0a0a',
-    borderColor: '#ff0062',
-  },
-});
+function makeStyles(t: ThemeTokens) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.bg,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: Spacing.five,
+    },
+    title: {
+      color: t.accent,
+      fontSize: FontSize.xl,
+      fontWeight: 'bold',
+      marginBottom: 48,
+      letterSpacing: 2,
+    },
+    subtitle: {
+      color: t.text,
+      fontSize: FontSize.md,
+      marginBottom: Spacing.two,
+    },
+    form: {
+      width: '100%',
+      maxWidth: 360,
+      gap: Spacing.three,
+    },
+    input: {
+      backgroundColor: t.bgElement,
+      color: t.text,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 12,
+      paddingHorizontal: Spacing.three,
+      fontSize: FontSize.md,
+    },
+    inputValid: {
+      backgroundColor: t.bgInputValid,
+      borderColor: t.borderInputValid,
+    },
+    inputInvalid: {
+      backgroundColor: t.bgInputInvalid,
+      borderColor: t.borderInputInvalid,
+    },
+    error: {
+      color: t.danger,
+      fontSize: FontSize.sm,
+      textAlign: 'center',
+    },
+    button: {
+      backgroundColor: t.accent,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: Spacing.two,
+    },
+    buttonPressed: {
+      opacity: 0.8,
+    },
+    buttonText: {
+      color: t.bg,
+      fontWeight: 'bold',
+      fontSize: FontSize.md,
+    },
+    backLink: {
+      marginTop: Spacing.five,
+    },
+    backText: {
+      color: t.textMuted,
+      fontSize: FontSize.sm,
+    },
+  });
+}

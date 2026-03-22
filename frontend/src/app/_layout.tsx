@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/features/auth';
+import { ThemeProvider } from '@/contexts/theme-context';
 
 export default function RootLayout() {
   const token = useAuthStore((s) => s.token);
@@ -16,5 +17,9 @@ export default function RootLayout() {
     }
   }, [token, segments]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </ThemeProvider>
+  );
 }

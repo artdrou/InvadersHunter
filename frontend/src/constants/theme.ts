@@ -1,11 +1,8 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import '@/global.css';
 
 import { Platform } from 'react-native';
+
+// ─── Legacy Colors (used by existing components via hooks/use-theme) ──────────
 
 export const Colors = {
   light: {
@@ -26,15 +23,129 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
+// ─── Brand ────────────────────────────────────────────────────────────────────
+// Fixed brand colors that never change between themes.
+
+export const Brand = {
+  yellow: '#ffd000',
+  pink: '#ff0062',
+  cyan: '#1cffb7',
+  capturedGlow: 'rgba(0, 96, 240, 0.9)',
+  uncapturedGlow: 'rgba(171, 5, 19, 0.9)',
+  capturedOutline: '#00b7e0',
+  uncapturedOutline: '#79032e',
+} as const;
+
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+// Semantic names that every theme must fill in.
+
+export type ThemeTokens = {
+  // Backgrounds
+  bg: string;
+  bgElement: string;
+  bgDivider: string;
+  bgInputValid: string;
+  bgInputInvalid: string;
+
+  // Text
+  text: string;
+  textMuted: string;
+
+  // Borders
+  border: string;
+  borderInputValid: string;
+  borderInputInvalid: string;
+
+  // Semantic role colors (can be overridden per theme)
+  accent: string;     // primary action color
+  danger: string;     // error / destructive
+  success: string;    // captured / success state
+};
+
+// ─── Built-in themes ──────────────────────────────────────────────────────────
+
+export const darkTheme: ThemeTokens = {
+  bg: '#000000',
+  bgElement: '#111111',
+  bgDivider: '#222222',
+  bgInputValid: '#0a2a1a',
+  bgInputInvalid: '#2a0a0a',
+
+  text: '#ffffff',
+  textMuted: '#666666',
+
+  border: '#333333',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: Brand.yellow,
+  danger: Brand.pink,
+  success: Brand.cyan,
+};
+
+export const lightTheme: ThemeTokens = {
+  bg: '#f2f2f2',
+  bgElement: '#ffffff',
+  bgDivider: '#e0e0e0',
+  bgInputValid: '#e6fff5',
+  bgInputInvalid: '#fff0f3',
+
+  text: '#000000',
+  textMuted: '#888888',
+
+  border: '#cccccc',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: Brand.yellow,
+  danger: Brand.pink,
+  success: Brand.cyan,
+};
+
+export const themes = {
+  dark: darkTheme,
+  light: lightTheme,
+} as const;
+
+export const themeLabels: Record<ThemeName, string> = {
+  dark: 'Dark',
+  light: 'Light',
+};
+
+export type ThemeName = keyof typeof themes;
+
+// ─── Scale tokens ─────────────────────────────────────────────────────────────
+
+export const FontSize = {
+  sm: 14,
+  md: 16,
+  lg: 20,
+  xl: 28,
+} as const;
+
+export const BorderRadius = {
+  sm: 8,
+  md: 12,
+  lg: 14,
+} as const;
+
+export const Spacing = {
+  half: 2,
+  one: 4,
+  two: 8,
+  three: 16,
+  four: 24,
+  five: 32,
+  six: 64,
+} as const;
+
+// ─── Misc ─────────────────────────────────────────────────────────────────────
+
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -50,16 +161,6 @@ export const Fonts = Platform.select({
     mono: 'var(--font-mono)',
   },
 });
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

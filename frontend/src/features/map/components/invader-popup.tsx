@@ -1,5 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import type { InvaderWithState } from "@/features/invaders";
+import { useTheme } from "@/contexts/theme-context";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing } from "@/constants/theme";
 
 type Props = {
   invader: InvaderWithState;
@@ -18,6 +20,9 @@ function formatDate(iso?: string) {
 }
 
 export function InvaderPopup({ invader, onClose, onFlash, onUnflash }: Props) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
+
   return (
     <View>
       <View style={styles.container}>
@@ -69,88 +74,90 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#111",
-    borderWidth: 1,
-    borderColor: "#333",
-    borderRadius: 14,
-    padding: 24,
-    width: 300,
-    gap: 14,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  name: {
-    color: "#ffd000",
-    fontSize: 20,
-    fontWeight: "bold",
-    letterSpacing: 1,
-  },
-  closeBtn: {
-    padding: 6,
-  },
-  closeText: {
-    color: "#666",
-    fontSize: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#222",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  label: {
-    color: "#666",
-    fontSize: 15,
-  },
-  value: {
-    color: "#fff",
-    fontSize: 15,
-  },
-  flashedDate: {
-    color: "#1cffb7",
-  },
-  flashBtn: {
-    borderRadius: 8,
-    paddingVertical: 13,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  doFlashBtn: {
-    backgroundColor: "#ffd000",
-  },
-  unflashBtn: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#ff0062",
-  },
-  btnPressed: {
-    opacity: 0.7,
-  },
-  flashBtnText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: "#000",
-  },
-  unflashBtnText: {
-    color: "#ff0062",
-  },
-  arrow: {
-    alignSelf: "center",
-    width: 0,
-    height: 0,
-    borderLeftWidth: 10,
-    borderRightWidth: 10,
-    borderTopWidth: 10,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-    borderTopColor: "#333",
-  },
-});
+function makeStyles(t: ThemeTokens) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: t.bgElement,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.four,
+      width: 300,
+      gap: 14,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    name: {
+      color: t.accent,
+      fontSize: FontSize.lg,
+      fontWeight: "bold",
+      letterSpacing: 1,
+    },
+    closeBtn: {
+      padding: Spacing.one,
+    },
+    closeText: {
+      color: t.textMuted,
+      fontSize: FontSize.md,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: t.bgDivider,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    label: {
+      color: t.textMuted,
+      fontSize: 15,
+    },
+    value: {
+      color: t.text,
+      fontSize: 15,
+    },
+    flashedDate: {
+      color: t.success,
+    },
+    flashBtn: {
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 13,
+      alignItems: "center",
+      marginTop: Spacing.one,
+    },
+    doFlashBtn: {
+      backgroundColor: t.accent,
+    },
+    unflashBtn: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: t.danger,
+    },
+    btnPressed: {
+      opacity: 0.7,
+    },
+    flashBtnText: {
+      fontWeight: "bold",
+      fontSize: 15,
+      color: t.bg,
+    },
+    unflashBtnText: {
+      color: t.danger,
+    },
+    arrow: {
+      alignSelf: "center",
+      width: 0,
+      height: 0,
+      borderLeftWidth: 10,
+      borderRightWidth: 10,
+      borderTopWidth: 10,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+      borderTopColor: t.border,
+    },
+  });
+}

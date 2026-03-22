@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore, loginUser } from '@/features/auth';
+import { useTheme } from '@/contexts/theme-context';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -10,6 +12,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
 
   async function handleLogin() {
     if (!username || !password) return;
@@ -33,7 +37,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Username"
-          placeholderTextColor="#666"
+          placeholderTextColor={theme.textMuted}
           autoCapitalize="none"
           value={username}
           onChangeText={setUsername}
@@ -41,7 +45,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor="#666"
+          placeholderTextColor={theme.textMuted}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -54,7 +58,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#000" />
+            <ActivityIndicator color={theme.bg} />
           ) : (
             <Text style={styles.buttonText}>Login</Text>
           )}
@@ -72,64 +76,66 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  title: {
-    color: '#ffd000',
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 48,
-    letterSpacing: 2,
-  },
-  form: {
-    width: '100%',
-    maxWidth: 360,
-    gap: 16,
-  },
-  input: {
-    backgroundColor: '#111',
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  error: {
-    color: '#ff0062',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#ffd000',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  registerLink: {
-    alignItems: 'center',
-  },
-  registerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  registerHighlight: {
-    color: '#ffd000',
-  },
-});
+function makeStyles(t: ThemeTokens) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.bg,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: Spacing.five,
+    },
+    title: {
+      color: t.accent,
+      fontSize: FontSize.xl,
+      fontWeight: 'bold',
+      marginBottom: 48,
+      letterSpacing: 2,
+    },
+    form: {
+      width: '100%',
+      maxWidth: 360,
+      gap: Spacing.three,
+    },
+    input: {
+      backgroundColor: t.bgElement,
+      color: t.text,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 12,
+      paddingHorizontal: Spacing.three,
+      fontSize: FontSize.md,
+    },
+    error: {
+      color: t.danger,
+      fontSize: FontSize.sm,
+      textAlign: 'center',
+    },
+    button: {
+      backgroundColor: t.accent,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginTop: Spacing.two,
+    },
+    buttonPressed: {
+      opacity: 0.8,
+    },
+    buttonText: {
+      color: t.bg,
+      fontWeight: 'bold',
+      fontSize: FontSize.md,
+    },
+    registerLink: {
+      alignItems: 'center',
+    },
+    registerText: {
+      color: t.textMuted,
+      fontSize: FontSize.sm,
+    },
+    registerHighlight: {
+      color: t.accent,
+    },
+  });
+}
