@@ -6,7 +6,7 @@ export async function fetchInvaders(): Promise<Invader[]> {
   return res.data;
 }
 
-export async function fetchProgress(): Promise<Capture[]> {
-  const res = await api.get('/progress');
-  return res.data;
+export async function fetchProgress(userId: number): Promise<Capture[]> {
+  const res = await api.get(`/progress/user/${userId}`);
+  return res.data.map((inv: { id: number }) => ({ invader_id: inv.id, user_id: userId }));
 }
