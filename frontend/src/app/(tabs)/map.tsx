@@ -8,9 +8,10 @@ import { useAuthStore } from "@/features/auth";
 export default function MapScreen() {
     const [invaders, setInvaders] = useState<Invader[]>([]);
     const [progress, setProgress] = useState<Capture[]>([]);
-    const user = useAuthStore((s) => s.user!);
+    const user = useAuthStore((s) => s.user);
 
     useEffect(() => {
+        if (!user) return;
         Promise.all([fetchInvaders(), fetchProgress(user.id)])
             .then(([inv, prog]) => {
                 setInvaders(inv);
@@ -19,17 +20,19 @@ export default function MapScreen() {
             .catch((err) => {
                 console.error("API ERROR:", err);
             });
-    }, []);
+    }, [user]);
     const invadersWithState = mapInvadersWithProgress(invaders, progress);
   return (
     <View style={styles.container}>
       {/* TODO: remove — dev only */}
-      <Text style={styles.debug}>
-        [DEV]{'\n'}
-        user: {user.username} (id: {user.id}){'\n'}
-        invaders: {invadersWithState.length}{'\n'}
-        captured: {invadersWithState.filter(i => i.isCaptured).length}
-      </Text>
+      {user && (
+        <Text style={styles.debug}>
+          [DEV]{'\n'}
+          user: {user.username} (id: {user.id}){'\n'}
+          invaders: {invadersWithState.length}{'\n'}
+          captured: {invadersWithState.filter(i => i.isCaptured).length}
+        </Text>
+      )}
 
       <WebMap invaders={invadersWithState} />
     </View>
