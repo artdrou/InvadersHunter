@@ -8,7 +8,7 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    const inPublicScreen = segments[0] === 'login' || segments[0] === 'register';
+    const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password';
     if (!token && !inPublicScreen) {
       router.replace('/login');
     } else if (token && inPublicScreen) {
