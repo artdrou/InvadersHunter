@@ -38,7 +38,13 @@ export default function WebMap({ invaders, onInvaderClick }: Props) {
 
     invaders.forEach((invader) => {
       const el = createInvaderMarker(invader);
-      el.addEventListener("click", () => onInvaderClick(invader));
+      el.addEventListener("click", () => {
+        mapRef.current?.easeTo({
+          center: [invader.longitude, invader.latitude],
+          duration: 350,
+        });
+        onInvaderClick(invader);
+      });
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([invader.longitude, invader.latitude])

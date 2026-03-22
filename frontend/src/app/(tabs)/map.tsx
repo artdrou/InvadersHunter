@@ -83,8 +83,10 @@ const styles = StyleSheet.create({
   },
   popupWrapper: {
     position: "absolute",
-    bottom: 24,
-    left: 16,
+    bottom: "55%",
+    left: 0,
+    right: 0,
+    alignItems: "center",
     zIndex: 10,
   },
 });
