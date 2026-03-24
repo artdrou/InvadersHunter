@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createInvaderMarker } from "./invader-marker";
@@ -15,12 +15,27 @@ type Props = {
   onInvaderClick: (invader: InvaderWithState) => void;
 };
 
-export default function WebMap({ invaders, onInvaderClick }: Props) {
+export type WebMapHandle = {
+  /** Place [lat, lon] at `offsetY` pixels below the viewport center. */
+  centerOn: (lat: number, lon: number, offsetY: number) => void;
+};
+
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick }, ref) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const { themeName } = useTheme();
   const mapStyle = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
+
+  useImperativeHandle(ref, () => ({
+    centerOn: (lat, lon, offsetY) => {
+      mapRef.current?.easeTo({
+        center: [lon, lat],
+        offset: [0, offsetY],
+        duration: 300,
+      });
+    },
+  }));
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -52,10 +67,6 @@ export default function WebMap({ invaders, onInvaderClick }: Props) {
     invaders.forEach((invader) => {
       const el = createInvaderMarker(invader);
       el.addEventListener("click", () => {
-        mapRef.current?.easeTo({
-          center: [invader.longitude, invader.latitude],
-          duration: 350,
-        });
         onInvaderClick(invader);
       });
 
@@ -68,4 +79,6 @@ export default function WebMap({ invaders, onInvaderClick }: Props) {
   }, [invaders, onInvaderClick]);
 
   return <div style={{ width: "100%", height: "100%" }} ref={mapContainer} />;
-}
+});
+
+export default WebMap;
