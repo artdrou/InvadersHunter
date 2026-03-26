@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
 from datetime import datetime
 from ..database import Base
 
@@ -9,3 +9,7 @@ class UserProgress(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     invader_id = Column(Integer, ForeignKey("invaders.id"), nullable=False)
     found_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "invader_id", name="uq_user_invader"),
+    )

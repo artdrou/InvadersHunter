@@ -32,6 +32,13 @@ def add_capture(progress: UserProgressCreate, db: Session = Depends(get_db)):
         if not invader:
             raise HTTPException(status_code=404, detail="Invader not found")
 
+        existing = db.query(UserProgress).filter(
+            UserProgress.user_id == progress.user_id,
+            UserProgress.invader_id == progress.invader_id,
+        ).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="Invader already flashed by this user")
+
         new_progress = UserProgress(**progress.model_dump())
 
         db.add(new_progress)
