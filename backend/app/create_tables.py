@@ -5,6 +5,7 @@ from app.models.space_invader import Invader
 from app.models.user_progress import UserProgress
 from app.models.admin_request import AdminRequest
 from app.models.user_request import UserRequest
+from app.models.refresh_token import RefreshToken
 
 # Crée toutes les tables
 Base.metadata.create_all(bind=engine)
