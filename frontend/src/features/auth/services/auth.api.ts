@@ -1,13 +1,17 @@
 import { api } from '@/services/api-client';
 
-export async function loginUser(username: string, password: string): Promise<string> {
+export async function loginUser(username: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
   const res = await api.post('/auth/login', { username, password });
-  return res.data.access_token;
+  return { accessToken: res.data.access_token, refreshToken: res.data.refresh_token };
 }
 
-export async function registerUser(username: string, email: string, password: string): Promise<string> {
+export async function registerUser(username: string, email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
   await api.post('/users/', { username, email, password });
   return loginUser(username, password);
+}
+
+export async function logoutUser(refreshToken: string): Promise<void> {
+  await api.post('/auth/logout', { refresh_token: refreshToken });
 }
 
 export async function forgotPassword(username: string, email: string): Promise<void> {

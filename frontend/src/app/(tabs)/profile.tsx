@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuthStore } from "@/features/auth";
+import { useAuthStore, logoutUser } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing } from "@/constants/theme";
 
@@ -10,7 +10,11 @@ export default function ProfileScreen() {
   const { theme, themeName, setTheme } = useTheme();
   const styles = makeStyles(theme);
 
-  function handleLogout() {
+  async function handleLogout() {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    if (refreshToken) {
+      try { await logoutUser(refreshToken); } catch {}
+    }
     logout();
     router.replace('/login');
   }

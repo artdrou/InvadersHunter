@@ -1,11 +1,17 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User } from './types';
 
 type AuthState = {
   token: string | null;
+  refreshToken: string | null;
   user: User | null;
-  login: (token: string) => void;
+  _hasHydrated: boolean;
+  login: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  setHasHydrated: (val: boolean) => void;
 };
 
 function parseToken(token: string): User {
@@ -13,9 +19,26 @@ function parseToken(token: string): User {
   return { id: Number(payload.sub), username: payload.username, is_admin: payload.is_admin };
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  user: null,
-  login: (token) => set({ token, user: parseToken(token) }),
-  logout: () => set({ token: null, user: null }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      refreshToken: null,
+      user: null,
+      _hasHydrated: false,
+      login: (accessToken, refreshToken) =>
+        set({ token: accessToken, refreshToken, user: parseToken(accessToken) }),
+      setTokens: (accessToken, refreshToken) =>
+        set({ token: accessToken, refreshToken }),
+      logout: () => set({ token: null, refreshToken: null, user: null }),
+      setHasHydrated: (val) => set({ _hasHydrated: val }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
+  )
+);

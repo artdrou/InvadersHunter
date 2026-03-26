@@ -20,8 +20,8 @@ export default function LoginScreen() {
     setLoading(true);
     setError(null);
     try {
-      const token = await loginUser(username, password);
-      login(token);
+      const { accessToken, refreshToken } = await loginUser(username, password);
+      login(accessToken, refreshToken);
     } catch {
       setError('Invalid username or password');
     } finally {
