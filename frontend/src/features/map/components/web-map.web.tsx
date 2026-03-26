@@ -16,7 +16,6 @@ type Props = {
 };
 
 export type WebMapHandle = {
-  /** Place [lat, lon] at `offsetY` pixels below the viewport center. */
   centerOn: (lat: number, lon: number, offsetY: number) => void;
 };
 
@@ -29,11 +28,11 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
 
   useImperativeHandle(ref, () => ({
     centerOn: (lat, lon, offsetY) => {
-      mapRef.current?.easeTo({
-        center: [lon, lat],
-        offset: [0, offsetY],
-        duration: 300,
-      });
+      const map = mapRef.current;
+      if (!map) return;
+      const markerPx = map.project([lon, lat]);
+      const newCenter = map.unproject([markerPx.x, markerPx.y - offsetY]);
+      map.easeTo({ center: [newCenter.lng, newCenter.lat], duration: 300 });
     },
   }));
 

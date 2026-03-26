@@ -6,8 +6,6 @@ import { fetchInvaders, fetchProgress, flashInvader, unflashInvader, mapInvaders
 import type { Invader, Capture, InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 
-const MARKER_GAP = 24;
-
 export default function MapScreen() {
   const [invaders, setInvaders] = useState<Invader[]>([]);
   const [progress, setProgress] = useState<Capture[]>([]);
@@ -15,6 +13,8 @@ export default function MapScreen() {
   const user = useAuthStore((s) => s.user);
   const mapRef = useRef<WebMapHandle>(null);
   const popupHeightRef = useRef<number>(0);
+  // Ref so handlePopupHeight always sees the latest invader (avoids stale closure)
+  const selectedInvaderRef = useRef<InvaderWithState | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -30,19 +30,25 @@ export default function MapScreen() {
 
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
 
+  function centerOnInvader(invader: InvaderWithState, height: number) {
+    mapRef.current?.centerOn(invader.latitude, invader.longitude, height / 2);
+  }
+
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
+    selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-    mapRef.current?.centerOn(
-      invader.latitude,
-      invader.longitude,
-      popupHeightRef.current / 2 + MARKER_GAP,
-    );
   }, []);
 
   function handlePopupHeight(height: number) {
     popupHeightRef.current = height;
-    if (!selectedInvader) return;
-    mapRef.current?.centerOn(selectedInvader.latitude, selectedInvader.longitude, height / 2 + MARKER_GAP);
+    const invader = selectedInvaderRef.current;
+    if (!invader) return;
+    centerOnInvader(invader, height);
+  }
+
+  function selectInvader(invader: InvaderWithState) {
+    selectedInvaderRef.current = invader;
+    setSelectedInvader(invader);
   }
 
   function showToast() {
@@ -61,14 +67,14 @@ export default function MapScreen() {
     if (!user) return;
     const capture = await flashInvader(user.id, invader.id);
     setProgress((prev) => [...prev, capture]);
-    setSelectedInvader({ ...invader, isCaptured: true, capturedAt: capture.found_at, progressId: capture.id });
+    selectInvader({ ...invader, isCaptured: true, capturedAt: capture.found_at, progressId: capture.id });
   }
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
     await unflashInvader(invader.progressId);
     setProgress((prev) => prev.filter((p) => p.id !== invader.progressId));
-    setSelectedInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
+    selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
 
   return (
@@ -87,15 +93,19 @@ export default function MapScreen() {
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
-          <InvaderPopup
-            key={selectedInvader.id}
-            invader={selectedInvader}
-            onClose={() => setSelectedInvader(null)}
-            onFlash={handleFlash}
-            onUnflash={handleUnflash}
-            onHeightChange={handlePopupHeight}
-            onRequestSent={() => { setSelectedInvader(null); showToast(); }}
-          />
+          <View
+            pointerEvents="box-none"
+            onLayout={(e) => handlePopupHeight(e.nativeEvent.layout.height)}
+          >
+            <InvaderPopup
+              key={selectedInvader.id}
+              invader={selectedInvader}
+              onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); }}
+              onFlash={handleFlash}
+              onUnflash={handleUnflash}
+              onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); showToast(); }}
+            />
+          </View>
         </View>
       )}
 

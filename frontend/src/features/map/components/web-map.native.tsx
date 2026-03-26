@@ -1,40 +1,53 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, forwardRef, useImperativeHandle } from "react";
 import { StyleSheet } from "react-native";
 import { MapView, Camera, Images, ShapeSource, SymbolLayer, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef } from "@maplibre/maplibre-react-native";
-
-// Suppress noisy "Canceled" warnings from MapLibre — these are expected when the
-// map remounts (e.g. on theme change) and in-flight tile requests get canceled.
-Logger.setLogCallback((log) => {
-  if (log.tag === "Mbgl-HttpRequest" && log.message.startsWith("Request failed due to a permanent error: Canceled")) {
-    return true; // returning true prevents the default console output
-  }
-  return false;
-});
 import type { InvaderWithState } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 
 import markerCaptured   from '../../../../assets/images/marker-captured-bloom-x3.png';
 import markerUncaptured from '../../../../assets/images/marker-uncaptured-bloom-x2.png';
 
+// Suppress noisy "Canceled" warnings from MapLibre
+Logger.setLogCallback((log) => {
+  if (log.tag === "Mbgl-HttpRequest" && log.message.startsWith("Request failed due to a permanent error: Canceled")) {
+    return true;
+  }
+  return false;
+});
+
 const MAP_STYLES: Record<string, string> = {
   dark:  "https://tiles.openfreemap.org/styles/dark",
   light: "https://tiles.openfreemap.org/styles/liberty",
 };
 
-// iconSize = 1.0 means "display at the PNG's native pixel size"
-// BASE_ICON_SIZE is the scale for a size-12 marker (no points)
 const BASE_ICON_SIZE = 0.35;
+
+export type WebMapHandle = {
+  centerOn: (lat: number, lon: number, offsetY: number) => void;
+};
 
 type Props = {
   invaders: InvaderWithState[];
   onInvaderClick: (invader: InvaderWithState) => void;
 };
 
-export default function WebMap({ invaders, onInvaderClick }: Props) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick }, ref) {
   const cameraRef = useRef<CameraRef>(null);
   const { themeName } = useTheme();
   const mapStyle = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
+
+  useImperativeHandle(ref, () => ({
+    centerOn: (lat, lon, offsetY) => {
+      // paddingTop shifts the effective viewport center DOWN by offsetY pixels,
+      // placing the coordinate offsetY pixels below screen center (at the arrow tip).
+      cameraRef.current?.setCamera({
+        centerCoordinate: [lon, lat],
+        padding: { paddingTop: offsetY * 2.25, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
+        animationDuration: 350,
+      });
+    },
+  }));
 
   const geojson = useMemo(() => ({
     type: "FeatureCollection" as const,
@@ -62,10 +75,6 @@ export default function WebMap({ invaders, onInvaderClick }: Props) {
     if (!feature) return;
     const invader = invaders.find((i) => i.id === feature.properties?.id);
     if (!invader) return;
-    cameraRef.current?.setCamera({
-      centerCoordinate: [invader.longitude, invader.latitude],
-      animationDuration: 350,
-    });
     onInvaderClick(invader);
   };
 
@@ -95,7 +104,9 @@ export default function WebMap({ invaders, onInvaderClick }: Props) {
       </ShapeSource>
     </MapView>
   );
-}
+});
+
+export default WebMap;
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
