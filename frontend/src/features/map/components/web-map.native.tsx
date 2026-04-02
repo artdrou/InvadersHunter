@@ -19,6 +19,7 @@ Logger.setLogCallback((log) => {
 const MAP_STYLES: Record<string, string> = {
   dark:  "https://tiles.openfreemap.org/styles/dark",
   light: "https://tiles.openfreemap.org/styles/liberty",
+  blue:  "https://api.maptiler.com/maps/019d4e3d-65da-75e0-8ed5-e0c944618e3a/style.json?key=boZ0TjiM2vOJbp9YnFsp",
 };
 
 const BASE_ICON_SIZE = 0.35;

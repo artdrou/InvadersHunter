@@ -102,14 +102,35 @@ export const lightTheme: ThemeTokens = {
   success: Brand.cyan,
 };
 
+export const blueTheme: ThemeTokens = {
+  bg: '#0a0f1e',
+  bgElement: '#111827',
+  bgDivider: '#1e2a3a',
+  bgInputValid: '#0a2a1a',
+  bgInputInvalid: '#2a0a0a',
+
+  text: '#e8f0fe',
+  textMuted: '#5b7a9d',
+
+  border: '#1e3a5f',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: Brand.cyan,
+  danger: Brand.pink,
+  success: Brand.cyan,
+};
+
 export const themes = {
   dark: darkTheme,
   light: lightTheme,
+  blue: blueTheme,
 } as const;
 
 export const themeLabels: Record<ThemeName, string> = {
   dark: 'Dark',
   light: 'Light',
+  blue: 'Blue',
 };
 
 export type ThemeName = keyof typeof themes;
