@@ -53,7 +53,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const geojson = useMemo(() => ({
     type: "FeatureCollection" as const,
     features: invaders.map((invader) => {
-      const size = invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12;
+      const size = 0.5 * (invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12);
       const iconSize = (size / 12) * BASE_ICON_SIZE;
       return {
         type: "Feature" as const,
