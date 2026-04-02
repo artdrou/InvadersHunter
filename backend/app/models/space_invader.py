@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Date
 from ..database import Base
 
 class Invader(Base):
@@ -6,9 +6,12 @@ class Invader(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    city = Column(String, nullable=True)
+    number = Column(Integer, nullable=True)
     image_url = Column(String)
     description = Column(String)
     points = Column(Integer)
     state = Column(String)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    date_pose = Column(Date, nullable=True)

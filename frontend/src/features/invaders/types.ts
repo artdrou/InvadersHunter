@@ -3,10 +3,11 @@ export type Invader = {
   id: number;
   description: string;
   name: string;
-  state: string;
+  state: string | null;
   latitude: number;
   longitude: number;
-  points: number;
+  points: number | null;
+  date_pose: string | null;
 };
 
 export type Capture = {

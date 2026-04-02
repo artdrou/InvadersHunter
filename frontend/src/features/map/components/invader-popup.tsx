@@ -21,6 +21,7 @@ const STATE_OPTIONS = [
   "degraded",
   "badly degraded",
   "destroyed",
+  "not visible",
 ] as const;
 
 function formatDate(iso?: string) {
@@ -218,12 +219,17 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
 
         <View style={styles.row}>
           <Text style={styles.label}>Points</Text>
-          <Text style={styles.value}>{invader.points}</Text>
+          <Text style={styles.value}>{invader.points ?? "--"}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Added</Text>
-          <Text style={styles.value}>--</Text>
+          <Text style={styles.label}>State</Text>
+          <Text style={styles.value}>{invader.state ?? "--"}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Posed</Text>
+          <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
         </View>
 
         <View style={styles.row}>

@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# invader assets
+assets/images/invaders/
+assets/migration/
