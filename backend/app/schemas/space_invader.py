@@ -33,6 +33,7 @@ class InvaderOut(BaseModel):
     name: str
     city: Optional[str] = None
     number: Optional[int] = None
+    image_url: Optional[str] = None
     description: Optional[str] = None
     points: Optional[int] = None
     state: Optional[str] = None

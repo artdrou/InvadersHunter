@@ -8,6 +8,7 @@ export type Invader = {
   longitude: number;
   points: number | null;
   date_pose: string | null;
+  image_url: string | null;
 };
 
 export type Capture = {

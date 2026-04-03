@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from "react-native";
+import { Image } from "expo-image";
 import type { InvaderWithState } from "@/features/invaders";
 import { submitModifyRequest, hasPendingModifyRequest } from "@/features/invaders/services/invaders.api";
 import { useTheme } from "@/contexts/theme-context";
@@ -215,6 +216,14 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
           </Pressable>
         </View>
 
+        {invader.image_url && (
+          <Image
+            source={invader.image_url}
+            style={styles.image}
+            contentFit="contain"
+          />
+        )}
+
         <View style={styles.divider} />
 
         <View style={styles.row}>
@@ -321,6 +330,11 @@ function makeStyles(t: ThemeTokens) {
     value: {
       color: t.text,
       fontSize: 15,
+    },
+    image: {
+      width: "100%",
+      aspectRatio: 1,
+      borderRadius: BorderRadius.sm,
     },
     flashedDate: {
       color: t.success,
