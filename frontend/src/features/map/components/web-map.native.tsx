@@ -48,7 +48,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   }));
 
   return (
-    <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle}>
+    <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
       <Camera
         ref={cameraRef}
         zoomLevel={12}
