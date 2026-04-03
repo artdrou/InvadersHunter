@@ -2,6 +2,7 @@ import { ShapeSource, CircleLayer, SymbolLayer } from "@maplibre/maplibre-react-
 import type { CameraRef } from "@maplibre/maplibre-react-native";
 import type { RefObject } from "react";
 import type { InvaderWithState } from "@/features/invaders";
+import { MARKER_LAYER_STYLE, MARKER_LAYER_FILTER } from "./invader-markers";
 
 // Tune these to control clustering behaviour:
 const CLUSTER_RADIUS        = 50;  // px radius to merge nearby points into a cluster
@@ -71,16 +72,10 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
         }}
       />
 
-      {/* Individual markers */}
       <SymbolLayer
         id="invader-markers"
-        filter={["!", ["has", "point_count"]]}
-        style={{
-          iconImage: ["case", ["==", ["get", "captured"], 1], "marker-captured", "marker-uncaptured"],
-          iconSize: ["get", "iconSize"],
-          iconAllowOverlap: true,
-          iconIgnorePlacement: true,
-        }}
+        filter={MARKER_LAYER_FILTER}
+        style={MARKER_LAYER_STYLE}
       />
     </ShapeSource>
   );

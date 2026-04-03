@@ -6,9 +6,7 @@ import type { InvaderWithState } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import { useInvaderGeojson } from "../hooks/use-invader-geojson";
 import { InvaderClusterSource } from "./invader-cluster-source";
-
-import markerCaptured   from '../../../../assets/images/marker-captured-bloom-x3.png';
-import markerUncaptured from '../../../../assets/images/marker-uncaptured-bloom-x2.png';
+import { MARKER_IMAGES } from "./invader-markers";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -56,12 +54,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
         zoomLevel={12}
         centerCoordinate={[2.3522, 48.8566]}
       />
-      <Images
-        images={{
-          'marker-captured':   markerCaptured,
-          'marker-uncaptured': markerUncaptured,
-        }}
-      />
+      <Images images={MARKER_IMAGES} />
       <InvaderClusterSource
         geojson={geojson}
         invaders={invaders}
