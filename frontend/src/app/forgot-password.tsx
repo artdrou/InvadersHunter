@@ -3,14 +3,14 @@ import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 
 import { useRouter } from 'expo-router';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
 type Step = 'request' | 'verify' | 'new-password';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   const [step, setStep] = useState<Step>('request');
   const [username, setUsername] = useState('');
@@ -168,7 +168,8 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -179,14 +180,15 @@ function makeStyles(t: ThemeTokens) {
     },
     title: {
       color: t.accent,
-      fontSize: FontSize.xl,
-      fontWeight: 'bold',
+      fontSize: sz(FontSize.xl),
+      fontFamily: font,
       marginBottom: 48,
       letterSpacing: 2,
     },
     subtitle: {
       color: t.text,
-      fontSize: FontSize.md,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
       marginBottom: Spacing.two,
     },
     form: {
@@ -202,7 +204,8 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
       paddingVertical: 12,
       paddingHorizontal: Spacing.three,
-      fontSize: FontSize.md,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
     },
     inputValid: {
       backgroundColor: t.bgInputValid,
@@ -214,7 +217,8 @@ function makeStyles(t: ThemeTokens) {
     },
     error: {
       color: t.danger,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
       textAlign: 'center',
     },
     button: {
@@ -229,7 +233,7 @@ function makeStyles(t: ThemeTokens) {
     },
     buttonText: {
       color: t.bg,
-      fontWeight: 'bold',
+      fontFamily: ButtonFont,
       fontSize: FontSize.md,
     },
     backLink: {
@@ -237,7 +241,8 @@ function makeStyles(t: ThemeTokens) {
     },
     backText: {
       color: t.textMuted,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
     },
   });
 }

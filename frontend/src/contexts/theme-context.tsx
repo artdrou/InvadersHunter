@@ -1,26 +1,18 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { themes, type ThemeName, type ThemeTokens } from '@/constants/theme';
+import { themes, type ThemeName, type ThemeTokens, AppFont, AppFontScale } from '@/constants/theme';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const STORAGE_KEY = 'app-theme';
+const THEME_KEY = 'app-theme';
 
 function loadTheme(): ThemeName {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(THEME_KEY);
     if (stored && stored in themes) return stored as ThemeName;
-  } catch {
-    // localStorage not available (native)
-  }
+  } catch {}
   return 'dark';
 }
 
 function saveTheme(name: ThemeName) {
-  try {
-    localStorage.setItem(STORAGE_KEY, name);
-  } catch {
-    // localStorage not available (native)
-  }
+  try { localStorage.setItem(THEME_KEY, name); } catch {}
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -29,6 +21,8 @@ type ThemeContextValue = {
   theme: ThemeTokens;
   themeName: ThemeName;
   setTheme: (name: ThemeName) => void;
+  appFont: string;
+  fontScale: number;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -44,7 +38,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = themes[themeName];
 
   return (
-    <ThemeContext.Provider value={{ theme, themeName, setTheme }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, appFont: AppFont, fontScale: AppFontScale }}>
       {children}
     </ThemeContext.Provider>
   );

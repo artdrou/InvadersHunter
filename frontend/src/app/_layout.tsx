@@ -1,7 +1,11 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const token = useAuthStore((s) => s.token);
@@ -9,8 +13,21 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
 
+  const [fontsLoaded] = useFonts({
+    Pix32:      require('../../assets/fonts/Pix32/Pix32.ttf'),
+    Pixeled:    require('../../assets/fonts/pixeled/Pixeled.ttf'),
+    Dogica:     require('../../assets/fonts/dogica/TTF/dogica.ttf'),
+    Pixelmania: require('../../assets/fonts/pixelmania/Pixelmania.ttf'),
+    Pixelmix:   require('../../assets/fonts/pixelmix/pixelmix.ttf'),
+    Pixelade:   require('../../assets/fonts/pixelade/pixelade.ttf'),
+  });
+
   useEffect(() => {
-    if (!hasHydrated) return; // wait for AsyncStorage to load before redirecting
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
     const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password';
     if (!token && !inPublicScreen) {
       router.replace('/login');
@@ -18,6 +35,8 @@ export default function RootLayout() {
       router.replace('/(tabs)/map');
     }
   }, [token, segments, hasHydrated]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <ThemeProvider>

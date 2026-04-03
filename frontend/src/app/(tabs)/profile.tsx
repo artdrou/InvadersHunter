@@ -2,13 +2,13 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore, logoutUser } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
-  const { theme, themeName, setTheme } = useTheme();
-  const styles = makeStyles(theme);
+  const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   async function handleLogout() {
     const refreshToken = useAuthStore.getState().refreshToken;
@@ -55,7 +55,8 @@ export default function ProfileScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -72,8 +73,8 @@ function makeStyles(t: ThemeTokens) {
     },
     sectionLabel: {
       color: t.textMuted,
-      fontSize: FontSize.sm,
-      fontWeight: 'bold',
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
       letterSpacing: 1,
       textTransform: 'uppercase',
     },
@@ -100,10 +101,11 @@ function makeStyles(t: ThemeTokens) {
     themeOptionText: {
       color: t.textMuted,
       fontSize: FontSize.sm,
-      fontWeight: 'bold',
+      fontFamily: ButtonFont,
     },
     themeOptionTextActive: {
       color: t.accent,
+      fontFamily: ButtonFont,
     },
     divider: {
       width: '100%',
@@ -123,7 +125,7 @@ function makeStyles(t: ThemeTokens) {
     },
     logoutButtonText: {
       color: t.danger,
-      fontWeight: 'bold',
+      fontFamily: ButtonFont,
       fontSize: FontSize.md,
     },
   });

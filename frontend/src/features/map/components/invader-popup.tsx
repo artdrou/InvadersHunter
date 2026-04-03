@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import type { InvaderWithState } from "@/features/invaders";
 import { submitModifyRequest, hasPendingModifyRequest } from "@/features/invaders/services/invaders.api";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 type Props = {
   invader: InvaderWithState;
@@ -41,8 +41,8 @@ function parseName(raw: string): { city: string; num: string } {
 }
 
 export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightChange, onRequestSent }: Props) {
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [submitting, setSubmitting] = useState(false);
@@ -277,7 +277,8 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
   );
 }
 
-function makeStyles(t: ThemeTokens) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     scrollHandle: {
       width: 36,
@@ -302,8 +303,8 @@ function makeStyles(t: ThemeTokens) {
     },
     name: {
       color: t.accent,
-      fontSize: FontSize.lg,
-      fontWeight: "bold",
+      fontSize: sz(FontSize.lg),
+      fontFamily: font,
       letterSpacing: 1,
       flexShrink: 1,
     },
@@ -313,6 +314,7 @@ function makeStyles(t: ThemeTokens) {
     closeText: {
       color: t.textMuted,
       fontSize: FontSize.md,
+      fontFamily: font,
     },
     divider: {
       height: 1,
@@ -325,11 +327,13 @@ function makeStyles(t: ThemeTokens) {
     },
     label: {
       color: t.textMuted,
-      fontSize: 15,
+      fontSize: sz(15),
+      fontFamily: font,
     },
     value: {
       color: t.text,
-      fontSize: 15,
+      fontSize: sz(15),
+      fontFamily: font,
     },
     image: {
       width: "100%",
@@ -357,7 +361,7 @@ function makeStyles(t: ThemeTokens) {
       opacity: 0.7,
     },
     flashBtnText: {
-      fontWeight: "bold",
+      fontFamily: ButtonFont,
       fontSize: 15,
       color: t.bg,
     },
@@ -374,7 +378,7 @@ function makeStyles(t: ThemeTokens) {
     modifyBtnText: {
       color: t.textMuted,
       fontSize: 14,
-      fontWeight: "600",
+      fontFamily: ButtonFont,
     },
     modifyBtnDisabled: {
       borderColor: t.bgDivider,
@@ -389,7 +393,8 @@ function makeStyles(t: ThemeTokens) {
     },
     fieldLabel: {
       color: t.textMuted,
-      fontSize: 12,
+      fontSize: sz(12),
+      fontFamily: font,
       marginBottom: 4,
       marginTop: Spacing.two,
     },
@@ -401,7 +406,8 @@ function makeStyles(t: ThemeTokens) {
       color: t.text,
       paddingHorizontal: Spacing.two,
       paddingVertical: 8,
-      fontSize: 14,
+      fontSize: sz(14),
+      fontFamily: font,
     },
     inputError: {
       borderColor: t.danger,
@@ -419,8 +425,8 @@ function makeStyles(t: ThemeTokens) {
     },
     nameSep: {
       color: t.textMuted,
-      fontSize: 18,
-      fontWeight: "bold",
+      fontSize: sz(18),
+      fontFamily: font,
     },
     nameNum: {
       width: 90,
@@ -444,10 +450,11 @@ function makeStyles(t: ThemeTokens) {
     pillText: {
       color: t.textMuted,
       fontSize: 12,
-      fontWeight: "600",
+      fontFamily: ButtonFont,
     },
     pillTextSelected: {
       color: t.bg,
+      fontFamily: ButtonFont,
     },
     stateGrid: {
       gap: 5,
@@ -473,11 +480,12 @@ function makeStyles(t: ThemeTokens) {
     stateOptionText: {
       color: t.textMuted,
       fontSize: 13,
+      fontFamily: ButtonFont,
       textTransform: "capitalize",
     },
     stateOptionTextSelected: {
       color: t.accent,
-      fontWeight: "600",
+      fontFamily: ButtonFont,
     },
     cancelBtn: {
       alignItems: "center",
@@ -486,6 +494,7 @@ function makeStyles(t: ThemeTokens) {
     cancelBtnText: {
       color: t.textMuted,
       fontSize: 14,
+      fontFamily: ButtonFont,
     },
     arrow: {
       alignSelf: "center",

@@ -3,7 +3,7 @@ import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 
 import { useRouter } from 'expo-router';
 import { useAuthStore, loginUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, TitleFont, ButtonFont } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -12,8 +12,8 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   async function handleLogin() {
     if (!username || !password) return;
@@ -31,7 +31,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Invaders Hunter</Text>
+      <Text style={styles.title}>INVADERS HUNTER</Text>
 
       <View style={styles.form}>
         <TextInput
@@ -76,7 +76,8 @@ export default function LoginScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -87,10 +88,11 @@ function makeStyles(t: ThemeTokens) {
     },
     title: {
       color: t.accent,
-      fontSize: FontSize.xl,
-      fontWeight: 'bold',
+      fontSize: sz(FontSize.xl),
+      fontFamily: TitleFont,
       marginBottom: 48,
       letterSpacing: 2,
+      textAlign: 'center',
     },
     form: {
       width: '100%',
@@ -105,11 +107,13 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
       paddingVertical: 12,
       paddingHorizontal: Spacing.three,
-      fontSize: FontSize.md,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
     },
     error: {
       color: t.danger,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
       textAlign: 'center',
     },
     button: {
@@ -124,7 +128,7 @@ function makeStyles(t: ThemeTokens) {
     },
     buttonText: {
       color: t.bg,
-      fontWeight: 'bold',
+      fontFamily: ButtonFont,
       fontSize: FontSize.md,
     },
     registerLink: {
@@ -132,10 +136,12 @@ function makeStyles(t: ThemeTokens) {
     },
     registerText: {
       color: t.textMuted,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
     },
     registerHighlight: {
       color: t.accent,
+      fontFamily: font,
     },
   });
 }

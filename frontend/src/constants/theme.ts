@@ -160,6 +160,18 @@ export const Spacing = {
   six: 64,
 } as const;
 
+// ─── App fonts ────────────────────────────────────────────────────────────────
+
+/** Main text font (labels, values, titles). */
+export const AppFont = 'Pixelmix';
+export const AppFontScale = 0.9;
+
+/** Font for interactive controls (buttons, pills, selectors). */
+export const ButtonFont = 'Dogica';
+
+/** Used exclusively for the app title on the login screen. */
+export const TitleFont = 'Pixelmania';
+
 // ─── Misc ─────────────────────────────────────────────────────────────────────
 
 export const Fonts = Platform.select({

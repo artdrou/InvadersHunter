@@ -3,7 +3,7 @@ import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 
 import { useRouter } from 'expo-router';
 import { useAuthStore, registerUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
@@ -13,8 +13,8 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   async function handleRegister() {
     if (!username || !email || !password) return;
@@ -83,7 +83,8 @@ export default function RegisterScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -94,8 +95,8 @@ function makeStyles(t: ThemeTokens) {
     },
     title: {
       color: t.accent,
-      fontSize: FontSize.xl,
-      fontWeight: 'bold',
+      fontSize: sz(FontSize.xl),
+      fontFamily: font,
       marginBottom: 48,
       letterSpacing: 2,
     },
@@ -112,11 +113,13 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
       paddingVertical: 12,
       paddingHorizontal: Spacing.three,
-      fontSize: FontSize.md,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
     },
     error: {
       color: t.danger,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
       textAlign: 'center',
     },
     button: {
@@ -131,7 +134,7 @@ function makeStyles(t: ThemeTokens) {
     },
     buttonText: {
       color: t.bg,
-      fontWeight: 'bold',
+      fontFamily: ButtonFont,
       fontSize: FontSize.md,
     },
     loginLink: {
@@ -139,10 +142,12 @@ function makeStyles(t: ThemeTokens) {
     },
     loginText: {
       color: t.textMuted,
-      fontSize: FontSize.sm,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
     },
     loginHighlight: {
       color: t.accent,
+      fontFamily: font,
     },
   });
 }
