@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text } from "react-native";
-import { WebMap, InvaderPopup } from "@/features/map";
+import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER } from "@/features/map";
+import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
 import { fetchInvaders, fetchProgress, flashInvader, unflashInvader, mapInvadersWithProgress } from "@/features/invaders";
 import type { Invader, Capture, InvaderWithState } from "@/features/invaders";
@@ -10,6 +11,7 @@ export default function MapScreen() {
   const [invaders, setInvaders] = useState<Invader[]>([]);
   const [progress, setProgress] = useState<Capture[]>([]);
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
+  const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const user = useAuthStore((s) => s.user);
   const mapRef = useRef<WebMapHandle>(null);
   const popupHeightRef = useRef<number>(0);
@@ -29,6 +31,7 @@ export default function MapScreen() {
   }, [user]);
 
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
+  const filteredInvaders = applyMapFilter(invadersWithState, filter);
 
   function centerOnInvader(invader: InvaderWithState, height: number) {
     mapRef.current?.centerOn(invader.latitude, invader.longitude, height / 2);
@@ -79,17 +82,11 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      {/* TODO: remove — dev only */}
-      {user && (
-        <Text style={styles.debug}>
-          [DEV]{'\n'}
-          user: {user.username} (id: {user.id}){'\n'}
-          invaders: {invadersWithState.length}{'\n'}
-          captured: {invadersWithState.filter(i => i.isCaptured).length}
-        </Text>
-      )}
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} />
 
-      <WebMap ref={mapRef} invaders={invadersWithState} onInvaderClick={handleInvaderClick} />
+      <View style={styles.filterBar}>
+        <MapFilterBar value={filter} onChange={setFilter} />
+      </View>
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
@@ -120,14 +117,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  debug: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    zIndex: 10,
-    backgroundColor: "white",
-    padding: 8,
-  },
   popupWrapper: {
     position: "absolute",
     top: 0,
@@ -136,6 +125,12 @@ const styles = StyleSheet.create({
     right: 0,
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 10,
+  },
+  filterBar: {
+    position: "absolute",
+    bottom: 40,
+    left: 16,
     zIndex: 10,
   },
   toast: {

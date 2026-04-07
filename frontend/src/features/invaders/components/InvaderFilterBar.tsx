@@ -1,0 +1,93 @@
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useTheme } from "@/contexts/theme-context";
+import { BorderRadius, Spacing } from "@/constants/theme";
+import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map";
+
+const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
+  { key: "all",       label: "All" },
+  { key: "flashed",   label: "Flashed" },
+  { key: "unflashed", label: "Unflashed" },
+];
+
+const CONDITION_OPTIONS: { key: FlashableFilter; label: string }[] = [
+  { key: "any",          label: "Any" },
+  { key: "flashable",    label: "Flashable" },
+  { key: "unflashable",  label: "Unflashable" },
+];
+
+type Props = {
+  filter: MapFilter;
+  onChange: (f: MapFilter) => void;
+};
+
+export function InvaderFilterBar({ filter, onChange }: Props) {
+  const { theme, appFont, fontScale } = useTheme();
+  const sz = (n: number) => Math.round(n * fontScale);
+
+  return (
+    <View style={[styles.bar, { backgroundColor: theme.bg, borderBottomColor: theme.bgDivider }]}>
+      <PillRow
+        options={STATUS_OPTIONS}
+        selected={filter.status}
+        onSelect={(key) => onChange({ ...filter, status: key as FlashStatusFilter })}
+        sz={sz}
+      />
+      <PillRow
+        options={CONDITION_OPTIONS}
+        selected={filter.flashable}
+        onSelect={(key) => onChange({ ...filter, flashable: key as FlashableFilter })}
+        sz={sz}
+      />
+    </View>
+  );
+}
+
+// ─── internal helper ─────────────────────────────────────────────────────────
+
+function PillRow({ options, selected, onSelect, sz }: {
+  options: { key: string; label: string }[];
+  selected: string;
+  onSelect: (key: string) => void;
+  sz: (n: number) => number;
+}) {
+  const { theme, appFont } = useTheme();
+  return (
+    <View style={styles.row}>
+      {options.map((o) => {
+        const active = selected === o.key;
+        return (
+          <Pressable
+            key={o.key}
+            style={[styles.pill, { borderColor: active ? theme.accent : theme.border, backgroundColor: active ? theme.accent : "transparent" }]}
+            onPress={() => onSelect(o.key)}
+          >
+            <Text style={[styles.pillText, { color: active ? theme.bg : theme.textMuted, fontFamily: appFont, fontSize: sz(11) }]}>
+              {o.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bar: {
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.two,
+    borderBottomWidth: 1,
+    gap: Spacing.one,
+  },
+  row: {
+    flexDirection: "row",
+    gap: Spacing.one,
+    marginTop: Spacing.one,
+  },
+  pill: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  pillText: {},
+});

@@ -6,6 +6,7 @@ import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, Border
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
+  const user   = useAuthStore((s) => s.user);
   const router = useRouter();
   const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
@@ -21,6 +22,10 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      {user && (
+        <Text style={styles.username}>{user.username}</Text>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Theme</Text>
         <View style={styles.themeRow}>
@@ -65,6 +70,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
       gap: Spacing.four,
       padding: Spacing.five,
+    },
+    username: {
+      color: t.accent,
+      fontSize: sz(FontSize.xl),
+      fontFamily: font,
+      letterSpacing: 2,
     },
     section: {
       width: '100%',

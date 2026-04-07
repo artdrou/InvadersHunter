@@ -1,9 +1,22 @@
 
+export const InvaderState = {
+  Pristine:        "pristine",
+  SlightlyDegraded: "slightly degraded",
+  Degraded:        "degraded",
+  BadlyDegraded:   "badly degraded",
+  Destroyed:       "destroyed",
+  NotVisible:      "not visible",
+} as const;
+
+export type InvaderState = typeof InvaderState[keyof typeof InvaderState];
+
+export const NON_FLASHABLE_STATES: InvaderState[] = [InvaderState.Destroyed, InvaderState.NotVisible];
+
 export type Invader = {
   id: number;
   description: string;
   name: string;
-  state: string | null;
+  state: InvaderState | null;
   latitude: number;
   longitude: number;
   points: number | null;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from "react-native";
 import { Image } from "expo-image";
+import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { submitModifyRequest, hasPendingModifyRequest } from "@/features/invaders/services/invaders.api";
 import { useTheme } from "@/contexts/theme-context";
@@ -17,12 +18,12 @@ type Props = {
 
 const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 const STATE_OPTIONS = [
-  "pristine",
-  "slightly degraded",
-  "degraded",
-  "badly degraded",
-  "destroyed",
-  "not visible",
+  InvaderState.Pristine,
+  InvaderState.SlightlyDegraded,
+  InvaderState.Degraded,
+  InvaderState.BadlyDegraded,
+  InvaderState.Destroyed,
+  InvaderState.NotVisible,
 ] as const;
 
 function formatDate(iso?: string) {

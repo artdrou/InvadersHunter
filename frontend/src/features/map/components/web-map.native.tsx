@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle } from "react";
+import { useRef, forwardRef, useImperativeHandle, useEffect, memo } from "react";
 import { StyleSheet } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef } from "@maplibre/maplibre-react-native";
@@ -26,6 +26,19 @@ export type WebMapHandle = {
   centerOn: (lat: number, lon: number, offsetY: number) => void;
 };
 
+// Memoized so it never re-renders — prevents Camera from resetting on parent state changes
+const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: React.RefObject<CameraRef | null> }) {
+  useEffect(() => {
+    cameraRef.current?.setCamera({
+      centerCoordinate: [2.3522, 48.8566],
+      zoomLevel: 12,
+      animationDuration: 0,
+    });
+  }, []);
+
+  return <Camera ref={cameraRef} />;
+});
+
 type Props = {
   invaders: InvaderWithState[];
   onInvaderClick: (invader: InvaderWithState) => void;
@@ -49,11 +62,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
 
   return (
     <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
-      <Camera
-        ref={cameraRef}
-        zoomLevel={12}
-        centerCoordinate={[2.3522, 48.8566]}
-      />
+      <StableCamera cameraRef={cameraRef} />
       <Images images={MARKER_IMAGES} />
       <InvaderClusterSource
         geojson={geojson}
