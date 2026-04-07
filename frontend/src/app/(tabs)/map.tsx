@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, View, StyleSheet, Text } from "react-native";
+import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
@@ -12,6 +12,7 @@ export default function MapScreen() {
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
+  const [isFollowing, setIsFollowing] = useState(false);
   const user = useAuthStore((s) => s.user);
   const mapRef = useRef<WebMapHandle>(null);
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
@@ -98,11 +99,20 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} />
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} isFollowing={isFollowing} />
 
       <View style={styles.filterBar}>
         <MapFilterBar value={filter} onChange={setFilter} />
       </View>
+
+      <TouchableOpacity
+        style={[styles.locateButton, isFollowing && styles.locateButtonActive]}
+        onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
+        onLongPress={() => setIsFollowing(true)}
+        delayLongPress={400}
+      >
+        <Text style={styles.locateButtonText}>⊙</Text>
+      </TouchableOpacity>
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
@@ -184,5 +194,24 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  locateButton: {
+    position: "absolute",
+    bottom: 32,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#4a90e2",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  locateButtonText: {
+    color: "#ffffff",
+    fontSize: 22,
+  },
+  locateButtonActive: {
+    backgroundColor: "#ff6b00",
   },
 });

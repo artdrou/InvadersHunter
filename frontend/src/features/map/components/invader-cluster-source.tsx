@@ -6,7 +6,7 @@ import { MARKER_LAYER_STYLE, MARKER_LAYER_FILTER } from "./invader-markers";
 
 // Tune these to control clustering behaviour:
 const CLUSTER_RADIUS        = 50;  // px radius to merge nearby points into a cluster
-const CLUSTER_MAX_ZOOM      = 12;  // zoom level above which all markers appear individually
+const CLUSTER_MAX_ZOOM      = 10;  // zoom level above which all markers appear individually
 
 type Props = {
   geojson: GeoJSON.FeatureCollection;

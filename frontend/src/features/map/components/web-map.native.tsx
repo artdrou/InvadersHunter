@@ -1,11 +1,14 @@
-import { useRef, forwardRef, useImperativeHandle, useEffect, memo } from "react";
+import { useRef, useEffect, forwardRef, useImperativeHandle, memo } from "react";
+import type { RefObject } from "react";
 import { StyleSheet } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef } from "@maplibre/maplibre-react-native";
 import type { InvaderWithState } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import { useInvaderGeojson } from "../hooks/use-invader-geojson";
+import { useUserLocation } from "../hooks/use-user-location";
 import { InvaderClusterSource } from "./invader-cluster-source";
+import { UserLocationLayer } from "./user-location-layer";
 import { MARKER_IMAGES } from "./invader-markers";
 
 // Suppress noisy "Canceled" warnings from MapLibre
@@ -22,12 +25,7 @@ const MAP_STYLES: Record<string, string> = {
   blue:  "https://api.maptiler.com/maps/019d4e3d-65da-75e0-8ed5-e0c944618e3a/style.json?key=boZ0TjiM2vOJbp9YnFsp",
 };
 
-export type WebMapHandle = {
-  centerOn: (lat: number, lon: number, offsetY: number, zoomLevel?: number) => void;
-};
-
-// Memoized so it never re-renders — prevents Camera from resetting on parent state changes
-const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: React.RefObject<CameraRef | null> }) {
+const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefObject<CameraRef | null> }) {
   useEffect(() => {
     cameraRef.current?.setCamera({
       centerCoordinate: [2.3522, 48.8566],
@@ -39,16 +37,52 @@ const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: Reac
   return <Camera ref={cameraRef} />;
 });
 
+export type WebMapHandle = {
+  centerOn: (lat: number, lon: number, offsetY: number, zoomLevel?: number) => void;
+  centerOnUser: () => void;
+};
+
 type Props = {
   invaders: InvaderWithState[];
   onInvaderClick: (invader: InvaderWithState) => void;
+  isFollowing?: boolean;
+  headingAlpha?: number;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick }, ref) {
-  const cameraRef = useRef<CameraRef>(null);
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, isFollowing = false, headingAlpha }, ref) {
+  const cameraRef     = useRef<CameraRef>(null);
+  const userCoordsRef = useRef<[number, number] | null>(null);
   const { themeName } = useTheme();
-  const mapStyle = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
-  const geojson = useInvaderGeojson(invaders);
+  const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
+  const geojson       = useInvaderGeojson(invaders);
+  const userLocation  = useUserLocation(headingAlpha);
+
+  userCoordsRef.current = userLocation?.coords ?? null;
+
+  // Follow mode: update camera every 300ms toward user position
+  useEffect(() => {
+    if (!isFollowing) {
+      cameraRef.current?.setCamera({});
+      return;
+    }
+
+    // Center immediately on enable
+    if (userCoordsRef.current) {
+      const [lon, lat] = userCoordsRef.current;
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 300 });
+    }
+
+    const interval = setInterval(() => {
+      if (!userCoordsRef.current) return;
+      const [lon, lat] = userCoordsRef.current;
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 300 });
+    }, 300);
+
+    return () => {
+      clearInterval(interval);
+      cameraRef.current?.setCamera({});
+    };
+  }, [isFollowing]);
 
   useImperativeHandle(ref, () => ({
     centerOn: (lat, lon, offsetY, zoomLevel) => {
@@ -58,12 +92,20 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
         padding: { paddingTop: offsetY * 2.25, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
         animationDuration: 350,
       });
+      setTimeout(() => cameraRef.current?.setCamera({}), 450);
     },
-  }));
+    centerOnUser: () => {
+      if (!userCoordsRef.current) return;
+      const [lon, lat] = userCoordsRef.current;
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 350 });
+      setTimeout(() => cameraRef.current?.setCamera({}), 450);
+    },
+  }), []);
 
   return (
     <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
       <StableCamera cameraRef={cameraRef} />
+      {userLocation && <UserLocationLayer location={userLocation} />}
       <Images images={MARKER_IMAGES} />
       <InvaderClusterSource
         geojson={geojson}

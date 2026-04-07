@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 
-const BASE_ICON_SIZE = 0.35;
+const BASE_ICON_SIZE = 0.25;
 
 export function useInvaderGeojson(invaders: InvaderWithState[]) {
   return useMemo(() => ({
