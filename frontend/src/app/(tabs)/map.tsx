@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text } from "react-native";
-import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER } from "@/features/map";
+import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
 import { fetchInvaders, fetchProgress, flashInvader, unflashInvader, mapInvadersWithProgress } from "@/features/invaders";
@@ -14,11 +14,14 @@ export default function MapScreen() {
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const user = useAuthStore((s) => s.user);
   const mapRef = useRef<WebMapHandle>(null);
+  const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
+  const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
   // Ref so handlePopupHeight always sees the latest invader (avoids stale closure)
   const selectedInvaderRef = useRef<InvaderWithState | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingZoomRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!user) return;
@@ -33,8 +36,20 @@ export default function MapScreen() {
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
   const filteredInvaders = applyMapFilter(invadersWithState, filter);
 
-  function centerOnInvader(invader: InvaderWithState, height: number) {
-    mapRef.current?.centerOn(invader.latitude, invader.longitude, height / 2);
+  // Handle "Localiser" from the invaders tab
+  useEffect(() => {
+    if (!pendingInvaderId) return;
+    if (invadersWithState.length === 0) return;
+    const inv = invadersWithState.find((i) => i.id === pendingInvaderId);
+    if (!inv) return;
+    setPendingInvader(null);
+    pendingZoomRef.current = 17;
+    selectInvader(inv);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInvaderId, invaders]);
+
+  function centerOnInvader(invader: InvaderWithState, height: number, zoomLevel?: number) {
+    mapRef.current?.centerOn(invader.latitude, invader.longitude, height / 2, zoomLevel);
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
@@ -46,7 +61,9 @@ export default function MapScreen() {
     popupHeightRef.current = height;
     const invader = selectedInvaderRef.current;
     if (!invader) return;
-    centerOnInvader(invader, height);
+    const zoom = pendingZoomRef.current;
+    pendingZoomRef.current = undefined;
+    centerOnInvader(invader, height, zoom);
   }
 
   function selectInvader(invader: InvaderWithState) {

@@ -23,7 +23,7 @@ const MAP_STYLES: Record<string, string> = {
 };
 
 export type WebMapHandle = {
-  centerOn: (lat: number, lon: number, offsetY: number) => void;
+  centerOn: (lat: number, lon: number, offsetY: number, zoomLevel?: number) => void;
 };
 
 // Memoized so it never re-renders — prevents Camera from resetting on parent state changes
@@ -51,9 +51,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const geojson = useInvaderGeojson(invaders);
 
   useImperativeHandle(ref, () => ({
-    centerOn: (lat, lon, offsetY) => {
+    centerOn: (lat, lon, offsetY, zoomLevel) => {
       cameraRef.current?.setCamera({
         centerCoordinate: [lon, lat],
+        ...(zoomLevel !== undefined && { zoomLevel }),
         padding: { paddingTop: offsetY * 2.25, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
         animationDuration: 350,
       });

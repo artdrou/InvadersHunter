@@ -9,10 +9,11 @@ type Props = {
   invader: InvaderWithState;
   onFlash: (inv: InvaderWithState) => void;
   onUnflash: (inv: InvaderWithState) => void;
+  onLocate?: (inv: InvaderWithState) => void;
   containerStyle?: object;
 };
 
-export function InvaderInfoPanel({ invader, onFlash, onUnflash, containerStyle }: Props) {
+export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
 
@@ -36,20 +37,39 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, containerStyle }
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
-      <Pressable
-        style={({ pressed }) => [
-          styles.actionBtn,
-          invader.isCaptured
-            ? { borderWidth: 1, borderColor: theme.danger, backgroundColor: "transparent" }
-            : { backgroundColor: theme.accent },
-          pressed && styles.btnPressed,
-        ]}
-        onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
-      >
-        <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: appFont, fontSize: sz(13) }]}>
-          {invader.isCaptured ? "Unflash" : "Flash"}
-        </Text>
-      </Pressable>
+      <View style={styles.btnRow}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.actionBtn,
+            styles.btnFlex,
+            invader.isCaptured
+              ? { borderWidth: 1, borderColor: theme.danger, backgroundColor: "transparent" }
+              : { backgroundColor: theme.accent },
+            pressed && styles.btnPressed,
+          ]}
+          onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
+        >
+          <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: appFont, fontSize: sz(13) }]}>
+            {invader.isCaptured ? "Unflash" : "Flash"}
+          </Text>
+        </Pressable>
+
+        {onLocate && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionBtn,
+              styles.btnFlex,
+              { borderWidth: 1, borderColor: theme.accent, backgroundColor: "transparent" },
+              pressed && styles.btnPressed,
+            ]}
+            onPress={() => onLocate(invader)}
+          >
+            <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: appFont, fontSize: sz(13) }]}>
+              Localiser
+            </Text>
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }
@@ -84,11 +104,18 @@ const styles = StyleSheet.create({
   },
   infoLabel: {},
   infoValue: {},
+  btnRow: {
+    flexDirection: "row",
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  btnFlex: {
+    flex: 1,
+  },
   actionBtn: {
     borderRadius: BorderRadius.sm,
     paddingVertical: 12,
     alignItems: "center",
-    marginTop: Spacing.one,
   },
   actionBtnText: {},
   btnPressed: { opacity: 0.7 },

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { useRouter } from "expo-router";
 import {
   fetchInvaders, fetchProgress, flashInvader, unflashInvader,
   mapInvadersWithProgress, groupByCity,
@@ -7,7 +8,7 @@ import {
   InvaderSearchBar, InvaderFilterBar,
 } from "@/features/invaders";
 import type { Invader, Capture, InvaderWithState } from "@/features/invaders";
-import { applyMapFilter, DEFAULT_FILTER } from "@/features/map";
+import { applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
@@ -29,6 +30,8 @@ export default function InvadersScreen() {
   const user = useAuthStore((s) => s.user);
   const { theme } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
+  const router = useRouter();
+  const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
 
   useEffect(() => {
     if (!user) return;
@@ -84,6 +87,11 @@ export default function InvadersScreen() {
     setProgress((prev) => prev.filter((p) => p.id !== invader.progressId));
   }
 
+  function handleLocate(invader: InvaderWithState) {
+    setPendingInvader(invader.id);
+    router.push("/(tabs)/map");
+  }
+
   // ── render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -129,6 +137,7 @@ export default function InvadersScreen() {
                           invader={inv}
                           onFlash={handleFlash}
                           onUnflash={handleUnflash}
+                          onLocate={handleLocate}
                           containerStyle={{ borderTopWidth: 1, borderTopColor: theme.bgDivider }}
                         />
                       )}
@@ -144,7 +153,12 @@ export default function InvadersScreen() {
           {grouped.map(([city, cityInvaders]) => {
             const expanded      = isSearching || expandedCities.has(city);
             const capturedCount = cityInvaders.filter((i) => i.isCaptured).length;
-            const selectedInCity = cityInvaders.find((i) => i.id === expandedInvaderId);
+
+            // Split into rows of GRID_COLS so the info panel appears below the right row
+            const rows: InvaderWithState[][] = [];
+            for (let i = 0; i < cityInvaders.length; i += GRID_COLS) {
+              rows.push(cityInvaders.slice(i, i + GRID_COLS));
+            }
 
             return (
               <View key={city}>
@@ -157,31 +171,40 @@ export default function InvadersScreen() {
                 />
 
                 {expanded && (
-                  <View style={[styles.gridBlock, { borderBottomColor: theme.bgDivider }]}>
-                    {cityInvaders.map((inv) => (
-                      <InvaderGridCell
-                        key={inv.id}
-                        invader={inv}
-                        size={cellSize}
-                        selected={expandedInvaderId === inv.id}
-                        onPress={() => toggleInvader(inv.id)}
-                      />
-                    ))}
-
-                    {selectedInCity && (
-                      <InvaderInfoPanel
-                        invader={selectedInCity}
-                        onFlash={handleFlash}
-                        onUnflash={handleUnflash}
-                        containerStyle={{
-                          width: "100%",
-                          marginTop: GRID_GAP,
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          borderColor: theme.border,
-                        }}
-                      />
-                    )}
+                  <View style={{ borderBottomWidth: 1, borderBottomColor: theme.bgDivider }}>
+                    {rows.map((rowInvaders, rowIdx) => {
+                      const selectedInRow = rowInvaders.find((i) => i.id === expandedInvaderId);
+                      return (
+                        <View key={rowIdx}>
+                          <View style={[styles.gridRow, { padding: GRID_GAP, gap: GRID_GAP }]}>
+                            {rowInvaders.map((inv) => (
+                              <InvaderGridCell
+                                key={inv.id}
+                                invader={inv}
+                                size={cellSize}
+                                selected={expandedInvaderId === inv.id}
+                                onPress={() => toggleInvader(inv.id)}
+                              />
+                            ))}
+                          </View>
+                          {selectedInRow && (
+                            <InvaderInfoPanel
+                              invader={selectedInRow}
+                              onFlash={handleFlash}
+                              onUnflash={handleUnflash}
+                              onLocate={handleLocate}
+                              containerStyle={{
+                                marginHorizontal: GRID_GAP,
+                                marginBottom: GRID_GAP,
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: theme.border,
+                              }}
+                            />
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
               </View>
@@ -196,11 +219,7 @@ export default function InvadersScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: { paddingBottom: Spacing.six },
-  gridBlock: {
+  gridRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    padding: GRID_GAP,
-    gap: GRID_GAP,
-    borderBottomWidth: 1,
   },
 });
