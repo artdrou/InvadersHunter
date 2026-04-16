@@ -11,6 +11,7 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@
 
 type Props = {
   invader: InvaderWithState;
+  isOffline?: boolean;
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
@@ -43,7 +44,7 @@ function parseName(raw: string): { city: string; num: string } {
   return { city: raw.slice(0, idx).toUpperCase(), num: raw.slice(idx + 1) };
 }
 
-export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightChange, onRequestSent }: Props) {
+export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onUnflash, onHeightChange, onRequestSent }: Props) {
   const db = useSQLiteContext();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
@@ -277,13 +278,20 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
         </Pressable>
 
         <Pressable
-          style={[styles.modifyBtn, alreadySent && styles.modifyBtnDisabled]}
-          onPress={() => { if (!alreadySent) { setOfflineError(false); setMode("edit"); } }}
+          style={[styles.modifyBtn, (alreadySent || isOffline) && styles.modifyBtnDisabled]}
+          onPress={() => {
+            if (isOffline) { setOfflineError(true); return; }
+            if (!alreadySent) { setOfflineError(false); setMode("edit"); }
+          }}
         >
-          <Text style={[styles.modifyBtnText, alreadySent && styles.modifyBtnDisabledText]}>
+          <Text style={[styles.modifyBtnText, (alreadySent || isOffline) && styles.modifyBtnDisabledText]}>
             {alreadySent ? "Modification sent" : "Modify"}
           </Text>
         </Pressable>
+
+        {offlineError && (
+          <Text style={styles.offlineMsg}>No internet connection</Text>
+        )}
       </View>
 
       <View style={styles.arrow} />

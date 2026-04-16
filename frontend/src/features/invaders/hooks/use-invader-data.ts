@@ -8,6 +8,7 @@ import {
   insertPendingSync, deletePendingSync, getPendingSyncs,
 } from '@/services/db';
 import { syncAll, isNetworkError } from '@/services/sync';
+import { useConnectivityStore } from '@/services/connectivity';
 import { flashInvader as apiFlash, unflashInvader as apiUnflash } from '../services/invaders.api';
 import type { Invader, Capture } from '../types';
 
@@ -21,6 +22,7 @@ export function useInvaderData() {
   const [syncError, setSyncError] = useState<SyncError>(null);
 
   const user = useAuthStore((s) => s.user);
+  const setOnline = useConnectivityStore((s) => s.setOnline);
   const cancelledRef = useRef(false);
   const syncingRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,10 +54,12 @@ export function useInvaderData() {
       await syncAll(db, userId);
       await loadFromDb(userId);
       setSyncError(null);
+      setOnline(true);
     } catch (err) {
       console.warn('[sync] failed:', err);
       if (isNetworkError(err)) {
         setSyncError('network');
+        setOnline(false);
         // Retry in 30s — catches reconnection without needing to background the app
         if (!cancelledRef.current) {
           retryTimerRef.current = setTimeout(() => {
@@ -70,7 +74,7 @@ export function useInvaderData() {
       syncingRef.current = false;
       if (!cancelledRef.current) setIsSyncing(false);
     }
-  }, [db, loadFromDb, clearRetry]);
+  }, [db, loadFromDb, clearRetry, setOnline]);
 
   // On mount: load from SQLite instantly, then sync in background
   useEffect(() => {

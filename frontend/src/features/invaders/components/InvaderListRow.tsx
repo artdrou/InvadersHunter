@@ -18,7 +18,7 @@ export function InvaderListRow({ invader, expanded, onPress }: Props) {
       style={[styles.row, { backgroundColor: expanded ? theme.bgElement : theme.bg }]}
       onPress={onPress}
     >
-      <Text style={[styles.name, { color: invader.isCaptured ? theme.success : theme.text, fontFamily: appFont, fontSize: sz(13) }]}>
+      <Text style={[styles.name, { color: invader.isPending ? theme.textMuted : invader.isCaptured ? theme.success : theme.text, fontFamily: appFont, fontSize: sz(13) }]}>
         {invader.name}
       </Text>
       <View style={styles.meta}>
@@ -29,7 +29,7 @@ export function InvaderListRow({ invader, expanded, onPress }: Props) {
         )}
         {invader.isCaptured && (
           <Text style={{ color: invader.isPending ? theme.textMuted : theme.success, fontFamily: appFont, fontSize: 13 }}>
-            {invader.isPending ? "…" : "✓"}
+            ✓
           </Text>
         )}
         <Text style={[styles.chevron, { color: theme.textMuted }]}>

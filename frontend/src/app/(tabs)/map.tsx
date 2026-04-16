@@ -102,6 +102,7 @@ export default function MapScreen() {
             <InvaderPopup
               key={selectedInvader.id}
               invader={selectedInvader}
+              isOffline={syncError === 'network'}
               onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); }}
               onFlash={handleFlash}
               onUnflash={handleUnflash}
