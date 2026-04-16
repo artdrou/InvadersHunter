@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { submitModifyRequest, hasPendingModifyRequest } from "@/features/invaders/services/invaders.api";
+import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
@@ -49,6 +50,7 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [alreadySent, setAlreadySent] = useState(false);
+  const [offlineError, setOfflineError] = useState(false);
 
   useEffect(() => {
     hasPendingModifyRequest(invader.id).then(setAlreadySent).catch(() => {});
@@ -69,6 +71,7 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
     setSubmitting(true);
+    setOfflineError(false);
     try {
       const proposedName = nameCity && nameNum ? `${nameCity}_${nameNum}` : undefined;
       await submitModifyRequest({
@@ -79,9 +82,9 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
       });
       onRequestSent?.();
       onClose();
-    } catch {
-      // keep button active so user can retry
+    } catch (err) {
       setSubmitting(false);
+      if (isNetworkError(err)) setOfflineError(true);
     }
   }
 
@@ -194,9 +197,13 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
             </Text>
           </Pressable>
 
+          {offlineError && (
+            <Text style={styles.offlineMsg}>No internet connection</Text>
+          )}
+
           <Pressable
             style={({ pressed }) => [styles.cancelBtn, pressed && styles.btnPressed]}
-            onPress={onClose}
+            onPress={() => { setOfflineError(false); onClose(); }}
           >
             <Text style={styles.cancelBtnText}>Cancel</Text>
           </Pressable>
@@ -265,7 +272,7 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
 
         <Pressable
           style={[styles.modifyBtn, alreadySent && styles.modifyBtnDisabled]}
-          onPress={() => !alreadySent && setMode("edit")}
+          onPress={() => { if (!alreadySent) { setOfflineError(false); setMode("edit"); } }}
         >
           <Text style={[styles.modifyBtnText, alreadySent && styles.modifyBtnDisabledText]}>
             {alreadySent ? "Modification sent" : "Modify"}
@@ -496,6 +503,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       color: t.textMuted,
       fontSize: 14,
       fontFamily: ButtonFont,
+    },
+    offlineMsg: {
+      color: t.danger,
+      fontSize: sz(12),
+      fontFamily: font,
+      textAlign: "center",
     },
     arrow: {
       alignSelf: "center",

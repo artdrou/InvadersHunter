@@ -3,13 +3,12 @@ import { Animated, View, StyleSheet, Text } from "react-native";
 import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
-import { fetchInvaders, fetchProgress, flashInvader, unflashInvader, mapInvadersWithProgress } from "@/features/invaders";
-import type { Invader, Capture, InvaderWithState } from "@/features/invaders";
+import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
+import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 
 export default function MapScreen() {
-  const [invaders, setInvaders] = useState<Invader[]>([]);
-  const [progress, setProgress] = useState<Capture[]>([]);
+  const { invaders, progress, flash, unflash } = useInvaderData();
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const user = useAuthStore((s) => s.user);
@@ -22,16 +21,6 @@ export default function MapScreen() {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingZoomRef = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (!user) return;
-    Promise.all([fetchInvaders(), fetchProgress(user.id)])
-      .then(([inv, prog]) => {
-        setInvaders(inv);
-        setProgress(prog);
-      })
-      .catch((err) => console.error("API ERROR:", err));
-  }, [user]);
 
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
   const filteredInvaders = applyMapFilter(invadersWithState, filter);
@@ -85,15 +74,13 @@ export default function MapScreen() {
 
   async function handleFlash(invader: InvaderWithState) {
     if (!user) return;
-    const capture = await flashInvader(user.id, invader.id);
-    setProgress((prev) => [...prev, capture]);
+    const capture = await flash(user.id, invader.id);
     selectInvader({ ...invader, isCaptured: true, capturedAt: capture.found_at, progressId: capture.id });
   }
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
-    await unflashInvader(invader.progressId);
-    setProgress((prev) => prev.filter((p) => p.id !== invader.progressId));
+    await unflash(invader.progressId);
     selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
 

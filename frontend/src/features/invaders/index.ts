@@ -1,5 +1,6 @@
 export { InvaderState, NON_FLASHABLE_STATES } from './types';
-export type { Invader, Capture, InvaderWithState } from './types';
+export type { Invader, Capture, InvaderWithState, UserRequest } from './types';
+export { useInvaderData } from './hooks/use-invader-data';
 export { mapInvadersWithProgress } from './mapper';
 export { fetchInvaders, fetchProgress, flashInvader, unflashInvader } from './services/invaders.api';
 export { cityOf, numOf, groupByCity, formatDate } from './utils/invader-list';

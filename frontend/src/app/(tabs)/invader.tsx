@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  fetchInvaders, fetchProgress, flashInvader, unflashInvader,
+  useInvaderData,
   mapInvadersWithProgress, groupByCity,
   InvaderInfoPanel, CityHeader, InvaderListRow, InvaderGridCell,
   InvaderSearchBar, InvaderFilterBar,
 } from "@/features/invaders";
-import type { Invader, Capture, InvaderWithState } from "@/features/invaders";
+import type { InvaderWithState } from "@/features/invaders";
 import { applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
@@ -18,8 +18,7 @@ const GRID_COLS = 3;
 const GRID_GAP  = 4;
 
 export default function InvadersScreen() {
-  const [invaders, setInvaders]                     = useState<Invader[]>([]);
-  const [progress, setProgress]                     = useState<Capture[]>([]);
+  const { invaders, progress, flash, unflash }      = useInvaderData();
   const [expandedCities, setExpandedCities]         = useState<Set<string>>(new Set());
   const [expandedInvaderId, setExpandedInvaderId]   = useState<number | null>(null);
   const [search, setSearch]                         = useState("");
@@ -32,13 +31,6 @@ export default function InvadersScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
-
-  useEffect(() => {
-    if (!user) return;
-    Promise.all([fetchInvaders(), fetchProgress(user.id)])
-      .then(([inv, prog]) => { setInvaders(inv); setProgress(prog); })
-      .catch((err) => console.error("API ERROR:", err));
-  }, [user]);
 
   // ── derived data ────────────────────────────────────────────────────────────
 
@@ -77,14 +69,12 @@ export default function InvadersScreen() {
 
   async function handleFlash(invader: InvaderWithState) {
     if (!user) return;
-    const capture = await flashInvader(user.id, invader.id);
-    setProgress((prev) => [...prev, capture]);
+    await flash(user.id, invader.id);
   }
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
-    await unflashInvader(invader.progressId);
-    setProgress((prev) => prev.filter((p) => p.id !== invader.progressId));
+    await unflash(invader.progressId);
   }
 
   function handleLocate(invader: InvaderWithState) {

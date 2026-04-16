@@ -1,8 +1,14 @@
 import { api } from '@/services/api-client';
-import type { Invader, Capture } from '../types';
+import type { Invader, Capture, UserRequest } from '../types';
 
-export async function fetchInvaders(): Promise<Invader[]> {
-  const res = await api.get('/invaders');
+/**
+ * Fetch invaders from the server.
+ * Pass an ISO timestamp as `updatedSince` to get only rows changed after that point (delta sync).
+ * Omit it to get all invaders (full sync on first launch).
+ */
+export async function fetchInvaders(updatedSince?: string): Promise<Invader[]> {
+  const params = updatedSince ? { updated_since: updatedSince } : {};
+  const res = await api.get('/invaders', { params });
   return res.data;
 }
 
@@ -34,10 +40,14 @@ export async function submitModifyRequest(payload: ModifyRequestPayload): Promis
   await api.post('/requests/', { request_type: 'modify', ...payload });
 }
 
-export async function hasPendingModifyRequest(invaderId: number): Promise<boolean> {
+export async function fetchUserRequests(): Promise<UserRequest[]> {
   const res = await api.get('/requests/');
-  return res.data.some(
-    (r: { invader_id: number; request_type: string; status: string }) =>
-      r.invader_id === invaderId && r.request_type === 'modify' && r.status === 'pending'
+  return res.data;
+}
+
+export async function hasPendingModifyRequest(invaderId: number): Promise<boolean> {
+  const requests = await fetchUserRequests();
+  return requests.some(
+    (r) => r.invader_id === invaderId && r.request_type === 'modify' && r.status === 'pending',
   );
 }

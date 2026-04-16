@@ -2,8 +2,10 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { SQLiteProvider } from 'expo-sqlite';
 import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { initDb } from '@/services/db';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,8 +41,10 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
+    <SQLiteProvider databaseName="invaders.db" onInit={initDb}>
+      <ThemeProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </ThemeProvider>
+    </SQLiteProvider>
   );
 }
