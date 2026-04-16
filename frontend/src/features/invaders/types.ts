@@ -38,6 +38,7 @@ export type Capture = {
 
 export type InvaderWithState = Invader & {
   isCaptured: boolean;
+  isPending: boolean;
   capturedAt?: string;
   progressId?: number;
 };

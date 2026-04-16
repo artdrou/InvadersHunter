@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { View, ScrollView, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import {
   useInvaderData,
@@ -18,7 +18,8 @@ const GRID_COLS = 3;
 const GRID_GAP  = 4;
 
 export default function InvadersScreen() {
-  const { invaders, progress, flash, unflash }      = useInvaderData();
+  const { invaders, progress, syncError, flash, unflash } = useInvaderData();
+  const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [expandedCities, setExpandedCities]         = useState<Set<string>>(new Set());
   const [expandedInvaderId, setExpandedInvaderId]   = useState<number | null>(null);
   const [search, setSearch]                         = useState("");
@@ -97,7 +98,16 @@ export default function InvadersScreen() {
 
       <InvaderFilterBar filter={filter} onChange={setFilter} />
 
-      {viewMode === "list" ? (
+      {isOfflineEmpty ? (
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyText, { color: theme.textMuted, fontFamily: theme.font }]}>
+            No internet connection
+          </Text>
+          <Text style={[styles.emptySubText, { color: theme.textMuted, fontFamily: theme.font }]}>
+            Connect to load invaders
+          </Text>
+        </View>
+      ) : viewMode === "list" ? (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {grouped.map(([city, cityInvaders]) => {
             const expanded      = isSearching || expandedCities.has(city);
@@ -209,7 +219,8 @@ export default function InvadersScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: { paddingBottom: Spacing.six },
-  gridRow: {
-    flexDirection: "row",
-  },
+  gridRow: { flexDirection: "row" },
+  emptyState: { flex: 1, justifyContent: "center", alignItems: "center", gap: 8 },
+  emptyText: { fontSize: 15 },
+  emptySubText: { fontSize: 12, opacity: 0.6 },
 });

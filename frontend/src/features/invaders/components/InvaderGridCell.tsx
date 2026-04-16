@@ -17,12 +17,16 @@ export function InvaderGridCell({ invader, size, selected, onPress }: Props) {
 
   const borderColor = selected
     ? theme.accent
+    : invader.isPending
+    ? theme.textMuted
     : invader.isCaptured
     ? theme.success
     : theme.border;
 
   const labelColor = selected
     ? theme.accent
+    : invader.isPending
+    ? theme.textMuted
     : invader.isCaptured
     ? theme.success
     : theme.textMuted;

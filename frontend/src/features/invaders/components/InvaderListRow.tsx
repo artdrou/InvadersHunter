@@ -28,7 +28,9 @@ export function InvaderListRow({ invader, expanded, onPress }: Props) {
           </Text>
         )}
         {invader.isCaptured && (
-          <Text style={{ color: theme.success, fontFamily: appFont, fontSize: 13 }}>✓</Text>
+          <Text style={{ color: invader.isPending ? theme.textMuted : theme.success, fontFamily: appFont, fontSize: 13 }}>
+            {invader.isPending ? "…" : "✓"}
+          </Text>
         )}
         <Text style={[styles.chevron, { color: theme.textMuted }]}>
           {expanded ? "▲" : "▼"}

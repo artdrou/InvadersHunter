@@ -8,7 +8,8 @@ import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 
 export default function MapScreen() {
-  const { invaders, progress, flash, unflash } = useInvaderData();
+  const { invaders, progress, syncError, flash, unflash } = useInvaderData();
+  const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const user = useAuthStore((s) => s.user);
@@ -110,6 +111,12 @@ export default function MapScreen() {
         </View>
       )}
 
+      {isOfflineEmpty && (
+        <View style={styles.offlineBanner} pointerEvents="none">
+          <Text style={styles.offlineText}>No internet connection</Text>
+        </View>
+      )}
+
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
         <Text style={styles.toastText}>Modification request sent</Text>
       </Animated.View>
@@ -136,6 +143,20 @@ const styles = StyleSheet.create({
     bottom: 40,
     left: 16,
     zIndex: 10,
+  },
+  offlineBanner: {
+    position: "absolute",
+    top: 16,
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.65)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    zIndex: 20,
+  },
+  offlineText: {
+    color: "#ffffff",
+    fontSize: 13,
   },
   toast: {
     position: "absolute",

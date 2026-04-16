@@ -10,6 +10,7 @@ export function mapInvadersWithProgress(
     return {
       ...inv,
       isCaptured: !!capture,
+      isPending: capture?.is_pending === 1,
       capturedAt: capture?.found_at,
       progressId: capture?.id,
     };

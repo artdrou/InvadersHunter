@@ -11,15 +11,26 @@ import { syncAll, isNetworkError } from '@/services/sync';
 import { flashInvader as apiFlash, unflashInvader as apiUnflash } from '../services/invaders.api';
 import type { Invader, Capture } from '../types';
 
+export type SyncError = 'network' | 'other' | null;
+
 export function useInvaderData() {
   const db = useSQLiteContext();
   const [invaders, setInvaders] = useState<Invader[]>([]);
   const [progress, setProgress] = useState<Capture[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<SyncError>(null);
 
   const user = useAuthStore((s) => s.user);
   const cancelledRef = useRef(false);
-  const syncingRef = useRef(false); // prevent concurrent syncs
+  const syncingRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearRetry = useCallback(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  }, []);
 
   const loadFromDb = useCallback(async (userId: number) => {
     const [inv, prog] = await Promise.all([
@@ -34,18 +45,32 @@ export function useInvaderData() {
 
   const runSync = useCallback(async (userId: number) => {
     if (syncingRef.current) return;
+    clearRetry();
     syncingRef.current = true;
     setIsSyncing(true);
     try {
       await syncAll(db, userId);
       await loadFromDb(userId);
+      setSyncError(null);
     } catch (err) {
       console.warn('[sync] failed:', err);
+      if (isNetworkError(err)) {
+        setSyncError('network');
+        // Retry in 30s — catches reconnection without needing to background the app
+        if (!cancelledRef.current) {
+          retryTimerRef.current = setTimeout(() => {
+            retryTimerRef.current = null;
+            runSync(userId);
+          }, 30_000);
+        }
+      } else {
+        setSyncError('other');
+      }
     } finally {
       syncingRef.current = false;
       if (!cancelledRef.current) setIsSyncing(false);
     }
-  }, [db, loadFromDb]);
+  }, [db, loadFromDb, clearRetry]);
 
   // On mount: load from SQLite instantly, then sync in background
   useEffect(() => {
@@ -53,10 +78,13 @@ export function useInvaderData() {
     cancelledRef.current = false;
     loadFromDb(user.id);
     runSync(user.id);
-    return () => { cancelledRef.current = true; };
-  }, [user, loadFromDb, runSync]);
+    return () => {
+      cancelledRef.current = true;
+      clearRetry();
+    };
+  }, [user, loadFromDb, runSync, clearRetry]);
 
-  // On app foreground: sync again (flushes pending queue + pulls latest)
+  // On app foreground: sync immediately (also clears any pending retry timer)
   useEffect(() => {
     if (!user) return;
     const sub = AppState.addEventListener('change', (state) => {
@@ -69,7 +97,6 @@ export function useInvaderData() {
 
   const flash = useCallback(async (userId: number, invaderId: number): Promise<Capture> => {
     try {
-      // Online path
       const capture = await apiFlash(userId, invaderId);
       await insertCapture(db, capture);
       setProgress((prev) => [...prev, capture]);
@@ -77,7 +104,6 @@ export function useInvaderData() {
     } catch (err) {
       if (!isNetworkError(err)) throw err;
 
-      // Offline path — temp ID is negative to avoid collisions with server IDs
       const tempId = -Date.now();
       const tempCapture: Capture = {
         id: tempId,
@@ -96,11 +122,9 @@ export function useInvaderData() {
   // ── Unflash ─────────────────────────────────────────────────────────────────
 
   const unflash = useCallback(async (progressId: number): Promise<void> => {
-    // Check if this is a pending (offline) capture
     const isPending = progress.some((p) => p.id === progressId && p.is_pending === 1);
 
     if (isPending) {
-      // Cancel the offline flash: delete locally + remove from queue
       const queue = await getPendingSyncs(db, progress.find((p) => p.id === progressId)!.user_id);
       const pendingFlash = queue.find((s) => s.type === 'flash' && s.capture_id === progressId);
       await deleteCapture(db, progressId);
@@ -110,14 +134,12 @@ export function useInvaderData() {
     }
 
     try {
-      // Online path
       await apiUnflash(progressId);
       await deleteCapture(db, progressId);
       setProgress((prev) => prev.filter((p) => p.id !== progressId));
     } catch (err) {
       if (!isNetworkError(err)) throw err;
 
-      // Offline path — delete locally, queue the server delete
       await deleteCapture(db, progressId);
       const cap = progress.find((p) => p.id === progressId);
       if (cap) {
@@ -127,5 +149,5 @@ export function useInvaderData() {
     }
   }, [db, progress]);
 
-  return { invaders, progress, isSyncing, flash, unflash };
+  return { invaders, progress, isSyncing, syncError, flash, unflash };
 }
