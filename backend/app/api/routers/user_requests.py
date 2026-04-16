@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 
 from app.dependencies import get_db, get_current_user
 from app.models.user_request import UserRequest
@@ -69,13 +70,18 @@ def submit_request(
 
 @router.get("/", response_model=List[UserRequestOut])
 def list_requests(
+    updated_since: Optional[datetime] = Query(default=None, description="Return only requests updated after this ISO timestamp"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     """Admins see all requests; regular users see only their own."""
     if current_user.is_admin:
-        return db.query(UserRequest).all()
-    return db.query(UserRequest).filter(UserRequest.user_id == current_user.id).all()
+        query = db.query(UserRequest)
+    else:
+        query = db.query(UserRequest).filter(UserRequest.user_id == current_user.id)
+    if updated_since is not None:
+        query = query.filter(UserRequest.updated_at > updated_since)
+    return query.all()
 
 
 @router.get("/{request_id}", response_model=UserRequestOut)

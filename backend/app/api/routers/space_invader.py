@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from app.schemas.space_invader import InvaderCreate, InvaderOut, InvaderUpdate
 from app.models.space_invader import Invader
 from app.database import SessionLocal
@@ -10,8 +11,14 @@ from app.core.db_utils import safe_commit
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
 
 @router.get("/", response_model=List[InvaderOut])
-def list_invaders(db: Session = Depends(get_db)):
-    return db.query(Invader).all()
+def list_invaders(
+    updated_since: Optional[datetime] = Query(default=None, description="Return only invaders updated after this ISO timestamp"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Invader)
+    if updated_since is not None:
+        query = query.filter(Invader.updated_at > updated_since)
+    return query.all()
 
 @router.post("/", response_model=InvaderOut)
 def create_invader(invader: InvaderCreate, db: Session = Depends(get_db)):

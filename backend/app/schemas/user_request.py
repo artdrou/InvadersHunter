@@ -49,6 +49,7 @@ class UserRequestOut(BaseModel):
     proposed_image_url: Optional[str]
     admin_request_id: Optional[int]
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
