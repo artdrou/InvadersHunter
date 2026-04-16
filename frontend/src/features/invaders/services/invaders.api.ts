@@ -44,10 +44,3 @@ export async function fetchUserRequests(): Promise<UserRequest[]> {
   const res = await api.get('/requests/');
   return res.data;
 }
-
-export async function hasPendingModifyRequest(invaderId: number): Promise<boolean> {
-  const requests = await fetchUserRequests();
-  return requests.some(
-    (r) => r.invader_id === invaderId && r.request_type === 'modify' && r.status === 'pending',
-  );
-}

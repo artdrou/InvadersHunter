@@ -3,8 +3,9 @@ import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from "react-
 import { Image } from "expo-image";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
-import { submitModifyRequest, hasPendingModifyRequest } from "@/features/invaders/services/invaders.api";
+import { submitModifyRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
+import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
@@ -43,6 +44,7 @@ function parseName(raw: string): { city: string; num: string } {
 }
 
 export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightChange, onRequestSent }: Props) {
+  const db = useSQLiteContext();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -52,9 +54,13 @@ export function InvaderPopup({ invader, onClose, onFlash, onUnflash, onHeightCha
   const [alreadySent, setAlreadySent] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
 
+  // Read from local SQLite — works offline, no network call
   useEffect(() => {
-    hasPendingModifyRequest(invader.id).then(setAlreadySent).catch(() => {});
-  }, [invader.id]);
+    db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM user_requests WHERE invader_id = ? AND request_type = ? AND status = ?',
+      [invader.id, 'modify', 'pending'],
+    ).then((row) => setAlreadySent(!!row)).catch(() => {});
+  }, [invader.id, db]);
 
   const parsed = parseName(invader.name);
   const [nameCity, setNameCity] = useState(parsed.city);
