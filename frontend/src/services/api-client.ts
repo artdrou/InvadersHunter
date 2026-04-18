@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@/features/auth/store';
 
-export const BASE_URL = 'http://192.168.1.63:8000';
-// export const BASE_URL = 'http://127.0.0.1:8000'; // web / local
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL!;
 
 export const api = axios.create({ baseURL: BASE_URL });
 
