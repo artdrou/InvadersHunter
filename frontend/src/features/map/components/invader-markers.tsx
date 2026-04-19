@@ -18,6 +18,7 @@ export const MARKER_IMAGES = {
 export const MARKER_LAYER_STYLE = {
   iconImage: ["case", ["==", ["get", "captured"], 1], "marker-captured", "marker-uncaptured"],
   iconSize: ["get", "iconSize"],
+  iconOpacity: ["case", ["==", ["get", "pending"], 1], 0.45, 1.0],
   iconAllowOverlap: true,
   iconIgnorePlacement: true,
 } as const;

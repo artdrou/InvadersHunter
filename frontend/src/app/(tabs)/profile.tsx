@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore, logoutUser } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import * as Updates from 'expo-updates';
 import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 export default function ProfileScreen() {
@@ -20,8 +21,13 @@ export default function ProfileScreen() {
     router.replace('/login');
   }
 
+  const updateLabel = Updates.isEmbeddedLaunch
+    ? 'build'
+    : (Updates.updateId?.slice(0, 8) ?? 'unknown');
+
   return (
     <View style={styles.container}>
+      <Text style={styles.version}>v{updateLabel}</Text>
       {user && (
         <Text style={styles.username}>{user.username}</Text>
       )}
@@ -70,6 +76,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
       gap: Spacing.four,
       padding: Spacing.five,
+    },
+    version: {
+      position: 'absolute',
+      top: Spacing.three,
+      left: Spacing.three,
+      color: t.textMuted,
+      fontSize: 10,
+      fontFamily: font,
     },
     username: {
       color: t.accent,

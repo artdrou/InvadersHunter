@@ -26,6 +26,17 @@ export default function MapScreen() {
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
   const filteredInvaders = applyMapFilter(invadersWithState, filter);
 
+  // Keep selectedInvader in sync when background flash confirms
+  useEffect(() => {
+    if (!selectedInvader) return;
+    const updated = invadersWithState.find((i) => i.id === selectedInvader.id);
+    if (!updated) return;
+    if (updated.progressId !== selectedInvader.progressId || updated.isPending !== selectedInvader.isPending) {
+      selectedInvaderRef.current = updated;
+      setSelectedInvader(updated);
+    }
+  }, [invadersWithState]);
+
   // Handle "Localiser" from the invaders tab
   useEffect(() => {
     if (!pendingInvaderId) return;

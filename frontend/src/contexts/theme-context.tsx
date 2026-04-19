@@ -8,7 +8,7 @@ function loadTheme(): ThemeName {
     const stored = localStorage.getItem(THEME_KEY);
     if (stored && stored in themes) return stored as ThemeName;
   } catch {}
-  return 'dark';
+  return 'blue';
 }
 
 function saveTheme(name: ThemeName) {

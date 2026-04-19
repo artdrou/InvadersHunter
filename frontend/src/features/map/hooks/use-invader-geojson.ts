@@ -19,6 +19,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[]) {
         properties: {
           id: invader.id,
           captured: invader.isCaptured ? 1 : 0,
+          pending: invader.isPending ? 1 : 0,
           iconSize,
         },
       };

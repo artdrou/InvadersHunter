@@ -56,11 +56,12 @@ export function useInvaderData() {
       setSyncError(null);
       setOnline(true);
     } catch (err) {
+      // Always reload from DB even on failure — clears stale pending states
+      await loadFromDb(userId).catch(() => {});
       console.warn('[sync] failed:', err);
       if (isNetworkError(err)) {
         setSyncError('network');
         setOnline(false);
-        // Retry in 30s — catches reconnection without needing to background the app
         if (!cancelledRef.current) {
           retryTimerRef.current = setTimeout(() => {
             retryTimerRef.current = null;
@@ -100,57 +101,73 @@ export function useInvaderData() {
   // ── Flash ───────────────────────────────────────────────────────────────────
 
   const flash = useCallback(async (userId: number, invaderId: number): Promise<Capture> => {
-    try {
-      const capture = await apiFlash(userId, invaderId);
-      await insertCapture(db, capture);
-      setProgress((prev) => [...prev, capture]);
-      return capture;
-    } catch (err) {
-      if (!isNetworkError(err)) throw err;
+    // Optimistic: save locally first for instant UI response
+    const tempId = -Date.now();
+    const tempCapture: Capture = {
+      id: tempId,
+      invader_id: invaderId,
+      user_id: userId,
+      found_at: new Date().toISOString(),
+      is_pending: 1,
+    };
+    await insertCapture(db, tempCapture);
+    setProgress((prev) => [...prev, tempCapture]);
 
-      const tempId = -Date.now();
-      const tempCapture: Capture = {
-        id: tempId,
-        invader_id: invaderId,
-        user_id: userId,
-        found_at: new Date().toISOString(),
-        is_pending: 1,
-      };
-      await insertCapture(db, tempCapture);
-      await insertPendingSync(db, { type: 'flash', invader_id: invaderId, capture_id: tempId, user_id: userId });
-      setProgress((prev) => [...prev, tempCapture]);
-      return tempCapture;
-    }
-  }, [db]);
+    // Confirm with backend in background — no pending queue until we know it's needed
+    apiFlash(userId, invaderId)
+      .then(async (capture) => {
+        await deleteCapture(db, tempId);
+        await insertCapture(db, capture);
+        if (!cancelledRef.current) {
+          setProgress((prev) => prev.map((p) => p.id === tempId ? capture : p));
+        }
+      })
+      .catch(async (err) => {
+        if (isNetworkError(err)) {
+          // Offline: add to pending queue, runSync will flush when back online
+          await insertPendingSync(db, { type: 'flash', invader_id: invaderId, capture_id: tempId, user_id: userId });
+        } else {
+          // Backend rejected (e.g. already captured): revert optimistic state
+          await deleteCapture(db, tempId);
+          if (!cancelledRef.current) {
+            setProgress((prev) => prev.filter((p) => p.id !== tempId));
+          }
+        }
+      });
+
+    return tempCapture;
+  }, [db, cancelledRef]);
 
   // ── Unflash ─────────────────────────────────────────────────────────────────
 
   const unflash = useCallback(async (progressId: number): Promise<void> => {
-    const isPending = progress.some((p) => p.id === progressId && p.is_pending === 1);
+    const cap = progress.find((p) => p.id === progressId);
+    if (!cap) return;
 
-    if (isPending) {
-      const queue = await getPendingSyncs(db, progress.find((p) => p.id === progressId)!.user_id);
+    // If this is a pending optimistic flash, cancel both sides locally
+    if (cap.is_pending === 1) {
+      const queue = await getPendingSyncs(db, cap.user_id);
       const pendingFlash = queue.find((s) => s.type === 'flash' && s.capture_id === progressId);
       await deleteCapture(db, progressId);
       if (pendingFlash) await deletePendingSync(db, pendingFlash.id);
-      setProgress((prev) => prev.filter((p) => p.id !== progressId));
+      if (!cancelledRef.current) setProgress((prev) => prev.filter((p) => p.id !== progressId));
       return;
     }
 
-    try {
-      await apiUnflash(progressId);
-      await deleteCapture(db, progressId);
-      setProgress((prev) => prev.filter((p) => p.id !== progressId));
-    } catch (err) {
-      if (!isNetworkError(err)) throw err;
+    // Optimistic: remove from UI immediately
+    await deleteCapture(db, progressId);
+    if (!cancelledRef.current) setProgress((prev) => prev.filter((p) => p.id !== progressId));
 
-      await deleteCapture(db, progressId);
-      const cap = progress.find((p) => p.id === progressId);
-      if (cap) {
+    // Confirm with backend in background
+    apiUnflash(progressId).catch(async (err) => {
+      if (isNetworkError(err)) {
         await insertPendingSync(db, { type: 'unflash', invader_id: null, capture_id: progressId, user_id: cap.user_id });
+      } else {
+        // Backend rejected: revert optimistic state
+        await insertCapture(db, cap);
+        if (!cancelledRef.current) setProgress((prev) => [...prev, cap]);
       }
-      setProgress((prev) => prev.filter((p) => p.id !== progressId));
-    }
+    });
   }, [db, progress]);
 
   return { invaders, progress, isSyncing, syncError, flash, unflash };
