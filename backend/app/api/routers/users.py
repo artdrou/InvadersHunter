@@ -20,6 +20,7 @@ def list_users(db: Session = Depends(get_db)):
 @router.post("/", response_model=UserOut)
 async def create_user(
     user: UserCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     try:
@@ -39,25 +40,16 @@ async def create_user(
             hashed_password=hashed_password
         )
         db.add(db_user)
-        db.flush()
-
-        await email.send_account_created_email(db_user.email)
-
         safe_commit(db)
         db.refresh(db_user)
+
+        background_tasks.add_task(email.send_account_created_email, db_user.email)
 
         return db_user
 
     except HTTPException:
         db.rollback()
         raise
-
-    except ConnectionError:
-        db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail="Account creation failed: confirmation email could not be sent"
-        )
 
     except Exception:
         db.rollback()

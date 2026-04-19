@@ -8,7 +8,7 @@ import type { Invader, Capture, UserRequest } from '../types';
  */
 export async function fetchInvaders(updatedSince?: string): Promise<Invader[]> {
   const params = updatedSince ? { updated_since: updatedSince } : {};
-  const res = await api.get('/invaders', { params });
+  const res = await api.get('/invaders/', { params });
   return res.data;
 }
 

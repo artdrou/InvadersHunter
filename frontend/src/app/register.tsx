@@ -21,8 +21,8 @@ export default function RegisterScreen() {
     setLoading(true);
     setError(null);
     try {
-      const token = await registerUser(username, email, password);
-      login(token);
+      const { accessToken, refreshToken } = await registerUser(username, email, password);
+      login(accessToken, refreshToken);
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       setError(typeof detail === 'string' ? detail : 'Registration failed');

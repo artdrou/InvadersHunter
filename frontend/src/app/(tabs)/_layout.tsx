@@ -21,15 +21,10 @@ export default function TabsLayout() {
   // Subscribe to real-time network changes
   useEffect(() => {
     const unsub = NetInfo.addEventListener((state) => {
-      // isInternetReachable can be null while Android is checking — treat null as online
-      // to avoid a false offline flash; the sync layer will catch real failures
-      const reachable = state.isInternetReachable !== false;
-      setOnline(!!state.isConnected && reachable);
+      setOnline(!!state.isConnected);
     });
-    // Also fetch current state immediately
     NetInfo.fetch().then((state) => {
-      const reachable = state.isInternetReachable !== false;
-      setOnline(!!state.isConnected && reachable);
+      setOnline(!!state.isConnected);
     });
     return unsub;
   }, [setOnline]);
