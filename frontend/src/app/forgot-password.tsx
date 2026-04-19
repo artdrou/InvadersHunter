@@ -73,7 +73,12 @@ export default function ForgotPasswordScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Invaders Hunter</Text>
 
-      {step === 'request' && (
+      <View style={styles.form}>
+        <Text style={[styles.subtitle, { textAlign: 'center' }]}>Password reset is temporarily unavailable.</Text>
+        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: 13 }]}>Please contact support to reset your password.</Text>
+      </View>
+
+      {false && step === 'request' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>Reset your password</Text>
           <TextInput
@@ -103,7 +108,7 @@ export default function ForgotPasswordScreen() {
         </View>
       )}
 
-      {step === 'verify' && (
+      {false && step === 'verify' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>Enter the code sent to your email</Text>
           <TextInput
@@ -125,7 +130,7 @@ export default function ForgotPasswordScreen() {
         </View>
       )}
 
-      {step === 'new-password' && (
+      {false && step === 'new-password' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>Choose a new password</Text>
           <TextInput

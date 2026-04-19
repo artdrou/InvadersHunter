@@ -1,42 +1,26 @@
 import os
-from dotenv import load_dotenv
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+import requests
 
-load_dotenv()
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+SENDER = {"name": "Invader Hunter", "email": "invaderhunter.app@gmail.com"}
 
-conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-    MAIL_FROM=os.getenv("MAIL_FROM"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT")),
-    MAIL_SERVER=os.getenv("MAIL_SERVER"),
-    MAIL_STARTTLS=os.getenv("MAIL_STARTTLS") == "True",
-    MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS") == "True",
-    USE_CREDENTIALS=True,
-)
+def _send(to_email: str, subject: str, text: str):
+    requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json"},
+        json={"sender": SENDER, "to": [{"email": to_email}], "subject": subject, "textContent": text},
+        timeout=10,
+    )
 
 async def send_reset_password_email(email: str, token: str):
     try:
-        message = MessageSchema(
-            subject="Réinitialisation de mot de passe - Invader Hunter",
-            recipients=[email],
-            body=f"Votre code de réinitialisation est : {token}\n\nIl expire dans 15 minutes.",
-            subtype="plain",
-        )
-        fm = FastMail(conf)
-        await fm.send_message(message)
+        _send(email, "Réinitialisation de mot de passe - Invader Hunter",
+              f"Votre code de réinitialisation est : {token}\n\nIl expire dans 15 minutes.")
     except Exception:
         pass
 
 async def send_account_created_email(email: str):
     try:
-        message = MessageSchema(
-            subject="Compte Invader Hunter créé",
-            recipients=[email],
-            body="Votre compte Invader Hunter a bien été créé.",
-            subtype="plain",
-        )
-        fm = FastMail(conf)
-        await fm.send_message(message)
+        _send(email, "Compte Invader Hunter créé", "Votre compte Invader Hunter a bien été créé.")
     except Exception:
         pass
