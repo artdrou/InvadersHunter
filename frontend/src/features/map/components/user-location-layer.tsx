@@ -29,19 +29,20 @@ function buildCone(center: [number, number], headingDeg: number): GeoJSON.Featur
   return { type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: {} };
 }
 
-type Props = { location: UserLocation };
+type Props = { location: UserLocation | null };
 
 export function UserLocationLayer({ location }: Props) {
-  const { coords, heading } = location;
+  const coords: [number, number] = location?.coords ?? [0, 0];
+  const heading = location?.heading ?? null;
 
   const dotGeojson: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: [{ type: "Feature", geometry: { type: "Point", coordinates: coords }, properties: {} }],
+    features: location ? [{ type: "Feature", geometry: { type: "Point", coordinates: coords }, properties: {} }] : [],
   };
 
   const coneGeojson: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: heading !== null ? [buildCone(coords, heading)] : [],
+    features: location && heading !== null ? [buildCone(coords, heading)] : [],
   };
 
   return (

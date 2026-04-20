@@ -32,6 +32,9 @@ const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefO
       zoomLevel: 12,
       animationDuration: 0,
     });
+    // Release camera after initial set (same pattern as centerOn/centerOnUser)
+    const t = setTimeout(() => cameraRef.current?.setCamera({}), 100);
+    return () => clearTimeout(t);
   }, []);
 
   return <Camera ref={cameraRef} />;
@@ -61,10 +64,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
 
   // Follow mode: update camera every 300ms toward user position
   useEffect(() => {
-    if (!isFollowing) {
-      cameraRef.current?.setCamera({});
-      return;
-    }
+    if (!isFollowing) return;
 
     // Center immediately on enable
     if (userCoordsRef.current) {
@@ -105,7 +105,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   return (
     <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
       <StableCamera cameraRef={cameraRef} />
-      {userLocation && <UserLocationLayer location={userLocation} />}
+      <UserLocationLayer location={userLocation} />
       <Images images={MARKER_IMAGES} />
       <InvaderClusterSource
         geojson={geojson}
