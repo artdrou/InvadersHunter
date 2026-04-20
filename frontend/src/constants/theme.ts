@@ -57,9 +57,10 @@ export type ThemeTokens = {
   borderInputInvalid: string;
 
   // Semantic role colors (can be overridden per theme)
-  accent: string;     // primary action color
-  danger: string;     // error / destructive
-  success: string;    // captured / success state
+  accent: string;      // primary action color
+  danger: string;      // error / destructive
+  success: string;     // captured / success state
+  locationDot: string; // GPS position marker & cone
 };
 
 // ─── Built-in themes ──────────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ export const darkTheme: ThemeTokens = {
   accent: Brand.yellow,
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: Brand.yellow,
 };
 
 export const lightTheme: ThemeTokens = {
@@ -100,6 +102,7 @@ export const lightTheme: ThemeTokens = {
   accent: Brand.yellow,
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: '#4a90e2',
 };
 
 export const blueTheme: ThemeTokens = {
@@ -119,6 +122,7 @@ export const blueTheme: ThemeTokens = {
   accent: Brand.cyan,
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: Brand.cyan,
 };
 
 export const themes = {

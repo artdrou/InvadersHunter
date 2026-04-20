@@ -6,6 +6,7 @@ import type { WebMapHandle } from "@/features/map/components/web-map";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
+import { useTheme } from "@/contexts/theme-context";
 
 export default function MapScreen() {
   const { invaders, progress, syncError, flash, unflash } = useInvaderData();
@@ -14,6 +15,7 @@ export default function MapScreen() {
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const [isFollowing, setIsFollowing] = useState(false);
   const user = useAuthStore((s) => s.user);
+  const { theme } = useTheme();
   const mapRef = useRef<WebMapHandle>(null);
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
@@ -106,7 +108,7 @@ export default function MapScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.locateButton, isFollowing && styles.locateButtonActive]}
+        style={[styles.locateButton, { backgroundColor: isFollowing ? theme.danger : theme.locationDot }]}
         onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
         onLongPress={() => setIsFollowing(true)}
         delayLongPress={400}
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#4a90e2",
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
@@ -212,6 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   locateButtonActive: {
-    backgroundColor: "#ff6b00",
+    backgroundColor: "transparent",
   },
 });

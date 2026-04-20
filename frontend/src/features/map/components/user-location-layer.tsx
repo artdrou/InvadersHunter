@@ -1,5 +1,6 @@
 import { ShapeSource, CircleLayer, FillLayer } from "@maplibre/maplibre-react-native";
 import type { UserLocation } from "../hooks/use-user-location";
+import { useTheme } from "@/contexts/theme-context";
 
 const CONE_RADIUS_METERS = 80;
 const CONE_SPREAD_DEG    = 50;
@@ -32,6 +33,8 @@ function buildCone(center: [number, number], headingDeg: number): GeoJSON.Featur
 type Props = { location: UserLocation | null };
 
 export function UserLocationLayer({ location }: Props) {
+  const { theme } = useTheme();
+  const accent = theme.locationDot;
   const coords: [number, number] = location?.coords ?? [0, 0];
   const heading = location?.heading ?? null;
 
@@ -51,7 +54,7 @@ export function UserLocationLayer({ location }: Props) {
       <ShapeSource id="user-heading" shape={coneGeojson}>
         <FillLayer
           id="user-heading-fill"
-          style={{ fillColor: "#4a90e2", fillOpacity: 0.25 }}
+          style={{ fillColor: accent, fillOpacity: 0.25 }}
         />
       </ShapeSource>
 
@@ -61,7 +64,7 @@ export function UserLocationLayer({ location }: Props) {
           id="user-location-dot"
           style={{
             circleRadius: 8,
-            circleColor: "#4a90e2",
+            circleColor: accent,
             circleStrokeWidth: 2,
             circleStrokeColor: "#ffffff",
           }}

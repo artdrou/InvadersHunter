@@ -97,7 +97,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     centerOnUser: () => {
       if (!userCoordsRef.current) return;
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 350 });
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], zoomLevel: 15, animationDuration: 350 });
       setTimeout(() => cameraRef.current?.setCamera({}), 450);
     },
   }), []);
