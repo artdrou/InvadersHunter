@@ -2,7 +2,7 @@ import { useRef, useEffect, forwardRef, useImperativeHandle, memo } from "react"
 import type { RefObject } from "react";
 import { StyleSheet } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
-import type { CameraRef } from "@maplibre/maplibre-react-native";
+import type { CameraRef, MapViewRef } from "@maplibre/maplibre-react-native";
 import type { InvaderWithState } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import { useInvaderGeojson } from "../hooks/use-invader-geojson";
@@ -43,6 +43,7 @@ const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefO
 export type WebMapHandle = {
   centerOn: (lat: number, lon: number, offsetY: number, zoomLevel?: number) => void;
   centerOnUser: () => void;
+  getCenter: () => Promise<[number, number] | null>;
 };
 
 type Props = {
@@ -54,6 +55,7 @@ type Props = {
 
 const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, isFollowing = false, headingAlpha }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
+  const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
   const { themeName } = useTheme();
   const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
@@ -100,10 +102,15 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], zoomLevel: 15, animationDuration: 350 });
       setTimeout(() => cameraRef.current?.setCamera({}), 450);
     },
+    getCenter: async () => {
+      const c = await mapViewRef.current?.getCenter();
+      if (!c) return null;
+      return [c[0], c[1]] as [number, number];
+    },
   }), []);
 
   return (
-    <MapView key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
+    <MapView ref={mapViewRef} key={mapStyle} style={styles.map} mapStyle={mapStyle} attributionPosition={{ bottom: 8, left: 8 }}>
       <StableCamera cameraRef={cameraRef} />
       <UserLocationLayer location={userLocation} />
       <Images images={MARKER_IMAGES} />

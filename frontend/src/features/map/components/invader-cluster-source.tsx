@@ -28,6 +28,7 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
         zoomLevel: feature.properties.expansion_zoom ?? 14,
         animationDuration: 400,
       });
+      setTimeout(() => cameraRef.current?.setCamera({}), 500);
       return;
     }
 

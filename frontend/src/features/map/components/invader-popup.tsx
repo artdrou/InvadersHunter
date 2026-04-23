@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, Pressable, TextInput, StyleSheet, ScrollView } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
@@ -12,14 +12,15 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@
 type Props = {
   invader: InvaderWithState;
   isOffline?: boolean;
+  pendingCoords?: { lat: number; lon: number } | null;
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
+  onPickLocation?: (invader: InvaderWithState) => void;
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
 };
 
-const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 const STATE_OPTIONS = [
   InvaderState.Pristine,
   InvaderState.SlightlyDegraded,
@@ -28,6 +29,15 @@ const STATE_OPTIONS = [
   InvaderState.Destroyed,
   InvaderState.NotVisible,
 ] as const;
+
+const STATE_LABELS: Record<string, string> = {
+  [InvaderState.Pristine]:        "Pristine",
+  [InvaderState.SlightlyDegraded]:"Slightly degraded",
+  [InvaderState.Degraded]:        "Degraded",
+  [InvaderState.BadlyDegraded]:   "Badly degraded",
+  [InvaderState.Destroyed]:       "Destroyed",
+  [InvaderState.NotVisible]:      "Not visible",
+};
 
 function formatDate(iso?: string) {
   if (!iso) return "--";
@@ -38,20 +48,13 @@ function formatDate(iso?: string) {
   });
 }
 
-function parseName(raw: string): { city: string; num: string } {
-  const idx = raw.indexOf("_");
-  if (idx === -1) return { city: raw.toUpperCase(), num: "" };
-  return { city: raw.slice(0, idx).toUpperCase(), num: raw.slice(idx + 1) };
-}
-
-export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onUnflash, onHeightChange, onRequestSent }: Props) {
+export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent }: Props) {
   const db = useSQLiteContext();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
-  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [mode, setMode] = useState<"view" | "edit">(pendingCoords ? "edit" : "view");
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [alreadySent, setAlreadySent] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
 
@@ -63,30 +66,20 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
     ).then((row) => setAlreadySent(!!row)).catch(() => {});
   }, [invader.id, db]);
 
-  const parsed = parseName(invader.name);
-  const [nameCity, setNameCity] = useState(parsed.city);
-  const [nameNum, setNameNum] = useState(parsed.num);
-
-  const [points, setPoints] = useState<number | null>(invader.points ?? null);
   const [invaderState, setInvaderState] = useState<string>(invader.state ?? "");
 
+  const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords;
+
   async function handleSend() {
-    const newErrors: Record<string, string> = {};
-    if (nameCity && !nameNum) newErrors.nameNum = "Number is required";
-    if (nameNum && !nameCity) newErrors.nameCity = "City code is required";
-    if (nameCity && nameCity.length < 2) newErrors.nameCity = "Min 2 letters";
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    setErrors({});
     setSubmitting(true);
     setOfflineError(false);
     try {
-      const proposedName = nameCity && nameNum ? `${nameCity}_${nameNum}` : undefined;
       await submitModifyRequest({
         invader_id: invader.id,
-        proposed_name: proposedName,
-        proposed_points: points ?? undefined,
         proposed_state: invaderState || undefined,
-      });
+        proposed_latitude: pendingCoords?.lat,
+        proposed_longitude: pendingCoords?.lon,
+      } as any);
       onRequestSent?.();
       onClose();
     } catch (err) {
@@ -101,7 +94,7 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
         <View style={styles.container}>
           <View style={styles.scrollHandle} />
           <View style={styles.header}>
-            <Text style={styles.name}>Modify {invader.name}</Text>
+            <Text style={styles.name}>Update {invader.name}</Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
@@ -111,50 +104,9 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
 
           <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
 
-            <Text style={styles.fieldLabel}>Name</Text>
-            <View style={styles.nameRow}>
-              <TextInput
-                style={[styles.input, styles.nameCity, errors.nameCity && styles.inputError]}
-                value={nameCity}
-                onChangeText={(v) => { setNameCity(v.toUpperCase().replace(/[^A-Z]/g, "")); setErrors((e) => ({ ...e, nameCity: "" })); }}
-                placeholder="PA"
-                placeholderTextColor={theme.textMuted}
-                maxLength={6}
-                autoCapitalize="characters"
-              />
-              <Text style={styles.nameSep}>_</Text>
-              <TextInput
-                style={[styles.input, styles.nameNum, errors.nameNum && styles.inputError]}
-                value={nameNum}
-                onChangeText={(v) => { setNameNum(v.replace(/[^0-9]/g, "")); setErrors((e) => ({ ...e, nameNum: "" })); }}
-                placeholder="10"
-                placeholderTextColor={theme.textMuted}
-                keyboardType="number-pad"
-              />
-            </View>
-
-            <Text style={styles.fieldLabel}>Points</Text>
-            <View style={styles.pillRow}>
-              {POINTS_OPTIONS.map((p) => {
-                const selected = points === p;
-                return (
-                  <Pressable
-                    key={p}
-                    style={[styles.pill, selected && styles.pillSelected]}
-                    onPress={() => setPoints(p)}
-                  >
-                    <Text style={[styles.pillText, selected && styles.pillTextSelected]}>
-                      {p}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <Text style={styles.fieldLabel}>State</Text>
             <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
-              {/* Pairs row */}
-              {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4)].map((pair, ri) => (
+              {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4), STATE_OPTIONS.slice(4, 6)].map((pair, ri) => (
                 <View key={ri} style={styles.stateRow}>
                   {pair.map((s) => {
                     const selected = invaderState === s;
@@ -164,27 +116,28 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
                         style={[styles.stateOption, styles.stateOptionHalf, selected && styles.stateOptionSelected]}
                         onPress={() => setInvaderState(s)}
                       >
-                        <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>{s}</Text>
+                        <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>
+                          {STATE_LABELS[s]}
+                        </Text>
                       </Pressable>
                     );
                   })}
                 </View>
               ))}
-              {/* Full-width last option */}
-              {(() => {
-                const s = STATE_OPTIONS[4];
-                const selected = invaderState === s;
-                return (
-                  <Pressable
-                    key={s}
-                    style={[styles.stateOption, selected && styles.stateOptionSelected]}
-                    onPress={() => setInvaderState(s)}
-                  >
-                    <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>{s}</Text>
-                  </Pressable>
-                );
-              })()}
             </View>
+
+            <Text style={styles.fieldLabel}>Position</Text>
+            <Pressable
+              style={({ pressed }) => [styles.positionRow, pressed && styles.btnPressed]}
+              onPress={() => onPickLocation?.(invader)}
+            >
+              <Text style={styles.positionValue}>
+                {pendingCoords
+                  ? `${pendingCoords.lat.toFixed(6)}, ${pendingCoords.lon.toFixed(6)}`
+                  : `${invader.latitude.toFixed(6)}, ${invader.longitude.toFixed(6)}`}
+              </Text>
+              <Text style={styles.positionEdit}>Edit</Text>
+            </Pressable>
 
           </ScrollView>
 
@@ -194,13 +147,14 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
             style={({ pressed }) => [
               styles.flashBtn,
               styles.doFlashBtn,
-              (pressed && !submitting) && styles.btnPressed,
+              (isUnchanged || submitting) && styles.validateBtnDisabled,
+              (pressed && !submitting && !isUnchanged) && styles.btnPressed,
             ]}
             onPress={handleSend}
-            disabled={submitting}
+            disabled={submitting || isUnchanged}
           >
             <Text style={styles.flashBtnText}>
-              {submitting ? "Sending…" : "Send modification"}
+              {submitting ? "Sending…" : "Validate"}
             </Text>
           </Pressable>
 
@@ -278,14 +232,15 @@ export function InvaderPopup({ invader, isOffline = false, onClose, onFlash, onU
         </Pressable>
 
         <Pressable
-          style={[styles.modifyBtn, (alreadySent || isOffline) && styles.modifyBtnDisabled]}
           onPress={() => {
             if (isOffline) { setOfflineError(true); return; }
             if (!alreadySent) { setOfflineError(false); setMode("edit"); }
           }}
+          disabled={alreadySent}
+          style={({ pressed }) => [styles.modifyLink, pressed && styles.btnPressed]}
         >
-          <Text style={[styles.modifyBtnText, (alreadySent || isOffline) && styles.modifyBtnDisabledText]}>
-            {alreadySent ? "Modification sent" : "Modify"}
+          <Text style={[styles.modifyLinkText, alreadySent && styles.modifyLinkDisabledText]}>
+            {alreadySent ? "Update sent" : "Update"}
           </Text>
         </Pressable>
 
@@ -374,6 +329,10 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     doFlashBtn: {
       backgroundColor: t.accent,
     },
+    validateBtnDisabled: {
+      backgroundColor: t.bgDivider,
+      opacity: 0.6,
+    },
     unflashBtn: {
       backgroundColor: "transparent",
       borderWidth: 1,
@@ -390,25 +349,18 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     unflashBtnText: {
       color: t.danger,
     },
-    modifyBtn: {
-      borderRadius: BorderRadius.sm,
-      paddingVertical: 10,
+    modifyLink: {
       alignItems: "center",
-      borderWidth: 1,
-      borderColor: t.border,
+      paddingVertical: Spacing.one,
     },
-    modifyBtnText: {
-      color: t.textMuted,
-      fontSize: 14,
+    modifyLinkText: {
+      color: t.accent,
+      fontSize: 13,
       fontFamily: ButtonFont,
     },
-    modifyBtnDisabled: {
-      borderColor: t.bgDivider,
-      backgroundColor: t.bgDivider,
-    },
-    modifyBtnDisabledText: {
+    modifyLinkDisabledText: {
       color: t.textMuted,
-      opacity: 0.5,
+      opacity: 0.6,
     },
     form: {
       maxHeight: 320,
@@ -471,12 +423,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     pillText: {
       color: t.textMuted,
-      fontSize: 12,
-      fontFamily: ButtonFont,
+      fontSize: sz(13),
+      fontFamily: font,
     },
     pillTextSelected: {
       color: t.bg,
-      fontFamily: ButtonFont,
+      fontFamily: font,
     },
     stateGrid: {
       gap: 5,
@@ -501,12 +453,33 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     stateOptionText: {
       color: t.textMuted,
-      fontSize: 13,
-      fontFamily: ButtonFont,
-      textTransform: "capitalize",
+      fontSize: sz(13),
+      fontFamily: font,
     },
     stateOptionTextSelected: {
       color: t.accent,
+      fontFamily: font,
+    },
+    positionRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: Spacing.two,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      marginBottom: Spacing.two,
+    },
+    positionValue: {
+      color: t.text,
+      fontSize: sz(12),
+      fontFamily: font,
+      flexShrink: 1,
+    },
+    positionEdit: {
+      color: t.accent,
+      fontSize: sz(12),
       fontFamily: ButtonFont,
     },
     cancelBtn: {

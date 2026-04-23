@@ -14,6 +14,8 @@ export default function MapScreen() {
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
+  const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
   const user = useAuthStore((s) => s.user);
   const { theme } = useTheme();
   const mapRef = useRef<WebMapHandle>(null);
@@ -99,13 +101,42 @@ export default function MapScreen() {
     selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
 
+  function startPickingLocation(invader: InvaderWithState) {
+    const startLat = pendingCoords?.invaderId === invader.id ? pendingCoords.lat : invader.latitude;
+    const startLon = pendingCoords?.invaderId === invader.id ? pendingCoords.lon : invader.longitude;
+    setSelectedInvader(null);
+    selectedInvaderRef.current = null;
+    setPicking({ invader, startLat, startLon });
+    mapRef.current?.centerOn(startLat, startLon, 0, 17);
+  }
+
+  async function validatePicking() {
+    if (!picking) return;
+    const c = await mapRef.current?.getCenter();
+    if (c) {
+      setPendingCoords({ invaderId: picking.invader.id, lon: c[0], lat: c[1] });
+    }
+    const inv = picking.invader;
+    setPicking(null);
+    selectInvader(inv);
+  }
+
+  function cancelPicking() {
+    if (!picking) return;
+    const inv = picking.invader;
+    setPicking(null);
+    selectInvader(inv);
+  }
+
   return (
     <View style={styles.container}>
       <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} isFollowing={isFollowing} />
 
-      <View style={styles.filterBar}>
-        <MapFilterBar value={filter} onChange={setFilter} />
-      </View>
+      {!picking && (
+        <View style={styles.filterBar}>
+          <MapFilterBar value={filter} onChange={setFilter} />
+        </View>
+      )}
 
       <TouchableOpacity
         style={[styles.locateButton, { backgroundColor: isFollowing ? theme.danger : theme.locationDot }]}
@@ -126,10 +157,12 @@ export default function MapScreen() {
               key={selectedInvader.id}
               invader={selectedInvader}
               isOffline={syncError === 'network'}
-              onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); }}
+              pendingCoords={pendingCoords?.invaderId === selectedInvader.id ? { lat: pendingCoords.lat, lon: pendingCoords.lon } : null}
+              onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); }}
               onFlash={handleFlash}
               onUnflash={handleUnflash}
-              onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); showToast(); }}
+              onPickLocation={startPickingLocation}
+              onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); showToast(); }}
             />
           </View>
         </View>
@@ -144,6 +177,29 @@ export default function MapScreen() {
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
         <Text style={styles.toastText}>Modification request sent</Text>
       </Animated.View>
+
+      {picking && (
+        <>
+          <View style={styles.pickerPinWrapper} pointerEvents="none">
+            <View style={[styles.pickerPin, { backgroundColor: theme.accent, borderColor: theme.bg }]} />
+            <View style={[styles.pickerPinStem, { backgroundColor: theme.accent }]} />
+          </View>
+          <View style={styles.pickerBar}>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
+              onPress={cancelPicking}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
+              onPress={validatePicking}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>Validate</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -215,5 +271,47 @@ const styles = StyleSheet.create({
   },
   locateButtonActive: {
     backgroundColor: "transparent",
+  },
+  pickerPinWrapper: {
+    position: "absolute",
+    top: 0, bottom: 0, left: 0, right: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 15,
+  },
+  pickerPin: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    marginBottom: 18,
+  },
+  pickerPinStem: {
+    position: "absolute",
+    width: 2,
+    height: 10,
+    top: "50%",
+    marginTop: -1,
+  },
+  pickerBar: {
+    position: "absolute",
+    bottom: 32,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    gap: 12,
+    zIndex: 20,
+  },
+  pickerBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+  },
+  pickerBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
