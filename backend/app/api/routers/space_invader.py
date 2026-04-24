@@ -20,6 +20,13 @@ def list_invaders(
         query = query.filter(Invader.updated_at > updated_since)
     return query.all()
 
+@router.get("/{invader_id}", response_model=InvaderOut)
+def get_invader(invader_id: int, db: Session = Depends(get_db)):
+    inv = db.query(Invader).filter(Invader.id == invader_id).first()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invader not found")
+    return inv
+
 @router.post("/", response_model=InvaderOut)
 def create_invader(invader: InvaderCreate, db: Session = Depends(get_db)):
     try:

@@ -1,13 +1,15 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.dependencies import get_db, require_admin
 from app.models.admin_request import AdminRequest
 from app.models.user_request import UserRequest
 from app.models.space_invader import Invader
 from app.schemas.admin_request import AdminRequestOut
+from app.schemas.user_request import UserRequestOut
 from app.core.db_utils import safe_commit
 
 router = APIRouter(prefix="/admin-requests", tags=["Admin Requests"])
@@ -15,10 +17,17 @@ router = APIRouter(prefix="/admin-requests", tags=["Admin Requests"])
 
 @router.get("/", response_model=List[AdminRequestOut])
 def list_admin_requests(
+    status: Optional[str] = None,
+    request_type: Optional[str] = None,
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
-    return db.query(AdminRequest).all()
+    query = db.query(AdminRequest)
+    if status:
+        query = query.filter(AdminRequest.status == status)
+    if request_type:
+        query = query.filter(AdminRequest.request_type == request_type)
+    return query.order_by(AdminRequest.id.desc()).all()
 
 
 @router.get("/{admin_request_id}", response_model=AdminRequestOut)
@@ -33,9 +42,28 @@ def get_admin_request(
     return req
 
 
+@router.get("/{admin_request_id}/submissions", response_model=List[UserRequestOut])
+def get_admin_request_submissions(
+    admin_request_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(require_admin),
+):
+    """Return the individual user requests that feed this admin request."""
+    admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
+    if not admin_req:
+        raise HTTPException(status_code=404, detail="AdminRequest not found")
+    return db.query(UserRequest).filter(UserRequest.admin_request_id == admin_request_id).all()
+
+
+class ApproveBody(BaseModel):
+    override_latitude: Optional[float] = None
+    override_longitude: Optional[float] = None
+
+
 @router.post("/{admin_request_id}/approve")
 def approve_admin_request(
     admin_request_id: int,
+    body: ApproveBody = ApproveBody(),
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
@@ -45,12 +73,16 @@ def approve_admin_request(
     if admin_req.status != "pending":
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
 
+    # Admin-picked position overrides the aggregated barycenter
+    final_lat = body.override_latitude if body.override_latitude is not None else admin_req.proposed_latitude
+    final_lon = body.override_longitude if body.override_longitude is not None else admin_req.proposed_longitude
+
     if admin_req.request_type == "create":
         invader = Invader(
             name=admin_req.proposed_name,
             description=admin_req.proposed_description,
-            latitude=admin_req.proposed_latitude,
-            longitude=admin_req.proposed_longitude,
+            latitude=final_lat,
+            longitude=final_lon,
             points=admin_req.proposed_points,
             state=admin_req.proposed_state or "active",
             image_url=admin_req.proposed_image_url,
@@ -67,10 +99,10 @@ def approve_admin_request(
             invader.name = admin_req.proposed_name
         if admin_req.proposed_description is not None:
             invader.description = admin_req.proposed_description
-        if admin_req.proposed_latitude is not None:
-            invader.latitude = admin_req.proposed_latitude
-        if admin_req.proposed_longitude is not None:
-            invader.longitude = admin_req.proposed_longitude
+        if final_lat is not None:
+            invader.latitude = final_lat
+        if final_lon is not None:
+            invader.longitude = final_lon
         if admin_req.proposed_points is not None:
             invader.points = admin_req.proposed_points
         if admin_req.proposed_state is not None:
@@ -78,7 +110,6 @@ def approve_admin_request(
         if admin_req.proposed_image_url is not None:
             invader.image_url = admin_req.proposed_image_url
 
-    # Mark all linked user requests as processed
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
     ).update({"status": "processed", "updated_at": datetime.utcnow()})
@@ -103,7 +134,6 @@ def reject_admin_request(
     if admin_req.status != "pending":
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
 
-    # Mark all linked user requests as rejected
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
     ).update({"status": "rejected", "updated_at": datetime.utcnow()})

@@ -25,6 +25,7 @@ class AdminRequest(Base):
     proposed_image_url = Column(String, nullable=True)
 
     request_count = Column(Integer, nullable=False, default=0)
+    confidence = Column(Integer, nullable=False, default=0)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     reviewed_at = Column(DateTime, nullable=True)

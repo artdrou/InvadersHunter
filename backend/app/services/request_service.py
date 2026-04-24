@@ -13,9 +13,52 @@ from sqlalchemy.orm import Session
 
 from ..models.user_request import UserRequest
 from ..models.admin_request import AdminRequest
-from ..core.geo_utils import compute_barycenter
+from ..core.geo_utils import compute_barycenter, haversine_m, _simple_centroid
 
 AGGREGATION_THRESHOLD = 1  # minimum number of similar requests to trigger an AdminRequest
+
+
+def compute_confidence(siblings: list) -> int:
+    """
+    0-100 score reflecting how much the user submissions agree with each other.
+
+    Factors:
+    - Vote weight  : normalised vote count (5+ votes = full weight)
+    - State agreement : fraction of submissions sharing the most common proposed state
+    - Location tightness : how clustered the proposed coords are (< 300 m spread = tight)
+    """
+    n = len(siblings)
+    if n == 0:
+        return 0
+
+    vote_score = min(n / 5, 1.0)
+
+    states = [s.proposed_state for s in siblings if s.proposed_state]
+    if states:
+        most_common = max(set(states), key=states.count)
+        state_score = states.count(most_common) / len(states)
+    else:
+        state_score = 1.0
+
+    coords = [
+        (s.proposed_latitude, s.proposed_longitude)
+        for s in siblings
+        if s.proposed_latitude is not None and s.proposed_longitude is not None
+    ]
+    if len(coords) >= 2:
+        center = _simple_centroid(coords)
+        avg_dist = sum(haversine_m(lat, lon, center[0], center[1]) for lat, lon in coords) / len(coords)
+        location_score: float | None = max(0.0, 1.0 - avg_dist / 300.0)
+    elif len(coords) == 1:
+        location_score = 1.0
+    else:
+        location_score = None
+
+    factors = [vote_score, state_score]
+    if location_score is not None:
+        factors.append(location_score)
+
+    return round(sum(factors) / len(factors) * 100)
 
 
 def aggregate_request(db: Session, new_request: UserRequest) -> None:
@@ -104,6 +147,8 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
     first_img = next((r for r in siblings if r.proposed_image_url is not None), None)
     agg_image_url = first_img.proposed_image_url if first_img else new_request.proposed_image_url
 
+    confidence = compute_confidence(siblings)
+
     if admin_req is None:
         admin_req = AdminRequest(
             invader_id=new_request.invader_id,
@@ -118,6 +163,7 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             proposed_state=best_state,
             proposed_image_url=agg_image_url,
             request_count=len(siblings),
+            confidence=confidence,
         )
         db.add(admin_req)
         db.flush()  # get admin_req.id
@@ -130,6 +176,7 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
         admin_req.proposed_state = best_state
         admin_req.proposed_image_url = agg_image_url
         admin_req.request_count = len(siblings)
+        admin_req.confidence = confidence
 
     # Link every sibling to this AdminRequest
     for req in siblings:

@@ -13,6 +13,9 @@ from sqlalchemy import text
 from .database import engine
 
 MIGRATIONS = [
+    # Admin requests: store computed confidence score (0-100) for the admin UI
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS confidence INTEGER NOT NULL DEFAULT 0",
+
     # Invaders: track when an invader record was last changed
     "ALTER TABLE invaders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE",
     # User requests: track when a request status was last changed (pending → processed/rejected)

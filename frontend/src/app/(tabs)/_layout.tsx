@@ -4,11 +4,13 @@ import { Tabs } from "expo-router";
 import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
+import { useAuthStore } from "@/features/auth";
 
 export default function TabsLayout() {
   const { appFont, theme } = useTheme();
   const isOnline = useConnectivityStore((s) => s.isOnline);
   const setOnline = useConnectivityStore((s) => s.setOnline);
+  const isAdmin = useAuthStore((s) => s.user?.is_admin ?? false);
 
   // Track previous online state to detect transitions
   const prevOnlineRef = useRef(isOnline);
@@ -76,6 +78,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="map"     options={{ title: "Carte" }} />
         <Tabs.Screen name="invader" options={{ title: "Invaders" }} />
         <Tabs.Screen name="profile" options={{ title: "Profil" }} />
+        <Tabs.Screen name="admin"   options={{ title: "Admin", href: isAdmin ? undefined : null }} />
       </Tabs>
 
       {/* Subtle offline pill — top-right corner */}

@@ -17,6 +17,7 @@ class AdminRequestOut(BaseModel):
     proposed_state: Optional[str]
     proposed_image_url: Optional[str]
     request_count: int
+    confidence: int
     created_at: datetime
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[int]
