@@ -58,6 +58,7 @@ def get_admin_request_submissions(
 class ApproveBody(BaseModel):
     override_latitude: Optional[float] = None
     override_longitude: Optional[float] = None
+    override_image_url: Optional[str] = None
 
 
 @router.post("/{admin_request_id}/approve")
@@ -73,9 +74,10 @@ def approve_admin_request(
     if admin_req.status != "pending":
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
 
-    # Admin-picked position overrides the aggregated barycenter
-    final_lat = body.override_latitude if body.override_latitude is not None else admin_req.proposed_latitude
-    final_lon = body.override_longitude if body.override_longitude is not None else admin_req.proposed_longitude
+    # Admin-picked values override the aggregated proposals
+    final_lat       = body.override_latitude  if body.override_latitude  is not None else admin_req.proposed_latitude
+    final_lon       = body.override_longitude if body.override_longitude is not None else admin_req.proposed_longitude
+    final_image_url = body.override_image_url if body.override_image_url is not None else admin_req.proposed_image_url
 
     if admin_req.request_type == "create":
         invader = Invader(
@@ -85,7 +87,7 @@ def approve_admin_request(
             longitude=final_lon,
             points=admin_req.proposed_points,
             state=admin_req.proposed_state or "active",
-            image_url=admin_req.proposed_image_url,
+            image_url=final_image_url,
         )
         db.add(invader)
         db.flush()
@@ -107,8 +109,8 @@ def approve_admin_request(
             invader.points = admin_req.proposed_points
         if admin_req.proposed_state is not None:
             invader.state = admin_req.proposed_state
-        if admin_req.proposed_image_url is not None:
-            invader.image_url = admin_req.proposed_image_url
+        if final_image_url is not None:
+            invader.image_url = final_image_url
 
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id

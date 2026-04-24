@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routers import users, space_invader, user_progress, auth, user_requests, admin_requests
+from app.api.routers import users, space_invader, user_progress, auth, user_requests, admin_requests, upload
 from app.migrate import run as run_migrations
 
 
@@ -27,6 +27,7 @@ app.include_router(space_invader.router)
 app.include_router(user_progress.router)
 app.include_router(user_requests.router)
 app.include_router(admin_requests.router)
+app.include_router(upload.router)
 
 @app.get("/")
 def root():
