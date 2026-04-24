@@ -12,6 +12,7 @@ import {
   approveAdminRequest, rejectAdminRequest,
 } from '@/features/admin/services/admin.api';
 import { useAdminPickerStore } from '@/features/admin/store';
+import { useInvaderStore } from '@/features/invaders/store';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
 
@@ -49,6 +50,8 @@ export default function AdminDetailScreen() {
   const [subs, setSubs]       = useState<AdminSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState(false);
+
+  const requestSync = useInvaderStore((s) => s.requestSync);
 
   // Position picker result
   const pickedCoords    = useAdminPickerStore((s) => s.pickedCoords);
@@ -96,6 +99,7 @@ export default function AdminDetailScreen() {
       await approveAdminRequest(req.id, override);
       setPickedCoords(null);
       pickedConsumedRef.current = true;
+      requestSync();
       router.back();
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.detail ?? 'Failed to approve');

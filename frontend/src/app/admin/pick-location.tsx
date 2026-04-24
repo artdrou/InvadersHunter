@@ -29,8 +29,11 @@ export default function AdminPickLocationScreen() {
     currentLon: string;
   }>();
 
-  const baryLat = parseFloat(params.baryLat);
-  const baryLon = parseFloat(params.baryLon);
+  const baryLat    = parseFloat(params.baryLat);
+  const baryLon    = parseFloat(params.baryLon);
+  const currentLat = parseFloat(params.currentLat);
+  const currentLon = parseFloat(params.currentLon);
+  const hasCurrentPos = !isNaN(currentLat) && !isNaN(currentLon);
   const setPickedCoords = useAdminPickerStore((s) => s.setPickedCoords);
 
   const [subs, setSubs] = useState<AdminSubmission[]>([]);
@@ -53,6 +56,16 @@ export default function AdminPickLocationScreen() {
         geometry: { type: 'Point', coordinates: [s.proposed_longitude!, s.proposed_latitude!] },
         properties: { id: s.id },
       })),
+  };
+
+  // GeoJSON for current invader position (red dot)
+  const currentGeoJSON: GeoJSON.FeatureCollection = {
+    type: 'FeatureCollection',
+    features: hasCurrentPos ? [{
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [currentLon, currentLat] },
+      properties: {},
+    }] : [],
   };
 
   // GeoJSON for barycenter (accent dot)
@@ -94,6 +107,22 @@ export default function AdminPickLocationScreen() {
           animationDuration={0}
         />
 
+        {/* Current invader position */}
+        {hasCurrentPos && (
+          <ShapeSource id="current" shape={currentGeoJSON}>
+            <CircleLayer
+              id="current-circle"
+              style={{
+                circleRadius: 10,
+                circleColor: theme.danger,
+                circleOpacity: 0.9,
+                circleStrokeWidth: 2,
+                circleStrokeColor: theme.bg,
+              }}
+            />
+          </ShapeSource>
+        )}
+
         {/* Individual proposed positions */}
         {proposedGeoJSON.features.length > 0 && (
           <ShapeSource id="proposed" shape={proposedGeoJSON}>
@@ -133,6 +162,12 @@ export default function AdminPickLocationScreen() {
 
       {/* Legend */}
       <View style={[styles.legend, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+        {hasCurrentPos && (
+          <View style={styles.legendRow}>
+            <View style={[styles.legendDot, { backgroundColor: theme.danger }]} />
+            <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>Current</Text>
+          </View>
+        )}
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#ffffff', opacity: 0.8 }]} />
           <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>Proposed</Text>
