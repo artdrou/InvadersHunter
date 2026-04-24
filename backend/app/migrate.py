@@ -10,11 +10,14 @@ Usage (from backend/ directory):
 """
 
 from sqlalchemy import text
-from .database import engine
+from . import database  # import module, not attribute — tests patch database.engine
 
 MIGRATIONS = [
     # Admin requests: store computed confidence score (0-100) for the admin UI
     "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS confidence INTEGER NOT NULL DEFAULT 0",
+    # Admin requests: track last modification time
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE",
+    "UPDATE admin_requests SET updated_at = created_at WHERE updated_at IS NULL",
 
     # Invaders: track when an invader record was last changed
     "ALTER TABLE invaders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE",
@@ -31,7 +34,9 @@ MIGRATIONS = [
 
 
 def run():
-    with engine.connect() as conn:
+    if database.engine.dialect.name != "postgresql":
+        return  # tests use Base.metadata.create_all; skip postgres-specific SQL
+    with database.engine.connect() as conn:
         for sql in MIGRATIONS:
             conn.execute(text(sql))
         conn.commit()

@@ -1,9 +1,17 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers import users, space_invader, user_progress, auth, user_requests, admin_requests
+from app.migrate import run as run_migrations
 
 
-app = FastAPI(title="Invaders Hunter Backend")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    run_migrations()
+    yield
+
+
+app = FastAPI(title="Invaders Hunter Backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

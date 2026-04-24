@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapView, Camera, ShapeSource, CircleLayer } from '@maplibre/maplibre-react-native';
 import type { CameraRef, MapViewRef } from '@maplibre/maplibre-react-native';
@@ -19,6 +20,7 @@ const MAP_STYLES: Record<string, string> = {
 export default function AdminPickLocationScreen() {
   const router = useRouter();
   const { theme, themeName, appFont } = useTheme();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     adminRequestId: string;
     baryLat: string;
@@ -142,7 +144,7 @@ export default function AdminPickLocationScreen() {
       </View>
 
       {/* Buttons */}
-      <View style={styles.bar}>
+      <View style={[styles.bar, { bottom: 32 + insets.bottom }]}>
         <Pressable
           style={({ pressed }) => [styles.btn, { borderColor: theme.border, backgroundColor: theme.bgElement }, pressed && styles.pressed]}
           onPress={handleCancel}
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   legendDot:  { width: 12, height: 12, borderRadius: 6 },
   legendText: { fontSize: 12 },
   bar: {
-    position: 'absolute', bottom: 32, left: 16, right: 16,
+    position: 'absolute', left: 16, right: 16,
     flexDirection: 'row', gap: 12, zIndex: 20,
   },
   btn: {

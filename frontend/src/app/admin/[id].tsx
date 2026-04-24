@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, Pressable, StyleSheet,
   ActivityIndicator, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
@@ -40,7 +41,8 @@ export default function AdminDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { theme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
+  const insets = useSafeAreaInsets();
+  const styles = makeStyles(theme, appFont, fontScale, insets.bottom, insets.top);
 
   const [req, setReq]         = useState<AdminRequest | null>(null);
   const [invader, setInvader] = useState<Invader | null>(null);
@@ -263,14 +265,14 @@ export default function AdminDetailScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number) {
+function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: number = 0, topInset: number = 0) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container:    { flex: 1, backgroundColor: t.bg },
     centered:     { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.bg },
     header: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.two,
-      paddingHorizontal: Spacing.three, paddingTop: Spacing.five, paddingBottom: Spacing.two,
+      paddingHorizontal: Spacing.three, paddingTop: topInset + Spacing.three, paddingBottom: Spacing.two,
       borderBottomWidth: 1, borderBottomColor: t.border,
     },
     backBtn:      { paddingRight: Spacing.two },
@@ -282,7 +284,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     statusRejected: { backgroundColor: '#3a1a1a' },
     statusText:   { color: '#aaa', fontSize: sz(10), fontFamily: ButtonFont },
     scroll:       { flex: 1 },
-    scrollContent: { padding: Spacing.three, gap: Spacing.three, paddingBottom: 120 },
+    scrollContent: { padding: Spacing.three, gap: Spacing.three, paddingBottom: 120 + bottomInset },
     section: {
       backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
       borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
@@ -309,7 +311,10 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     actions: {
       position: 'absolute', bottom: 0, left: 0, right: 0,
       flexDirection: 'row', gap: Spacing.two,
-      padding: Spacing.three, backgroundColor: t.bg,
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.three,
+      paddingBottom: Spacing.three + bottomInset,
+      backgroundColor: t.bg,
       borderTopWidth: 1, borderTopColor: t.border,
     },
     rejectBtn: {

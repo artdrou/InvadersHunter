@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, Pressable, StyleSheet,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
@@ -30,7 +31,8 @@ function changeSummary(req: AdminRequest): string {
 export default function AdminScreen() {
   const router = useRouter();
   const { theme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
+  const insets = useSafeAreaInsets();
+  const styles = makeStyles(theme, appFont, fontScale, insets.top);
 
   const [requests, setRequests] = useState<AdminRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function AdminScreen() {
   return (
     <View style={styles.container}>
       {/* Status filter */}
-      <View style={styles.filterRow}>
+      <View style={[styles.filterRow, styles.filterRowFirst]}>
         {STATUS_TABS.map((s) => (
           <Pressable
             key={s}
@@ -143,7 +145,7 @@ export default function AdminScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number) {
+function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: number = 0) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
@@ -153,6 +155,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingHorizontal: Spacing.three,
       paddingTop: Spacing.three,
       paddingBottom: Spacing.one,
+    },
+    filterRowFirst: {
+      paddingTop: topInset + Spacing.three,
     },
     filterChip: {
       flex: 1,
