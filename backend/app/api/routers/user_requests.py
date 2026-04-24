@@ -25,23 +25,38 @@ def submit_request(
         raise HTTPException(status_code=400, detail="invader_id is required for a modify request")
     if data.request_type == "create" and data.invader_id is not None:
         raise HTTPException(status_code=400, detail="invader_id must be null for a create request")
+    if data.request_type == "create" and not data.proposed_name:
+        raise HTTPException(status_code=400, detail="proposed_name is required for a create request")
 
-    # Check the user hasn't already submitted a pending request for the same invader/name
-    norm = normalize_name(data.proposed_name)
-    duplicate = (
-        db.query(UserRequest)
-        .filter(
-            UserRequest.user_id == current_user.id,
-            UserRequest.normalized_name == norm,
-            UserRequest.request_type == data.request_type,
-            UserRequest.status == "pending",
+    norm = normalize_name(data.proposed_name) if data.proposed_name else None
+
+    # Duplicate check: by normalized name for create/named modify, by invader_id for unnamed modify
+    if norm:
+        duplicate = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.user_id == current_user.id,
+                UserRequest.normalized_name == norm,
+                UserRequest.request_type == data.request_type,
+                UserRequest.status == "pending",
+            )
+            .first()
         )
-        .first()
-    )
+    else:
+        duplicate = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.user_id == current_user.id,
+                UserRequest.invader_id == data.invader_id,
+                UserRequest.request_type == "modify",
+                UserRequest.status == "pending",
+            )
+            .first()
+        )
     if duplicate:
         raise HTTPException(
             status_code=409,
-            detail="You already have a pending request for this invader name",
+            detail="You already have a pending request for this invader",
         )
 
     new_req = UserRequest(

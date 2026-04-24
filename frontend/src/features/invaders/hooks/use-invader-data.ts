@@ -15,6 +15,15 @@ import type { Capture } from '../types';
 
 export type SyncError = 'network' | 'other' | null;
 
+// Module-level: survives hook remounts, resets on app restart (desired).
+// TODO: add delta sync (updated_since) for fetchProgress and fetchUserRequests
+//       once the backend exposes those parameters — that will eliminate full
+//       list re-fetches for progress and user requests on every sync cycle.
+let lastSyncAt = 0;
+const SYNC_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between foreground syncs
+const RETRY_BASE_MS    = 30_000;
+const RETRY_MAX_MS     = 5 * 60_000;    // cap backoff at 5 minutes
+
 export function useInvaderData() {
   const db = useSQLiteContext();
 
@@ -29,8 +38,10 @@ export function useInvaderData() {
 
   const user = useAuthStore((s) => s.user);
   const setOnline = useConnectivityStore((s) => s.setOnline);
-  const syncingRef = useRef(false);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncTrigger = useInvaderStore((s) => s.syncTrigger);
+  const syncingRef     = useRef(false);
+  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryDelayRef  = useRef<number>(RETRY_BASE_MS);
 
   const clearRetry = useCallback(() => {
     if (retryTimerRef.current) {
@@ -56,6 +67,8 @@ export function useInvaderData() {
     try {
       await syncAll(db, userId);
       await loadFromDb(userId);
+      lastSyncAt = Date.now();
+      retryDelayRef.current = RETRY_BASE_MS;
       setSyncError(null);
       setOnline(true);
     } catch (err) {
@@ -64,10 +77,12 @@ export function useInvaderData() {
       if (isNetworkError(err)) {
         setSyncError('network');
         setOnline(false);
+        const delay = retryDelayRef.current;
+        retryDelayRef.current = Math.min(delay * 2, RETRY_MAX_MS);
         retryTimerRef.current = setTimeout(() => {
           retryTimerRef.current = null;
           runSync(userId);
-        }, 30_000);
+        }, delay);
       } else {
         setSyncError('other');
       }
@@ -85,14 +100,26 @@ export function useInvaderData() {
     return () => { clearRetry(); };
   }, [user, loadFromDb, runSync, clearRetry]);
 
-  // On app foreground: sync immediately
+  // On app foreground: sync only if data is stale (> 5 min since last sync)
   useEffect(() => {
     if (!user) return;
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') runSync(user.id);
+      if (state !== 'active') return;
+      if (Date.now() - lastSyncAt < SYNC_COOLDOWN_MS) return;
+      runSync(user.id);
     });
     return () => sub.remove();
   }, [user, runSync]);
+
+  // Manual sync requested from UI — skip cooldown
+  const isFirstTrigger = useRef(true);
+  useEffect(() => {
+    if (isFirstTrigger.current) { isFirstTrigger.current = false; return; }
+    if (!user) return;
+    lastSyncAt = 0;
+    runSync(user.id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncTrigger]);
 
   // ── Flash ───────────────────────────────────────────────────────────────────
 

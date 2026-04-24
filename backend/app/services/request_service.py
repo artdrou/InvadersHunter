@@ -21,16 +21,30 @@ AGGREGATION_THRESHOLD = 1  # minimum number of similar requests to trigger an Ad
 def aggregate_request(db: Session, new_request: UserRequest) -> None:
     """Called right after a new UserRequest is added (and flushed) to the session."""
 
-    # Find all pending requests with same normalized name and type (including the new one)
-    siblings = (
-        db.query(UserRequest)
-        .filter(
-            UserRequest.normalized_name == new_request.normalized_name,
-            UserRequest.request_type == new_request.request_type,
-            UserRequest.status == "pending",
+    named = new_request.normalized_name is not None
+
+    # Group by normalized_name when present; by invader_id for nameless modify requests.
+    if named:
+        siblings = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.normalized_name == new_request.normalized_name,
+                UserRequest.request_type == new_request.request_type,
+                UserRequest.status == "pending",
+            )
+            .all()
         )
-        .all()
-    )
+    else:
+        siblings = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.invader_id == new_request.invader_id,
+                UserRequest.normalized_name.is_(None),
+                UserRequest.request_type == "modify",
+                UserRequest.status == "pending",
+            )
+            .all()
+        )
 
     if len(siblings) < AGGREGATION_THRESHOLD:
         return
@@ -45,6 +59,13 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
     agg_lat = center[0] if center else None
     agg_lon = center[1] if center else None
 
+    # Pick most common proposed_state across siblings (for nameless modify requests)
+    state_counts: dict[str, int] = {}
+    for r in siblings:
+        if r.proposed_state:
+            state_counts[r.proposed_state] = state_counts.get(r.proposed_state, 0) + 1
+    best_state = max(state_counts, key=lambda k: state_counts[k]) if state_counts else new_request.proposed_state
+
     # Pick the most common proposed_name (or the first one as fallback)
     name_counts: dict[str, int] = {}
     for r in siblings:
@@ -52,16 +73,36 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             name_counts[r.proposed_name] = name_counts.get(r.proposed_name, 0) + 1
     best_name = max(name_counts, key=lambda k: name_counts[k]) if name_counts else new_request.proposed_name
 
-    # Find existing AdminRequest for this normalized_name + type that is still pending
-    admin_req = (
-        db.query(AdminRequest)
-        .filter(
-            AdminRequest.normalized_name == new_request.normalized_name,
-            AdminRequest.request_type == new_request.request_type,
-            AdminRequest.status == "pending",
+    # Find existing pending AdminRequest for the same target
+    if named:
+        admin_req = (
+            db.query(AdminRequest)
+            .filter(
+                AdminRequest.normalized_name == new_request.normalized_name,
+                AdminRequest.request_type == new_request.request_type,
+                AdminRequest.status == "pending",
+            )
+            .first()
         )
-        .first()
-    )
+    else:
+        admin_req = (
+            db.query(AdminRequest)
+            .filter(
+                AdminRequest.invader_id == new_request.invader_id,
+                AdminRequest.normalized_name.is_(None),
+                AdminRequest.request_type == "modify",
+                AdminRequest.status == "pending",
+            )
+            .first()
+        )
+
+    # For fields without a meaningful aggregation strategy, use the first non-null value
+    first = next((r for r in siblings if r.proposed_description is not None), None)
+    agg_description = first.proposed_description if first else new_request.proposed_description
+    first_pts = next((r for r in siblings if r.proposed_points is not None), None)
+    agg_points = first_pts.proposed_points if first_pts else new_request.proposed_points
+    first_img = next((r for r in siblings if r.proposed_image_url is not None), None)
+    agg_image_url = first_img.proposed_image_url if first_img else new_request.proposed_image_url
 
     if admin_req is None:
         admin_req = AdminRequest(
@@ -70,17 +111,24 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             status="pending",
             proposed_name=best_name,
             normalized_name=new_request.normalized_name,
+            proposed_description=agg_description,
             proposed_latitude=agg_lat,
             proposed_longitude=agg_lon,
+            proposed_points=agg_points,
+            proposed_state=best_state,
+            proposed_image_url=agg_image_url,
             request_count=len(siblings),
         )
         db.add(admin_req)
         db.flush()  # get admin_req.id
     else:
-        # Update aggregated data
         admin_req.proposed_name = best_name
+        admin_req.proposed_description = agg_description
         admin_req.proposed_latitude = agg_lat
         admin_req.proposed_longitude = agg_lon
+        admin_req.proposed_points = agg_points
+        admin_req.proposed_state = best_state
+        admin_req.proposed_image_url = agg_image_url
         admin_req.request_count = len(siblings)
 
     # Link every sibling to this AdminRequest

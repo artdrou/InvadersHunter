@@ -32,6 +32,7 @@ export type Capture = {
   invader_id: number;
   user_id: number;
   found_at: string;
+  updated_at?: string | null;
   /** 1 = written offline, waiting to sync; 0 = confirmed by server */
   is_pending?: number;
 };

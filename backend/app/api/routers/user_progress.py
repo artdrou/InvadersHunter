@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from app.schemas.user_progress import UserProgressCreate, UserProgressOut, UserProgressUpdate
 from app.models.user_progress import UserProgress
 from app.models.user import User
@@ -17,8 +18,15 @@ def list_captures(db: Session = Depends(get_db)):
 
 # List all captures by one user
 @router.get("/user/{user_id}", response_model=List[UserProgressOut])
-def get_user_captures(user_id: int, db: Session = Depends(get_db)):
-    return db.query(UserProgress).filter(UserProgress.user_id == user_id).all()
+def get_user_captures(
+    user_id: int,
+    updated_since: Optional[datetime] = Query(default=None, description="Return only captures updated after this ISO timestamp"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(UserProgress).filter(UserProgress.user_id == user_id)
+    if updated_since is not None:
+        query = query.filter(UserProgress.updated_at > updated_since)
+    return query.all()
 
 # Add a capture
 @router.post("/", response_model=UserProgressOut)

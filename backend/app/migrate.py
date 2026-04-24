@@ -20,6 +20,10 @@ MIGRATIONS = [
     # Backfill: set updated_at = created_at for existing user_requests so delta sync works
     # from day one (requests already have created_at, it's a good baseline)
     "UPDATE user_requests SET updated_at = created_at WHERE updated_at IS NULL",
+    # User progress: track when a capture was created/modified for delta sync
+    "ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()",
+    # Backfill existing captures using found_at as baseline
+    "UPDATE user_progress SET updated_at = found_at WHERE updated_at IS NULL",
 ]
 
 

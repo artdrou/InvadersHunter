@@ -8,10 +8,12 @@ type InvaderStoreState = {
   progress: Capture[];
   isSyncing: boolean;
   syncError: SyncError;
+  syncTrigger: number;
   setInvaders: (invaders: Invader[]) => void;
   setProgress: (updater: Capture[] | ((prev: Capture[]) => Capture[])) => void;
   setIsSyncing: (v: boolean) => void;
   setSyncError: (v: SyncError) => void;
+  requestSync: () => void;
 };
 
 export const useInvaderStore = create<InvaderStoreState>((set) => ({
@@ -19,6 +21,7 @@ export const useInvaderStore = create<InvaderStoreState>((set) => ({
   progress: [],
   isSyncing: false,
   syncError: null,
+  syncTrigger: 0,
   setInvaders: (invaders) => set({ invaders }),
   setProgress: (updater) =>
     set((state) => ({
@@ -26,4 +29,5 @@ export const useInvaderStore = create<InvaderStoreState>((set) => ({
     })),
   setIsSyncing: (isSyncing) => set({ isSyncing }),
   setSyncError: (syncError) => set({ syncError }),
+  requestSync: () => set((s) => ({ syncTrigger: s.syncTrigger + 1 })),
 }));

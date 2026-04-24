@@ -12,8 +12,9 @@ export async function fetchInvaders(updatedSince?: string): Promise<Invader[]> {
   return res.data;
 }
 
-export async function fetchProgress(userId: number): Promise<Capture[]> {
-  const res = await api.get(`/progress/user/${userId}`);
+export async function fetchProgress(userId: number, updatedSince?: string): Promise<Capture[]> {
+  const params = updatedSince ? { updated_since: updatedSince } : {};
+  const res = await api.get(`/progress/user/${userId}`, { params });
   return res.data;
 }
 
@@ -28,19 +29,20 @@ export async function unflashInvader(progressId: number): Promise<void> {
 
 export type ModifyRequestPayload = {
   invader_id: number;
-  proposed_name?: string;
-  proposed_description?: string;
-  proposed_latitude?: number;
-  proposed_longitude?: number;
-  proposed_points?: number;
-  proposed_state?: string;
+  proposed_name?: string | null;
+  proposed_description?: string | null;
+  proposed_latitude?: number | null;
+  proposed_longitude?: number | null;
+  proposed_points?: number | null;
+  proposed_state?: string | null;
 };
 
 export async function submitModifyRequest(payload: ModifyRequestPayload): Promise<void> {
   await api.post('/requests/', { request_type: 'modify', ...payload });
 }
 
-export async function fetchUserRequests(): Promise<UserRequest[]> {
-  const res = await api.get('/requests/');
+export async function fetchUserRequests(updatedSince?: string): Promise<UserRequest[]> {
+  const params = updatedSince ? { updated_since: updatedSince } : {};
+  const res = await api.get('/requests/', { params });
   return res.data;
 }

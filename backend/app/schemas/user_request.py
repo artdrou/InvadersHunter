@@ -7,7 +7,7 @@ from ..core.name_utils import normalize_name, validate_name_format
 class UserRequestCreate(BaseModel):
     request_type: Literal["create", "modify"]
     invader_id: Optional[int] = None  # required for "modify"
-    proposed_name: str
+    proposed_name: Optional[str] = None  # required for "create"; optional for "modify"
     proposed_description: Optional[str] = None
     proposed_latitude: Optional[float] = None
     proposed_longitude: Optional[float] = None
@@ -17,19 +17,15 @@ class UserRequestCreate(BaseModel):
 
     @field_validator("proposed_name")
     @classmethod
-    def name_must_be_valid(cls, v: str) -> str:
+    def name_must_be_valid(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
         normalized = normalize_name(v)
         if not validate_name_format(normalized):
             raise ValueError(
                 f"Name '{v}' does not match the required format CITYCODE_NUMBER "
                 f"(e.g. PA_10, LYO_3). Normalized form: '{normalized}'"
             )
-        return v
-
-    @field_validator("invader_id")
-    @classmethod
-    def check_invader_id(cls, v, info):
-        # invader_id is validated in the route against request_type
         return v
 
 

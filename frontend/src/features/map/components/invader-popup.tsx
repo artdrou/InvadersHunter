@@ -79,7 +79,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
         proposed_state: invaderState || undefined,
         proposed_latitude: pendingCoords?.lat,
         proposed_longitude: pendingCoords?.lon,
-      } as any);
+      });
       onRequestSent?.();
       onClose();
     } catch (err) {

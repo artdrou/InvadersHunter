@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   getMeta, setMeta,
-  upsertInvaders, replaceCaptures, replaceRequests,
+  upsertInvaders, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture,
 } from './db';
 import {
@@ -52,18 +52,40 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
   // 1. Push any pending offline operations first
   await flushPendingSyncs(db, userId);
 
-  // 2. Fetch from server in parallel
-  const lastSync = await getMeta(db, 'last_sync');
-  const [invaders, captures, requests] = await Promise.all([
-    fetchInvaders(lastSync ?? undefined),
-    fetchProgress(userId),
-    fetchUserRequests(),
+  // 2. Read per-endpoint sync timestamps
+  const [lastInvadersSync, lastProgressSync, lastRequestsSync] = await Promise.all([
+    getMeta(db, 'last_invaders_sync'),
+    getMeta(db, 'last_progress_sync'),
+    getMeta(db, 'last_requests_sync'),
   ]);
 
-  // 3. Write to SQLite sequentially
-  await upsertInvaders(db, invaders);
-  await replaceCaptures(db, userId, captures);
-  await replaceRequests(db, userId, requests);
+  // 3. Fetch from server in parallel — delta when we have a timestamp, full otherwise
+  const [invaders, captures, requests] = await Promise.all([
+    fetchInvaders(lastInvadersSync ?? undefined),
+    fetchProgress(userId, lastProgressSync ?? undefined),
+    fetchUserRequests(lastRequestsSync ?? undefined),
+  ]);
 
-  await setMeta(db, 'last_sync', new Date().toISOString());
+  // 4. Write to SQLite: upsert for delta syncs, full replace for first sync
+  const now = new Date().toISOString();
+
+  await upsertInvaders(db, invaders);
+
+  if (lastProgressSync) {
+    await upsertCaptures(db, captures);
+  } else {
+    await replaceCaptures(db, userId, captures);
+  }
+
+  if (lastRequestsSync) {
+    await upsertRequests(db, requests);
+  } else {
+    await replaceRequests(db, userId, requests);
+  }
+
+  await Promise.all([
+    setMeta(db, 'last_invaders_sync', now),
+    setMeta(db, 'last_progress_sync', now),
+    setMeta(db, 'last_requests_sync', now),
+  ]);
 }

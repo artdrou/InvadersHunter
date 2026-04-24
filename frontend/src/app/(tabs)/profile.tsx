@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore, logoutUser } from "@/features/auth";
+import { useInvaderStore } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import * as Updates from 'expo-updates';
 import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
@@ -11,6 +12,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
+  const isSyncing   = useInvaderStore((s) => s.isSyncing);
+  const requestSync = useInvaderStore((s) => s.requestSync);
 
   async function handleLogout() {
     const refreshToken = useAuthStore.getState().refreshToken;
@@ -54,6 +57,16 @@ export default function ProfileScreen() {
           })}
         </View>
       </View>
+
+      <View style={styles.divider} />
+
+      <Pressable
+        style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
+        onPress={requestSync}
+        disabled={isSyncing}
+      >
+        <Text style={styles.syncButtonText}>{isSyncing ? "Syncing…" : "Sync now"}</Text>
+      </Pressable>
 
       <View style={styles.divider} />
 
@@ -137,6 +150,18 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       maxWidth: 360,
       height: 1,
       backgroundColor: t.bgDivider,
+    },
+    syncButton: {
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 12,
+      paddingHorizontal: Spacing.five,
+    },
+    syncButtonText: {
+      color: t.accent,
+      fontFamily: ButtonFont,
+      fontSize: FontSize.md,
     },
     logoutButton: {
       borderWidth: 1,

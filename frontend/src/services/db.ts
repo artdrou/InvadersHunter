@@ -77,10 +77,14 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
     )`
   );
 
-  // Migration: add is_pending to captures if upgrading from an older schema
+  // Migrations: add columns that were added after initial release
   const captureCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(captures)');
   if (!captureCols.some((c) => c.name === 'is_pending')) {
     await db.runAsync('ALTER TABLE captures ADD COLUMN is_pending INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!captureCols.some((c) => c.name === 'updated_at')) {
+    await db.runAsync('ALTER TABLE captures ADD COLUMN updated_at TEXT');
+    await db.runAsync('UPDATE captures SET updated_at = found_at WHERE updated_at IS NULL');
   }
 }
 
@@ -145,8 +149,21 @@ export async function replaceCaptures(db: SQLiteDatabase, userId: number, captur
     await db.runAsync('DELETE FROM captures WHERE user_id = ? AND is_pending = 0', [userId]);
     for (const c of captures) {
       await db.runAsync(
-        'INSERT INTO captures (id, invader_id, user_id, found_at, is_pending) VALUES (?, ?, ?, ?, 0)',
-        [c.id, c.invader_id, c.user_id, c.found_at],
+        'INSERT INTO captures (id, invader_id, user_id, found_at, updated_at, is_pending) VALUES (?, ?, ?, ?, ?, 0)',
+        [c.id, c.invader_id, c.user_id, c.found_at, c.updated_at ?? null],
+      );
+    }
+  });
+}
+
+export async function upsertCaptures(db: SQLiteDatabase, captures: Capture[]): Promise<void> {
+  if (captures.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const c of captures) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO captures (id, invader_id, user_id, found_at, updated_at, is_pending)
+         VALUES (?, ?, ?, ?, ?, 0)`,
+        [c.id, c.invader_id, c.user_id, c.found_at, c.updated_at ?? null],
       );
     }
   });
@@ -201,6 +218,24 @@ export async function replaceRequests(db: SQLiteDatabase, userId: number, reques
     for (const r of requests) {
       await db.runAsync(
         `INSERT INTO user_requests
+          (id, user_id, invader_id, request_type, status, proposed_name, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          r.id, r.user_id, r.invader_id ?? null,
+          r.request_type, r.status, r.proposed_name ?? null,
+          r.updated_at ?? null,
+        ],
+      );
+    }
+  });
+}
+
+export async function upsertRequests(db: SQLiteDatabase, requests: UserRequest[]): Promise<void> {
+  if (requests.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const r of requests) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO user_requests
           (id, user_id, invader_id, request_type, status, proposed_name, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [

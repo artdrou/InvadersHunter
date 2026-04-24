@@ -81,7 +81,7 @@ def approve_admin_request(
     # Mark all linked user requests as processed
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
-    ).update({"status": "processed"})
+    ).update({"status": "processed", "updated_at": datetime.utcnow()})
 
     admin_req.status = "approved"
     admin_req.reviewed_by = admin.id
@@ -106,7 +106,7 @@ def reject_admin_request(
     # Mark all linked user requests as rejected
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
-    ).update({"status": "rejected"})
+    ).update({"status": "rejected", "updated_at": datetime.utcnow()})
 
     admin_req.status = "rejected"
     admin_req.reviewed_by = admin.id
