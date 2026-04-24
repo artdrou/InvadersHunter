@@ -16,6 +16,7 @@ export default function MapScreen() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
   const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
+  const [creatingPicker, setCreatingPicker] = useState(false);
   const user = useAuthStore((s) => s.user);
   const { theme } = useTheme();
   const mapRef = useRef<WebMapHandle>(null);
@@ -59,9 +60,29 @@ export default function MapScreen() {
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
+    if (picking || creatingPicker) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, []);
+  }, [picking, creatingPicker]);
+
+  function handleLongPress(lat: number, lon: number) {
+    if (picking) return;
+    selectedInvaderRef.current = null;
+    setSelectedInvader(null);
+    setIsFollowing(false);
+    mapRef.current?.centerOn(lat, lon, 0, 17);
+    setCreatingPicker(true);
+  }
+
+  function cancelCreating() {
+    setCreatingPicker(false);
+  }
+
+  async function confirmCreating() {
+    // coords are wherever the map center is now
+    // Step 3 will open the form modal here
+    setCreatingPicker(false);
+  }
 
   function handlePopupHeight(height: number) {
     popupHeightRef.current = height;
@@ -130,9 +151,9 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} isFollowing={isFollowing} />
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} />
 
-      {!picking && (
+      {!picking && !creatingPicker && (
         <View style={styles.filterBar}>
           <MapFilterBar value={filter} onChange={setFilter} />
         </View>
@@ -177,6 +198,37 @@ export default function MapScreen() {
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
         <Text style={styles.toastText}>Modification request sent</Text>
       </Animated.View>
+
+      {creatingPicker && (
+        <>
+          {/* Pin centred on screen */}
+          <View style={styles.pickerPinWrapper} pointerEvents="none">
+            <View style={[styles.pickerPin, { backgroundColor: theme.accent, borderColor: theme.bg }]} />
+            <View style={[styles.pickerPinStem, { backgroundColor: theme.accent }]} />
+          </View>
+
+          {/* Small popup just above the pin */}
+          <View style={styles.createPopupWrapper} pointerEvents="box-none">
+            <View style={[styles.createPopupCard, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+              <Text style={[styles.createPopupLabel, { color: theme.text }]}>Créer un invader ici ?</Text>
+              <View style={styles.createPopupBtns}>
+                <TouchableOpacity
+                  style={[styles.createPopupBtn, { borderColor: theme.border }]}
+                  onPress={cancelCreating}
+                >
+                  <Text style={[styles.createPopupBtnText, { color: theme.textMuted }]}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.createPopupBtn, { backgroundColor: theme.accent }]}
+                  onPress={confirmCreating}
+                >
+                  <Text style={[styles.createPopupBtnText, { color: theme.bg }]}>Continuer →</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
 
       {picking && (
         <>
@@ -312,6 +364,44 @@ const styles = StyleSheet.create({
   },
   pickerBtnText: {
     fontSize: 14,
+    fontWeight: "600",
+  },
+  createPopupWrapper: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: "52%",
+    alignItems: "center",
+    zIndex: 20,
+  },
+  createPopupCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+    minWidth: 220,
+    alignItems: "center",
+  },
+  createPopupLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  createPopupBtns: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  createPopupBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+  },
+  createPopupBtnText: {
+    fontSize: 13,
     fontWeight: "600",
   },
 });
