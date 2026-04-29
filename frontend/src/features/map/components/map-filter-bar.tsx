@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
-import { NON_FLASHABLE_STATES } from "@/features/invaders";
+import { NON_FLASHABLE_STATES } from "@/features/invaders/types";
 
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";

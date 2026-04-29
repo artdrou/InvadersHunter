@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, TextInput } from "react-native";
-import { InvaderState } from "@/features/invaders";
+import { InvaderState } from "@/features/invaders/types";
 import { submitCreateRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
