@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { WebMap, InvaderPopup, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
+import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
@@ -16,14 +16,16 @@ export default function MapScreen() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
   const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
+  // create-invader flow
   const [creatingPicker, setCreatingPicker] = useState(false);
+  const [creatingModal, setCreatingModal] = useState<{ lat: number; lon: number } | null>(null);
+  const [creatingPickLoc, setCreatingPickLoc] = useState<{ lat: number; lon: number } | null>(null);
   const user = useAuthStore((s) => s.user);
   const { theme } = useTheme();
   const mapRef = useRef<WebMapHandle>(null);
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
-  // Ref so handlePopupHeight always sees the latest invader (avoids stale closure)
   const selectedInvaderRef = useRef<InvaderWithState | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,7 +34,6 @@ export default function MapScreen() {
   const invadersWithState = mapInvadersWithProgress(invaders, progress);
   const filteredInvaders = applyMapFilter(invadersWithState, filter);
 
-  // Keep selectedInvader in sync when background flash confirms
   useEffect(() => {
     if (!selectedInvader) return;
     const updated = invadersWithState.find((i) => i.id === selectedInvader.id);
@@ -43,7 +44,6 @@ export default function MapScreen() {
     }
   }, [invadersWithState]);
 
-  // Handle "Localiser" from the invaders tab
   useEffect(() => {
     if (!pendingInvaderId) return;
     if (invadersWithState.length === 0) return;
@@ -60,13 +60,13 @@ export default function MapScreen() {
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
-    if (picking || creatingPicker) return;
+    if (picking || creatingPicker || creatingModal || creatingPickLoc) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, [picking, creatingPicker]);
+  }, [picking, creatingPicker, creatingModal, creatingPickLoc]);
 
   function handleLongPress(lat: number, lon: number) {
-    if (picking) return;
+    if (picking || creatingModal || creatingPickLoc) return;
     selectedInvaderRef.current = null;
     setSelectedInvader(null);
     setIsFollowing(false);
@@ -78,10 +78,29 @@ export default function MapScreen() {
     setCreatingPicker(false);
   }
 
-  async function confirmCreating() {
-    // coords are wherever the map center is now
-    // Step 3 will open the form modal here
+  async function openCreateModal() {
+    const c = await mapRef.current?.getCenter();
+    if (!c) return;
     setCreatingPicker(false);
+    setCreatingModal({ lat: c[1], lon: c[0] });
+  }
+
+  function startCreatingPickLoc() {
+    if (!creatingModal) return;
+    setCreatingPickLoc({ lat: creatingModal.lat, lon: creatingModal.lon });
+    setCreatingModal(null);
+    mapRef.current?.centerOn(creatingModal.lat, creatingModal.lon, 0, 17);
+  }
+
+  async function validateCreatingPickLoc() {
+    const c = await mapRef.current?.getCenter();
+    setCreatingModal({ lat: c ? c[1] : creatingPickLoc!.lat, lon: c ? c[0] : creatingPickLoc!.lon });
+    setCreatingPickLoc(null);
+  }
+
+  function cancelCreatingPickLoc() {
+    setCreatingModal({ lat: creatingPickLoc!.lat, lon: creatingPickLoc!.lon });
+    setCreatingPickLoc(null);
   }
 
   function handlePopupHeight(height: number) {
@@ -149,11 +168,13 @@ export default function MapScreen() {
     selectInvader(inv);
   }
 
+  const anyCreating = creatingPicker || !!creatingModal || !!creatingPickLoc;
+
   return (
     <View style={styles.container}>
       <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} />
 
-      {!picking && !creatingPicker && (
+      {!picking && !anyCreating && (
         <View style={styles.filterBar}>
           <MapFilterBar value={filter} onChange={setFilter} />
         </View>
@@ -199,37 +220,72 @@ export default function MapScreen() {
         <Text style={styles.toastText}>Modification request sent</Text>
       </Animated.View>
 
+      {/* ── Create-invader: initial pin + small popup ── */}
       {creatingPicker && (
         <>
-          {/* Pin centred on screen */}
           <View style={styles.pickerPinWrapper} pointerEvents="none">
             <View style={[styles.pickerPin, { backgroundColor: theme.accent, borderColor: theme.bg }]} />
             <View style={[styles.pickerPinStem, { backgroundColor: theme.accent }]} />
           </View>
 
-          {/* Small popup just above the pin */}
           <View style={styles.createPopupWrapper} pointerEvents="box-none">
             <View style={[styles.createPopupCard, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
               <Text style={[styles.createPopupLabel, { color: theme.text }]}>Créer un invader ici ?</Text>
-              <View style={styles.createPopupBtns}>
-                <TouchableOpacity
-                  style={[styles.createPopupBtn, { borderColor: theme.border }]}
-                  onPress={cancelCreating}
-                >
-                  <Text style={[styles.createPopupBtnText, { color: theme.textMuted }]}>Annuler</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.createPopupBtn, { backgroundColor: theme.accent }]}
-                  onPress={confirmCreating}
-                >
-                  <Text style={[styles.createPopupBtnText, { color: theme.bg }]}>Continuer →</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={[styles.createPopupBtn, { backgroundColor: theme.accent }]}
+                onPress={openCreateModal}
+              >
+                <Text style={[styles.createPopupBtnText, { color: theme.bg }]}>Créer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.createPopupBtn, { borderColor: theme.border, borderWidth: 1 }]}
+                onPress={cancelCreating}
+              >
+                <Text style={[styles.createPopupBtnText, { color: theme.textMuted }]}>Annuler</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </>
       )}
 
+      {/* ── Create-invader: full form modal ── */}
+      {creatingModal && (
+        <View style={styles.popupWrapper} pointerEvents="box-none">
+          <CreateInvaderModal
+            lat={creatingModal.lat}
+            lon={creatingModal.lon}
+            onPickLocation={startCreatingPickLoc}
+            onRequestSent={() => { setCreatingModal(null); showToast(); }}
+            onClose={() => setCreatingModal(null)}
+          />
+        </View>
+      )}
+
+      {/* ── Create-invader: location picker ── */}
+      {creatingPickLoc && (
+        <>
+          <View style={styles.pickerPinWrapper} pointerEvents="none">
+            <View style={[styles.pickerPin, { backgroundColor: theme.accent, borderColor: theme.bg }]} />
+            <View style={[styles.pickerPinStem, { backgroundColor: theme.accent }]} />
+          </View>
+          <View style={styles.pickerBar}>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
+              onPress={cancelCreatingPickLoc}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
+              onPress={validateCreatingPickLoc}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>Validate</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
+      {/* ── Modify-invader: location picker ── */}
       {picking && (
         <>
           <View style={styles.pickerPinWrapper} pointerEvents="none">
@@ -321,9 +377,6 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 22,
   },
-  locateButtonActive: {
-    backgroundColor: "transparent",
-  },
   pickerPinWrapper: {
     position: "absolute",
     top: 0, bottom: 0, left: 0, right: 0,
@@ -377,31 +430,26 @@ const styles = StyleSheet.create({
   createPopupCard: {
     borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-    minWidth: 220,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 6,
+    minWidth: 160,
     alignItems: "center",
   },
   createPopupLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
-  },
-  createPopupBtns: {
-    flexDirection: "row",
-    gap: 8,
+    marginBottom: 2,
   },
   createPopupBtn: {
-    flex: 1,
-    paddingVertical: 8,
+    width: "100%",
+    paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "transparent",
     alignItems: "center",
   },
   createPopupBtnText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
   },
 });

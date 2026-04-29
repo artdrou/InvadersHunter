@@ -8,6 +8,7 @@ from app.dependencies import get_db, require_admin
 from app.models.admin_request import AdminRequest
 from app.models.user_request import UserRequest
 from app.models.space_invader import Invader
+from app.models.user import User
 from app.schemas.admin_request import AdminRequestOut
 from app.schemas.user_request import UserRequestOut
 from app.core.db_utils import safe_commit
@@ -52,7 +53,18 @@ def get_admin_request_submissions(
     admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
     if not admin_req:
         raise HTTPException(status_code=404, detail="AdminRequest not found")
-    return db.query(UserRequest).filter(UserRequest.admin_request_id == admin_request_id).all()
+    rows = (
+        db.query(UserRequest, User.username)
+        .join(User, User.id == UserRequest.user_id)
+        .filter(UserRequest.admin_request_id == admin_request_id)
+        .all()
+    )
+    result = []
+    for req, username in rows:
+        out = UserRequestOut.model_validate(req)
+        out.username = username
+        result.append(out)
+    return result
 
 
 class ApproveBody(BaseModel):

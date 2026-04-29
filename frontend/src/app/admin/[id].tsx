@@ -234,11 +234,15 @@ export default function AdminDetailScreen() {
             {subs.map((s) => (
               <View key={s.id} style={styles.subCard}>
                 <View style={styles.row}>
+                  <Text style={styles.subUser}>{s.username ?? `#${s.user_id}`}</Text>
+                  <Text style={styles.subDate}>{new Date(s.created_at).toLocaleDateString()}</Text>
+                </View>
+                <View style={styles.row}>
                   {s.proposed_state && <Text style={styles.subChip}>{s.proposed_state}</Text>}
                   {s.proposed_latitude !== null && <Text style={styles.subChip}>📍 location</Text>}
                   {s.proposed_points !== null && <Text style={styles.subChip}>{s.proposed_points} pts</Text>}
+                  {s.proposed_name && <Text style={styles.subChip}>{s.proposed_name}</Text>}
                 </View>
-                <Text style={styles.subDate}>{new Date(s.created_at).toLocaleDateString()}</Text>
               </View>
             ))}
           </View>
@@ -311,6 +315,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
       color: t.textMuted, fontSize: sz(12), fontFamily: font,
       backgroundColor: t.bg, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
     },
+    subUser:      { color: t.text, fontSize: sz(12), fontFamily: font, fontWeight: '600' },
     subDate:      { color: t.textMuted, fontSize: sz(11), fontFamily: font },
     actions: {
       position: 'absolute', bottom: 0, left: 0, right: 0,

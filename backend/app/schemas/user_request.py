@@ -32,6 +32,7 @@ class UserRequestCreate(BaseModel):
 class UserRequestOut(BaseModel):
     id: int
     user_id: int
+    username: Optional[str] = None
     invader_id: Optional[int]
     request_type: str
     status: str

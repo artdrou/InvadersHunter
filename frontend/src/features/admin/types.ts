@@ -23,6 +23,7 @@ export type AdminRequest = {
 export type AdminSubmission = {
   id: number;
   user_id: number;
+  username: string | null;
   invader_id: number | null;
   request_type: string;
   status: string;

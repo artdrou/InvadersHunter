@@ -41,6 +41,19 @@ export async function submitModifyRequest(payload: ModifyRequestPayload): Promis
   await api.post('/requests/', { request_type: 'modify', ...payload });
 }
 
+export type CreateRequestPayload = {
+  proposed_name: string;
+  proposed_latitude: number;
+  proposed_longitude: number;
+  proposed_state?: string | null;
+  proposed_points?: number | null;
+  proposed_description?: string | null;
+};
+
+export async function submitCreateRequest(payload: CreateRequestPayload): Promise<void> {
+  await api.post('/requests/', { request_type: 'create', ...payload });
+}
+
 export async function fetchUserRequests(updatedSince?: string): Promise<UserRequest[]> {
   const params = updatedSince ? { updated_since: updatedSince } : {};
   const res = await api.get('/requests/', { params });
