@@ -3,7 +3,7 @@ import { useAuthStore } from '@/features/auth/store';
 
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL!;
 
-export const api = axios.create({ baseURL: BASE_URL });
+export const api = axios.create({ baseURL: BASE_URL, adapter: 'fetch' });
 
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
