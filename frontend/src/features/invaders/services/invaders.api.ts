@@ -50,8 +50,22 @@ export type CreateRequestPayload = {
   proposed_description?: string | null;
 };
 
-export async function submitCreateRequest(payload: CreateRequestPayload): Promise<void> {
-  await api.post('/requests/', { request_type: 'create', ...payload });
+export async function submitCreateRequest(payload: CreateRequestPayload): Promise<UserRequest> {
+  const res = await api.post('/requests/', { request_type: 'create', ...payload });
+  return res.data;
+}
+
+export async function uploadRequestPhoto(requestId: number, uri: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', { uri, name: 'photo.jpg', type: 'image/jpeg' } as any);
+  const res = await api.post(`/upload/request-photo/${requestId}`, formData);
+  return res.data.url;
+}
+
+export async function fetchDeletedInvaderIds(updatedSince?: string): Promise<number[]> {
+  const params = updatedSince ? { updated_since: updatedSince } : {};
+  const res = await api.get('/invaders/deleted', { params });
+  return res.data.ids;
 }
 
 export async function fetchUserRequests(updatedSince?: string): Promise<UserRequest[]> {

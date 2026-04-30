@@ -30,6 +30,13 @@ MIGRATIONS = [
     "ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()",
     # Backfill existing captures using found_at as baseline
     "UPDATE user_progress SET updated_at = found_at WHERE updated_at IS NULL",
+    # Track hard-deleted invaders so clients can remove them on delta sync
+    """CREATE TABLE IF NOT EXISTS deleted_invaders (
+        id          SERIAL PRIMARY KEY,
+        invader_id  INTEGER NOT NULL,
+        deleted_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_deleted_invaders_deleted_at ON deleted_invaders (deleted_at)",
 ]
 
 

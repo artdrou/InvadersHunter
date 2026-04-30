@@ -36,7 +36,14 @@
         }
       ],
       "@maplibre/maplibre-react-native",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Invader Hunter to access your photos.",
+          "cameraPermission": "Allow Invader Hunter to take photos of invaders."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

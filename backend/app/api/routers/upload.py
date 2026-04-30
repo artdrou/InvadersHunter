@@ -7,8 +7,12 @@ import boto3
 from botocore.config import Config
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from PIL import Image
+from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_db
+from app.models.user_request import UserRequest
+from app.models.admin_request import AdminRequest
+from app.core.db_utils import safe_commit
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
@@ -48,16 +52,24 @@ def _crop_to_square_jpeg(data: bytes, size: int = _TARGET_PX) -> bytes:
     return buf.getvalue()
 
 
-@router.post("/request-photo")
+@router.post("/request-photo/{request_id}")
 async def upload_request_photo(
+    request_id: int,
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
-    Accept an image upload, crop it to a square, resize to 800×800, and store it
-    in R2 under  requests/<user_id>/<timestamp>_<uuid>.jpg.
+    Accept an image for an existing UserRequest, crop to 800×800 square, store in R2
+    under createRequests/<request_id>/<timestamp>_<uuid>.jpg, and update the request record.
     Returns {"url": "<public url>"}.
     """
+    req = db.query(UserRequest).filter(UserRequest.id == request_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if req.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
     raw = await file.read()
     if len(raw) > _MAX_BYTES:
         raise HTTPException(status_code=413, detail="File too large (max 8 MB)")
@@ -73,7 +85,7 @@ async def upload_request_photo(
 
     ts  = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     uid = uuid.uuid4().hex[:8]
-    key = f"requests/{current_user.id}/{ts}_{uid}.jpg"
+    key = f"createRequests/{request_id}/{ts}_{uid}.jpg"
 
     client = _r2_client()
     client.put_object(
@@ -83,4 +95,16 @@ async def upload_request_photo(
         ContentType="image/jpeg",
     )
 
-    return {"url": f"{_R2_PUBLIC}/{key}"}
+    url = f"{_R2_PUBLIC}/{key}"
+    req.proposed_image_url = url
+    req.updated_at = datetime.utcnow()
+
+    # Propagate to the linked AdminRequest if it has no image yet
+    if req.admin_request_id:
+        admin_req = db.query(AdminRequest).filter(AdminRequest.id == req.admin_request_id).first()
+        if admin_req and admin_req.proposed_image_url is None:
+            admin_req.proposed_image_url = url
+
+    safe_commit(db)
+
+    return {"url": url}

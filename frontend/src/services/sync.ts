@@ -1,11 +1,11 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   getMeta, setMeta,
-  upsertInvaders, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
+  upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture,
 } from './db';
 import {
-  fetchInvaders, fetchProgress, fetchUserRequests,
+  fetchInvaders, fetchDeletedInvaderIds, fetchProgress, fetchUserRequests,
   flashInvader as apiFlash, unflashInvader as apiUnflash,
 } from '@/features/invaders/services/invaders.api';
 
@@ -60,8 +60,9 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
   ]);
 
   // 3. Fetch from server in parallel — delta when we have a timestamp, full otherwise
-  const [invaders, captures, requests] = await Promise.all([
+  const [invaders, deletedIds, captures, requests] = await Promise.all([
     fetchInvaders(lastInvadersSync ?? undefined),
+    fetchDeletedInvaderIds(lastInvadersSync ?? undefined),
     fetchProgress(userId, lastProgressSync ?? undefined),
     fetchUserRequests(lastRequestsSync ?? undefined),
   ]);
@@ -70,6 +71,7 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
   const now = new Date().toISOString();
 
   await upsertInvaders(db, invaders);
+  await deleteInvadersByIds(db, deletedIds);
 
   if (lastProgressSync) {
     await upsertCaptures(db, captures);

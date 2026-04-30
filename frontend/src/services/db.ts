@@ -131,6 +131,16 @@ export async function upsertInvaders(db: SQLiteDatabase, invaders: Invader[]): P
   });
 }
 
+export async function deleteInvadersByIds(db: SQLiteDatabase, ids: number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const id of ids) {
+      await db.runAsync('DELETE FROM invaders WHERE id = ?', [id]);
+      await db.runAsync('DELETE FROM captures WHERE invader_id = ?', [id]);
+    }
+  });
+}
+
 // ── Captures ──────────────────────────────────────────────────────────────────
 
 export async function getAllCaptures(db: SQLiteDatabase, userId: number): Promise<Capture[]> {

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, TextInput } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Image, Alert } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { InvaderState } from "@/features/invaders/types";
-import { submitCreateRequest } from "@/features/invaders/services/invaders.api";
+import { submitCreateRequest, uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
@@ -40,9 +41,26 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   const [nameNum, setNameNum] = useState("");
   const [invaderState, setInvaderState] = useState("");
   const [points, setPoints] = useState("");
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
   const [nameError, setNameError] = useState(false);
+
+  async function pickImage(source: "camera" | "library") {
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 1 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 1 });
+    if (!result.canceled) setImageUri(result.assets[0].uri);
+  }
+
+  function handleAddPhoto() {
+    Alert.alert("Add photo", undefined, [
+      { text: "Camera", onPress: () => pickImage("camera") },
+      { text: "Gallery", onPress: () => pickImage("library") },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
 
   const proposedName =
     nameCity.trim().toUpperCase() +
@@ -55,13 +73,16 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
     setSubmitting(true);
     setOfflineError(false);
     try {
-      await submitCreateRequest({
+      const req = await submitCreateRequest({
         proposed_name: proposedName,
         proposed_latitude: lat,
         proposed_longitude: lon,
         proposed_state: invaderState || null,
         proposed_points: points ? parseInt(points, 10) : null,
       });
+      if (imageUri) {
+        await uploadRequestPhoto(req.id, imageUri);
+      }
       onRequestSent();
       onClose();
     } catch (err) {
@@ -157,6 +178,26 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           </Text>
           <Text style={styles.positionEdit}>Edit</Text>
         </Pressable>
+
+        <Text style={styles.fieldLabel}>Photo (optional)</Text>
+        {imageUri ? (
+          <View style={styles.imagePreviewRow}>
+            <Image source={{ uri: imageUri }} style={styles.imageThumb} />
+            <Pressable
+              onPress={() => setImageUri(null)}
+              style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.btnPressed]}
+            >
+              <Text style={styles.removePhotoBtnText}>Remove</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.btnPressed]}
+            onPress={handleAddPhoto}
+          >
+            <Text style={styles.addPhotoBtnText}>Add photo…</Text>
+          </Pressable>
+        )}
 
       </ScrollView>
 
@@ -371,6 +412,43 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(12),
       fontFamily: font,
       textAlign: "center",
+    },
+    imagePreviewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: Spacing.two,
+    },
+    imageThumb: {
+      width: 64,
+      height: 64,
+      borderRadius: BorderRadius.sm,
+    },
+    removePhotoBtn: {
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 6,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+    },
+    removePhotoBtnText: {
+      color: t.textMuted,
+      fontSize: sz(12),
+      fontFamily: font,
+    },
+    addPhotoBtn: {
+      paddingVertical: 10,
+      paddingHorizontal: Spacing.two,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      marginBottom: Spacing.two,
+      alignItems: "center",
+    },
+    addPhotoBtnText: {
+      color: t.accent,
+      fontSize: sz(13),
+      fontFamily: font,
     },
   });
 }
