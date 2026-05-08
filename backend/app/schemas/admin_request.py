@@ -19,6 +19,7 @@ class AdminRequestOut(BaseModel):
     request_count: int
     confidence: int
     created_at: datetime
+    updated_at: datetime
     reviewed_at: Optional[datetime]
     reviewed_by: Optional[int]
 

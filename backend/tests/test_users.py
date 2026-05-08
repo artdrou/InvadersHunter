@@ -17,7 +17,7 @@ def user(db):
 # ── registration (POST /users/) ───────────────────────────────────────────────
 
 def test_register_creates_user(client):
-    with patch("app.api.routers.users.email.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "bob", "email": "bob@test.com", "password": "pass1234"})
     assert res.status_code == 200
     body = res.json()
@@ -28,14 +28,14 @@ def test_register_creates_user(client):
 
 
 def test_register_duplicate_username(client, user):
-    with patch("app.api.routers.users.email.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "alice", "email": "other@test.com", "password": "pass1234"})
     assert res.status_code == 400
     assert "Username" in res.json()["detail"]
 
 
 def test_register_duplicate_email(client, user):
-    with patch("app.api.routers.users.email.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "newguy", "email": "alice@test.com", "password": "pass1234"})
     assert res.status_code == 400
     assert "Email" in res.json()["detail"]

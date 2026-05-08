@@ -15,7 +15,7 @@ from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.core.security import hash_password
 from app.core.name_utils import normalize_name
-from app.services.request_service import aggregate_request
+from app.services.user_request_service import aggregate_request
 from tests.conftest import auth_headers
 
 

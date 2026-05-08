@@ -1,21 +1,42 @@
 """
-Aggregation logic for user requests.
+Business logic for the user-side workflow on UserRequests.
 
-When a new UserRequest is saved, call `aggregate_request(db, new_request)`.
-It will:
-  1. Find all pending UserRequests with the same normalized_name + request_type.
-  2. If there are 2+, upsert an AdminRequest (create if missing, update if exists).
-  3. Link every matching UserRequest to that AdminRequest.
+Public API:
+- submit            : create a UserRequest, run aggregation into an AdminRequest
+- cancel            : delete a pending UserRequest, drop the orphaned AdminRequest if any
+- list_for_user     : list requests visible to one user (admins see all)
+- get_by_id         : fetch one request, enforcing ownership unless admin
+- aggregate_request : the aggregation engine (called by submit, also exposed for tests)
+- compute_confidence: scoring used by the aggregation
 """
 
 from datetime import datetime
+from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from ..models.user import User
 from ..models.user_request import UserRequest
 from ..models.admin_request import AdminRequest
 from ..core.geo_utils import compute_barycenter, haversine_m, _simple_centroid
+from ..core.name_utils import normalize_name
+from ..core.db_utils import safe_commit
 
 AGGREGATION_THRESHOLD = 1  # minimum number of similar requests to trigger an AdminRequest
+
+
+# ── Domain exceptions ────────────────────────────────────────────────────────
+
+class InvalidRequestPayload(Exception):
+    """request_type / invader_id / proposed_name combination doesn't match the rules."""
+    def __init__(self, detail: str):
+        super().__init__(detail)
+        self.detail = detail
+
+
+class DuplicatePendingRequest(Exception): ...
+class RequestMissing(Exception): ...
+class NotRequestOwner(Exception): ...
+class RequestNotPending(Exception): ...
 
 
 def compute_confidence(siblings: list) -> int:
@@ -181,3 +202,117 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
     # Link every sibling to this AdminRequest
     for req in siblings:
         req.admin_request_id = admin_req.id
+
+
+# ── Public service API ───────────────────────────────────────────────────────
+
+def submit(db: Session, current_user: User, data) -> UserRequest:
+    """Validate, persist, and aggregate a user request. `data` is a UserRequestCreate
+    (or anything with the same fields). Raises domain exceptions on rule violations."""
+    if data.request_type == "modify" and data.invader_id is None:
+        raise InvalidRequestPayload("invader_id is required for a modify request")
+    if data.request_type == "create" and data.invader_id is not None:
+        raise InvalidRequestPayload("invader_id must be null for a create request")
+    if data.request_type == "create" and not data.proposed_name:
+        raise InvalidRequestPayload("proposed_name is required for a create request")
+
+    norm = normalize_name(data.proposed_name) if data.proposed_name else None
+
+    # Duplicate check: by normalized name when present, otherwise by invader_id
+    if norm:
+        duplicate = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.user_id == current_user.id,
+                UserRequest.normalized_name == norm,
+                UserRequest.request_type == data.request_type,
+                UserRequest.status == "pending",
+            )
+            .first()
+        )
+    else:
+        duplicate = (
+            db.query(UserRequest)
+            .filter(
+                UserRequest.user_id == current_user.id,
+                UserRequest.invader_id == data.invader_id,
+                UserRequest.request_type == "modify",
+                UserRequest.status == "pending",
+            )
+            .first()
+        )
+    if duplicate:
+        raise DuplicatePendingRequest()
+
+    new_req = UserRequest(
+        user_id=current_user.id,
+        invader_id=data.invader_id,
+        request_type=data.request_type,
+        status="pending",
+        proposed_name=data.proposed_name,
+        normalized_name=norm,
+        proposed_description=data.proposed_description,
+        proposed_latitude=data.proposed_latitude,
+        proposed_longitude=data.proposed_longitude,
+        proposed_points=data.proposed_points,
+        proposed_state=data.proposed_state,
+        proposed_image_url=data.proposed_image_url,
+    )
+    db.add(new_req)
+    db.flush()  # need new_req.id before aggregation
+
+    aggregate_request(db, new_req)
+
+    safe_commit(db)
+    db.refresh(new_req)
+    return new_req
+
+
+def list_for_user(
+    db: Session, current_user: User, updated_since: Optional[datetime] = None
+) -> List[UserRequest]:
+    """Admins see every request; regular users only see their own."""
+    query = db.query(UserRequest)
+    if not current_user.is_admin:
+        query = query.filter(UserRequest.user_id == current_user.id)
+    if updated_since is not None:
+        query = query.filter(UserRequest.updated_at > updated_since)
+    return query.all()
+
+
+def get_by_id(db: Session, current_user: User, request_id: int) -> UserRequest:
+    req = db.query(UserRequest).filter(UserRequest.id == request_id).first()
+    if not req:
+        raise RequestMissing()
+    if not current_user.is_admin and req.user_id != current_user.id:
+        raise NotRequestOwner()
+    return req
+
+
+def cancel(db: Session, current_user: User, request_id: int) -> None:
+    """Delete a pending UserRequest. If the linked AdminRequest has no remaining
+    siblings (and is still pending), drop it too so we don't leave orphans."""
+    req = db.query(UserRequest).filter(UserRequest.id == request_id).first()
+    if not req:
+        raise RequestMissing()
+    if not current_user.is_admin and req.user_id != current_user.id:
+        raise NotRequestOwner()
+    if req.status != "pending":
+        raise RequestNotPending()
+
+    admin_request_id = req.admin_request_id
+    db.delete(req)
+    db.flush()
+
+    if admin_request_id:
+        remaining = (
+            db.query(UserRequest)
+            .filter(UserRequest.admin_request_id == admin_request_id)
+            .count()
+        )
+        if remaining == 0:
+            admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
+            if admin_req and admin_req.status == "pending":
+                db.delete(admin_req)
+
+    safe_commit(db)

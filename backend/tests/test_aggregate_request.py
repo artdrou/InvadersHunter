@@ -1,6 +1,6 @@
 """
-Tests for request_service.aggregate_request — the aggregation engine that groups
-user requests into admin requests.
+Tests for user_request_service.aggregate_request — the aggregation engine that
+groups user requests into admin requests.
 """
 import pytest
 from app.models.user import User
@@ -9,7 +9,7 @@ from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.core.security import hash_password
 from app.core.name_utils import normalize_name
-from app.services.request_service import aggregate_request
+from app.services.user_request_service import aggregate_request
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────

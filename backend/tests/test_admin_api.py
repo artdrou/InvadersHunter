@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.space_invader import Invader
 from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
-from app.services.request_service import aggregate_request, compute_confidence
+from app.services.user_request_service import aggregate_request, compute_confidence
 from tests.conftest import auth_headers
 
 

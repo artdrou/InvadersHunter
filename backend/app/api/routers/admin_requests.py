@@ -1,4 +1,3 @@
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -6,15 +5,21 @@ from typing import List, Optional
 
 from app.dependencies import get_db, require_admin
 from app.models.admin_request import AdminRequest
-from app.models.user_request import UserRequest
-from app.models.space_invader import Invader
-from app.models.user import User
 from app.schemas.admin_request import AdminRequestOut
 from app.schemas.user_request import UserRequestOut
-from app.core.db_utils import safe_commit
-from app.core import r2
+from app.services import admin_request_service as service
+from app.services.admin_request_service import (
+    AdminRequestNotPending, TargetInvaderMissing,
+)
 
 router = APIRouter(prefix="/admin-requests", tags=["Admin Requests"])
+
+
+def _get_admin_req_or_404(db: Session, admin_request_id: int) -> AdminRequest:
+    req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="AdminRequest not found")
+    return req
 
 
 @router.get("/", response_model=List[AdminRequestOut])
@@ -38,10 +43,7 @@ def get_admin_request(
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
-    req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="AdminRequest not found")
-    return req
+    return _get_admin_req_or_404(db, admin_request_id)
 
 
 @router.get("/{admin_request_id}/submissions", response_model=List[UserRequestOut])
@@ -50,16 +52,9 @@ def get_admin_request_submissions(
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
-    """Return the individual user requests that feed this admin request."""
-    admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
-    if not admin_req:
-        raise HTTPException(status_code=404, detail="AdminRequest not found")
-    rows = (
-        db.query(UserRequest, User.username)
-        .join(User, User.id == UserRequest.user_id)
-        .filter(UserRequest.admin_request_id == admin_request_id)
-        .all()
-    )
+    """Return the individual user requests that feed this admin request, with usernames."""
+    _get_admin_req_or_404(db, admin_request_id)  # 404 if missing
+    rows = service.list_submissions_with_username(db, admin_request_id)
     result = []
     for req, username in rows:
         out = UserRequestOut.model_validate(req)
@@ -81,76 +76,18 @@ def approve_admin_request(
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
-    admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
-    if not admin_req:
-        raise HTTPException(status_code=404, detail="AdminRequest not found")
-    if admin_req.status != "pending":
-        raise HTTPException(status_code=400, detail="AdminRequest is not pending")
-
-    # Admin-picked values override the aggregated proposals
-    final_lat       = body.override_latitude  if body.override_latitude  is not None else admin_req.proposed_latitude
-    final_lon       = body.override_longitude if body.override_longitude is not None else admin_req.proposed_longitude
-    final_image_url = body.override_image_url if body.override_image_url is not None else admin_req.proposed_image_url
-
-    if admin_req.request_type == "create":
-        invader = Invader(
-            name=admin_req.proposed_name,
-            description=admin_req.proposed_description,
-            latitude=final_lat,
-            longitude=final_lon,
-            points=admin_req.proposed_points,
-            state=admin_req.proposed_state or "active",
-            image_url=final_image_url,
+    admin_req = _get_admin_req_or_404(db, admin_request_id)
+    try:
+        service.approve(
+            db, admin_req, admin,
+            override_latitude=body.override_latitude,
+            override_longitude=body.override_longitude,
+            override_image_url=body.override_image_url,
         )
-        db.add(invader)
-        db.flush()
-        admin_req.invader_id = invader.id
-
-    elif admin_req.request_type == "modify":
-        invader = db.query(Invader).filter(Invader.id == admin_req.invader_id).first()
-        if not invader:
-            raise HTTPException(status_code=404, detail="Target invader not found")
-        if admin_req.proposed_name is not None:
-            invader.name = admin_req.proposed_name
-        if admin_req.proposed_description is not None:
-            invader.description = admin_req.proposed_description
-        if final_lat is not None:
-            invader.latitude = final_lat
-        if final_lon is not None:
-            invader.longitude = final_lon
-        if admin_req.proposed_points is not None:
-            invader.points = admin_req.proposed_points
-        if admin_req.proposed_state is not None:
-            invader.state = admin_req.proposed_state
-        if final_image_url is not None:
-            invader.image_url = final_image_url
-
-    # Collect all submission photo URLs before flipping statuses, so we can prune
-    # the unchosen ones from R2 once the approval is committed.
-    submission_urls = [
-        url for (url,) in db.query(UserRequest.proposed_image_url)
-        .filter(UserRequest.admin_request_id == admin_req.id)
-        .all()
-        if url
-    ]
-
-    db.query(UserRequest).filter(
-        UserRequest.admin_request_id == admin_req.id
-    ).update({"status": "processed", "updated_at": datetime.utcnow()})
-
-    admin_req.status = "approved"
-    admin_req.reviewed_by = admin.id
-    admin_req.reviewed_at = datetime.utcnow()
-
-    safe_commit(db)
-
-    # Best-effort cleanup of unselected photos in R2. Failure here must not affect
-    # the approval result, so r2.delete_object swallows individual errors.
-    if r2.is_configured():
-        for url in submission_urls:
-            if url and url != final_image_url:
-                r2.delete_object(url)
-
+    except AdminRequestNotPending:
+        raise HTTPException(status_code=400, detail="AdminRequest is not pending")
+    except TargetInvaderMissing:
+        raise HTTPException(status_code=404, detail="Target invader not found")
     return {"message": "AdminRequest approved", "invader_id": admin_req.invader_id}
 
 
@@ -160,31 +97,9 @@ def reject_admin_request(
     db: Session = Depends(get_db),
     admin=Depends(require_admin),
 ):
-    admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
-    if not admin_req:
-        raise HTTPException(status_code=404, detail="AdminRequest not found")
-    if admin_req.status != "pending":
+    admin_req = _get_admin_req_or_404(db, admin_request_id)
+    try:
+        service.reject(db, admin_req, admin)
+    except AdminRequestNotPending:
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
-
-    submission_urls = [
-        url for (url,) in db.query(UserRequest.proposed_image_url)
-        .filter(UserRequest.admin_request_id == admin_req.id)
-        .all()
-        if url
-    ]
-
-    db.query(UserRequest).filter(
-        UserRequest.admin_request_id == admin_req.id
-    ).update({"status": "rejected", "updated_at": datetime.utcnow()})
-
-    admin_req.status = "rejected"
-    admin_req.reviewed_by = admin.id
-    admin_req.reviewed_at = datetime.utcnow()
-
-    safe_commit(db)
-
-    if r2.is_configured():
-        for url in submission_urls:
-            r2.delete_object(url)
-
     return {"message": "AdminRequest rejected"}

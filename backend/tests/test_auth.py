@@ -132,7 +132,7 @@ def test_logout_unknown_token_is_silent(client):
 # ── forgot-password ────────────────────────────────────────────────────────────
 
 def test_forgot_password_sets_reset_code(client, db, user):
-    with patch("app.api.routers.auth.send_reset_password_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_reset_password_email", new_callable=AsyncMock):
         res = client.post("/auth/forgot-password", json={"username": "alice", "email": "alice@test.com"})
     assert res.status_code == 200
 
@@ -144,7 +144,7 @@ def test_forgot_password_sets_reset_code(client, db, user):
 
 
 def test_forgot_password_unknown_user_still_200(client):
-    with patch("app.api.routers.auth.send_reset_password_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_reset_password_email", new_callable=AsyncMock):
         res = client.post("/auth/forgot-password", json={"username": "ghost", "email": "ghost@test.com"})
     assert res.status_code == 200  # no account enumeration
 
