@@ -21,13 +21,21 @@ _MAX_BYTES = 8 * 1024 * 1024   # 8 MB raw upload limit
 _TARGET_PX = 800               # output square size in pixels
 
 
+class ImageTooSmall(ValueError):
+    """Raised when the centre-cropped square would be smaller than the target size."""
+
+
 def _crop_to_square_jpeg(data: bytes, size: int = _TARGET_PX) -> bytes:
-    """Centre-crop then resize to size×size JPEG, quality 85."""
+    """Centre-crop then resize to size×size JPEG, quality 85.
+    Raises ImageTooSmall when the input's shortest side is below `size` — we refuse
+    to upscale because the output would just be a blurry version of the original."""
     img = Image.open(io.BytesIO(data))
     img = ImageOps.exif_transpose(img)  # honour EXIF orientation tag from phone cameras
     img = img.convert("RGB")
     w, h = img.size
     side = min(w, h)
+    if side < size:
+        raise ImageTooSmall(f"image is {w}x{h}, minimum required is {size}x{size} after centre crop")
     left = (w - side) // 2
     top  = (h - side) // 2
     img  = img.crop((left, top, left + side, top + side))
@@ -65,6 +73,8 @@ async def upload_request_photo(
 
     try:
         jpeg_bytes = _crop_to_square_jpeg(raw)
+    except ImageTooSmall as e:
+        raise HTTPException(status_code=422, detail=f"Image too small: {e}")
     except Exception as e:
         log.error("upload: image processing failed: %s\n%s", e, traceback.format_exc())
         raise HTTPException(status_code=422, detail=f"Could not process image: {e}")
