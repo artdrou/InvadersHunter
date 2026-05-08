@@ -1,4 +1,5 @@
-import { api } from '@/services/api-client';
+import { api, BASE_URL } from '@/services/api-client';
+import { useAuthStore } from '@/features/auth/store';
 import type { Invader, Capture, UserRequest } from '../types';
 
 /**
@@ -58,14 +59,32 @@ export async function submitCreateRequest(payload: CreateRequestPayload): Promis
 export async function uploadRequestPhoto(requestId: number, uri: string): Promise<string> {
   const formData = new FormData();
   formData.append('file', { uri, name: 'photo.jpg', type: 'image/jpeg' } as any);
-  const res = await api.post(`/upload/request-photo/${requestId}`, formData);
-  return res.data.url;
+
+  // Bypass axios — its fetch adapter doesn't preserve RN's { uri, name, type }
+  // FormData entries. Native fetch handles them correctly via the RN polyfill,
+  // and lets the platform set the multipart boundary in Content-Type.
+  const token = useAuthStore.getState().token;
+  const res = await fetch(`${BASE_URL}/upload/request-photo/${requestId}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Upload failed (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  return data.url;
 }
 
 export async function fetchDeletedInvaderIds(updatedSince?: string): Promise<number[]> {
   const params = updatedSince ? { updated_since: updatedSince } : {};
   const res = await api.get('/invaders/deleted', { params });
   return res.data.ids;
+}
+
+export async function cancelRequest(requestId: number): Promise<void> {
+  await api.delete(`/requests/${requestId}`);
 }
 
 export async function fetchUserRequests(updatedSince?: string): Promise<UserRequest[]> {

@@ -1,13 +1,17 @@
 import os
 import io
 import uuid
+import logging
+import traceback
 from datetime import datetime
 
 import boto3
 from botocore.config import Config
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
-from PIL import Image
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
+
+log = logging.getLogger("upload")
 
 from app.dependencies import get_current_user, get_db
 from app.models.user_request import UserRequest
@@ -40,7 +44,9 @@ def _r2_client():
 
 def _crop_to_square_jpeg(data: bytes, size: int = _TARGET_PX) -> bytes:
     """Centre-crop then resize to size×size JPEG, quality 85."""
-    img = Image.open(io.BytesIO(data)).convert("RGB")
+    img = Image.open(io.BytesIO(data))
+    img = ImageOps.exif_transpose(img)  # honour EXIF orientation tag from phone cameras
+    img = img.convert("RGB")
     w, h = img.size
     side = min(w, h)
     left = (w - side) // 2
@@ -80,20 +86,27 @@ async def upload_request_photo(
 
     try:
         jpeg_bytes = _crop_to_square_jpeg(raw)
-    except Exception:
-        raise HTTPException(status_code=422, detail="Could not process image")
+    except Exception as e:
+        log.error("upload: image processing failed: %s\n%s", e, traceback.format_exc())
+        raise HTTPException(status_code=422, detail=f"Could not process image: {e}")
 
     ts  = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     uid = uuid.uuid4().hex[:8]
     key = f"createRequests/{request_id}/{ts}_{uid}.jpg"
 
-    client = _r2_client()
-    client.put_object(
-        Bucket=_R2_BUCKET,
-        Key=key,
-        Body=jpeg_bytes,
-        ContentType="image/jpeg",
-    )
+    try:
+        client = _r2_client()
+        client.put_object(
+            Bucket=_R2_BUCKET,
+            Key=key,
+            Body=jpeg_bytes,
+            ContentType="image/jpeg",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.error("upload: R2 put_object failed key=%s: %s\n%s", key, e, traceback.format_exc())
+        raise HTTPException(status_code=502, detail=f"R2 upload failed: {e}")
 
     url = f"{_R2_PUBLIC}/{key}"
     req.proposed_image_url = url

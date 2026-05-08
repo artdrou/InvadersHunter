@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.dependencies import get_db, get_current_user
 from app.models.user_request import UserRequest
+from app.models.admin_request import AdminRequest
 from app.models.space_invader import Invader  # noqa: F401 — ensures FK target is loaded
 from app.schemas.user_request import UserRequestCreate, UserRequestOut
 from app.core.name_utils import normalize_name
@@ -127,6 +128,17 @@ def cancel_request(
     if req.status != "pending":
         raise HTTPException(status_code=400, detail="Only pending requests can be cancelled")
 
+    admin_request_id = req.admin_request_id
     db.delete(req)
+    db.flush()
+
+    # If the linked AdminRequest now has no remaining UserRequests, delete it too
+    if admin_request_id:
+        remaining = db.query(UserRequest).filter(UserRequest.admin_request_id == admin_request_id).count()
+        if remaining == 0:
+            admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_request_id).first()
+            if admin_req and admin_req.status == "pending":
+                db.delete(admin_req)
+
     safe_commit(db)
     return {"message": "Request cancelled"}

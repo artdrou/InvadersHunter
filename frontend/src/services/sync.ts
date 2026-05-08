@@ -60,12 +60,18 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
   ]);
 
   // 3. Fetch from server in parallel — delta when we have a timestamp, full otherwise
-  const [invaders, deletedIds, captures, requests] = await Promise.all([
+  // Deleted-IDs endpoint is best-effort: a failure must not abort the rest of the sync
+  const [invaders, captures, requests] = await Promise.all([
     fetchInvaders(lastInvadersSync ?? undefined),
-    fetchDeletedInvaderIds(lastInvadersSync ?? undefined),
     fetchProgress(userId, lastProgressSync ?? undefined),
     fetchUserRequests(lastRequestsSync ?? undefined),
   ]);
+  let deletedIds: number[] = [];
+  try {
+    deletedIds = await fetchDeletedInvaderIds(lastInvadersSync ?? undefined);
+  } catch {
+    // endpoint unavailable (e.g. 422 on older deploy) — skip deletion step
+  }
 
   // 4. Write to SQLite: upsert for delta syncs, full replace for first sync
   const now = new Date().toISOString();

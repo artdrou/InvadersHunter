@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { InvaderState } from "@/features/invaders/types";
-import { submitCreateRequest, uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
+import { submitCreateRequest, uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
@@ -44,6 +44,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const [nameError, setNameError] = useState(false);
 
   async function pickImage(source: "camera" | "library") {
@@ -72,6 +73,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
     setNameError(false);
     setSubmitting(true);
     setOfflineError(false);
+    setUploadError(false);
     try {
       const req = await submitCreateRequest({
         proposed_name: proposedName,
@@ -81,7 +83,19 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         proposed_points: points ? parseInt(points, 10) : null,
       });
       if (imageUri) {
-        await uploadRequestPhoto(req.id, imageUri);
+        try {
+          await uploadRequestPhoto(req.id, imageUri);
+        } catch (uploadErr) {
+          // Roll back: delete the just-created request and show error
+          await cancelRequest(req.id).catch(() => {});
+          setSubmitting(false);
+          if (isNetworkError(uploadErr)) {
+            setOfflineError(true);
+          } else {
+            setUploadError(true);
+          }
+          return;
+        }
       }
       onRequestSent();
       onClose();
@@ -219,6 +233,9 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
 
       {offlineError && (
         <Text style={styles.offlineMsg}>No internet connection</Text>
+      )}
+      {uploadError && (
+        <Text style={styles.offlineMsg}>Photo upload failed — please try again</Text>
       )}
 
       <Pressable

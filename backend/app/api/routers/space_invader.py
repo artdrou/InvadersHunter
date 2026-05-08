@@ -93,8 +93,8 @@ def delete_invader(invader_id: int, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Invader not found")
 
         db.execute(
-            text("INSERT INTO deleted_invaders (invader_id, deleted_at) VALUES (:id, NOW())"),
-            {"id": invader_id},
+            text("INSERT INTO deleted_invaders (invader_id, deleted_at) VALUES (:id, :now)"),
+            {"id": invader_id, "now": datetime.utcnow()},
         )
         db.delete(db_invader)
         safe_commit(db)
