@@ -50,10 +50,16 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   const [nameError, setNameError] = useState(false);
 
   async function pickImage(source: "camera" | "library") {
+    const opts: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ["images"],
+      quality: 1,
+      allowsEditing: true,
+      aspect: [1, 1],
+    };
     const result =
       source === "camera"
-        ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 1 })
-        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 1 });
+        ? await ImagePicker.launchCameraAsync(opts)
+        : await ImagePicker.launchImageLibraryAsync(opts);
     if (!result.canceled) setImageUri(result.assets[0].uri);
   }
 
