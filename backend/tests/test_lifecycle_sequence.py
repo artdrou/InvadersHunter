@@ -19,18 +19,6 @@ from tests.conftest import auth_headers
 
 
 @pytest.fixture()
-def deleted_invaders_table(db):
-    """SQLite test DB doesn't run PG migrations — create the tracking table by hand."""
-    db.execute(text(
-        "CREATE TABLE IF NOT EXISTS deleted_invaders ("
-        "invader_id INTEGER PRIMARY KEY, "
-        "deleted_at TIMESTAMP NOT NULL"
-        ")"
-    ))
-    db.commit()
-
-
-@pytest.fixture()
 def users(db):
     regular = User(username="alice", email="a@t.com", hashed_password=hash_password("pw"))
     admin = User(username="root", email="r@t.com", hashed_password=hash_password("pw"), is_admin=True)
@@ -39,7 +27,7 @@ def users(db):
     return regular, admin
 
 
-def test_full_create_validate_delete_clean_sequence(db, client, users, deleted_invaders_table):
+def test_full_create_validate_delete_clean_sequence(db, client, users):
     regular, admin = users
 
     # ── 1. CREATE ────────────────────────────────────────────────────────────

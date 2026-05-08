@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, Pressable, StyleSheet,
-  ActivityIndicator, Alert,
+  ActivityIndicator, Alert, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -50,6 +50,7 @@ export default function AdminDetailScreen() {
   const [subs, setSubs]       = useState<AdminSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState(false);
+  const [pickedImageUrl, setPickedImageUrl] = useState<string | null>(null);
 
   const requestSync = useInvaderStore((s) => s.requestSync);
 
@@ -70,6 +71,13 @@ export default function AdminDetailScreen() {
         ]);
         setReq(r);
         setSubs(s);
+        // Default the photo selection to the aggregated proposal, falling back
+        // to the first submission that has one.
+        setPickedImageUrl(
+          r.proposed_image_url
+          ?? s.find((sub) => sub.proposed_image_url)?.proposed_image_url
+          ?? null
+        );
         if (r.invader_id) {
           const inv = await fetchInvader(r.invader_id);
           setInvader(inv);
@@ -93,10 +101,10 @@ export default function AdminDetailScreen() {
     if (!req) return;
     setActing(true);
     try {
-      const override = pickedCoords
+      const coords = pickedCoords
         ? { latitude: pickedCoords.lat, longitude: pickedCoords.lon }
         : undefined;
-      await approveAdminRequest(req.id, override);
+      await approveAdminRequest(req.id, { coords, imageUrl: pickedImageUrl });
       setPickedCoords(null);
       pickedConsumedRef.current = true;
       requestSync();
@@ -227,6 +235,33 @@ export default function AdminDetailScreen() {
           )}
         </View>
 
+        {/* Photo picker */}
+        {subs.some((s) => s.proposed_image_url) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Photo</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
+              {subs
+                .filter((s) => s.proposed_image_url)
+                .map((s) => {
+                  const url = s.proposed_image_url!;
+                  const selected = url === pickedImageUrl;
+                  return (
+                    <Pressable
+                      key={s.id}
+                      onPress={() => setPickedImageUrl(url)}
+                      style={[styles.photoFrame, selected && styles.photoFrameSelected]}
+                    >
+                      <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
+                      <Text style={styles.photoCaption} numberOfLines={1}>
+                        {s.username ?? `#${s.user_id}`}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Raw submissions */}
         {subs.length > 0 && (
           <View style={styles.section}>
@@ -317,6 +352,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     },
     subUser:      { color: t.text, fontSize: sz(12), fontFamily: font, fontWeight: '600' },
     subDate:      { color: t.textMuted, fontSize: sz(11), fontFamily: font },
+    photoStrip:   { gap: Spacing.two, paddingVertical: 4 },
+    photoFrame: {
+      borderWidth: 2, borderColor: 'transparent', borderRadius: BorderRadius.sm,
+      padding: 2, alignItems: 'center',
+    },
+    photoFrameSelected: { borderColor: t.accent },
+    photoThumb:   { width: 96, height: 96, borderRadius: BorderRadius.sm, backgroundColor: t.bg },
+    photoCaption: { color: t.textMuted, fontSize: sz(10), fontFamily: font, marginTop: 2, maxWidth: 96 },
     actions: {
       position: 'absolute', bottom: 0, left: 0, right: 0,
       flexDirection: 'row', gap: Spacing.two,

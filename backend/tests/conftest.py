@@ -21,6 +21,7 @@ import app.models.admin_request  # noqa: F401
 import app.models.user_progress  # noqa: F401
 import app.models.refresh_token  # noqa: F401
 
+from sqlalchemy import text
 from app.main import app
 from app.dependencies import get_db
 from app.models.user import User
@@ -44,9 +45,21 @@ def db():
     """Fresh schema per test, rolled back on teardown."""
     Base.metadata.create_all(_test_engine)
     session = _TestSession()
+    # `deleted_invaders` lives in raw migrations (PG-only); recreate it for SQLite
+    # so tests hitting DELETE /invaders/{id} don't crash on the tombstone insert.
+    session.execute(text(
+        "CREATE TABLE IF NOT EXISTS deleted_invaders ("
+        "invader_id INTEGER PRIMARY KEY, "
+        "deleted_at TIMESTAMP NOT NULL"
+        ")"
+    ))
+    session.commit()
     yield session
     session.close()
     Base.metadata.drop_all(_test_engine)
+    with _test_engine.connect() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS deleted_invaders"))
+        conn.commit()
 
 
 @pytest.fixture()

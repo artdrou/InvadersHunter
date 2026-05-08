@@ -1,12 +1,8 @@
-import os
 import io
-import uuid
 import logging
 import traceback
 from datetime import datetime
 
-import boto3
-from botocore.config import Config
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
@@ -17,29 +13,12 @@ from app.dependencies import get_current_user, get_db
 from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.core.db_utils import safe_commit
+from app.core import r2
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
-_R2_ENDPOINT  = os.getenv("R2_ENDPOINT_URL")      # https://<account_id>.r2.cloudflarestorage.com
-_R2_KEY_ID    = os.getenv("R2_ACCESS_KEY_ID")
-_R2_SECRET    = os.getenv("R2_SECRET_ACCESS_KEY")
-_R2_BUCKET    = os.getenv("R2_BUCKET")
-_R2_PUBLIC    = os.getenv("R2_PUBLIC_URL", "").rstrip("/")  # https://pub-xxx.r2.dev or custom domain
-
-_MAX_BYTES    = 8 * 1024 * 1024   # 8 MB raw upload limit
-_TARGET_PX    = 800               # output square size in pixels
-
-
-def _r2_client():
-    if not all([_R2_ENDPOINT, _R2_KEY_ID, _R2_SECRET, _R2_BUCKET, _R2_PUBLIC]):
-        raise HTTPException(status_code=503, detail="R2 storage is not configured")
-    return boto3.client(
-        "s3",
-        endpoint_url=_R2_ENDPOINT,
-        aws_access_key_id=_R2_KEY_ID,
-        aws_secret_access_key=_R2_SECRET,
-        config=Config(signature_version="s3v4"),
-    )
+_MAX_BYTES = 8 * 1024 * 1024   # 8 MB raw upload limit
+_TARGET_PX = 800               # output square size in pixels
 
 
 def _crop_to_square_jpeg(data: bytes, size: int = _TARGET_PX) -> bytes:
@@ -90,25 +69,7 @@ async def upload_request_photo(
         log.error("upload: image processing failed: %s\n%s", e, traceback.format_exc())
         raise HTTPException(status_code=422, detail=f"Could not process image: {e}")
 
-    ts  = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    uid = uuid.uuid4().hex[:8]
-    key = f"createRequests/{request_id}/{ts}_{uid}.jpg"
-
-    try:
-        client = _r2_client()
-        client.put_object(
-            Bucket=_R2_BUCKET,
-            Key=key,
-            Body=jpeg_bytes,
-            ContentType="image/jpeg",
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        log.error("upload: R2 put_object failed key=%s: %s\n%s", key, e, traceback.format_exc())
-        raise HTTPException(status_code=502, detail=f"R2 upload failed: {e}")
-
-    url = f"{_R2_PUBLIC}/{key}"
+    url = r2.upload_request_photo(request_id, jpeg_bytes)
     req.proposed_image_url = url
     req.updated_at = datetime.utcnow()
 

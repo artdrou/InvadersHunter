@@ -12,6 +12,7 @@ from app.models.user import User
 from app.schemas.admin_request import AdminRequestOut
 from app.schemas.user_request import UserRequestOut
 from app.core.db_utils import safe_commit
+from app.core import r2
 
 router = APIRouter(prefix="/admin-requests", tags=["Admin Requests"])
 
@@ -124,6 +125,15 @@ def approve_admin_request(
         if final_image_url is not None:
             invader.image_url = final_image_url
 
+    # Collect all submission photo URLs before flipping statuses, so we can prune
+    # the unchosen ones from R2 once the approval is committed.
+    submission_urls = [
+        url for (url,) in db.query(UserRequest.proposed_image_url)
+        .filter(UserRequest.admin_request_id == admin_req.id)
+        .all()
+        if url
+    ]
+
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
     ).update({"status": "processed", "updated_at": datetime.utcnow()})
@@ -133,6 +143,14 @@ def approve_admin_request(
     admin_req.reviewed_at = datetime.utcnow()
 
     safe_commit(db)
+
+    # Best-effort cleanup of unselected photos in R2. Failure here must not affect
+    # the approval result, so r2.delete_object swallows individual errors.
+    if r2.is_configured():
+        for url in submission_urls:
+            if url and url != final_image_url:
+                r2.delete_object(url)
+
     return {"message": "AdminRequest approved", "invader_id": admin_req.invader_id}
 
 
@@ -148,6 +166,13 @@ def reject_admin_request(
     if admin_req.status != "pending":
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
 
+    submission_urls = [
+        url for (url,) in db.query(UserRequest.proposed_image_url)
+        .filter(UserRequest.admin_request_id == admin_req.id)
+        .all()
+        if url
+    ]
+
     db.query(UserRequest).filter(
         UserRequest.admin_request_id == admin_req.id
     ).update({"status": "rejected", "updated_at": datetime.utcnow()})
@@ -157,4 +182,9 @@ def reject_admin_request(
     admin_req.reviewed_at = datetime.utcnow()
 
     safe_commit(db)
+
+    if r2.is_configured():
+        for url in submission_urls:
+            r2.delete_object(url)
+
     return {"message": "AdminRequest rejected"}

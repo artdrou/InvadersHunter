@@ -2,6 +2,8 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { InvaderState } from "@/features/invaders/types";
+import { useInvaderStore } from "@/features/invaders/store";
+import { cityOf } from "@/features/invaders/utils/invader-list";
 import { submitCreateRequest, uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
@@ -63,9 +65,32 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
     ]);
   }
 
+  const allInvaders = useInvaderStore((s) => s.invaders);
+
+  // Detect the numbering width used by existing invaders in this city.
+  // Returns 0 when the city is unknown OR when its existing names use no zero-padding,
+  // so the user's number is left exactly as typed in those cases.
+  const cityPadding = (() => {
+    const city = nameCity.trim().toUpperCase();
+    if (!city) return 0;
+    const matching = allInvaders.filter((inv) => cityOf(inv.name) === city);
+    if (matching.length === 0) return 0;
+    for (const inv of matching) {
+      const idx = inv.name.indexOf("_");
+      if (idx === -1) continue;
+      const numStr = inv.name.slice(idx + 1);
+      if (/^\d+$/.test(numStr) && numStr.length > 1 && numStr.startsWith("0")) {
+        return numStr.length;
+      }
+    }
+    return 0;
+  })();
+
+  const numFormatted =
+    cityPadding > 0 ? nameNum.trim().padStart(cityPadding, "0") : nameNum.trim();
   const proposedName =
     nameCity.trim().toUpperCase() +
-    (nameCity.trim() && nameNum.trim() ? "_" + nameNum.trim().padStart(3, "0") : "");
+    (nameCity.trim() && nameNum.trim() ? "_" + numFormatted : "");
   const isValid = nameCity.trim().length > 0 && nameNum.trim().length > 0;
 
   async function handleSend() {

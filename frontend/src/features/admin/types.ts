@@ -33,6 +33,7 @@ export type AdminSubmission = {
   proposed_longitude: number | null;
   proposed_points: number | null;
   proposed_description: string | null;
+  proposed_image_url: string | null;
   created_at: string;
   updated_at: string | null;
 };

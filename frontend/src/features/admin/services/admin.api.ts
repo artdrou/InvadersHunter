@@ -27,11 +27,15 @@ export async function fetchInvader(id: number): Promise<Invader> {
 
 export async function approveAdminRequest(
   id: number,
-  overrideCoords?: { latitude: number; longitude: number },
+  overrides?: {
+    coords?: { latitude: number; longitude: number };
+    imageUrl?: string | null;
+  },
 ): Promise<void> {
   await api.post(`/admin-requests/${id}/approve`, {
-    override_latitude: overrideCoords?.latitude ?? null,
-    override_longitude: overrideCoords?.longitude ?? null,
+    override_latitude: overrides?.coords?.latitude ?? null,
+    override_longitude: overrides?.coords?.longitude ?? null,
+    override_image_url: overrides?.imageUrl ?? null,
   });
 }
 
