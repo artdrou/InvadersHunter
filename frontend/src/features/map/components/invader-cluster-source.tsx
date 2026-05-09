@@ -46,17 +46,58 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
       cluster
       clusterRadius={CLUSTER_RADIUS}
       clusterMaxZoomLevel={CLUSTER_MAX_ZOOM}
+      clusterProperties={{
+        // True only if every point in the cluster has captured=1.
+        // Used by the cluster bubble to flip from red to blue.
+        all_captured: ["all", ["==", ["get", "captured"], 1]],
+      }}
     >
-      {/* Cluster bubble */}
+      {/* Soft bloom halo behind the cluster bubble — purple for red bubbles,
+          Klein blue for blue bubbles. Declared before the main bubble so it
+          renders underneath. circleBlur softens the edge into a glow. */}
+      <CircleLayer
+        id="cluster-halo"
+        filter={["has", "point_count"]}
+        style={{
+          circleRadius: [
+            "step", ["get", "point_count"],
+            28,        // 1-9   (bubble 18 + 10 halo)
+            10, 34,    // 10-49
+            50, 42,    // 50-199
+            200, 50,   // 200+
+          ],
+          circleColor: [
+            "case",
+            ["get", "all_captured"],
+            "#002fa7",  // International Klein Blue
+            "#a300b3",  // purple-magenta
+          ],
+          circleOpacity: 0.45,
+          circleBlur: 0.6,
+        }}
+      />
+
+      {/* Cluster bubble — colour matches the marker tone (red by default, blue
+          when every point in the cluster is captured). Radius still grows with
+          cluster size so denser areas read as bigger bubbles. */}
       <CircleLayer
         id="cluster-circle"
         filter={["has", "point_count"]}
         style={{
-          circleRadius: ["step", ["get", "point_count"], 20, 50, 28, 200, 36],
-          circleColor: ["step", ["get", "point_count"], "#ff0062", 50, "#ffd000", 200, "#13f2fa"],
-          circleOpacity: 0.85,
-          circleStrokeWidth: 2,
-          circleStrokeColor: "#090e3f33",
+          circleRadius: [
+            "step", ["get", "point_count"],
+            18,        // 1-9
+            10, 22,    // 10-49
+            50, 28,    // 50-199
+            200, 34,   // 200+
+          ],
+          circleColor: [
+            "case",
+            ["get", "all_captured"],
+            "#1cf0ff",  // every point captured → blue (matches captured marker)
+            "#ff0062",  // otherwise → red-pink (matches uncaptured marker)
+          ],
+          circleOpacity: 0.95,
         }}
       />
 

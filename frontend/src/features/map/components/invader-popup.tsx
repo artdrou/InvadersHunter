@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, Linking } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { submitModifyRequest } from "@/features/invaders/services/invaders.api";
@@ -219,6 +220,23 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
 
         <View style={styles.divider} />
 
+        <View style={styles.linksRow}>
+          <Pressable
+            onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${invader.latitude},${invader.longitude}`)}
+            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+            hitSlop={8}
+          >
+            <Ionicons name="navigate" size={20} color={theme.accent} />
+          </Pressable>
+          <Pressable
+            onPress={() => Linking.openURL(`https://www.instagram.com/explore/tags/${invader.name.toLowerCase()}/`)}
+            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+            hitSlop={8}
+          >
+            <Ionicons name="logo-instagram" size={20} color={theme.accent} />
+          </Pressable>
+        </View>
+
         <Pressable
           style={({ pressed }) => [
             styles.flashBtn,
@@ -348,6 +366,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     unflashBtnText: {
       color: t.danger,
+    },
+    linksRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: Spacing.four,
+      paddingVertical: Spacing.one,
+    },
+    linkIconBtn: {
+      padding: Spacing.one,
     },
     modifyLink: {
       alignItems: "center",
