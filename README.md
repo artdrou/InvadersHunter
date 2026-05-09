@@ -12,7 +12,7 @@ Scan the QR code below or use the direct link to install the latest preview buil
 
 ![APK QR Code](docs/apk-qr.png)
 
-[Direct download link](https://expo.dev/accounts/invaderhunter.app/projects/frontend/builds/3600ac1d-d42a-4505-9cdb-0c64c232f921)
+[Direct download link](https://expo.dev/accounts/invaderhunter.app/projects/frontend/builds/6f9a20c1-417e-409a-99e8-e19c51889d78)
 
 > Android only for now. iOS support is not planned at this stage.
 
