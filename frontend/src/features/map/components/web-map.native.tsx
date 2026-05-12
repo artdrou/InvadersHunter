@@ -54,15 +54,17 @@ type Props = {
   isFollowing?: boolean;
   headingAlpha?: number;
   onHeadingChange?: (heading: number) => void;
+  greyMode?: import("./map-filter-bar").GreyMode;
+  colorMode?: import("./map-filter-bar").ColorMode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash" }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
   const { themeName } = useTheme();
   const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
-  const geojson       = useInvaderGeojson(invaders);
+  const geojson       = useInvaderGeojson(invaders, greyMode, colorMode);
   const userLocation  = useUserLocation(headingAlpha);
 
   userCoordsRef.current = userLocation?.coords ?? null;

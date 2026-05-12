@@ -3,7 +3,7 @@ import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
 import { useHeadingStore } from "@/features/map/store";
 import type { MapFilter } from "@/features/map";
-import type { WebMapHandle } from "@/features/map/components/web-map";
+import type { WebMapHandle } from "@/features/map/components/web-map.native";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
@@ -15,6 +15,8 @@ export default function MapScreen() {
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
+  const [greyMode, setGreyMode] = useState<"none" | "all" | "unflashed">("none");
+  const [colorMode, setColorMode] = useState<"flash" | "rarity">("flash");
   const [isFollowing, setIsFollowing] = useState(false);
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
   const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
@@ -174,11 +176,11 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} />
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} />
 
       {!picking && !anyCreating && (
         <View style={styles.filterBar}>
-          <MapFilterBar value={filter} onChange={setFilter} />
+          <MapFilterBar value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
       )}
 
