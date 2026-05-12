@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Animated, View, Text, StyleSheet } from "react-native";
 import { Tabs } from "expo-router";
+import { Fontisto, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
@@ -72,13 +73,37 @@ export default function TabsLayout() {
           tabBarActiveTintColor: theme.accent,
           tabBarInactiveTintColor: theme.textMuted,
           tabBarStyle: { backgroundColor: theme.bg, borderTopColor: theme.border },
-          tabBarIconStyle: { display: "none" },
         }}
       >
-        <Tabs.Screen name="map"     options={{ title: "Carte" }} />
-        <Tabs.Screen name="invader" options={{ title: "Invaders" }} />
-        <Tabs.Screen name="profile" options={{ title: "Profil" }} />
-        <Tabs.Screen name="admin"   options={{ title: "Admin", href: isAdmin ? undefined : null }} />
+        <Tabs.Screen
+          name="map"
+          options={{
+            title: "Carte",
+            tabBarIcon: ({ color, size }) => <Fontisto name="map" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="invader"
+          options={{
+            title: "Invaders",
+            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="space-invaders" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profil",
+            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: "Admin",
+            href: isAdmin ? undefined : null,
+            tabBarIcon: ({ color, size }) => <MaterialIcons name="admin-panel-settings" size={size} color={color} />,
+          }}
+        />
       </Tabs>
 
       {/* Subtle offline pill — top-right corner */}

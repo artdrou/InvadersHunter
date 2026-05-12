@@ -44,6 +44,7 @@ export type WebMapHandle = {
   centerOn: (lat: number, lon: number, offsetY: number, zoomLevel?: number) => void;
   centerOnUser: () => void;
   getCenter: () => Promise<[number, number] | null>;
+  resetNorth: () => void;
 };
 
 type Props = {
@@ -52,9 +53,10 @@ type Props = {
   onLongPress?: (lat: number, lon: number) => void;
   isFollowing?: boolean;
   headingAlpha?: number;
+  onHeadingChange?: (heading: number) => void;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -108,6 +110,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       if (!c) return null;
       return [c[0], c[1]] as [number, number];
     },
+    resetNorth: () => {
+      cameraRef.current?.setCamera({ heading: 0, animationDuration: 350 });
+      setTimeout(() => cameraRef.current?.setCamera({}), 450);
+    },
   }), []);
 
   return (
@@ -116,11 +122,14 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       key={mapStyle}
       style={styles.map}
       mapStyle={mapStyle}
+      compassEnabled={false}
       attributionPosition={{ bottom: 8, left: 8 }}
       onLongPress={(e: any) => {
         const [lon, lat] = e.geometry.coordinates;
         onLongPress?.(lat, lon);
       }}
+      onRegionIsChanging={(e) => onHeadingChange?.(e.properties.heading)}
+      onRegionDidChange={(e) => onHeadingChange?.(e.properties.heading)}
     >
       <StableCamera cameraRef={cameraRef} />
       <UserLocationLayer location={userLocation} />

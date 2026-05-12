@@ -99,7 +99,7 @@ export const lightTheme: ThemeTokens = {
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.yellow,
+  accent: '#002FA7',
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: '#4a90e2',

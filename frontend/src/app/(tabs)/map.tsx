@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
+import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
+import { useHeadingStore } from "@/features/map/store";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { Brand } from "@/constants/theme";
 
 export default function MapScreen() {
   const { invaders, progress, syncError, flash, unflash } = useInvaderData();
@@ -172,7 +174,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} />
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} />
 
       {!picking && !anyCreating && (
         <View style={styles.filterBar}>
@@ -180,14 +182,27 @@ export default function MapScreen() {
         </View>
       )}
 
-      <TouchableOpacity
-        style={[styles.locateButton, { backgroundColor: isFollowing ? theme.danger : theme.locationDot }]}
-        onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
-        onLongPress={() => setIsFollowing(true)}
-        delayLongPress={400}
-      >
-        <Text style={styles.locateButtonText}>⊙</Text>
-      </TouchableOpacity>
+      <View style={styles.locateButton} pointerEvents="box-none">
+        <AimIcon
+          locked={isFollowing}
+          size={44}
+          colorCircle={theme.bgElement}
+          colorRing={theme.accent}
+          colorRingLocked={Brand.uncapturedGlow}
+          onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
+          onLongPress={() => setIsFollowing(true)}
+        />
+      </View>
+
+      <View style={styles.compassButton} pointerEvents="box-none">
+        <BoussoleIcon
+          onPress={() => mapRef.current?.resetNorth()}
+          size={44}
+          colorCircle={theme.bgElement}
+          colorNorth={theme.danger}
+          colorSouth={theme.text}
+        />
+      </View>
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
@@ -367,15 +382,15 @@ const styles = StyleSheet.create({
     right: 16,
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: "transparent",
-    justifyContent: "center",
-    alignItems: "center",
     zIndex: 10,
   },
-  locateButtonText: {
-    color: "#ffffff",
-    fontSize: 22,
+  compassButton: {
+    position: "absolute",
+    bottom: 84,
+    right: 16,
+    width: 44,
+    height: 44,
+    zIndex: 10,
   },
   pickerPinWrapper: {
     position: "absolute",
