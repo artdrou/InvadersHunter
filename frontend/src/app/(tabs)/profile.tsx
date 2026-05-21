@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useAuthStore, logoutUser } from "@/features/auth";
 import { useInvaderStore } from "@/features/invaders";
@@ -11,7 +12,7 @@ export default function ProfileScreen() {
   const user   = useAuthStore((s) => s.user);
   const router = useRouter();
   const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
+  const styles = useMemo(() => makeStyles(theme, appFont, fontScale), [theme, appFont, fontScale]);
   const isSyncing   = useInvaderStore((s) => s.isSyncing);
   const requestSync = useInvaderStore((s) => s.requestSync);
 
@@ -24,13 +25,21 @@ export default function ProfileScreen() {
     router.replace('/login');
   }
 
-  const updateLabel = Updates.isEmbeddedLaunch
-    ? 'build'
-    : (Updates.updateId?.slice(0, 8) ?? 'unknown');
+  const isOta   = !Updates.isEmbeddedLaunch;
+  const otaDate = Updates.createdAt
+    ? Updates.createdAt.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : null;
+  const otaChannel = Updates.channel ?? null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.version}>v{updateLabel}</Text>
+      <View style={styles.versionBlock}>
+        <Text style={styles.version}>
+          {isOta && otaDate
+            ? `${otaDate}${otaChannel ? ` · ${otaChannel}` : ""}`
+            : "build"}
+        </Text>
+      </View>
       {user && (
         <Text style={styles.username}>{user.username}</Text>
       )}
@@ -90,13 +99,18 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       gap: Spacing.four,
       padding: Spacing.five,
     },
-    version: {
+    versionBlock: {
       position: 'absolute',
-      top: Spacing.three,
-      left: Spacing.three,
+      bottom: Spacing.three,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    version: {
       color: t.textMuted,
-      fontSize: 10,
+      fontSize: 9,
       fontFamily: font,
+      opacity: 0.6,
     },
     username: {
       color: t.accent,

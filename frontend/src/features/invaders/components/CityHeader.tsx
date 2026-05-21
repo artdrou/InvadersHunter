@@ -19,10 +19,10 @@ export function CityHeader({ city, capturedCount, total, expanded, onPress }: Pr
       style={[styles.row, { borderBottomColor: theme.bgDivider, backgroundColor: theme.bgElement }]}
       onPress={onPress}
     >
-      <Text style={[styles.cityName, { color: theme.accent, fontFamily: appFont, fontSize: sz(14) }]}>
+      <Text style={[styles.cityName, { color: theme.accent, fontFamily: appFont, fontSize: sz(17) }]}>
         {city}
       </Text>
-      <Text style={[styles.count, { color: theme.textMuted, fontFamily: appFont }]}>
+      <Text style={[styles.count, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(13) }]}>
         {capturedCount}/{total}
       </Text>
       <Text style={[styles.chevron, { color: theme.textMuted }]}>
@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two + 2,
+    paddingVertical: Spacing.three,
     borderBottomWidth: 1,
     gap: Spacing.two,
   },
   cityName: { flex: 1, letterSpacing: 1 },
-  count: { fontSize: 11 },
-  chevron: { fontSize: 10, width: 14, textAlign: "center" },
+  count: {},
+  chevron: { fontSize: 12, width: 14, textAlign: "center" },
 });

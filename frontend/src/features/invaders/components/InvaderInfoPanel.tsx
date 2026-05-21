@@ -20,7 +20,14 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   return (
     <View style={[styles.container, { backgroundColor: theme.bgElement }, containerStyle]}>
       {invader.image_url && (
-        <Image source={invader.image_url} style={styles.image} contentFit="contain" />
+        <Image
+          source={invader.image_url}
+          recyclingKey={String(invader.id)}
+          style={[styles.image, { backgroundColor: theme.bgElement }]}
+          contentFit="contain"
+          priority="high"
+          transition={150}
+        />
       )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />

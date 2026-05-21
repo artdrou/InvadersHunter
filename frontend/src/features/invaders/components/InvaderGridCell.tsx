@@ -36,8 +36,11 @@ export function InvaderGridCell({ invader, size, selected, onPress }: Props) {
       {invader.image_url ? (
         <Image
           source={invader.image_url}
-          style={[styles.image, { width: size, height: size, borderColor }]}
+          recyclingKey={String(invader.id)}
+          style={[styles.image, { width: size, height: size, borderColor, backgroundColor: theme.bgElement }]}
           contentFit="cover"
+          priority="low"
+          transition={150}
         />
       ) : (
         <View style={[styles.placeholder, { width: size, height: size, borderColor, backgroundColor: theme.bgElement }]} />
