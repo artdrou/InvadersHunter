@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
+import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import { submitModifyRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useSQLiteContext } from "expo-sqlite";
@@ -176,6 +177,8 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
   }
 
   // ── View mode ─────────────────────────────────────────────────────────────
+  const isISS = invader.name === ISS_INVADER_NAME;
+
   return (
     <View onLayout={(e) => onHeightChange?.(e.nativeEvent.layout.height)}>
       <View style={styles.container}>
@@ -220,22 +223,24 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
 
         <View style={styles.divider} />
 
-        <View style={styles.linksRow}>
-          <Pressable
-            onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${invader.latitude},${invader.longitude}`)}
-            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
-            hitSlop={8}
-          >
-            <Ionicons name="navigate" size={20} color={theme.accent} />
-          </Pressable>
-          <Pressable
-            onPress={() => Linking.openURL(`https://www.instagram.com/explore/tags/${invader.name.toLowerCase()}/`)}
-            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
-            hitSlop={8}
-          >
-            <Ionicons name="logo-instagram" size={20} color={theme.accent} />
-          </Pressable>
-        </View>
+        {!isISS && (
+          <View style={styles.linksRow}>
+            <Pressable
+              onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${invader.latitude},${invader.longitude}`)}
+              style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+              hitSlop={8}
+            >
+              <Ionicons name="navigate" size={20} color={theme.accent} />
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL(`https://www.instagram.com/explore/tags/${invader.name.toLowerCase()}/`)}
+              style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+              hitSlop={8}
+            >
+              <Ionicons name="logo-instagram" size={20} color={theme.accent} />
+            </Pressable>
+          </View>
+        )}
 
         <Pressable
           style={({ pressed }) => [
@@ -249,18 +254,20 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
           </Text>
         </Pressable>
 
-        <Pressable
-          onPress={() => {
-            if (isOffline) { setOfflineError(true); return; }
-            if (!alreadySent) { setOfflineError(false); setMode("edit"); }
-          }}
-          disabled={alreadySent}
-          style={({ pressed }) => [styles.modifyLink, pressed && styles.btnPressed]}
-        >
-          <Text style={[styles.modifyLinkText, alreadySent && styles.modifyLinkDisabledText]}>
-            {alreadySent ? "Update sent" : "Update"}
-          </Text>
-        </Pressable>
+        {!isISS && (
+          <Pressable
+            onPress={() => {
+              if (isOffline) { setOfflineError(true); return; }
+              if (!alreadySent) { setOfflineError(false); setMode("edit"); }
+            }}
+            disabled={alreadySent}
+            style={({ pressed }) => [styles.modifyLink, pressed && styles.btnPressed]}
+          >
+            <Text style={[styles.modifyLinkText, alreadySent && styles.modifyLinkDisabledText]}>
+              {alreadySent ? "Update sent" : "Update"}
+            </Text>
+          </Pressable>
+        )}
 
         {offlineError && (
           <Text style={styles.offlineMsg}>No internet connection</Text>

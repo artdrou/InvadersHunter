@@ -37,6 +37,10 @@ MIGRATIONS = [
         deleted_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
     )""",
     "CREATE INDEX IF NOT EXISTS idx_deleted_invaders_deleted_at ON deleted_invaders (deleted_at)",
+    # Seed the ISS special invader — no lat/lon, position comes from the ISS live API
+    """INSERT INTO invaders (name, description, points, state)
+       SELECT 'SPACE2ISS', 'International Space Station', 10, 'pristine'
+       WHERE NOT EXISTS (SELECT 1 FROM invaders WHERE name = 'SPACE2ISS')""",
 ]
 
 

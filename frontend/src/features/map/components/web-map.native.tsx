@@ -10,6 +10,8 @@ import { useUserLocation } from "../hooks/use-user-location";
 import { InvaderClusterSource } from "./invader-cluster-source";
 import { UserLocationLayer } from "./user-location-layer";
 import { MARKER_IMAGES } from "./invader-markers";
+import { ISSMarker } from "@/features/iss/components/iss-marker";
+import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -66,6 +68,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode);
   const userLocation  = useUserLocation(headingAlpha);
+  const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);
 
   userCoordsRef.current = userLocation?.coords ?? null;
 
@@ -142,6 +145,14 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
         cameraRef={cameraRef}
         onInvaderPress={onInvaderClick}
       />
+      {issInvader && (
+        <ISSMarker
+          issInvader={issInvader}
+          colorMode={colorMode}
+          greyMode={greyMode}
+          onPress={onInvaderClick}
+        />
+      )}
     </MapView>
   );
 });

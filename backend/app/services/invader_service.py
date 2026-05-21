@@ -17,7 +17,9 @@ class InvaderMissing(Exception): ...
 def list_all(db: Session, updated_since: Optional[datetime] = None) -> List[Invader]:
     query = db.query(Invader)
     if updated_since is not None:
-        query = query.filter(Invader.updated_at > updated_since)
+        query = query.filter(
+            (Invader.updated_at > updated_since) | (Invader.latitude == None)
+        )
     return query.all()
 
 

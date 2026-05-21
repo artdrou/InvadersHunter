@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import type { GreyMode, ColorMode } from "../components/map-filter-bar";
 import { NON_FLASHABLE_STATES } from "@/features/invaders/types";
+import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 const BASE_ICON_SIZE = 0.25;
 
@@ -32,7 +33,7 @@ function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMod
 export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMode, colorMode: ColorMode) {
   return useMemo(() => ({
     type: "FeatureCollection" as const,
-    features: invaders.map((invader) => {
+    features: invaders.filter((invader) => invader.name !== ISS_INVADER_NAME && invader.latitude != null && invader.longitude != null).map((invader) => {
       const size = invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12;
       const iconSize = (size / 12) * BASE_ICON_SIZE;
       const iconKey = resolveIconKey(invader, colorMode, greyMode);

@@ -19,8 +19,8 @@ export type Invader = {
   city?: string | null;
   number?: number | null;
   state: InvaderState | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   points: number | null;
   date_pose: string | null;
   image_url: string | null;

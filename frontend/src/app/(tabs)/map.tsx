@@ -60,6 +60,7 @@ export default function MapScreen() {
   }, [pendingInvaderId, invaders]);
 
   function centerOnInvader(invader: InvaderWithState, height: number, zoomLevel?: number) {
+    if (invader.latitude == null || invader.longitude == null) return;
     mapRef.current?.centerOn(invader.latitude, invader.longitude, height / 2, zoomLevel);
   }
 
@@ -146,6 +147,7 @@ export default function MapScreen() {
   }
 
   function startPickingLocation(invader: InvaderWithState) {
+    if (invader.latitude == null || invader.longitude == null) return;
     const startLat = pendingCoords?.invaderId === invader.id ? pendingCoords.lat : invader.latitude;
     const startLon = pendingCoords?.invaderId === invader.id ? pendingCoords.lon : invader.longitude;
     setSelectedInvader(null);
