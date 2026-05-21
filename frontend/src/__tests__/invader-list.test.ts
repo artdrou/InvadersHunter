@@ -56,7 +56,7 @@ function makeInvader(name: string, id = 0): InvaderWithState {
     id,
     name,
     description: "",
-    state: "pristine",
+    state: "Good",
     latitude: 0,
     longitude: 0,
     points: 10,

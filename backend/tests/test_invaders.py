@@ -7,7 +7,7 @@ from app.models.space_invader import Invader
 
 @pytest.fixture()
 def inv(db):
-    i = Invader(name="PA_10", city="PA", number=10, latitude=48.85, longitude=2.35, state="pristine", points=10)
+    i = Invader(name="PA_10", city="PA", number=10, latitude=48.85, longitude=2.35, state="Good", points=10)
     db.add(i)
     db.flush()
     return i
@@ -15,7 +15,7 @@ def inv(db):
 
 @pytest.fixture()
 def inv2(db):
-    i = Invader(name="PA_11", city="PA", number=11, latitude=48.86, longitude=2.36, state="degraded", points=20)
+    i = Invader(name="PA_11", city="PA", number=11, latitude=48.86, longitude=2.36, state="Degraded", points=20)
     db.add(i)
     db.flush()
     return i
@@ -69,7 +69,7 @@ def test_get_invader_returns_correct_data(client, inv):
     assert res.status_code == 200
     body = res.json()
     assert body["name"] == "PA_10"
-    assert body["state"] == "pristine"
+    assert body["state"] == "Good"
     assert body["points"] == 10
 
 
@@ -95,7 +95,7 @@ def test_create_invader_with_all_fields(client):
         "number": 2,
         "latitude": 45.74,
         "longitude": 4.83,
-        "state": "pristine",
+        "state": "Good",
         "points": 50,
         "description": "Near the market",
     })
@@ -114,9 +114,9 @@ def test_created_invader_appears_in_list(client):
 # ── update (PUT /invaders/{id}) ───────────────────────────────────────────────
 
 def test_update_invader_state(client, inv):
-    res = client.put(f"/invaders/{inv.id}", json={"state": "destroyed"})
+    res = client.put(f"/invaders/{inv.id}", json={"state": "Destroyed"})
     assert res.status_code == 200
-    assert res.json()["state"] == "destroyed"
+    assert res.json()["state"] == "Destroyed"
 
 
 def test_update_invader_location(client, inv):
@@ -128,7 +128,7 @@ def test_update_invader_location(client, inv):
 
 
 def test_update_invader_partial_fields_unchanged(client, inv):
-    res = client.put(f"/invaders/{inv.id}", json={"state": "degraded"})
+    res = client.put(f"/invaders/{inv.id}", json={"state": "Degraded"})
     assert res.status_code == 200
     body = res.json()
     assert body["name"] == "PA_10"  # unchanged
@@ -136,7 +136,7 @@ def test_update_invader_partial_fields_unchanged(client, inv):
 
 
 def test_update_invader_not_found(client):
-    res = client.put("/invaders/9999", json={"state": "destroyed"})
+    res = client.put("/invaders/9999", json={"state": "Destroyed"})
     assert res.status_code == 404
 
 

@@ -49,7 +49,7 @@ def invader(db):
 def test_submit_modify_success(client, user, invader):
     res = client.post(
         "/requests/",
-        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "degraded"},
+        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "Degraded"},
         headers=auth_headers(user),
     )
     assert res.status_code == 200
@@ -76,7 +76,7 @@ def test_submit_modify_with_location(client, user, invader):
 def test_submit_modify_requires_invader_id(client, user):
     res = client.post(
         "/requests/",
-        json={"request_type": "modify", "proposed_state": "degraded"},
+        json={"request_type": "modify", "proposed_state": "Degraded"},
         headers=auth_headers(user),
     )
     assert res.status_code == 400
@@ -85,12 +85,12 @@ def test_submit_modify_requires_invader_id(client, user):
 def test_submit_duplicate_modify_pending_rejected(client, user, invader):
     client.post(
         "/requests/",
-        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "degraded"},
+        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "Degraded"},
         headers=auth_headers(user),
     )
     res = client.post(
         "/requests/",
-        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "destroyed"},
+        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "Destroyed"},
         headers=auth_headers(user),
     )
     assert res.status_code == 409
@@ -274,7 +274,7 @@ def test_cancel_then_resubmit_works(client, db, user, invader):
 
     res = client.post(
         "/requests/",
-        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "degraded"},
+        json={"request_type": "modify", "invader_id": invader.id, "proposed_state": "Degraded"},
         headers=auth_headers(user),
     )
     assert res.status_code == 200

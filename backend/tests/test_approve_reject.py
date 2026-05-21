@@ -32,13 +32,13 @@ def users(db):
 
 @pytest.fixture()
 def invader(db):
-    inv = Invader(name="PA_10", latitude=48.8566, longitude=2.3522, state="pristine", points=10)
+    inv = Invader(name="PA_10", latitude=48.8566, longitude=2.3522, state="Good", points=10)
     db.add(inv)
     db.flush()
     return inv
 
 
-def submit_unnamed_modify(db, user_id, invader_id, state="degraded", lat=48.99, lon=2.99):
+def submit_unnamed_modify(db, user_id, invader_id, state="Degraded", lat=48.99, lon=2.99):
     """Creates a UserRequest + triggers aggregation, returns (user_request, admin_request)."""
     req = UserRequest(
         user_id=user_id, invader_id=invader_id, request_type="modify", status="pending",
@@ -57,14 +57,14 @@ def submit_unnamed_modify(db, user_id, invader_id, state="degraded", lat=48.99, 
 
 def test_approve_updates_invader_state_and_location(db, client, users, invader):
     regular, admin = users
-    req, ar = submit_unnamed_modify(db, regular.id, invader.id, state="degraded", lat=48.99, lon=2.99)
+    req, ar = submit_unnamed_modify(db, regular.id, invader.id, state="Degraded", lat=48.99, lon=2.99)
 
     res = client.post(f"/admin-requests/{ar.id}/approve", headers=auth_headers(admin))
     assert res.status_code == 200
 
     db.expire_all()
     updated = db.query(Invader).filter(Invader.id == invader.id).one()
-    assert updated.state == "degraded"
+    assert updated.state == "Degraded"
     assert updated.latitude == pytest.approx(48.99)
     assert updated.longitude == pytest.approx(2.99)
 
@@ -137,7 +137,7 @@ def test_approve_create_request_adds_new_invader(db, client, users):
         user_id=regular.id, invader_id=None, request_type="create", status="pending",
         proposed_name="NY_42", normalized_name=normalize_name("NY_42"),
         proposed_description="Cool mosaic", proposed_latitude=40.71, proposed_longitude=-74.00,
-        proposed_points=100, proposed_state="pristine",
+        proposed_points=100, proposed_state="Good",
     )
     db.add(req)
     db.flush()

@@ -10,21 +10,23 @@ import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 const STATE_OPTIONS = [
-  InvaderState.Pristine,
+  InvaderState.Good,
   InvaderState.SlightlyDegraded,
   InvaderState.Degraded,
   InvaderState.BadlyDegraded,
   InvaderState.Destroyed,
   InvaderState.NotVisible,
+  InvaderState.Unknown,
 ] as const;
 
 const STATE_LABELS: Record<string, string> = {
-  [InvaderState.Pristine]:         "Pristine",
+  [InvaderState.Good]:             "Good",
   [InvaderState.SlightlyDegraded]: "Slightly degraded",
   [InvaderState.Degraded]:         "Degraded",
   [InvaderState.BadlyDegraded]:    "Badly degraded",
   [InvaderState.Destroyed]:        "Destroyed",
   [InvaderState.NotVisible]:       "Not visible",
+  [InvaderState.Unknown]:          "Unknown",
 };
 
 type Props = {

@@ -21,7 +21,7 @@ def make_user(db, username="u1"):
     return u
 
 
-def make_invader(db, name="PA_10", lat=48.8566, lon=2.3522, state="pristine"):
+def make_invader(db, name="PA_10", lat=48.8566, lon=2.3522, state="Good"):
     inv = Invader(name=name, latitude=lat, longitude=lon, state=state, points=10)
     db.add(inv)
     db.flush()
@@ -56,14 +56,14 @@ def make_unnamed_request(db, user_id, invader_id, state=None, lat=None, lon=None
 def test_single_named_modify_creates_admin_request(db):
     user = make_user(db)
     inv = make_invader(db)
-    req = make_named_request(db, user.id, inv.id, state="degraded", lat=48.85, lon=2.35)
+    req = make_named_request(db, user.id, inv.id, state="Degraded", lat=48.85, lon=2.35)
 
     aggregate_request(db, req)
     db.flush()
 
     admin_req = db.query(AdminRequest).one()
     assert admin_req.proposed_name == "PA_10"
-    assert admin_req.proposed_state == "degraded"
+    assert admin_req.proposed_state == "Degraded"
     assert admin_req.proposed_latitude == pytest.approx(48.85)
     assert admin_req.request_count == 1
     assert req.admin_request_id == admin_req.id
@@ -74,10 +74,10 @@ def test_two_named_requests_update_existing_admin_request(db):
     inv = make_invader(db)
 
     # Points ~222 m apart — both within the 300 m outlier threshold
-    r1 = make_named_request(db, u1.id, inv.id, state="degraded", lat=48.8500, lon=2.3500)
+    r1 = make_named_request(db, u1.id, inv.id, state="Degraded", lat=48.8500, lon=2.3500)
     aggregate_request(db, r1)
 
-    r2 = make_named_request(db, u2.id, inv.id, state="degraded", lat=48.8520, lon=2.3520)
+    r2 = make_named_request(db, u2.id, inv.id, state="Degraded", lat=48.8520, lon=2.3520)
     aggregate_request(db, r2)
     db.flush()
 
@@ -117,7 +117,7 @@ def test_most_common_name_wins(db):
 def test_single_unnamed_modify_creates_admin_request(db):
     user = make_user(db)
     inv = make_invader(db)
-    req = make_unnamed_request(db, user.id, inv.id, state="destroyed", lat=48.85, lon=2.35)
+    req = make_unnamed_request(db, user.id, inv.id, state="Destroyed", lat=48.85, lon=2.35)
 
     aggregate_request(db, req)
     db.flush()
@@ -125,7 +125,7 @@ def test_single_unnamed_modify_creates_admin_request(db):
     ar = db.query(AdminRequest).one()
     assert ar.invader_id == inv.id
     assert ar.normalized_name is None
-    assert ar.proposed_state == "destroyed"
+    assert ar.proposed_state == "Destroyed"
     assert ar.proposed_latitude == pytest.approx(48.85)
     assert req.admin_request_id == ar.id
 
@@ -134,10 +134,10 @@ def test_two_unnamed_same_invader_update_same_admin_request(db):
     u1, u2 = make_user(db, "u1"), make_user(db, "u2")
     inv = make_invader(db)
 
-    r1 = make_unnamed_request(db, u1.id, inv.id, state="degraded", lat=48.8500, lon=2.3500)
+    r1 = make_unnamed_request(db, u1.id, inv.id, state="Degraded", lat=48.8500, lon=2.3500)
     aggregate_request(db, r1)
 
-    r2 = make_unnamed_request(db, u2.id, inv.id, state="degraded", lat=48.8520, lon=2.3520)
+    r2 = make_unnamed_request(db, u2.id, inv.id, state="Degraded", lat=48.8520, lon=2.3520)
     aggregate_request(db, r2)
     db.flush()
 
@@ -151,10 +151,10 @@ def test_unnamed_different_invaders_create_separate_admin_requests(db):
     inv1 = make_invader(db, name="PA_10")
     inv2 = make_invader(db, name="PA_11")
 
-    r1 = make_unnamed_request(db, user.id, inv1.id, state="degraded", lat=48.85, lon=2.35)
+    r1 = make_unnamed_request(db, user.id, inv1.id, state="Degraded", lat=48.85, lon=2.35)
     aggregate_request(db, r1)
 
-    r2 = make_unnamed_request(db, user.id, inv2.id, state="destroyed", lat=48.90, lon=2.40)
+    r2 = make_unnamed_request(db, user.id, inv2.id, state="Destroyed", lat=48.90, lon=2.40)
     aggregate_request(db, r2)
     db.flush()
 
@@ -167,13 +167,13 @@ def test_most_common_state_wins(db):
     users = [make_user(db, f"u{i}") for i in range(3)]
     inv = make_invader(db)
 
-    for i, state in enumerate(["degraded", "degraded", "destroyed"]):
+    for i, state in enumerate(["Degraded", "Degraded", "Destroyed"]):
         r = make_unnamed_request(db, users[i].id, inv.id, state=state, lat=48.85, lon=2.35)
         aggregate_request(db, r)
     db.flush()
 
     ar = db.query(AdminRequest).one()
-    assert ar.proposed_state == "degraded"
+    assert ar.proposed_state == "Degraded"
 
 
 # ── create request ────────────────────────────────────────────────────────────
@@ -184,7 +184,7 @@ def test_create_request_propagates_all_fields(db):
         user_id=user.id, invader_id=None, request_type="create", status="pending",
         proposed_name="NY_42", normalized_name=normalize_name("NY_42"),
         proposed_description="Cool mosaic", proposed_latitude=40.71, proposed_longitude=-74.00,
-        proposed_points=100, proposed_state="pristine",
+        proposed_points=100, proposed_state="Good",
         proposed_image_url="https://img.example.com/ny42.jpg",
     )
     db.add(req)
@@ -198,4 +198,4 @@ def test_create_request_propagates_all_fields(db):
     assert ar.proposed_points == 100
     assert ar.proposed_image_url == "https://img.example.com/ny42.jpg"
     assert ar.proposed_latitude == pytest.approx(40.71)
-    assert ar.proposed_state == "pristine"
+    assert ar.proposed_state == "Good"

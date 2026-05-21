@@ -30,13 +30,13 @@ def users(db):
 
 @pytest.fixture()
 def invader(db):
-    inv = Invader(name="PA_10", latitude=48.8566, longitude=2.3522, state="pristine", points=10)
+    inv = Invader(name="PA_10", latitude=48.8566, longitude=2.3522, state="Good", points=10)
     db.add(inv)
     db.flush()
     return inv
 
 
-def make_modify_admin_request(db, user_id, invader_id, state="degraded", lat=48.857, lon=2.353):
+def make_modify_admin_request(db, user_id, invader_id, state="Degraded", lat=48.857, lon=2.353):
     """Submit a UserRequest and trigger aggregation; return the resulting AdminRequest."""
     req = UserRequest(
         user_id=user_id, invader_id=invader_id, request_type="modify", status="pending",
@@ -105,7 +105,7 @@ def test_submissions_returns_linked_user_requests(db, client, users, invader):
     req = UserRequest(
         user_id=regular.id, invader_id=invader.id, request_type="modify", status="pending",
         proposed_name=None, normalized_name=None,
-        proposed_state="degraded", proposed_latitude=48.857, proposed_longitude=2.353,
+        proposed_state="Degraded", proposed_latitude=48.857, proposed_longitude=2.353,
     )
     db.add(req)
     db.flush()
@@ -127,7 +127,7 @@ def test_submissions_returns_all_linked_user_requests(db, client, users, invader
         r = UserRequest(
             user_id=regular.id, invader_id=invader.id, request_type="modify", status="pending",
             proposed_name=None, normalized_name=None,
-            proposed_state="degraded",
+            proposed_state="Degraded",
             proposed_latitude=48.8500 + i * 0.001,
             proposed_longitude=2.3500 + i * 0.001,
         )
@@ -227,19 +227,19 @@ def test_confidence_single_vote_no_state_no_location():
 
 
 def test_confidence_grows_with_votes():
-    few  = [_FakeSub(state="degraded") for _ in range(2)]
-    many = [_FakeSub(state="degraded") for _ in range(5)]
+    few  = [_FakeSub(state="Degraded") for _ in range(2)]
+    many = [_FakeSub(state="Degraded") for _ in range(5)]
     assert compute_confidence(many) >= compute_confidence(few)
 
 
 def test_confidence_high_when_all_agree_on_state():
-    subs = [_FakeSub(state="degraded") for _ in range(5)]
+    subs = [_FakeSub(state="Degraded") for _ in range(5)]
     assert compute_confidence(subs) >= 75
 
 
 def test_confidence_lower_when_states_disagree():
-    agree    = [_FakeSub(state="degraded") for _ in range(5)]
-    disagree = [_FakeSub(state="degraded" if i < 3 else "pristine") for i in range(5)]
+    agree    = [_FakeSub(state="Degraded") for _ in range(5)]
+    disagree = [_FakeSub(state="Degraded" if i < 3 else "Good") for i in range(5)]
     assert compute_confidence(agree) > compute_confidence(disagree)
 
 
@@ -257,7 +257,7 @@ def test_confidence_lower_for_spread_out_locations():
 
 
 def test_confidence_capped_at_100():
-    subs = [_FakeSub(state="degraded", lat=48.8500 + i * 0.00001, lon=2.3500) for i in range(10)]
+    subs = [_FakeSub(state="Degraded", lat=48.8500 + i * 0.00001, lon=2.3500) for i in range(10)]
     assert compute_confidence(subs) <= 100
 
 

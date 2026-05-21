@@ -39,8 +39,41 @@ MIGRATIONS = [
     "CREATE INDEX IF NOT EXISTS idx_deleted_invaders_deleted_at ON deleted_invaders (deleted_at)",
     # Seed the ISS special invader — no lat/lon, position comes from the ISS live API
     """INSERT INTO invaders (name, description, points, state)
-       SELECT 'SPACE2ISS', 'International Space Station', 10, 'pristine'
+       SELECT 'SPACE2ISS', 'International Space Station', 10, 'Good'
        WHERE NOT EXISTS (SELECT 1 FROM invaders WHERE name = 'SPACE2ISS')""",
+
+    # Rename canonical state values: lowercase → capitalized, pristine → Good
+    # Idempotent: rows already in the new format are unchanged.
+    """UPDATE invaders SET state = CASE state
+        WHEN 'pristine'          THEN 'Good'
+        WHEN 'slightly degraded' THEN 'Slightly degraded'
+        WHEN 'degraded'          THEN 'Degraded'
+        WHEN 'badly degraded'    THEN 'Badly degraded'
+        WHEN 'destroyed'         THEN 'Destroyed'
+        WHEN 'not visible'       THEN 'Not visible'
+        ELSE state END,
+        updated_at = NOW()
+       WHERE state IN ('pristine','slightly degraded','degraded','badly degraded','destroyed','not visible')""",
+    """UPDATE admin_requests SET proposed_state = CASE proposed_state
+        WHEN 'pristine'          THEN 'Good'
+        WHEN 'slightly degraded' THEN 'Slightly degraded'
+        WHEN 'degraded'          THEN 'Degraded'
+        WHEN 'badly degraded'    THEN 'Badly degraded'
+        WHEN 'destroyed'         THEN 'Destroyed'
+        WHEN 'not visible'       THEN 'Not visible'
+        ELSE proposed_state END,
+        updated_at = NOW()
+       WHERE proposed_state IN ('pristine','slightly degraded','degraded','badly degraded','destroyed','not visible')""",
+    """UPDATE user_requests SET proposed_state = CASE proposed_state
+        WHEN 'pristine'          THEN 'Good'
+        WHEN 'slightly degraded' THEN 'Slightly degraded'
+        WHEN 'degraded'          THEN 'Degraded'
+        WHEN 'badly degraded'    THEN 'Badly degraded'
+        WHEN 'destroyed'         THEN 'Destroyed'
+        WHEN 'not visible'       THEN 'Not visible'
+        ELSE proposed_state END,
+        updated_at = NOW()
+       WHERE proposed_state IN ('pristine','slightly degraded','degraded','badly degraded','destroyed','not visible')""",
 ]
 
 

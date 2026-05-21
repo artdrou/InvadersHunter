@@ -39,7 +39,7 @@ def test_full_create_validate_delete_clean_sequence(db, client, users):
             "proposed_latitude": 43.30,
             "proposed_longitude": 5.40,
             "proposed_points": 30,
-            "proposed_state": "pristine",
+            "proposed_state": "Good",
         },
         headers=auth_headers(regular),
     )
@@ -67,7 +67,7 @@ def test_full_create_validate_delete_clean_sequence(db, client, users):
     assert inv.latitude == pytest.approx(43.30)
     assert inv.longitude == pytest.approx(5.40)
     assert inv.points == 30
-    assert inv.state == "pristine"
+    assert inv.state == "Good"
 
     user_req = db.query(UserRequest).filter(UserRequest.id == user_req_id).one()
     admin_req = db.query(AdminRequest).filter(AdminRequest.id == admin_req_id).one()

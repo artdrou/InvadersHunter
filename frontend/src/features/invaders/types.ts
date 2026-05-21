@@ -1,11 +1,12 @@
 
 export const InvaderState = {
-  Pristine:        "pristine",
-  SlightlyDegraded: "slightly degraded",
-  Degraded:        "degraded",
-  BadlyDegraded:   "badly degraded",
-  Destroyed:       "destroyed",
-  NotVisible:      "not visible",
+  Good:             "Good",
+  SlightlyDegraded: "Slightly degraded",
+  Degraded:         "Degraded",
+  BadlyDegraded:    "Badly degraded",
+  Destroyed:        "Destroyed",
+  NotVisible:       "Not visible",
+  Unknown:          "Unknown",
 } as const;
 
 export type InvaderState = typeof InvaderState[keyof typeof InvaderState];
