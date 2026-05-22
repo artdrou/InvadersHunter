@@ -1,4 +1,4 @@
-export { InvaderState, NON_FLASHABLE_STATES } from './types';
+export { InvaderState, NON_FLASHABLE_STATES, isNonFlashable } from './types';
 export type { Invader, Capture, InvaderWithState, UserRequest } from './types';
 export { useInvaderData } from './hooks/use-invader-data';
 export { useInvaderStore } from './store';

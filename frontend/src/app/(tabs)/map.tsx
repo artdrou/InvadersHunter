@@ -8,7 +8,6 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { Brand } from "@/constants/theme";
 
 export default function MapScreen() {
   const { invaders, progress, syncError, flash, unflash } = useInvaderData();
@@ -192,7 +191,8 @@ export default function MapScreen() {
           size={44}
           colorCircle={theme.bgElement}
           colorRing={theme.accent}
-          colorRingLocked={Brand.uncapturedGlow}
+          colorCircleLocked="#f90060"
+          colorRingLocked={theme.bgElement}
           onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
           onLongPress={() => setIsFollowing(true)}
         />

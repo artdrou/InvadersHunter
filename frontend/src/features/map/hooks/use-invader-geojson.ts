@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import type { GreyMode, ColorMode } from "../components/map-filter-bar";
-import { NON_FLASHABLE_STATES } from "@/features/invaders/types";
+import { isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 const BASE_ICON_SIZE = 0.25;
@@ -16,7 +16,7 @@ const RARITY_ICON: Record<number, string> = {
 };
 
 function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
-  const isNonFlashable = NON_FLASHABLE_STATES.includes(invader.state ?? "");
+  const isNonFlashable = isStateNonFlashable(invader.state);
   const dimmed =
     (greyMode === "all" && isNonFlashable) ||
     (greyMode === "unflashed" && colorMode === "flash" && isNonFlashable && !invader.isCaptured);

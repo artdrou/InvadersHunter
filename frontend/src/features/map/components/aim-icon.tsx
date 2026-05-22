@@ -54,6 +54,7 @@ type Props = {
   size?: number;
   colorCircle: string;
   colorRing: string;
+  colorCircleLocked?: string;
   colorRingLocked: string;
 };
 
@@ -64,15 +65,16 @@ export function AimIcon({
   size = 44,
   colorCircle,
   colorRing,
+  colorCircleLocked,
   colorRingLocked,
 }: Props) {
   const scale = size / GRID;
   const pixelSize = scale + 0.5;
   const ringColor = locked ? colorRingLocked : colorRing;
+  const circleColor = locked ? (colorCircleLocked ?? colorCircle) : colorCircle;
 
-  // Both layers are static — only ringColor changes with `locked`, so all the
-  // expensive iteration happens once at module load (rasterize).
   const ringStyle = useMemo(() => ({ color: ringColor }), [ringColor]);
+  const circleStyle = useMemo(() => ({ color: circleColor }), [circleColor]);
 
   return (
     <Pressable
@@ -91,7 +93,7 @@ export function AimIcon({
             top: cell.r * scale,
             width: pixelSize,
             height: pixelSize,
-            backgroundColor: colorCircle,
+            backgroundColor: circleStyle.color,
           }}
         />
       ))}

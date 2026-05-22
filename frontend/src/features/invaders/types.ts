@@ -13,6 +13,14 @@ export type InvaderState = typeof InvaderState[keyof typeof InvaderState];
 
 export const NON_FLASHABLE_STATES: InvaderState[] = [InvaderState.Destroyed, InvaderState.NotVisible];
 
+/** Tolerant check: matches both new ("Destroyed") and legacy lowercase ("destroyed")
+ *  values, since clients hold a local SQLite cache that may not have delta-synced yet. */
+export function isNonFlashable(state: string | null | undefined): boolean {
+  if (!state) return false;
+  const s = state.toLowerCase();
+  return NON_FLASHABLE_STATES.some((v) => v.toLowerCase() === s);
+}
+
 export type Invader = {
   id: number;
   description: string;

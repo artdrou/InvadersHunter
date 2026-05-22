@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
-import { NON_FLASHABLE_STATES } from "@/features/invaders/types";
+import { isNonFlashable } from "@/features/invaders/types";
 
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";
@@ -29,8 +29,8 @@ export function applyMapFilter(
   return invaders.filter((i) => {
     if (filter.status === "flashed" && !i.isCaptured) return false;
     if (filter.status === "unflashed" && i.isCaptured) return false;
-    if (filter.flashable === "flashable" && NON_FLASHABLE_STATES.includes(i.state ?? "")) return false;
-    if (filter.flashable === "unflashable" && !NON_FLASHABLE_STATES.includes(i.state ?? "")) return false;
+    if (filter.flashable === "flashable" && isNonFlashable(i.state)) return false;
+    if (filter.flashable === "unflashable" && !isNonFlashable(i.state)) return false;
     if (filter.points.length > 0 && !filter.points.includes(i.points ?? 0)) return false;
     return true;
   });
