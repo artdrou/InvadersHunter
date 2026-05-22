@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
+import { PixelButton } from "@/components/ui/pixel-button";
 
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";
@@ -140,11 +141,13 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
         </View>
       )}
 
-      <Pressable
-        style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
-        onPress={toggleGreyOpen}
-      >
-        <Ionicons name="color-palette-outline" size={18} color={paletteActive ? theme.accent : theme.textMuted} />
+      <Pressable style={styles.btn} onPress={toggleGreyOpen}>
+        <PixelButton
+          size={48}
+          fill={theme.bgElement}
+          stroke={paletteActive ? theme.accent : theme.border}
+        />
+        <Ionicons name="color-palette-outline" size={22} color={paletteActive ? theme.accent : theme.textMuted} />
       </Pressable>
 
       <View style={styles.gap} />
@@ -205,11 +208,13 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
         </View>
       )}
 
-      <Pressable
-        style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}
-        onPress={toggleFilterOpen}
-      >
-        <Ionicons name="options-outline" size={18} color={filterActive ? theme.accent : theme.textMuted} />
+      <Pressable style={styles.btn} onPress={toggleFilterOpen}>
+        <PixelButton
+          size={48}
+          fill={theme.bgElement}
+          stroke={filterActive ? theme.accent : theme.border}
+        />
+        <Ionicons name="options-outline" size={22} color={filterActive ? theme.accent : theme.textMuted} />
       </Pressable>
     </View>
   );
@@ -221,17 +226,10 @@ function makeStyles(t: ThemeTokens) {
       alignItems: "flex-start",
     },
     btn: {
-      width: 36,
-      height: 36,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      backgroundColor: t.bgElement,
+      width: 48,
+      height: 48,
       alignItems: "center",
       justifyContent: "center",
-    },
-    btnPressed: {
-      opacity: 0.7,
     },
     panel: {
       marginBottom: 6,

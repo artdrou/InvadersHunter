@@ -188,7 +188,7 @@ export default function MapScreen() {
       <View style={styles.locateButton} pointerEvents="box-none">
         <AimIcon
           locked={isFollowing}
-          size={44}
+          size={48}
           colorCircle={theme.bgElement}
           colorRing={theme.accent}
           colorCircleLocked="#f90060"
@@ -201,7 +201,7 @@ export default function MapScreen() {
       <View style={styles.compassButton} pointerEvents="box-none">
         <BoussoleIcon
           onPress={() => mapRef.current?.resetNorth()}
-          size={44}
+          size={48}
           colorCircle={theme.bgElement}
           colorNorth={theme.danger}
           colorSouth={theme.text}
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   filterBar: {
     position: "absolute",
-    bottom: 40,
+    bottom: 32,
     left: 16,
     zIndex: 10,
   },
@@ -384,16 +384,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 32,
     right: 16,
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     zIndex: 10,
   },
   compassButton: {
     position: "absolute",
-    bottom: 84,
+    bottom: 86, // 32 + 48 + 6 — same vertical gap (6) as between the filter buttons
     right: 16,
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     zIndex: 10,
   },
   pickerPinWrapper: {

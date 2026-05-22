@@ -6,28 +6,24 @@ import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 const BASE_ICON_SIZE = 0.25;
 
-const RARITY_ICON: Record<number, string> = {
-  10:  "marker-10pts",
-  20:  "marker-20pts",
-  30:  "marker-30pts",
-  40:  "marker-40pts",
-  50:  "marker-50pts",
-  100: "marker-100pts",
-};
+const RARITY_VALUES = new Set([10, 20, 30, 40, 50, 100]);
+const FALLBACK_RARITY = 30;
 
-function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
+function resolveRarity(points: number | null | undefined): number {
+  return points != null && RARITY_VALUES.has(points) ? points : FALLBACK_RARITY;
+}
+
+function isDimmed(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): boolean {
   const isNonFlashable = isStateNonFlashable(invader.state);
-  const dimmed =
-    (greyMode === "all" && isNonFlashable) ||
+  return (greyMode === "all" && isNonFlashable) ||
     (greyMode === "unflashed" && colorMode === "flash" && isNonFlashable && !invader.isCaptured);
+}
 
-  if (dimmed) return "marker-grey";
-
-  if (colorMode === "rarity") {
-    return RARITY_ICON[invader.points ?? 0] ?? (invader.isCaptured ? "marker-captured" : "marker-uncaptured");
-  }
-
-  return invader.isCaptured ? "marker-captured" : "marker-uncaptured";
+export function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
+  const rarity = resolveRarity(invader.points);
+  if (isDimmed(invader, colorMode, greyMode)) return `marker-${rarity}pts-grey`;
+  if (colorMode === "rarity") return `marker-${rarity}pts-rarity`;
+  return `marker-${rarity}pts-flash-${invader.isCaptured ? "captured" : "uncaptured"}`;
 }
 
 export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMode, colorMode: ColorMode) {
@@ -37,6 +33,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
       const size = invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12;
       const iconSize = (size / 12) * BASE_ICON_SIZE;
       const iconKey = resolveIconKey(invader, colorMode, greyMode);
+      const grey = isDimmed(invader, colorMode, greyMode) ? 1 : 0;
       return {
         type: "Feature" as const,
         id: String(invader.id),
@@ -48,6 +45,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
           id: invader.id,
           captured: invader.isCaptured ? 1 : 0,
           pending: invader.isPending ? 1 : 0,
+          grey,
           iconKey,
           iconSize,
         },

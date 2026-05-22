@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
-import { View, Text, Pressable, TextInput, StyleSheet } from "react-native";
+import { View, Text, Pressable, TextInput, StyleSheet, type LayoutChangeEvent } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
 import { isFilterActive } from "@/features/map";
 import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map";
+import { PixelButton } from "@/components/ui/pixel-button";
 import type { SortOption, GroupMode } from "../utils/invader-list";
 import { SORT_OPTIONS_BY_GROUP } from "../utils/invader-list";
 
@@ -241,12 +242,27 @@ type IconBtnProps = {
 };
 
 function IconBtn({ name, active, onPress, theme, styles }: IconBtnProps) {
+  const [size, setSize] = useState(0);
+
+  function handleLayout(e: LayoutChangeEvent) {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w !== size) setSize(w);
+  }
+
   return (
-    <Pressable
-      style={({ pressed }) => [styles.iconBtn, active && styles.iconBtnActive, pressed && styles.iconBtnPressed]}
-      onPress={onPress}
-    >
-      <Ionicons name={name} size={18} color={active ? theme.bg : theme.textMuted} />
+    <Pressable style={styles.iconBtn} onPress={onPress} onLayout={handleLayout}>
+      {size > 0 && (
+        <PixelButton
+          size={size}
+          fill={theme.bgElement}
+          stroke={active ? theme.accent : theme.border}
+        />
+      )}
+      <Ionicons
+        name={name}
+        size={Math.max(16, Math.round(size * 0.45))}
+        color={active ? theme.accent : theme.textMuted}
+      />
     </Pressable>
   );
 }
@@ -265,20 +281,9 @@ function makeStyles(t: ThemeTokens) {
     },
     iconBtn: {
       flex: 1,
-      height: 36,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      backgroundColor: t.bgElement,
+      aspectRatio: 1, // square — height matches width so 5 buttons fill the row
       alignItems: "center",
       justifyContent: "center",
-    },
-    iconBtnActive: {
-      backgroundColor: t.accent,
-      borderColor: t.accent,
-    },
-    iconBtnPressed: {
-      opacity: 0.7,
     },
     searchInput: {
       marginTop: Spacing.two,

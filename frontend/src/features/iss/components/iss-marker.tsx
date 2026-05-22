@@ -1,6 +1,7 @@
 import { ShapeSource, SymbolLayer } from '@maplibre/maplibre-react-native';
 import type { InvaderWithState } from '@/features/invaders';
 import type { ColorMode, GreyMode } from '@/features/map/components/map-filter-bar';
+import { resolveIconKey } from '@/features/map/hooks/use-invader-geojson';
 import { useIssPosition } from '../hooks/use-iss-position';
 
 type Props = {
@@ -10,7 +11,7 @@ type Props = {
   onPress: (invader: InvaderWithState) => void;
 };
 
-export function ISSMarker({ issInvader, onPress }: Props) {
+export function ISSMarker({ issInvader, colorMode, greyMode, onPress }: Props) {
   const position = useIssPosition();
 
   if (!position) return null;
@@ -26,7 +27,7 @@ export function ISSMarker({ issInvader, onPress }: Props) {
           id: issInvader.id,
           captured: issInvader.isCaptured ? 1 : 0,
           pending: issInvader.isPending ? 1 : 0,
-          iconKey: issInvader.isCaptured ? 'marker-captured' : 'marker-uncaptured',
+          iconKey: resolveIconKey(issInvader, colorMode, greyMode),
           iconSize: 0.3,
         },
       },
