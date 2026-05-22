@@ -80,6 +80,14 @@ export default function ProfileScreen() {
       <View style={styles.divider} />
 
       <Pressable
+        style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
+        onPress={() => router.push('/flash-import')}>
+        <Text style={styles.syncButtonText}>Import flashes</Text>
+      </Pressable>
+
+      <View style={styles.divider} />
+
+      <Pressable
         style={({ pressed }) => [styles.logoutButton, pressed && styles.buttonPressed]}
         onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Disconnect</Text>
