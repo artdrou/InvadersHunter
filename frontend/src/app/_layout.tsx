@@ -6,6 +6,13 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { initDb } from '@/services/db';
+import {
+  UpdateAvailableModal,
+  useAppUpdateStore,
+  fetchVersionManifest,
+  getCurrentVersion,
+  isNewer,
+} from '@/features/app-update';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +36,16 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   useEffect(() => {
+    (async () => {
+      await useAppUpdateStore.getState().hydrate();
+      const manifest = await fetchVersionManifest();
+      if (manifest && isNewer(manifest.latestVersion, getCurrentVersion())) {
+        useAppUpdateStore.getState().setManifest(manifest);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     if (!hasHydrated) return;
     const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password';
     if (!token && !inPublicScreen) {
@@ -44,6 +61,7 @@ export default function RootLayout() {
     <SQLiteProvider databaseName="invaders.db" onInit={initDb}>
       <ThemeProvider>
         <Stack screenOptions={{ headerShown: false }} />
+        <UpdateAvailableModal />
       </ThemeProvider>
     </SQLiteProvider>
   );

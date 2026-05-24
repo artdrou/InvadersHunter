@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useAuthStore, logoutUser } from "@/features/auth";
@@ -6,6 +6,7 @@ import { useInvaderStore } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import * as Updates from 'expo-updates';
 import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from "@/features/app-update";
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
@@ -23,6 +24,19 @@ export default function ProfileScreen() {
     }
     logout();
     router.replace('/login');
+  }
+
+  async function handleCheckForUpdates() {
+    const manifest = await fetchVersionManifest();
+    if (!manifest) {
+      Alert.alert('Erreur', 'Impossible de vérifier les mises à jour.');
+      return;
+    }
+    if (isNewer(manifest.latestVersion, getCurrentVersion())) {
+      useAppUpdateStore.setState({ manifest, isAvailable: true, dismissedVersion: null });
+    } else {
+      Alert.alert('À jour', 'Vous êtes à jour.');
+    }
   }
 
   const isOta   = !Updates.isEmbeddedLaunch;
@@ -83,6 +97,14 @@ export default function ProfileScreen() {
         style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
         onPress={() => router.push('/flash-import')}>
         <Text style={styles.syncButtonText}>Import flashes</Text>
+      </Pressable>
+
+      <View style={styles.divider} />
+
+      <Pressable
+        style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
+        onPress={handleCheckForUpdates}>
+        <Text style={styles.syncButtonText}>Vérifier les mises à jour</Text>
       </Pressable>
 
       <View style={styles.divider} />

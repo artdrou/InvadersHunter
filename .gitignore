@@ -84,3 +84,8 @@ CLAUDE.md
 # ========================
 *.swp
 *.tmp
+
+# ========================
+# APK builds — too large for git, hosted on GitHub Releases
+# ========================
+backend/static/apk/*.apk
