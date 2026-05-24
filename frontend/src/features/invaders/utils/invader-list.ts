@@ -1,4 +1,5 @@
 import type { InvaderWithState } from "../types";
+import { getDateLocale } from "@/services/i18n";
 
 export type GroupMode  = "city" | "points" | "year";
 export type SortOption = "number" | "points" | "pose_date" | "flash_date" | "update_date";
@@ -92,7 +93,7 @@ export function buildGroups(
 
 export function formatDate(iso?: string | null): string {
   if (!iso) return "--";
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  return new Date(iso).toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

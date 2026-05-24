@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
@@ -39,37 +40,6 @@ export function applyMapFilter(
 
 const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100];
 
-const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "flashed", label: "Flashed" },
-  { key: "unflashed", label: "Unflashed" },
-];
-
-const FLASHABLE_OPTIONS: { key: FlashableFilter; label: string }[] = [
-  { key: "any", label: "Any" },
-  { key: "flashable", label: "Flashable" },
-  { key: "unflashable", label: "Unflashable" },
-];
-
-// "all" is the default (destroyed/non-flashable always greyed). "unflashed"
-// only greys non-flashables you HAVEN'T flashed yet — keeps the ones you
-// captured colored. "none" disables greying entirely.
-const GREY_OPTIONS_FLASH: { key: GreyMode; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "unflashed", label: "Flashed" },
-  { key: "none", label: "Off" },
-];
-
-const GREY_OPTIONS_RARITY: { key: GreyMode; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "none", label: "Off" },
-];
-
-const COLOR_MODE_OPTIONS: { key: ColorMode; label: string }[] = [
-  { key: "flash", label: "Flash" },
-  { key: "rarity", label: "Rarity" },
-];
-
 type Props = {
   value: MapFilter;
   onChange: (filter: MapFilter) => void;
@@ -80,7 +50,31 @@ type Props = {
 };
 
 export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colorMode, onColorModeChange }: Props) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
+  const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
+    { key: "all", label: t('invaders.statusAll') },
+    { key: "flashed", label: t('invaders.statusFlashed') },
+    { key: "unflashed", label: t('invaders.statusUnflashed') },
+  ];
+  const FLASHABLE_OPTIONS: { key: FlashableFilter; label: string }[] = [
+    { key: "any", label: t('invaders.condAny') },
+    { key: "flashable", label: t('invaders.condFlashable') },
+    { key: "unflashable", label: t('invaders.condUnflashable') },
+  ];
+  const GREY_OPTIONS_FLASH: { key: GreyMode; label: string }[] = [
+    { key: "all", label: t('invaders.greyAll') },
+    { key: "unflashed", label: t('invaders.greyFlashed') },
+    { key: "none", label: t('invaders.greyOff') },
+  ];
+  const GREY_OPTIONS_RARITY: { key: GreyMode; label: string }[] = [
+    { key: "all", label: t('invaders.greyAll') },
+    { key: "none", label: t('invaders.greyOff') },
+  ];
+  const COLOR_MODE_OPTIONS: { key: ColorMode; label: string }[] = [
+    { key: "flash", label: t('invaders.colorFlash') },
+    { key: "rarity", label: t('invaders.colorRarity') },
+  ];
   const [filterOpen, setFilterOpen] = useState(false);
   const [greyOpen, setGreyOpen] = useState(false);
   const styles = makeStyles(theme);
@@ -110,7 +104,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
     <View style={styles.wrapper}>
       {greyOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>Color mode</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.colorMode')}</Text>
           <View style={styles.optionGroup}>
             {COLOR_MODE_OPTIONS.map((o) => {
               const selected = colorMode === o.key;
@@ -127,7 +121,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
           </View>
 
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>Grey out</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.greyOut')}</Text>
           <View style={styles.optionGroup}>
             {(colorMode === "flash" ? GREY_OPTIONS_FLASH : GREY_OPTIONS_RARITY).map((o) => {
               const selected = greyMode === o.key;
@@ -158,7 +152,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
 
       {filterOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>Status</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterStatus')}</Text>
           <View style={styles.optionGroup}>
             {STATUS_OPTIONS.map((o) => {
               const selected = value.status === o.key;
@@ -176,7 +170,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionLabel}>Condition</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterCondition')}</Text>
           <View style={styles.optionGroup}>
             {FLASHABLE_OPTIONS.map((o) => {
               const selected = value.flashable === o.key;
@@ -194,7 +188,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionLabel}>Points</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterPoints')}</Text>
           <View style={styles.pointsGroup}>
             {POINTS_OPTIONS.map((pt) => {
               const selected = value.points.includes(pt);

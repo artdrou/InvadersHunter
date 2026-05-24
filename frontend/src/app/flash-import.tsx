@@ -15,22 +15,24 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, AppFont } from '@/constants/theme';
 import { importFlashes, SCRIPT_DOWNLOAD_URL, type FlashImportResponse } from '@/features/flash-import';
 import { useInvaderStore } from '@/features/invaders';
 
-const STEPS = [
-  { n: 1, title: 'Connectez-vous à InvadersHunter',     body: 'Avec le compte sur lequel vous voulez importer vos flashes.' },
-  { n: 2, title: 'Branchez votre téléphone au PC',      body: 'Câble USB. Autorisez le transfert de données si demandé.' },
-  { n: 3, title: 'Activez le débogage USB',             body: 'Réglages → À propos → tapez 7 fois sur "Numéro de build" pour activer les options développeur, puis activez "Débogage USB". Acceptez la demande sur le téléphone.' },
-  { n: 4, title: 'Téléchargez et lancez l\'application', body: 'Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez "Informations complémentaires" → "Exécuter quand même". Saisissez vos identifiants InvadersHunter quand demandé.' },
-  { n: 5, title: 'IMPORTANT : synchronisez l\'app',       body: 'Une fois l\'import terminé, revenez sur l\'écran Profil et appuyez sur "Sync now" pour récupérer les flashes importés dans l\'application.' },
-];
-
 export default function FlashImportScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
+
+  const STEPS = [
+    { n: 1, title: t('flashImport.step1Title'), body: t('flashImport.step1Body') },
+    { n: 2, title: t('flashImport.step2Title'), body: t('flashImport.step2Body') },
+    { n: 3, title: t('flashImport.step3Title'), body: t('flashImport.step3Body') },
+    { n: 4, title: t('flashImport.step4Title'), body: t('flashImport.step4Body') },
+    { n: 5, title: t('flashImport.step5Title'), body: t('flashImport.step5Body') },
+  ];
   const insets = useSafeAreaInsets();
   const styles = useMemo(
     () => makeStyles(theme, appFont, fontScale, insets.top, insets.bottom),
@@ -46,7 +48,7 @@ export default function FlashImportScreen() {
   async function handleDownload() {
     const ok = await Linking.canOpenURL(SCRIPT_DOWNLOAD_URL);
     if (!ok) {
-      Alert.alert('Lien indisponible', 'Impossible d\'ouvrir le lien de téléchargement.');
+      Alert.alert(t('flashImport.linkUnavailableTitle'), t('flashImport.linkUnavailableBody'));
       return;
     }
     Linking.openURL(SCRIPT_DOWNLOAD_URL);
@@ -58,7 +60,7 @@ export default function FlashImportScreen() {
       .map((s) => s.trim())
       .filter(Boolean);
     if (names.length === 0) {
-      Alert.alert('Aucun nom', 'Collez au moins un nom d\'invader (un par ligne).');
+      Alert.alert(t('flashImport.noNamesTitle'), t('flashImport.noNamesBody'));
       return;
     }
     setSubmitting(true);
@@ -67,7 +69,7 @@ export default function FlashImportScreen() {
       setResult(res);
       requestSync();
     } catch (e: any) {
-      Alert.alert('Erreur', e?.response?.data?.detail ?? e?.message ?? 'Import impossible.');
+      Alert.alert(t('common.error'), e?.response?.data?.detail ?? e?.message ?? t('flashImport.importImpossible'));
     } finally {
       setSubmitting(false);
     }
@@ -77,15 +79,12 @@ export default function FlashImportScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
-          <Text style={styles.backText}>{'<- Retour'}</Text>
+          <Text style={styles.backText}>{'<- ' + t('common.back')}</Text>
         </Pressable>
-        <Text style={styles.title}>Importer mes flashes</Text>
+        <Text style={styles.title}>{t('flashImport.title')}</Text>
       </View>
 
-      <Text style={styles.intro}>
-        Récupérez automatiquement vos flashes depuis l'application officielle FlashInvaders
-        installée sur votre téléphone Android, via votre PC.
-      </Text>
+      <Text style={styles.intro}>{t('flashImport.intro')}</Text>
 
       {STEPS.map((s) => (
         <View key={s.n} style={styles.step}>
@@ -102,21 +101,15 @@ export default function FlashImportScreen() {
       <Pressable
         style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
         onPress={handleDownload}>
-        <Text style={styles.primaryBtnText}>Telecharger l'application (Windows)</Text>
+        <Text style={styles.primaryBtnText}>{t('flashImport.downloadBtn')}</Text>
       </Pressable>
 
-      <Text style={styles.note}>
-        Aucun prérequis : le script télécharge automatiquement les outils Android nécessaires (~10 Mo, une seule fois).
-        Windows uniquement pour le moment.
-      </Text>
+      <Text style={styles.note}>{t('flashImport.downloadNote')}</Text>
 
       <View style={styles.divider} />
 
-      <Text style={styles.sectionTitle}>Alternative : coller une liste</Text>
-      <Text style={styles.note}>
-        Si l'ADB ne fonctionne pas, collez une liste de noms d'invaders (un par ligne ou séparés par des virgules).
-        Les extensions de fichier sont ignorées.
-      </Text>
+      <Text style={styles.sectionTitle}>{t('flashImport.alternativeTitle')}</Text>
+      <Text style={styles.note}>{t('flashImport.alternativeNote')}</Text>
       <TextInput
         value={pasted}
         onChangeText={setPasted}
@@ -133,15 +126,15 @@ export default function FlashImportScreen() {
         disabled={submitting}>
         {submitting
           ? <ActivityIndicator color={theme.accent} />
-          : <Text style={styles.secondaryBtnText}>Importer la liste</Text>}
+          : <Text style={styles.secondaryBtnText}>{t('flashImport.importBtn')}</Text>}
       </Pressable>
 
       {result && (
         <View style={styles.resultBox}>
-          <Text style={styles.resultLine}>Importés : <Text style={styles.resultStrong}>{result.imported}</Text></Text>
-          <Text style={styles.resultLine}>Déjà flashés : <Text style={styles.resultStrong}>{result.already_flashed}</Text></Text>
-          <Text style={styles.resultLine}>Inconnus : <Text style={styles.resultStrong}>{result.unknown.length}</Text></Text>
-          <Text style={styles.resultDone}>Flashes importés. Refaites l'opération quand vous avez de nouveaux flashes.</Text>
+          <Text style={styles.resultLine}>{t('flashImport.imported')} : <Text style={styles.resultStrong}>{result.imported}</Text></Text>
+          <Text style={styles.resultLine}>{t('flashImport.alreadyFlashed')} : <Text style={styles.resultStrong}>{result.already_flashed}</Text></Text>
+          <Text style={styles.resultLine}>{t('flashImport.unknown')} : <Text style={styles.resultStrong}>{result.unknown.length}</Text></Text>
+          <Text style={styles.resultDone}>{t('flashImport.done')}</Text>
         </View>
       )}
     </ScrollView>

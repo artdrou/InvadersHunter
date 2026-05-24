@@ -1,21 +1,25 @@
 import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { useMemo } from "react";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useAuthStore, logoutUser } from "@/features/auth";
 import { useInvaderStore } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import * as Updates from 'expo-updates';
-import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { type ThemeTokens, type ThemeName, themes, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { SUPPORTED_LANGUAGES, setLanguage, getCurrentLanguage, getDateLocale, type LanguageCode } from "@/services/i18n";
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from "@/features/app-update";
 
 export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const user   = useAuthStore((s) => s.user);
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
   const styles = useMemo(() => makeStyles(theme, appFont, fontScale), [theme, appFont, fontScale]);
   const isSyncing   = useInvaderStore((s) => s.isSyncing);
   const requestSync = useInvaderStore((s) => s.requestSync);
+  const currentLang = getCurrentLanguage();
 
   async function handleLogout() {
     const refreshToken = useAuthStore.getState().refreshToken;
@@ -26,22 +30,26 @@ export default function ProfileScreen() {
     router.replace('/login');
   }
 
+  async function handleLanguageChange(code: LanguageCode) {
+    await setLanguage(code);
+  }
+
   async function handleCheckForUpdates() {
     const manifest = await fetchVersionManifest();
     if (!manifest) {
-      Alert.alert('Erreur', 'Impossible de vérifier les mises à jour.');
+      Alert.alert(t('common.error'), t('appUpdate.checkFailed'));
       return;
     }
     if (isNewer(manifest.latestVersion, getCurrentVersion())) {
       useAppUpdateStore.setState({ manifest, isAvailable: true, dismissedVersion: null });
     } else {
-      Alert.alert('À jour', 'Vous êtes à jour.');
+      Alert.alert(t('appUpdate.upToDateTitle'), t('appUpdate.upToDateBody'));
     }
   }
 
   const isOta   = !Updates.isEmbeddedLaunch;
   const otaDate = Updates.createdAt
-    ? Updates.createdAt.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    ? Updates.createdAt.toLocaleString(getDateLocale(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
     : null;
   const otaChannel = Updates.channel ?? null;
 
@@ -51,7 +59,7 @@ export default function ProfileScreen() {
         <Text style={styles.version}>
           {isOta && otaDate
             ? `${otaDate}${otaChannel ? ` · ${otaChannel}` : ""}`
-            : "build"}
+            : t('profile.build')}
         </Text>
       </View>
       {user && (
@@ -59,7 +67,7 @@ export default function ProfileScreen() {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Theme</Text>
+        <Text style={styles.sectionLabel}>{t('profile.theme')}</Text>
         <View style={styles.themeRow}>
           {(Object.keys(themes) as ThemeName[]).map((name) => {
             const isActive = name === themeName;
@@ -73,7 +81,30 @@ export default function ProfileScreen() {
                 ]}
                 onPress={() => setTheme(name)}>
                 <Text style={[styles.themeOptionText, isActive && styles.themeOptionTextActive]}>
-                  {themeLabels[name]}
+                  {t(`themeNames.${name}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>{t('profile.language')}</Text>
+        <View style={styles.themeRow}>
+          {SUPPORTED_LANGUAGES.map((lang) => {
+            const isActive = lang.code === currentLang;
+            return (
+              <Pressable
+                key={lang.code}
+                style={({ pressed }) => [
+                  styles.themeOption,
+                  isActive && styles.themeOptionActive,
+                  pressed && styles.themeOptionPressed,
+                ]}
+                onPress={() => handleLanguageChange(lang.code)}>
+                <Text style={[styles.themeOptionText, isActive && styles.themeOptionTextActive]}>
+                  {t(lang.labelKey)}
                 </Text>
               </Pressable>
             );
@@ -88,7 +119,7 @@ export default function ProfileScreen() {
         onPress={requestSync}
         disabled={isSyncing}
       >
-        <Text style={styles.syncButtonText}>{isSyncing ? "Syncing…" : "Sync now"}</Text>
+        <Text style={styles.syncButtonText}>{isSyncing ? t('profile.syncing') : t('profile.syncNow')}</Text>
       </Pressable>
 
       <View style={styles.divider} />
@@ -96,7 +127,7 @@ export default function ProfileScreen() {
       <Pressable
         style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
         onPress={() => router.push('/flash-import')}>
-        <Text style={styles.syncButtonText}>Import flashes</Text>
+        <Text style={styles.syncButtonText}>{t('profile.importFlashes')}</Text>
       </Pressable>
 
       <View style={styles.divider} />
@@ -104,7 +135,7 @@ export default function ProfileScreen() {
       <Pressable
         style={({ pressed }) => [styles.syncButton, pressed && styles.buttonPressed]}
         onPress={handleCheckForUpdates}>
-        <Text style={styles.syncButtonText}>Vérifier les mises à jour</Text>
+        <Text style={styles.syncButtonText}>{t('appUpdate.checkBtn')}</Text>
       </Pressable>
 
       <View style={styles.divider} />
@@ -112,7 +143,7 @@ export default function ProfileScreen() {
       <Pressable
         style={({ pressed }) => [styles.logoutButton, pressed && styles.buttonPressed]}
         onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Disconnect</Text>
+        <Text style={styles.logoutButtonText}>{t('profile.disconnect')}</Text>
       </Pressable>
     </View>
   );

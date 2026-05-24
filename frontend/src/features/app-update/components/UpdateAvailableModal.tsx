@@ -1,10 +1,12 @@
 import { Modal, View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAppUpdateStore } from '../store';
 import { resolveApkUrl, getCurrentVersion } from '../services/app-update.api';
 
 export function UpdateAvailableModal() {
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -23,22 +25,22 @@ export function UpdateAvailableModal() {
     <Modal transparent visible animationType="fade" onRequestClose={dismiss}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>Mise a jour disponible</Text>
+          <Text style={styles.title}>{t('appUpdate.title')}</Text>
           <Text style={styles.body}>
-            Une nouvelle version de l'application est disponible (v{manifest.latestVersion}). Vous utilisez actuellement la v{getCurrentVersion()}.
+            {t('appUpdate.body', { latest: manifest.latestVersion, current: getCurrentVersion() })}
           </Text>
           {manifest.notes ? <Text style={styles.notes}>{manifest.notes}</Text> : null}
 
           <Pressable
             style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
             onPress={handleDownload}>
-            <Text style={styles.primaryBtnText}>Telecharger l'APK</Text>
+            <Text style={styles.primaryBtnText}>{t('appUpdate.download')}</Text>
           </Pressable>
 
           <Pressable
             style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
             onPress={dismiss}>
-            <Text style={styles.secondaryBtnText}>Plus tard</Text>
+            <Text style={styles.secondaryBtnText}>{t('appUpdate.later')}</Text>
           </Pressable>
         </View>
       </View>

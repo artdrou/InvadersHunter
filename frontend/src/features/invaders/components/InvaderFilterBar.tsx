@@ -1,19 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing } from "@/constants/theme";
 import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map";
-
-const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
-  { key: "all",       label: "All" },
-  { key: "flashed",   label: "Flashed" },
-  { key: "unflashed", label: "Unflashed" },
-];
-
-const CONDITION_OPTIONS: { key: FlashableFilter; label: string }[] = [
-  { key: "any",          label: "Any" },
-  { key: "flashable",    label: "Flashable" },
-  { key: "unflashable",  label: "Unflashable" },
-];
 
 type Props = {
   filter: MapFilter;
@@ -21,8 +10,20 @@ type Props = {
 };
 
 export function InvaderFilterBar({ filter, onChange }: Props) {
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+
+  const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
+    { key: "all",       label: t('invaders.statusAll') },
+    { key: "flashed",   label: t('invaders.statusFlashed') },
+    { key: "unflashed", label: t('invaders.statusUnflashed') },
+  ];
+  const CONDITION_OPTIONS: { key: FlashableFilter; label: string }[] = [
+    { key: "any",         label: t('invaders.condAny') },
+    { key: "flashable",   label: t('invaders.condFlashable') },
+    { key: "unflashable", label: t('invaders.condUnflashable') },
+  ];
 
   return (
     <View style={[styles.bar, { backgroundColor: theme.bg, borderBottomColor: theme.bgDivider }]}>

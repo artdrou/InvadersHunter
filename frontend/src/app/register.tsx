@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore, registerUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
@@ -13,6 +14,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -25,7 +27,7 @@ export default function RegisterScreen() {
       login(accessToken, refreshToken);
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
-      setError(typeof detail === 'string' ? detail : 'Registration failed');
+      setError(typeof detail === 'string' ? detail : t('auth.register.failed'));
     } finally {
       setLoading(false);
     }
@@ -33,12 +35,12 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>InvadersHunter</Text>
+      <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
 
       <View style={styles.form}>
         <TextInput
           style={styles.input}
-          placeholder="Username"
+          placeholder={t('auth.username')}
           placeholderTextColor={theme.textMuted}
           autoCapitalize="none"
           value={username}
@@ -46,7 +48,7 @@ export default function RegisterScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor={theme.textMuted}
           autoCapitalize="none"
           keyboardType="email-address"
@@ -55,7 +57,7 @@ export default function RegisterScreen() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder={t('auth.password')}
           placeholderTextColor={theme.textMuted}
           secureTextEntry
           value={password}
@@ -71,12 +73,12 @@ export default function RegisterScreen() {
           {loading ? (
             <ActivityIndicator color={theme.bg} />
           ) : (
-            <Text style={styles.buttonText}>Create account</Text>
+            <Text style={styles.buttonText}>{t('auth.register.button')}</Text>
           )}
         </Pressable>
 
         <Pressable onPress={() => router.back()} style={styles.loginLink}>
-          <Text style={styles.loginText}>Already have an account? <Text style={styles.loginHighlight}>Login</Text></Text>
+          <Text style={styles.loginText}>{t('auth.register.alreadyAccount')} <Text style={styles.loginHighlight}>{t('auth.register.loginLink')}</Text></Text>
         </Pressable>
       </View>
     </View>

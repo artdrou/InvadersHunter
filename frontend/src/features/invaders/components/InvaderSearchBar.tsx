@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { View, Text, Pressable, TextInput, StyleSheet, type LayoutChangeEvent } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
 import { isFilterActive } from "@/features/map";
@@ -11,30 +12,30 @@ import { SORT_OPTIONS_BY_GROUP } from "../utils/invader-list";
 
 const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100];
 
-const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "flashed", label: "Flashed" },
-  { key: "unflashed", label: "Unflashed" },
-];
+const STATUS_KEYS: Record<FlashStatusFilter, string> = {
+  all: "invaders.statusAll",
+  flashed: "invaders.statusFlashed",
+  unflashed: "invaders.statusUnflashed",
+};
 
-const FLASHABLE_OPTIONS: { key: FlashableFilter; label: string }[] = [
-  { key: "any", label: "Any" },
-  { key: "flashable", label: "Flashable" },
-  { key: "unflashable", label: "Unflashable" },
-];
+const FLASHABLE_KEYS: Record<FlashableFilter, string> = {
+  any: "invaders.condAny",
+  flashable: "invaders.condFlashable",
+  unflashable: "invaders.condUnflashable",
+};
 
-const GROUP_OPTIONS: { key: GroupMode; label: string }[] = [
-  { key: "city",   label: "City" },
-  { key: "points", label: "Points" },
-  { key: "year",   label: "Year" },
-];
+const GROUP_KEYS: Record<GroupMode, string> = {
+  city: "invaders.groupCity",
+  points: "invaders.groupPoints",
+  year: "invaders.groupYear",
+};
 
-const SORT_LABELS: Record<SortOption, string> = {
-  number:      "#",
-  points:      "Points",
-  pose_date:   "Pose date",
-  flash_date:  "Flash date",
-  update_date: "Updated",
+const SORT_KEYS: Record<SortOption, string> = {
+  number: "invaders.sortNumber",
+  points: "invaders.sortPoints",
+  pose_date: "invaders.sortPoseDate",
+  flash_date: "invaders.sortFlashDate",
+  update_date: "invaders.sortUpdated",
 };
 
 type Props = {
@@ -55,9 +56,26 @@ export function InvaderSearchBar({
   groupMode, onGroupModeChange, sortBy, onSortChange,
   viewMode, onToggleView,
 }: Props) {
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
   const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
+    { key: "all", label: t(STATUS_KEYS.all) },
+    { key: "flashed", label: t(STATUS_KEYS.flashed) },
+    { key: "unflashed", label: t(STATUS_KEYS.unflashed) },
+  ];
+  const FLASHABLE_OPTIONS: { key: FlashableFilter; label: string }[] = [
+    { key: "any", label: t(FLASHABLE_KEYS.any) },
+    { key: "flashable", label: t(FLASHABLE_KEYS.flashable) },
+    { key: "unflashable", label: t(FLASHABLE_KEYS.unflashable) },
+  ];
+  const GROUP_OPTIONS: { key: GroupMode; label: string }[] = [
+    { key: "city", label: t(GROUP_KEYS.city) },
+    { key: "points", label: t(GROUP_KEYS.points) },
+    { key: "year", label: t(GROUP_KEYS.year) },
+  ];
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -69,7 +87,7 @@ export function InvaderSearchBar({
 
   const availableSorts = SORT_OPTIONS_BY_GROUP[groupMode].map((key) => ({
     key,
-    label: SORT_LABELS[key],
+    label: t(SORT_KEYS[key]),
   }));
 
   function closeAll() {
@@ -118,7 +136,7 @@ export function InvaderSearchBar({
             fontFamily: appFont,
             fontSize: sz(13),
           }]}
-          placeholder="Search invaders…"
+          placeholder={t('invaders.searchPlaceholder')}
           placeholderTextColor={theme.textMuted}
           value={value}
           onChangeText={onChange}
@@ -132,7 +150,7 @@ export function InvaderSearchBar({
       {/* Filter panel */}
       {filterOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>Status</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterStatus')}</Text>
           <View style={styles.optionGroup}>
             {STATUS_OPTIONS.map((o) => {
               const selected = filter.status === o.key;
@@ -150,7 +168,7 @@ export function InvaderSearchBar({
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionLabel}>Condition</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterCondition')}</Text>
           <View style={styles.optionGroup}>
             {FLASHABLE_OPTIONS.map((o) => {
               const selected = filter.flashable === o.key;
@@ -168,7 +186,7 @@ export function InvaderSearchBar({
 
           <View style={styles.divider} />
 
-          <Text style={styles.sectionLabel}>Points</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.filterPoints')}</Text>
           <View style={styles.pointsGroup}>
             {POINTS_OPTIONS.map((pt) => {
               const selected = filter.points.includes(pt);
@@ -189,7 +207,7 @@ export function InvaderSearchBar({
       {/* Group panel */}
       {groupOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>Group by</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.groupBy')}</Text>
           <View style={styles.optionGroup}>
             {GROUP_OPTIONS.map((o) => {
               const selected = groupMode === o.key;
@@ -210,7 +228,7 @@ export function InvaderSearchBar({
       {/* Sort panel — options depend on current groupMode */}
       {sortOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>Sort by</Text>
+          <Text style={styles.sectionLabel}>{t('invaders.sortBy')}</Text>
           <View style={styles.optionGroup}>
             {availableSorts.map((o) => {
               const selected = sortBy === o.key;

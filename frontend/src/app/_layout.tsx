@@ -1,11 +1,12 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
 import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { initDb } from '@/services/db';
+import { initI18n } from '@/services/i18n';
 import {
   UpdateAvailableModal,
   useAppUpdateStore,
@@ -21,6 +22,11 @@ export default function RootLayout() {
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const segments = useSegments();
   const router = useRouter();
+  const [i18nReady, setI18nReady] = useState(false);
+
+  useEffect(() => {
+    initI18n().finally(() => setI18nReady(true));
+  }, []);
 
   const [fontsLoaded] = useFonts({
     Pix32:      require('../../assets/fonts/Pix32/Pix32.ttf'),
@@ -32,8 +38,8 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+    if (fontsLoaded && i18nReady) SplashScreen.hideAsync();
+  }, [fontsLoaded, i18nReady]);
 
   useEffect(() => {
     (async () => {
@@ -55,7 +61,7 @@ export default function RootLayout() {
     }
   }, [token, segments, hasHydrated]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded || !i18nReady) return null;
 
   return (
     <SQLiteProvider databaseName="invaders.db" onInit={initDb}>

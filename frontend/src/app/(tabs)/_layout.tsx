@@ -3,11 +3,13 @@ import { Animated, View, Text, StyleSheet } from "react-native";
 import { Tabs } from "expo-router";
 import { Fontisto, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import NetInfo from "@react-native-community/netinfo";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
 import { useAuthStore } from "@/features/auth";
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const { appFont, theme } = useTheme();
   const isOnline = useConnectivityStore((s) => s.isOnline);
   const setOnline = useConnectivityStore((s) => s.setOnline);
@@ -78,28 +80,28 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="map"
           options={{
-            title: "Carte",
+            title: t('tabs.map'),
             tabBarIcon: ({ color, size }) => <Fontisto name="map" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="invader"
           options={{
-            title: "Invaders",
+            title: t('tabs.invaders'),
             tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="space-invaders" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Profil",
+            title: t('tabs.profile'),
             tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
           name="admin"
           options={{
-            title: "Admin",
+            title: t('tabs.admin'),
             href: isAdmin ? undefined : null,
             tabBarIcon: ({ color, size }) => <MaterialIcons name="admin-panel-settings" size={size} color={color} />,
           }}
@@ -109,18 +111,18 @@ export default function TabsLayout() {
       {/* Subtle offline pill — top-right corner */}
       {!isOnline && (
         <View style={styles.offlinePill} pointerEvents="none">
-          <Text style={[styles.pillText, { fontFamily: appFont }]}>Offline</Text>
+          <Text style={[styles.pillText, { fontFamily: appFont }]}>{t('connectivity.offline')}</Text>
         </View>
       )}
 
       {/* Fading red band on disconnection */}
       <Animated.View style={[styles.disconnectedBand, { opacity: disconnectedOpacity }]} pointerEvents="none">
-        <Text style={[styles.bandText, { fontFamily: appFont }]}>Disconnected</Text>
+        <Text style={[styles.bandText, { fontFamily: appFont }]}>{t('connectivity.disconnected')}</Text>
       </Animated.View>
 
       {/* Fading green band on reconnection */}
       <Animated.View style={[styles.reconnectedBand, { opacity: reconnectedOpacity }]} pointerEvents="none">
-        <Text style={[styles.bandText, { fontFamily: appFont }]}>Reconnected</Text>
+        <Text style={[styles.bandText, { fontFamily: appFont }]}>{t('connectivity.reconnected')}</Text>
       </Animated.View>
     </View>
   );

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapView, Camera, ShapeSource, CircleLayer } from '@maplibre/maplibre-react-native';
 import type { CameraRef, MapViewRef } from '@maplibre/maplibre-react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { ButtonFont } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
@@ -19,6 +20,7 @@ const MAP_STYLES: Record<string, string> = {
 
 export default function AdminPickLocationScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, themeName, appFont } = useTheme();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
@@ -165,16 +167,16 @@ export default function AdminPickLocationScreen() {
         {hasCurrentPos && (
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: theme.danger }]} />
-            <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>Current</Text>
+            <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>{t('admin.legendCurrent')}</Text>
           </View>
         )}
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: '#ffffff', opacity: 0.8 }]} />
-          <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>Proposed</Text>
+          <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>{t('admin.legendProposed')}</Text>
         </View>
         <View style={styles.legendRow}>
           <View style={[styles.legendDot, { backgroundColor: theme.accent }]} />
-          <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>Barycenter</Text>
+          <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>{t('admin.legendBarycenter')}</Text>
         </View>
       </View>
 
@@ -184,13 +186,13 @@ export default function AdminPickLocationScreen() {
           style={({ pressed }) => [styles.btn, { borderColor: theme.border, backgroundColor: theme.bgElement }, pressed && styles.pressed]}
           onPress={handleCancel}
         >
-          <Text style={[styles.btnText, { color: theme.textMuted, fontFamily: ButtonFont }]}>Cancel</Text>
+          <Text style={[styles.btnText, { color: theme.textMuted, fontFamily: ButtonFont }]}>{t('common.cancel')}</Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.btn, { backgroundColor: theme.accent }, pressed && styles.pressed]}
           onPress={handleValidate}
         >
-          <Text style={[styles.btnText, { color: theme.bg, fontFamily: ButtonFont }]}>Validate position</Text>
+          <Text style={[styles.btnText, { color: theme.bg, fontFamily: ButtonFont }]}>{t('common.validatePosition')}</Text>
         </Pressable>
       </View>
     </View>

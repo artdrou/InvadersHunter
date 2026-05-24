@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, Linking } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { getDateLocale } from "@/services/i18n";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
@@ -33,19 +35,19 @@ const STATE_OPTIONS = [
   InvaderState.Unknown,
 ] as const;
 
-const STATE_LABELS: Record<string, string> = {
-  [InvaderState.Good]:            "Good",
-  [InvaderState.SlightlyDegraded]:"Slightly degraded",
-  [InvaderState.Degraded]:        "Degraded",
-  [InvaderState.BadlyDegraded]:   "Badly degraded",
-  [InvaderState.Destroyed]:       "Destroyed",
-  [InvaderState.NotVisible]:      "Not visible",
-  [InvaderState.Unknown]:         "Unknown",
+const STATE_KEYS: Record<string, string> = {
+  [InvaderState.Good]:            "states.Good",
+  [InvaderState.SlightlyDegraded]:"states.SlightlyDegraded",
+  [InvaderState.Degraded]:        "states.Degraded",
+  [InvaderState.BadlyDegraded]:   "states.BadlyDegraded",
+  [InvaderState.Destroyed]:       "states.Destroyed",
+  [InvaderState.NotVisible]:      "states.NotVisible",
+  [InvaderState.Unknown]:         "states.Unknown",
 };
 
 function formatDate(iso?: string) {
   if (!iso) return "--";
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  return new Date(iso).toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -54,6 +56,7 @@ function formatDate(iso?: string) {
 
 export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent }: Props) {
   const db = useSQLiteContext();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -98,7 +101,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
         <View style={styles.container}>
           <View style={styles.scrollHandle} />
           <View style={styles.header}>
-            <Text style={styles.name}>Update {invader.name}</Text>
+            <Text style={styles.name}>{t('popup.updateTitle', { name: invader.name })}</Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
@@ -108,7 +111,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
 
           <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
 
-            <Text style={styles.fieldLabel}>State</Text>
+            <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
             <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
               {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4), STATE_OPTIONS.slice(4, 6)].map((pair, ri) => (
                 <View key={ri} style={styles.stateRow}>
@@ -121,7 +124,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
                         onPress={() => setInvaderState(s)}
                       >
                         <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>
-                          {STATE_LABELS[s]}
+                          {t(STATE_KEYS[s])}
                         </Text>
                       </Pressable>
                     );
@@ -130,7 +133,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>Position</Text>
+            <Text style={styles.fieldLabel}>{t('popup.position')}</Text>
             <Pressable
               style={({ pressed }) => [styles.positionRow, pressed && styles.btnPressed]}
               onPress={() => onPickLocation?.(invader)}
@@ -140,7 +143,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
                   ? `${pendingCoords.lat.toFixed(6)}, ${pendingCoords.lon.toFixed(6)}`
                   : `${invader.latitude.toFixed(6)}, ${invader.longitude.toFixed(6)}`}
               </Text>
-              <Text style={styles.positionEdit}>Edit</Text>
+              <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
             </Pressable>
 
           </ScrollView>
@@ -158,19 +161,19 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
             disabled={submitting || isUnchanged}
           >
             <Text style={styles.flashBtnText}>
-              {submitting ? "Sending…" : "Validate"}
+              {submitting ? t('popup.sending') : t('popup.validate')}
             </Text>
           </Pressable>
 
           {offlineError && (
-            <Text style={styles.offlineMsg}>No internet connection</Text>
+            <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>
           )}
 
           <Pressable
             style={({ pressed }) => [styles.cancelBtn, pressed && styles.btnPressed]}
             onPress={() => { setOfflineError(false); onClose(); }}
           >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
           </Pressable>
         </View>
         <View style={styles.arrow} />
@@ -202,22 +205,22 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
         <View style={styles.divider} />
 
         <View style={styles.row}>
-          <Text style={styles.label}>Points</Text>
+          <Text style={styles.label}>{t('popup.points')}</Text>
           <Text style={styles.value}>{invader.points ?? "--"}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>State</Text>
-          <Text style={styles.value}>{invader.state ?? "--"}</Text>
+          <Text style={styles.label}>{t('popup.state')}</Text>
+          <Text style={styles.value}>{invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--"}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Posed</Text>
+          <Text style={styles.label}>{t('popup.posed')}</Text>
           <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Flashed</Text>
+          <Text style={styles.label}>{t('popup.flashed')}</Text>
           <Text style={[styles.value, invader.isCaptured && styles.flashedDate]}>
             {formatDate(invader.capturedAt)}
           </Text>
@@ -252,7 +255,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
           ]}
           onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}>
           <Text style={[styles.flashBtnText, invader.isCaptured && styles.unflashBtnText]}>
-            {invader.isCaptured ? "Unflash" : "Flash"}
+            {invader.isCaptured ? t('popup.unflash') : t('popup.flash')}
           </Text>
         </Pressable>
 
@@ -266,13 +269,13 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
             style={({ pressed }) => [styles.modifyLink, pressed && styles.btnPressed]}
           >
             <Text style={[styles.modifyLinkText, alreadySent && styles.modifyLinkDisabledText]}>
-              {alreadySent ? "Update sent" : "Update"}
+              {alreadySent ? t('popup.updateSent') : t('popup.update')}
             </Text>
           </Pressable>
         )}
 
         {offlineError && (
-          <Text style={styles.offlineMsg}>No internet connection</Text>
+          <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>
         )}
       </View>
 

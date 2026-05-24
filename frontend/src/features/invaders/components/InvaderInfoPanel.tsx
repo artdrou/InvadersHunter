@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing } from "@/constants/theme";
 import { formatDate } from "../utils/invader-list";
@@ -13,9 +14,21 @@ type Props = {
   containerStyle?: object;
 };
 
+const STATE_KEYS: Record<string, string> = {
+  "Good": "states.Good",
+  "Slightly degraded": "states.SlightlyDegraded",
+  "Degraded": "states.Degraded",
+  "Badly degraded": "states.BadlyDegraded",
+  "Destroyed": "states.Destroyed",
+  "Not visible": "states.NotVisible",
+  "Unknown": "states.Unknown",
+};
+
 export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+  const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgElement }, containerStyle]}>
@@ -32,11 +45,11 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
-      <InfoRow label="Points" value={String(invader.points ?? "--")} sz={sz} />
-      <InfoRow label="State"  value={invader.state ?? "--"} sz={sz} />
-      <InfoRow label="Posed"  value={formatDate(invader.date_pose)} sz={sz} />
+      <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
+      <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
+      <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
       <InfoRow
-        label="Flashed"
+        label={t('popup.flashed')}
         value={formatDate(invader.capturedAt)}
         valueColor={invader.isCaptured ? theme.success : theme.text}
         sz={sz}
@@ -57,7 +70,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
           onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
         >
           <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: appFont, fontSize: sz(13) }]}>
-            {invader.isCaptured ? "Unflash" : "Flash"}
+            {invader.isCaptured ? t('popup.unflash') : t('popup.flash')}
           </Text>
         </Pressable>
 
@@ -72,7 +85,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
             onPress={() => onLocate(invader)}
           >
             <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: appFont, fontSize: sz(13) }]}>
-              Localiser
+              {t('popup.localiser')}
             </Text>
           </Pressable>
         )}

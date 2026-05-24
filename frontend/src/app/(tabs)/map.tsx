@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
 import { useHeadingStore } from "@/features/map/store";
 import type { MapFilter } from "@/features/map";
@@ -10,6 +11,7 @@ import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 
 export default function MapScreen() {
+  const { t } = useTranslation();
   const { invaders, progress, syncError, flash, unflash } = useInvaderData();
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
@@ -231,12 +233,12 @@ export default function MapScreen() {
 
       {isOfflineEmpty && (
         <View style={styles.offlineBanner} pointerEvents="none">
-          <Text style={styles.offlineText}>No internet connection</Text>
+          <Text style={styles.offlineText}>{t('common.noInternet')}</Text>
         </View>
       )}
 
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
-        <Text style={styles.toastText}>Modification request sent</Text>
+        <Text style={styles.toastText}>{t('map.modificationSent')}</Text>
       </Animated.View>
 
       {/* ── Create-invader: initial pin + small popup ── */}
@@ -249,18 +251,18 @@ export default function MapScreen() {
 
           <View style={styles.createPopupWrapper} pointerEvents="box-none">
             <View style={[styles.createPopupCard, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
-              <Text style={[styles.createPopupLabel, { color: theme.text }]}>Créer un invader ici ?</Text>
+              <Text style={[styles.createPopupLabel, { color: theme.text }]}>{t('map.createHere')}</Text>
               <TouchableOpacity
                 style={[styles.createPopupBtn, { backgroundColor: theme.accent }]}
                 onPress={openCreateModal}
               >
-                <Text style={[styles.createPopupBtnText, { color: theme.bg }]}>Créer</Text>
+                <Text style={[styles.createPopupBtnText, { color: theme.bg }]}>{t('map.createBtn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.createPopupBtn, { borderColor: theme.border, borderWidth: 1 }]}
                 onPress={cancelCreating}
               >
-                <Text style={[styles.createPopupBtnText, { color: theme.textMuted }]}>Annuler</Text>
+                <Text style={[styles.createPopupBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -292,13 +294,13 @@ export default function MapScreen() {
               style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
               onPress={cancelCreatingPickLoc}
             >
-              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>Cancel</Text>
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
               onPress={validateCreatingPickLoc}
             >
-              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>Validate</Text>
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>{t('common.validate')}</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -316,13 +318,13 @@ export default function MapScreen() {
               style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
               onPress={cancelPicking}
             >
-              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>Cancel</Text>
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
               onPress={validatePicking}
             >
-              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>Validate</Text>
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>{t('common.validate')}</Text>
             </TouchableOpacity>
           </View>
         </>

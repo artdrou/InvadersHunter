@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { useTranslation } from "react-i18next";
 import { InvaderState } from "@/features/invaders/types";
 import { useInvaderStore } from "@/features/invaders/store";
 import { cityOf } from "@/features/invaders/utils/invader-list";
@@ -19,14 +20,14 @@ const STATE_OPTIONS = [
   InvaderState.Unknown,
 ] as const;
 
-const STATE_LABELS: Record<string, string> = {
-  [InvaderState.Good]:             "Good",
-  [InvaderState.SlightlyDegraded]: "Slightly degraded",
-  [InvaderState.Degraded]:         "Degraded",
-  [InvaderState.BadlyDegraded]:    "Badly degraded",
-  [InvaderState.Destroyed]:        "Destroyed",
-  [InvaderState.NotVisible]:       "Not visible",
-  [InvaderState.Unknown]:          "Unknown",
+const STATE_KEYS: Record<string, string> = {
+  [InvaderState.Good]:             "states.Good",
+  [InvaderState.SlightlyDegraded]: "states.SlightlyDegraded",
+  [InvaderState.Degraded]:         "states.Degraded",
+  [InvaderState.BadlyDegraded]:    "states.BadlyDegraded",
+  [InvaderState.Destroyed]:        "states.Destroyed",
+  [InvaderState.NotVisible]:       "states.NotVisible",
+  [InvaderState.Unknown]:          "states.Unknown",
 };
 
 type Props = {
@@ -38,6 +39,7 @@ type Props = {
 };
 
 export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, onClose }: Props) {
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -66,10 +68,10 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   }
 
   function handleAddPhoto() {
-    Alert.alert("Add photo", undefined, [
-      { text: "Camera", onPress: () => pickImage("camera") },
-      { text: "Gallery", onPress: () => pickImage("library") },
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('popup.addPhotoTitle'), undefined, [
+      { text: t('popup.camera'), onPress: () => pickImage("camera") },
+      { text: t('popup.gallery'), onPress: () => pickImage("library") },
+      { text: t('common.cancel'), style: "cancel" },
     ]);
   }
 
@@ -143,7 +145,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
       <View style={styles.scrollHandle} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>Nouvel invader</Text>
+        <Text style={styles.title}>{t('popup.newInvader')}</Text>
         <Pressable onPress={onClose} style={styles.closeBtn}>
           <Text style={styles.closeText}>✕</Text>
         </Pressable>
@@ -153,7 +155,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
 
-        <Text style={styles.fieldLabel}>Nom</Text>
+        <Text style={styles.fieldLabel}>{t('popup.name')}</Text>
         <View style={[styles.nameRow, nameError && styles.nameRowError]}>
           <TextInput
             style={[styles.input, styles.nameCity, nameError && styles.inputError]}
@@ -179,10 +181,10 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           )}
         </View>
         {nameError && (
-          <Text style={styles.errorMsg}>City code and number are required</Text>
+          <Text style={styles.errorMsg}>{t('popup.nameError')}</Text>
         )}
 
-        <Text style={styles.fieldLabel}>Points</Text>
+        <Text style={styles.fieldLabel}>{t('popup.points')}</Text>
         <TextInput
           style={styles.input}
           placeholder="—"
@@ -193,7 +195,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           maxLength={4}
         />
 
-        <Text style={styles.fieldLabel}>State</Text>
+        <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
         <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
           {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4), STATE_OPTIONS.slice(4, 6)].map((pair, ri) => (
             <View key={ri} style={styles.stateRow}>
@@ -206,7 +208,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
                     onPress={() => setInvaderState(selected ? "" : s)}
                   >
                     <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>
-                      {STATE_LABELS[s]}
+                      {t(STATE_KEYS[s])}
                     </Text>
                   </Pressable>
                 );
@@ -215,7 +217,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           ))}
         </View>
 
-        <Text style={styles.fieldLabel}>Position</Text>
+        <Text style={styles.fieldLabel}>{t('popup.position')}</Text>
         <Pressable
           style={({ pressed }) => [styles.positionRow, pressed && styles.btnPressed]}
           onPress={onPickLocation}
@@ -223,10 +225,10 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           <Text style={styles.positionValue}>
             {lat.toFixed(6)}, {lon.toFixed(6)}
           </Text>
-          <Text style={styles.positionEdit}>Edit</Text>
+          <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
         </Pressable>
 
-        <Text style={styles.fieldLabel}>Photo (optional)</Text>
+        <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
         {imageUri ? (
           <View style={styles.imagePreviewRow}>
             <Image source={{ uri: imageUri }} style={styles.imageThumb} />
@@ -234,7 +236,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
               onPress={() => setImageUri(null)}
               style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.btnPressed]}
             >
-              <Text style={styles.removePhotoBtnText}>Remove</Text>
+              <Text style={styles.removePhotoBtnText}>{t('popup.removePhoto')}</Text>
             </Pressable>
           </View>
         ) : (
@@ -242,7 +244,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
             style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.btnPressed]}
             onPress={handleAddPhoto}
           >
-            <Text style={styles.addPhotoBtnText}>Add photo…</Text>
+            <Text style={styles.addPhotoBtnText}>{t('popup.addPhoto')}</Text>
           </Pressable>
         )}
 
@@ -260,22 +262,22 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         disabled={submitting}
       >
         <Text style={styles.submitBtnText}>
-          {submitting ? "Sending…" : "Submit"}
+          {submitting ? t('popup.sending') : t('popup.submit')}
         </Text>
       </Pressable>
 
       {offlineError && (
-        <Text style={styles.offlineMsg}>No internet connection</Text>
+        <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>
       )}
       {uploadError && (
-        <Text style={styles.offlineMsg}>Photo upload failed — please try again</Text>
+        <Text style={styles.offlineMsg}>{t('popup.photoUploadFailed')}</Text>
       )}
 
       <Pressable
         style={({ pressed }) => [styles.cancelBtn, pressed && styles.btnPressed]}
         onPress={onClose}
       >
-        <Text style={styles.cancelBtnText}>Cancel</Text>
+        <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
       </Pressable>
     </View>
   );

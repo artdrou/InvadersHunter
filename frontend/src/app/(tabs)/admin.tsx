@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
@@ -30,6 +31,7 @@ function changeSummary(req: AdminRequest): string {
 
 export default function AdminScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, fontScale, insets.top);
@@ -71,14 +73,14 @@ export default function AdminScreen() {
         <View style={styles.cardTop}>
           <View style={[styles.typeBadge, item.request_type === 'create' ? styles.badgeCreate : styles.badgeModify]}>
             <Text style={[styles.badgeText, { fontFamily: appFont }]}>
-              {item.request_type === 'create' ? 'CREATE' : 'MODIFY'}
+              {item.request_type === 'create' ? t('admin.typeCreate') : t('admin.typeModify')}
             </Text>
           </View>
           <Text style={styles.invaderName} numberOfLines={1}>
             {item.proposed_name ?? `#${item.invader_id}`}
           </Text>
           <View style={styles.metaRight}>
-            <Text style={styles.voteText}>{item.request_count}✓</Text>
+            <Text style={styles.voteText}>{t('admin.votesShort', { count: item.request_count })}</Text>
             <View style={[styles.confBadge, { backgroundColor: confidenceColor(conf, theme) }]}>
               <Text style={styles.confText}>{conf}%</Text>
             </View>
@@ -103,7 +105,7 @@ export default function AdminScreen() {
             onPress={() => setStatusFilter(s)}
           >
             <Text style={[styles.filterChipText, statusFilter === s && styles.filterChipTextActive]}>
-              {s}
+              {t(`admin.filter${s.charAt(0).toUpperCase()}${s.slice(1)}`)}
             </Text>
           </Pressable>
         ))}
@@ -111,14 +113,14 @@ export default function AdminScreen() {
 
       {/* Type filter */}
       <View style={[styles.filterRow, { marginTop: 0 }]}>
-        {TYPE_TABS.map((t) => (
+        {TYPE_TABS.map((typ) => (
           <Pressable
-            key={t}
-            style={[styles.filterChip, typeFilter === t && styles.filterChipActive]}
-            onPress={() => setTypeFilter(t)}
+            key={typ}
+            style={[styles.filterChip, typeFilter === typ && styles.filterChipActive]}
+            onPress={() => setTypeFilter(typ)}
           >
-            <Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>
-              {t}
+            <Text style={[styles.filterChipText, typeFilter === typ && styles.filterChipTextActive]}>
+              {t(`admin.filter${typ.charAt(0).toUpperCase()}${typ.slice(1)}`)}
             </Text>
           </Pressable>
         ))}
@@ -140,7 +142,7 @@ export default function AdminScreen() {
             />
           }
           ListEmptyComponent={
-            <Text style={styles.empty}>No requests</Text>
+            <Text style={styles.empty}>{t('admin.noRequests')}</Text>
           }
         />
       )}

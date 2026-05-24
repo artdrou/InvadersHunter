@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
   mapInvadersWithProgress, buildGroups, SORT_OPTIONS_BY_GROUP,
@@ -29,6 +30,7 @@ type FlatItem =
 // ── screen ───────────────────────────────────────────────────────────────────
 
 export default function InvadersScreen() {
+  const { t } = useTranslation();
   const { invaders, progress, syncError, flash, unflash } = useInvaderData();
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
 
@@ -248,10 +250,10 @@ export default function InvadersScreen() {
       {isOfflineEmpty ? (
         <View style={styles.emptyState}>
           <Text style={[styles.emptyText, { color: theme.textMuted, fontFamily: appFont }]}>
-            No internet connection
+            {t('invaders.noInternetTitle')}
           </Text>
           <Text style={[styles.emptySubText, { color: theme.textMuted, fontFamily: appFont }]}>
-            Connect to load invaders
+            {t('invaders.noInternetSub')}
           </Text>
         </View>
       ) : (

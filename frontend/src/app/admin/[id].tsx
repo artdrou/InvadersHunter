@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import {
@@ -41,6 +42,7 @@ function Diff({ label, current, proposed }: { label: string; current?: string | 
 export default function AdminDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, fontScale, insets.bottom, insets.top);
@@ -110,7 +112,7 @@ export default function AdminDetailScreen() {
       requestSync();
       router.back();
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.detail ?? 'Failed to approve');
+      Alert.alert(t('admin.errorTitle'), e?.response?.data?.detail ?? t('admin.failedApprove'));
     } finally {
       setActing(false);
     }
@@ -118,16 +120,16 @@ export default function AdminDetailScreen() {
 
   async function handleReject() {
     if (!req) return;
-    Alert.alert('Reject', 'Reject this request?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('admin.rejectConfirmTitle'), t('admin.rejectConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Reject', style: 'destructive', onPress: async () => {
+        text: t('admin.reject'), style: 'destructive', onPress: async () => {
           setActing(true);
           try {
             await rejectAdminRequest(req.id);
             router.back();
           } catch (e: any) {
-            Alert.alert('Error', e?.response?.data?.detail ?? 'Failed to reject');
+            Alert.alert(t('admin.errorTitle'), e?.response?.data?.detail ?? t('admin.failedReject'));
           } finally {
             setActing(false);
           }
@@ -158,7 +160,7 @@ export default function AdminDetailScreen() {
 
   if (!req) return (
     <View style={styles.centered}>
-      <Text style={{ color: theme.danger, fontFamily: appFont }}>Request not found</Text>
+      <Text style={{ color: theme.danger, fontFamily: appFont }}>{t('admin.requestNotFound')}</Text>
     </View>
   );
 
@@ -171,13 +173,13 @@ export default function AdminDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {req.proposed_name ?? `Request #${req.id}`}
+          {req.proposed_name ?? t('admin.requestPrefix', { id: req.id })}
         </Text>
         <View style={[styles.statusBadge, req.status === 'pending' ? styles.statusPending : req.status === 'approved' ? styles.statusApproved : styles.statusRejected]}>
-          <Text style={styles.statusText}>{req.status}</Text>
+          <Text style={styles.statusText}>{t(`admin.status${req.status.charAt(0).toUpperCase()}${req.status.slice(1)}`)}</Text>
         </View>
       </View>
 
@@ -186,15 +188,15 @@ export default function AdminDetailScreen() {
         {/* Meta */}
         <View style={styles.section}>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Type</Text>
+            <Text style={styles.metaLabel}>{t('admin.type')}</Text>
             <Text style={styles.metaValue}>{req.request_type}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Votes</Text>
+            <Text style={styles.metaLabel}>{t('admin.votes')}</Text>
             <Text style={styles.metaValue}>{req.request_count}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.metaLabel}>Confidence</Text>
+            <Text style={styles.metaLabel}>{t('admin.confidence')}</Text>
             <Text style={[styles.metaValue, { color: req.confidence >= 75 ? theme.success : req.confidence >= 45 ? '#f0a500' : theme.danger }]}>
               {req.confidence}%
             </Text>
@@ -204,12 +206,12 @@ export default function AdminDetailScreen() {
         {/* Current invader */}
         {invader && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current</Text>
-            <View style={styles.row}><Text style={styles.metaLabel}>Name</Text><Text style={styles.metaValue}>{invader.name}</Text></View>
-            <View style={styles.row}><Text style={styles.metaLabel}>State</Text><Text style={styles.metaValue}>{invader.state ?? '—'}</Text></View>
-            <View style={styles.row}><Text style={styles.metaLabel}>Points</Text><Text style={styles.metaValue}>{invader.points ?? '—'}</Text></View>
+            <Text style={styles.sectionTitle}>{t('admin.current')}</Text>
+            <View style={styles.row}><Text style={styles.metaLabel}>{t('admin.name')}</Text><Text style={styles.metaValue}>{invader.name}</Text></View>
+            <View style={styles.row}><Text style={styles.metaLabel}>{t('admin.state')}</Text><Text style={styles.metaValue}>{invader.state ?? '—'}</Text></View>
+            <View style={styles.row}><Text style={styles.metaLabel}>{t('admin.points')}</Text><Text style={styles.metaValue}>{invader.points ?? '—'}</Text></View>
             <View style={styles.row}>
-              <Text style={styles.metaLabel}>Location</Text>
+              <Text style={styles.metaLabel}>{t('admin.location')}</Text>
               <Text style={styles.metaValue}>{invader.latitude?.toFixed(5)}, {invader.longitude?.toFixed(5)}</Text>
             </View>
           </View>
@@ -217,19 +219,19 @@ export default function AdminDetailScreen() {
 
         {/* Proposed changes */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Proposed</Text>
-          <Diff label="Name"   current={invader?.name}   proposed={req.proposed_name} />
-          <Diff label="State"  current={invader?.state}  proposed={req.proposed_state} />
-          <Diff label="Points" current={invader?.points} proposed={req.proposed_points} />
+          <Text style={styles.sectionTitle}>{t('admin.proposed')}</Text>
+          <Diff label={t('admin.name')}   current={invader?.name}   proposed={req.proposed_name} />
+          <Diff label={t('admin.state')}  current={invader?.state}  proposed={req.proposed_state} />
+          <Diff label={t('admin.points')} current={invader?.points} proposed={req.proposed_points} />
           {hasLocation && (
             <View>
-              <Text style={styles.diffLabel}>Location</Text>
+              <Text style={styles.diffLabel}>{t('admin.location')}</Text>
               <Text style={[styles.metaValue, { color: theme.accent }]}>
                 {(finalLat ?? 0).toFixed(6)}, {(finalLon ?? 0).toFixed(6)}
-                {pickedCoords ? ' (admin pick)' : ' (barycenter)'}
+                {pickedCoords ? ` ${t('admin.byAdmin')}` : ` ${t('admin.byBary')}`}
               </Text>
               <Pressable style={({ pressed }) => [styles.mapBtn, pressed && styles.pressed]} onPress={openPositionPicker}>
-                <Text style={styles.mapBtnText}>Review on map</Text>
+                <Text style={styles.mapBtnText}>{t('admin.reviewOnMap')}</Text>
               </Pressable>
             </View>
           )}
@@ -238,7 +240,7 @@ export default function AdminDetailScreen() {
         {/* Photo picker */}
         {subs.some((s) => s.proposed_image_url) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Photo</Text>
+            <Text style={styles.sectionTitle}>{t('admin.photo')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoStrip}>
               {subs
                 .filter((s) => s.proposed_image_url)
@@ -265,7 +267,7 @@ export default function AdminDetailScreen() {
         {/* Raw submissions */}
         {subs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Submissions ({subs.length})</Text>
+            <Text style={styles.sectionTitle}>{t('admin.submissions', { count: subs.length })}</Text>
             {subs.map((s) => (
               <View key={s.id} style={styles.subCard}>
                 <View style={styles.row}>
@@ -274,7 +276,7 @@ export default function AdminDetailScreen() {
                 </View>
                 <View style={styles.row}>
                   {s.proposed_state && <Text style={styles.subChip}>{s.proposed_state}</Text>}
-                  {s.proposed_latitude !== null && <Text style={styles.subChip}>📍 location</Text>}
+                  {s.proposed_latitude !== null && <Text style={styles.subChip}>{t('admin.locationShort')}</Text>}
                   {s.proposed_points !== null && <Text style={styles.subChip}>{s.proposed_points} pts</Text>}
                   {s.proposed_name && <Text style={styles.subChip}>{s.proposed_name}</Text>}
                 </View>
@@ -293,14 +295,14 @@ export default function AdminDetailScreen() {
             onPress={handleReject}
             disabled={acting}
           >
-            <Text style={styles.rejectBtnText}>{acting ? '…' : 'Reject'}</Text>
+            <Text style={styles.rejectBtnText}>{acting ? '…' : t('admin.reject')}</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.approveBtn, pressed && styles.pressed]}
             onPress={handleApprove}
             disabled={acting}
           >
-            <Text style={styles.approveBtnText}>{acting ? '…' : 'Approve'}</Text>
+            <Text style={styles.approveBtnText}>{acting ? '…' : t('admin.approve')}</Text>
           </Pressable>
         </View>
       )}
