@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View, Text, FlatList, Pressable, StyleSheet,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
@@ -56,7 +56,10 @@ export default function AdminScreen() {
     }
   }, [statusFilter, typeFilter]);
 
-  useEffect(() => { load(); }, [load]);
+  // Refetch every time the screen gains focus — covers initial mount, filter
+  // changes (load identity flips), and returning from the detail screen after
+  // approve/reject so the list reflects the new status without manual pull-to-refresh.
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   function renderItem({ item }: { item: AdminRequest }) {
     const conf = item.confidence;

@@ -14,7 +14,7 @@ export default function MapScreen() {
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
-  const [greyMode, setGreyMode] = useState<"none" | "all" | "unflashed">("none");
+  const [greyMode, setGreyMode] = useState<"none" | "all" | "unflashed">("all");
   const [colorMode, setColorMode] = useState<"flash" | "rarity">("flash");
   const [isFollowing, setIsFollowing] = useState(false);
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);

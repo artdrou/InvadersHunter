@@ -51,15 +51,18 @@ const FLASHABLE_OPTIONS: { key: FlashableFilter; label: string }[] = [
   { key: "unflashable", label: "Unflashable" },
 ];
 
+// "all" is the default (destroyed/non-flashable always greyed). "unflashed"
+// only greys non-flashables you HAVEN'T flashed yet — keeps the ones you
+// captured colored. "none" disables greying entirely.
 const GREY_OPTIONS_FLASH: { key: GreyMode; label: string }[] = [
-  { key: "none", label: "Off" },
   { key: "all", label: "All" },
-  { key: "unflashed", label: "Unflashed" },
+  { key: "unflashed", label: "Flashed" },
+  { key: "none", label: "Off" },
 ];
 
 const GREY_OPTIONS_RARITY: { key: GreyMode; label: string }[] = [
+  { key: "all", label: "All" },
   { key: "none", label: "Off" },
-  { key: "all", label: "On" },
 ];
 
 const COLOR_MODE_OPTIONS: { key: ColorMode; label: string }[] = [
@@ -82,7 +85,8 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
   const [greyOpen, setGreyOpen] = useState(false);
   const styles = makeStyles(theme);
   const filterActive = isFilterActive(value);
-  const greyActive = greyMode !== "none";
+  // Default greyMode is "all" now — only flag accent when the user moved off the default.
+  const greyActive = greyMode !== "all";
   const paletteActive = greyActive || colorMode !== "flash";
 
   function togglePoint(pt: number) {

@@ -65,7 +65,7 @@ export const MARKER_LAYER_STYLE = {
   iconSize: ["get", "iconSize"],
   iconOpacity: ["case",
     ["==", ["get", "pending"], 1], 0.45,
-    ["==", ["get", "grey"], 1],    0.7,
+    ["==", ["get", "grey"], 1],    0.8,
     1.0,
   ],
   iconAllowOverlap: true,
