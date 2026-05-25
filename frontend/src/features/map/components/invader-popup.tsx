@@ -141,7 +141,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
               <Text style={styles.positionValue}>
                 {pendingCoords
                   ? `${pendingCoords.lat.toFixed(6)}, ${pendingCoords.lon.toFixed(6)}`
-                  : `${invader.latitude.toFixed(6)}, ${invader.longitude.toFixed(6)}`}
+                  : `${invader.latitude?.toFixed(6) ?? '—'}, ${invader.longitude?.toFixed(6) ?? '—'}`}
               </Text>
               <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
             </Pressable>

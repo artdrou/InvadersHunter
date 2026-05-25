@@ -37,7 +37,7 @@ function sortWithinGroup(list: InvaderWithState[], sortBy: SortOption): InvaderW
   });
 }
 
-function groupByCity(invaders: InvaderWithState[]): [string, InvaderWithState[]][] {
+export function groupByCity(invaders: InvaderWithState[]): [string, InvaderWithState[]][] {
   const map = new Map<string, InvaderWithState[]>();
   for (const inv of invaders) {
     const city = cityOf(inv.name);

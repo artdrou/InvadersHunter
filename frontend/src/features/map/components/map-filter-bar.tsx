@@ -24,10 +24,10 @@ export function isFilterActive(f: MapFilter) {
   return f.status !== "all" || f.flashable !== "any" || f.points.length > 0;
 }
 
-export function applyMapFilter(
-  invaders: { isCaptured: boolean; state: string | null; points?: number | null }[],
+export function applyMapFilter<T extends { isCaptured: boolean; state: string | null; points?: number | null }>(
+  invaders: T[],
   filter: MapFilter
-) {
+): T[] {
   return invaders.filter((i) => {
     if (filter.status === "flashed" && !i.isCaptured) return false;
     if (filter.status === "unflashed" && i.isCaptured) return false;

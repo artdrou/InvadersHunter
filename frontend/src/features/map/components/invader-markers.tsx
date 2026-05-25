@@ -70,6 +70,6 @@ export const MARKER_LAYER_STYLE = {
   ],
   iconAllowOverlap: true,
   iconIgnorePlacement: true,
-};
+} as any;
 
 export const MARKER_LAYER_FILTER = ["!", ["has", "point_count"]] as const;

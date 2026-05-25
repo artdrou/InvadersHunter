@@ -39,7 +39,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
         id: String(invader.id),
         geometry: {
           type: "Point" as const,
-          coordinates: [invader.longitude, invader.latitude],
+          coordinates: [invader.longitude!, invader.latitude!],
         },
         properties: {
           id: invader.id,

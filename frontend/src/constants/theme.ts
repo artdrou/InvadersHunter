@@ -142,6 +142,7 @@ export type ThemeName = keyof typeof themes;
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
 export const FontSize = {
+  xs: 12,
   sm: 14,
   md: 16,
   lg: 20,

@@ -71,21 +71,21 @@ describe("groupByCity", () => {
   it("groups invaders by city prefix", () => {
     const invaders = [makeInvader("PA_1"), makeInvader("PA_2"), makeInvader("LYO_1")];
     const groups = groupByCity(invaders);
-    const cities = groups.map(([city]) => city);
+    const cities = groups.map(([city]: [string, InvaderWithState[]]) => city);
     expect(cities).toContain("PA");
     expect(cities).toContain("LYO");
   });
 
   it("sorts cities alphabetically", () => {
     const invaders = [makeInvader("PA_1"), makeInvader("BOR_1"), makeInvader("LYO_1")];
-    const cities = groupByCity(invaders).map(([city]) => city);
+    const cities = groupByCity(invaders).map(([city]: [string, InvaderWithState[]]) => city);
     expect(cities).toEqual(["BOR", "LYO", "PA"]);
   });
 
   it("sorts invaders within a city by number", () => {
     const invaders = [makeInvader("PA_10"), makeInvader("PA_2"), makeInvader("PA_5")];
     const [, paInvaders] = groupByCity(invaders)[0];
-    const names = paInvaders.map((i) => i.name);
+    const names = paInvaders.map((i: InvaderWithState) => i.name);
     expect(names).toEqual(["PA_2", "PA_5", "PA_10"]);
   });
 
