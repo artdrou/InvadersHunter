@@ -43,7 +43,10 @@
           "photosPermission": "Allow Invader Hunter to access your photos.",
           "cameraPermission": "Allow Invader Hunter to take photos of invaders."
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-tracking-transparency"
     ],
     "experiments": {
       "typedRoutes": true,

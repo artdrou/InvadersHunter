@@ -8,11 +8,13 @@ The app works offline — your flashes are saved locally and synced when you rec
 
 ## Download the Android APK
 
-Scan the QR code below or use the direct link to install the latest preview build on Android.
+Scan the QR code below or use the direct link to install the latest preview build on Android. The link always points to the latest GitHub release, so you don't need to refresh it between versions.
 
 ![APK QR Code](docs/apk-qr.png)
 
-[Direct download link](https://expo.dev/accounts/invaderhunter.app/projects/frontend/builds/6f9a20c1-417e-409a-99e8-e19c51889d78)
+[Direct download link](https://github.com/artdrou/InvadersHunter/releases/latest/download/InvadersHunter-latest.apk)
+
+Once installed, the app prompts you in-app when a new APK is available (no need to scan again).
 
 > Android only for now. iOS support is not planned at this stage.
 

@@ -12,6 +12,22 @@ React Native app built with Expo. Uses MapLibre for the map, Zustand for state m
 - Zustand (global state)
 - expo-sqlite (local database)
 - Axios (API client)
+- i18next + react-i18next + expo-localization (FR / EN translations, device-language auto-detect)
+
+### Native modules preinstalled for upcoming features
+
+Bundled in the APK so future JS-only changes ship over EAS Update without a rebuild:
+
+| Module | Used for |
+|---|---|
+| `expo-haptics` | Vibration feedback on flash success, emblem unlocks, button taps |
+| `react-native-webview` | In-popup web pages (e.g. invader-spotter detail links) |
+| `expo-notifications` | Local + push notifications (nearby invader, reward unlock) |
+| `expo-secure-store` | Encrypted storage for auth refresh tokens |
+| `expo-blur` | Frosted-glass overlays for modals and gamification UI |
+| `expo-sharing` | Share achievements / flashed-invader cards |
+| `expo-clipboard` | Copy invader names / share links |
+| `expo-tracking-transparency` | iOS App Store requirement if analytics ever added |
 
 ---
 
