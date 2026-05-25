@@ -46,7 +46,8 @@
       ],
       "expo-secure-store",
       "expo-sharing",
-      "expo-tracking-transparency"
+      "expo-tracking-transparency",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
