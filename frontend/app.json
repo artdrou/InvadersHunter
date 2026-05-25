@@ -2,7 +2,7 @@
   "expo": {
     "name": "Invader Hunter",
     "slug": "frontend",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/InvaderHunterIcon.png",
     "scheme": "frontend",
