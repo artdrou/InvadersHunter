@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map";
 
 type Props = {
@@ -62,7 +62,7 @@ function PillRow({ options, selected, onSelect, sz }: {
             style={[styles.pill, { borderColor: active ? theme.accent : theme.border, backgroundColor: active ? theme.accent : "transparent" }]}
             onPress={() => onSelect(o.key)}
           >
-            <Text style={[styles.pillText, { color: active ? theme.bg : theme.textMuted, fontFamily: appFont, fontSize: sz(11) }]}>
+            <Text style={[styles.pillText, { color: active ? theme.bg : theme.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg }]}>
               {o.label}
             </Text>
           </Pressable>

@@ -6,8 +6,8 @@ import { useAuthStore, logoutUser } from "@/features/auth";
 import { useInvaderStore } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import * as Updates from 'expo-updates';
-import { type ThemeTokens, type ThemeName, themes, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
-import { SUPPORTED_LANGUAGES, setLanguage, getCurrentLanguage, getDateLocale, type LanguageCode } from "@/services/i18n";
+import { type ThemeTokens, type ThemeName, themes, FontSize, ButtonFontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { SUPPORTED_LANGUAGES, setLanguage, getDateLocale, type LanguageCode } from "@/services/i18n";
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from "@/features/app-update";
 
 export default function ProfileScreen() {
@@ -19,7 +19,7 @@ export default function ProfileScreen() {
   const styles = useMemo(() => makeStyles(theme, appFont, fontScale), [theme, appFont, fontScale]);
   const isSyncing   = useInvaderStore((s) => s.isSyncing);
   const requestSync = useInvaderStore((s) => s.requestSync);
-  const currentLang = getCurrentLanguage();
+  const currentLang = i18n.language;
 
   async function handleLogout() {
     const refreshToken = useAuthStore.getState().refreshToken;
@@ -213,7 +213,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     themeOptionText: {
       color: t.textMuted,
-      fontSize: FontSize.sm,
+      fontSize: ButtonFontSize.xl,
       fontFamily: ButtonFont,
     },
     themeOptionTextActive: {
@@ -236,7 +236,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     syncButtonText: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: FontSize.md,
+      fontSize: ButtonFontSize.xxl,
     },
     logoutButton: {
       borderWidth: 1,
@@ -251,7 +251,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     logoutButtonText: {
       color: t.danger,
       fontFamily: ButtonFont,
-      fontSize: FontSize.md,
+      fontSize: ButtonFontSize.xxl,
     },
   });
 }

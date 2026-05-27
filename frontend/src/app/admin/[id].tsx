@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 import {
   fetchAdminRequest, fetchAdminSubmissions, fetchInvader,
   approveAdminRequest, rejectAdminRequest,
@@ -321,20 +321,20 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
       borderBottomWidth: 1, borderBottomColor: t.border,
     },
     backBtn:      { paddingRight: Spacing.two },
-    backText:     { color: t.accent, fontSize: sz(FontSize.md), fontFamily: ButtonFont },
+    backText:     { color: t.accent, fontSize: ButtonFontSize.xl, fontFamily: ButtonFont },
     headerTitle:  { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
     statusBadge:  { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3 },
     statusPending:  { backgroundColor: '#1a1a3a' },
     statusApproved: { backgroundColor: '#1a3a1a' },
     statusRejected: { backgroundColor: '#3a1a1a' },
-    statusText:   { color: '#aaa', fontSize: sz(10), fontFamily: ButtonFont },
+    statusText:   { color: '#aaa', fontSize: ButtonFontSize.sm, fontFamily: ButtonFont },
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three, paddingBottom: 120 + bottomInset },
     section: {
       backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
       borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
     },
-    sectionTitle: { color: t.textMuted, fontSize: sz(11), fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+    sectionTitle: { color: t.textMuted, fontSize: ButtonFontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
     row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     metaLabel:    { color: t.textMuted, fontSize: sz(13), fontFamily: font },
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },
@@ -343,7 +343,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
       marginTop: Spacing.two, borderWidth: 1, borderColor: t.accent,
       borderRadius: BorderRadius.sm, paddingVertical: 8, alignItems: 'center',
     },
-    mapBtnText:   { color: t.accent, fontSize: sz(13), fontFamily: ButtonFont },
+    mapBtnText:   { color: t.accent, fontSize: ButtonFontSize.lg, fontFamily: ButtonFont },
     subCard: {
       borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
       padding: Spacing.two, gap: 4,
@@ -375,12 +375,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
       flex: 1, paddingVertical: 14, borderRadius: BorderRadius.sm,
       borderWidth: 1, borderColor: t.danger, alignItems: 'center',
     },
-    rejectBtnText: { color: t.danger, fontFamily: ButtonFont, fontSize: sz(FontSize.md) },
+    rejectBtnText: { color: t.danger, fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
     approveBtn: {
       flex: 1, paddingVertical: 14, borderRadius: BorderRadius.sm,
       backgroundColor: t.accent, alignItems: 'center',
     },
-    approveBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: sz(FontSize.md) },
+    approveBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
     pressed:      { opacity: 0.7 },
   });
 }

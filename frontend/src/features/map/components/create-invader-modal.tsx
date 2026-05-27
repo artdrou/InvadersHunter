@@ -8,7 +8,7 @@ import { cityOf } from "@/features/invaders/utils/invader-list";
 import { submitCreateRequest, uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 
 const STATE_OPTIONS = [
   InvaderState.Good,
@@ -428,7 +428,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     positionEdit: {
       color: t.accent,
-      fontSize: sz(12),
+      fontSize: ButtonFontSize.md,
       fontFamily: ButtonFont,
     },
     submitBtn: {
@@ -447,7 +447,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     submitBtnText: {
       fontFamily: ButtonFont,
-      fontSize: 15,
+      fontSize: ButtonFontSize.xxl,
       color: t.bg,
     },
     cancelBtn: {
@@ -456,7 +456,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     cancelBtnText: {
       color: t.textMuted,
-      fontSize: 14,
+      fontSize: ButtonFontSize.xl,
       fontFamily: ButtonFont,
     },
     offlineMsg: {

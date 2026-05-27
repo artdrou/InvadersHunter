@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, loginUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, TitleFont, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, TitleFont, ButtonFont, ButtonFontSize } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -131,7 +131,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     buttonText: {
       color: t.bg,
       fontFamily: ButtonFont,
-      fontSize: FontSize.md,
+      fontSize: ButtonFontSize.xxl,
     },
     registerLink: {
       alignItems: 'center',

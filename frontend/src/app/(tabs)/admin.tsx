@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import type { AdminRequest } from '@/features/admin/types';
 
@@ -173,7 +173,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       alignItems: 'center',
     },
     filterChipActive: { borderColor: t.accent, backgroundColor: t.bgElement },
-    filterChipText: { color: t.textMuted, fontSize: sz(11), fontFamily: ButtonFont },
+    filterChipText: { color: t.textMuted, fontSize: ButtonFontSize.lg, fontFamily: ButtonFont },
     filterChipTextActive: { color: t.accent },
     list: { padding: Spacing.three, gap: Spacing.two },
     card: {
@@ -209,7 +209,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       minWidth: 38,
       alignItems: 'center',
     },
-    confText: { color: '#fff', fontSize: sz(11), fontFamily: ButtonFont },
+    confText: { color: '#fff', fontSize: ButtonFontSize.xs, fontFamily: ButtonFont },
     summary: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
     empty: {
       color: t.textMuted,

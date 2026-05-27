@@ -31,7 +31,8 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Pix32:      require('../../assets/fonts/Pix32/Pix32.ttf'),
     Pixeled:    require('../../assets/fonts/pixeled/Pixeled.ttf'),
-    Dogica:     require('../../assets/fonts/dogica/TTF/dogica.ttf'),
+    FreePixel:  require('../../assets/fonts/free_pixel/FreePixel.ttf'),
+    // ↑ kept registered so future OTAs can switch to it without a rebuild
     Pixelmania: require('../../assets/fonts/pixelmania/Pixelmania.ttf'),
     Pixelmix:   require('../../assets/fonts/pixelmix/pixelmix.ttf'),
     Pixelade:   require('../../assets/fonts/pixelade/pixelade.ttf'),
