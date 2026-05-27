@@ -149,6 +149,28 @@ export const FontSize = {
   xl: 28,
 } as const;
 
+/**
+ * Sizes for ButtonFont (pixel font). These render larger nominal-pt values
+ * because pixel fonts have smaller x-height than system fonts; the tiers
+ * below are calibrated for visual parity with the rest of the UI.
+ *
+ * Tier guide:
+ *  - xs   13  tiny badges (confidence indicators)
+ *  - sm   18  small status badges
+ *  - md   21  section labels, inline edit hints
+ *  - lg   24  filter chips, filter options, small secondaries
+ *  - xl   27  cancel / theme picker / modal secondaries
+ *  - xxl  30  primary CTAs (login, sync, approve, etc.)
+ */
+export const ButtonFontSize = {
+  xs: 13,
+  sm: 18,
+  md: 21,
+  lg: 24,
+  xl: 27,
+  xxl: 30,
+} as const;
+
 export const BorderRadius = {
   sm: 8,
   md: 12,
@@ -172,7 +194,7 @@ export const AppFont = 'Pixelmix';
 export const AppFontScale = 0.9;
 
 /** Font for interactive controls (buttons, pills, selectors). */
-export const ButtonFont = 'Dogica';
+export const ButtonFont = 'Pixelade';
 
 /** Used exclusively for the app title on the login screen. */
 export const TitleFont = 'Pixelmania';

@@ -6,7 +6,7 @@ import { MapView, Camera, ShapeSource, CircleLayer } from '@maplibre/maplibre-re
 import type { CameraRef, MapViewRef } from '@maplibre/maplibre-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont } from '@/constants/theme';
+import { ButtonFont, ButtonFontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { useEffect } from 'react';
@@ -227,6 +227,6 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 14, borderRadius: 10,
     borderWidth: 1, borderColor: 'transparent', alignItems: 'center',
   },
-  btnText:  { fontSize: 14 },
+  btnText:  { fontSize: ButtonFontSize.xl },
   pressed:  { opacity: 0.7 },
 });

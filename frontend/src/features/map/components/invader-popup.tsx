@@ -11,7 +11,7 @@ import { submitModifyRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 
 type Props = {
   invader: InvaderWithState;
@@ -373,7 +373,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     flashBtnText: {
       fontFamily: ButtonFont,
-      fontSize: 15,
+      fontSize: ButtonFontSize.xxl,
       color: t.bg,
     },
     unflashBtnText: {
@@ -394,7 +394,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     modifyLinkText: {
       color: t.accent,
-      fontSize: 13,
+      fontSize: ButtonFontSize.lg,
       fontFamily: ButtonFont,
     },
     modifyLinkDisabledText: {
@@ -518,7 +518,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     positionEdit: {
       color: t.accent,
-      fontSize: sz(12),
+      fontSize: ButtonFontSize.md,
       fontFamily: ButtonFont,
     },
     cancelBtn: {
@@ -527,7 +527,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     cancelBtnText: {
       color: t.textMuted,
-      fontSize: 14,
+      fontSize: ButtonFontSize.xl,
       fontFamily: ButtonFont,
     },
     offlineMsg: {

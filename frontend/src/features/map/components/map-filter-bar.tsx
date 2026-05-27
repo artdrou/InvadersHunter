@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, BorderRadius, ButtonFont, Spacing } from "@/constants/theme";
+import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
 import { PixelButton } from "@/components/ui/pixel-button";
 
@@ -240,7 +240,7 @@ function makeStyles(t: ThemeTokens) {
     },
     sectionLabel: {
       color: t.textMuted,
-      fontSize: 8,
+      fontSize: ButtonFontSize.md,
       fontFamily: ButtonFont,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
@@ -259,7 +259,7 @@ function makeStyles(t: ThemeTokens) {
     },
     optionText: {
       color: t.text,
-      fontSize: 10,
+      fontSize: ButtonFontSize.lg,
       fontFamily: ButtonFont,
     },
     optionTextSelected: {

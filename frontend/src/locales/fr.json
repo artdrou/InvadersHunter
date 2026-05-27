@@ -66,11 +66,11 @@
     }
   },
   "profile": {
-    "theme": "Thème",
+    "theme": "Theme",
     "syncNow": "Synchroniser",
-    "syncing": "Synchronisation…",
+    "syncing": "Synchronisation...",
     "importFlashes": "Importer mes flashes",
-    "disconnect": "Déconnexion",
+    "disconnect": "Deconnexion",
     "build": "build",
     "language": "Langue"
   },
@@ -231,13 +231,13 @@
     "locale": "fr-FR"
   },
   "appUpdate": {
-    "title": "Mise à jour disponible",
+    "title": "Mise a jour disponible",
     "body": "Une nouvelle version de l'application est disponible (v{{latest}}). Vous utilisez actuellement la v{{current}}.",
-    "download": "Télécharger l'APK",
+    "download": "Telecharger l'APK",
     "later": "Plus tard",
-    "checkBtn": "Vérifier les mises à jour",
-    "checkFailed": "Impossible de vérifier les mises à jour.",
-    "upToDateTitle": "À jour",
-    "upToDateBody": "Vous êtes à jour."
+    "checkBtn": "Verifier les mises a jour",
+    "checkFailed": "Impossible de verifier les mises a jour.",
+    "upToDateTitle": "A jour",
+    "upToDateBody": "Vous etes a jour."
   }
 }

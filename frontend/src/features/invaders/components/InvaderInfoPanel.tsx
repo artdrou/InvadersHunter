@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 import { formatDate } from "../utils/invader-list";
 import type { InvaderWithState } from "../types";
 
@@ -69,7 +69,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
           ]}
           onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
         >
-          <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: appFont, fontSize: sz(13) }]}>
+          <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg }]}>
             {invader.isCaptured ? t('popup.unflash') : t('popup.flash')}
           </Text>
         </Pressable>
@@ -84,7 +84,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
             ]}
             onPress={() => onLocate(invader)}
           >
-            <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: appFont, fontSize: sz(13) }]}>
+            <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg }]}>
               {t('popup.localiser')}
             </Text>
           </Pressable>
