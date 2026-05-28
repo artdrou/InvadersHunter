@@ -95,7 +95,7 @@ export default function TabsLayout() {
           name="profile"
           options={{
             title: t('tabs.profile'),
-            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cog" size={size} color={color} />,
           }}
         />
         <Tabs.Screen

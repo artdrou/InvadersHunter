@@ -43,6 +43,16 @@ export function useUserLocation(alpha = 0.15) {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
 
+      // Seed the marker from the OS's last cached fix so it appears immediately,
+      // instead of waiting for the GPS chip to deliver its first live sample
+      // (which can take several seconds on cold start with Accuracy.High).
+      try {
+        const last = await Location.getLastKnownPositionAsync();
+        if (last) {
+          rawCoords.current = [last.coords.longitude, last.coords.latitude];
+        }
+      } catch {}
+
       positionSub = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 2 },
         (loc) => { rawCoords.current = [loc.coords.longitude, loc.coords.latitude]; }
