@@ -94,6 +94,12 @@ export default function SettingsLanding() {
           subtitle={t('settings.supportSubtitle')}
           onPress={() => router.push('/settings/support')}
         />
+        <SettingsRow
+          icon="rocket-outline"
+          label={t('settings.roadmap')}
+          subtitle={t('settings.roadmapSubtitle')}
+          onPress={() => router.push('/settings/roadmap')}
+        />
       </SettingsSection>
 
       <Pressable
