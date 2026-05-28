@@ -4,7 +4,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
-const DEV_EMAIL = 'a.drouadene@gmail.com';
+const DEV_EMAIL = 'invaderhunter.app@gmail.com';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -21,7 +21,6 @@ export default function ContactScreen() {
         >
           <Text style={styles.btnText}>{t('settings.contactEmail')}</Text>
         </Pressable>
-        <Text style={styles.email}>{DEV_EMAIL}</Text>
       </View>
     </SettingsShell>
   );
@@ -46,6 +45,5 @@ function makeStyles(t: ThemeTokens) {
     },
     btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
     pressed: { opacity: 0.6 },
-    email: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, textAlign: 'center' },
   });
 }

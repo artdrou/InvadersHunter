@@ -61,7 +61,40 @@
     "contactEmail": "Envoyer un email",
     "stats": "Statistiques",
     "statsInvadersFlashed": "Invaders flashes",
-    "statsTotalPoints": "Points totaux"
+    "statsTotalPoints": "Points totaux",
+    "roadmap": "Feuille de route",
+    "roadmapSubtitle": "Fonctionnalites a venir",
+    "roadmapIntro": "Voici un apercu des fonctionnalites en preparation pour les prochaines versions de l'application.",
+    "roadmapItems": {
+      "gamification": {
+        "title": "Gamification",
+        "body": "Progression, emblemes, recompenses."
+      },
+      "guestMode": {
+        "title": "Mode invite",
+        "body": "Utiliser l'app sans compte."
+      },
+      "friends": {
+        "title": "Amis",
+        "body": "Comparer les collections."
+      },
+      "commentWall": {
+        "title": "Mur de commentaires",
+        "body": "Discussions autour des invaders."
+      },
+      "customInvaders": {
+        "title": "Invaders personnels",
+        "body": "Ajouter ses propres invaders sur sa carte."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "Alertes en temps reel."
+      },
+      "radarMode": {
+        "title": "Mode radar",
+        "body": "Reperer les invaders autour de soi."
+      }
+    }
   },
   "connectivity": {
     "offline": "Hors ligne",

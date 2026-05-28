@@ -61,7 +61,40 @@
     "contactEmail": "Send an email",
     "stats": "Statistics",
     "statsInvadersFlashed": "Invaders flashed",
-    "statsTotalPoints": "Total points"
+    "statsTotalPoints": "Total points",
+    "roadmap": "Roadmap",
+    "roadmapSubtitle": "Upcoming features",
+    "roadmapIntro": "A peek at features being prepared for future releases of the app.",
+    "roadmapItems": {
+      "gamification": {
+        "title": "Gamification",
+        "body": "Progress, emblems, rewards."
+      },
+      "guestMode": {
+        "title": "Guest mode",
+        "body": "Use the app without an account."
+      },
+      "friends": {
+        "title": "Friends",
+        "body": "Compare collections."
+      },
+      "commentWall": {
+        "title": "Comment wall",
+        "body": "Discussions around invaders."
+      },
+      "customInvaders": {
+        "title": "Custom invaders",
+        "body": "Add your own invaders to your map."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "Real-time alerts."
+      },
+      "radarMode": {
+        "title": "Radar mode",
+        "body": "Spot invaders around you."
+      }
+    }
   },
   "connectivity": {
     "offline": "Offline",
