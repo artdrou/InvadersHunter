@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
+import { hapticTap } from "@/features/settings";
 import { formatDate } from "../utils/invader-list";
 import type { InvaderWithState } from "../types";
 
@@ -82,7 +83,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
               { borderWidth: 1, borderColor: theme.accent, backgroundColor: "transparent" },
               pressed && styles.btnPressed,
             ]}
-            onPress={() => onLocate(invader)}
+            onPress={() => { hapticTap(); onLocate(invader); }}
           >
             <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg }]}>
               {t('popup.localiser')}

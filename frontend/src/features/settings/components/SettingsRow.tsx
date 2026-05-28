@@ -9,6 +9,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, Spacing } from '@/constants/theme';
+import { tap } from '../haptics';
 
 type Props = {
   label: string;
@@ -33,7 +34,7 @@ export function SettingsRow({
   return (
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      onPress={onPress}
+      onPress={onPress ? () => { tap(); onPress(); } : undefined}
       disabled={!onPress}
     >
       {icon && <Ionicons name={icon} size={20} color={iconColor} style={styles.icon} />}
@@ -57,7 +58,7 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
       gap: Spacing.two,
       paddingHorizontal: Spacing.three,
-      paddingVertical: Spacing.two + 4,
+      paddingVertical: Spacing.two,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: t.bgDivider,
     },

@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 
 // Plus-aliased so we can filter contact mail in Gmail without exposing the
 // real inbox address.
@@ -19,7 +19,7 @@ export default function ContactScreen() {
         <Text style={styles.body}>{t('settings.contactBody')}</Text>
         <Pressable
           style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
-          onPress={() => Linking.openURL(`mailto:${DEV_EMAIL}`)}
+          onPress={() => { hapticTap(); Linking.openURL(`mailto:${DEV_EMAIL}`); }}
         >
           <Text style={styles.btnText}>{t('settings.contactEmail')}</Text>
         </Pressable>

@@ -13,6 +13,7 @@ import { applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing } from "@/constants/theme";
 
 const GRID_COLS = 3;
@@ -138,11 +139,13 @@ export default function InvadersScreen() {
   const handleFlash = useCallback(async (invader: InvaderWithState) => {
     if (!user) return;
     await flash(user.id, invader.id);
+    hapticSuccess();
   }, [user, flash]);
 
   const handleUnflash = useCallback(async (invader: InvaderWithState) => {
     if (!invader.progressId) return;
     await unflash(invader.progressId);
+    hapticDisappoint();
   }, [unflash]);
 
   const handleLocate = useCallback((invader: InvaderWithState) => {

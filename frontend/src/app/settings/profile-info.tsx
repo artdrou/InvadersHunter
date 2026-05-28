@@ -6,7 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useAuthStore, logoutUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 import { useInvaderData, mapInvadersWithProgress, cityOf, isNonFlashable } from '@/features/invaders';
 
 export default function ProfileInfoScreen() {
@@ -76,6 +76,7 @@ export default function ProfileInfoScreen() {
   }, [invaders, progress]);
 
   async function handleLogout() {
+    hapticTap();
     const refreshToken = useAuthStore.getState().refreshToken;
     if (refreshToken) {
       try { await logoutUser(refreshToken); } catch {}
