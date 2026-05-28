@@ -5,15 +5,13 @@
  * Categorized list of sub-screens. Each row navigates to `src/app/settings/<id>.tsx`.
  * Logout stays directly on this screen (action, not a sub-screen).
  */
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useAuthStore, logoutUser } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { type ThemeTokens, ButtonFontSize, Spacing } from "@/constants/theme";
 import { SettingsSection, SettingsRow } from "@/features/settings";
-import { getCurrentVersion } from "@/features/app-update";
 
 export default function SettingsLanding() {
   const router = useRouter();
@@ -21,20 +19,9 @@ export default function SettingsLanding() {
   const { theme, appFont } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, insets.top);
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-
-  async function handleLogout() {
-    const refreshToken = useAuthStore.getState().refreshToken;
-    if (refreshToken) {
-      try { await logoutUser(refreshToken); } catch {}
-    }
-    logout();
-    router.replace('/login');
-  }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={[styles.container, styles.content]}>
       <Text style={styles.title}>{t('settings.title')}</Text>
 
       <SettingsSection title={t('settings.sectionAccount')}>
@@ -102,15 +89,7 @@ export default function SettingsLanding() {
         />
       </SettingsSection>
 
-      <Pressable
-        style={({ pressed }) => [styles.logoutBtn, pressed && styles.pressed]}
-        onPress={handleLogout}
-      >
-        <Text style={styles.logoutText}>{t('settings.disconnect')}</Text>
-      </Pressable>
-
-      <Text style={styles.footer}>v{getCurrentVersion()}</Text>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -131,34 +110,6 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       fontFamily: font,
       fontSize: ButtonFontSize.xxl,
       letterSpacing: 1,
-    },
-    username: {
-      color: t.textMuted,
-      fontFamily: font,
-      fontSize: ButtonFontSize.md,
-      marginTop: -Spacing.two,
-    },
-    logoutBtn: {
-      paddingVertical: 14,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.danger,
-      alignItems: 'center',
-      marginTop: Spacing.three,
-    },
-    logoutText: {
-      color: t.danger,
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.lg,
-    },
-    pressed: { opacity: 0.6 },
-    footer: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
-      textAlign: 'center',
-      opacity: 0.5,
-      marginTop: Spacing.two,
     },
   });
 }

@@ -4,7 +4,9 @@ import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
-const DEV_EMAIL = 'invaderhunter.app@gmail.com';
+// Plus-aliased so we can filter contact mail in Gmail without exposing the
+// real inbox address.
+const DEV_EMAIL = 'invaderhunter.app+contact@gmail.com';
 
 export default function ContactScreen() {
   const { t } = useTranslation();
@@ -22,6 +24,7 @@ export default function ContactScreen() {
           <Text style={styles.btnText}>{t('settings.contactEmail')}</Text>
         </Pressable>
       </View>
+      <Text style={styles.notice}>{t('settings.contactNotice')}</Text>
     </SettingsShell>
   );
 }
@@ -45,5 +48,14 @@ function makeStyles(t: ThemeTokens) {
     },
     btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
     pressed: { opacity: 0.6 },
+    notice: {
+      color: t.danger,
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.xs,
+      lineHeight: 18,
+      textAlign: 'center',
+      opacity: 0.85,
+      paddingHorizontal: Spacing.two,
+    },
   });
 }

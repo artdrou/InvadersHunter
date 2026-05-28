@@ -1,15 +1,27 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore, logoutUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
 export default function ProfileInfoScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
   const styles = makeStyles(theme);
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  async function handleLogout() {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    if (refreshToken) {
+      try { await logoutUser(refreshToken); } catch {}
+    }
+    logout();
+    router.replace('/login');
+  }
 
   return (
     <SettingsShell title={t('settings.profileInfo')}>
@@ -27,6 +39,13 @@ export default function ProfileInfoScreen() {
           <Text style={styles.placeholderBody}>{t('settings.comingSoonBody')}</Text>
         </View>
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.logoutBtn, pressed && styles.pressed]}
+        onPress={handleLogout}
+      >
+        <Text style={styles.logoutText}>{t('settings.disconnect')}</Text>
+      </Pressable>
     </SettingsShell>
   );
 }
@@ -61,5 +80,15 @@ function makeStyles(t: ThemeTokens) {
     },
     placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
     placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20 },
+    logoutBtn: {
+      paddingVertical: 14,
+      borderRadius: BorderRadius.sm,
+      borderWidth: 1,
+      borderColor: t.danger,
+      alignItems: 'center',
+      marginTop: Spacing.three,
+    },
+    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    pressed: { opacity: 0.6 },
   });
 }
