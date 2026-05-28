@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, Pressable, StyleSheet,
-  ActivityIndicator, Alert, Image,
+  ActivityIndicator, Alert, Image, Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -53,6 +53,8 @@ export default function AdminDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [acting, setActing]   = useState(false);
   const [pickedImageUrl, setPickedImageUrl] = useState<string | null>(null);
+  // Full-screen "peek" preview shown while a thumbnail is long-pressed; cleared on release.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const requestSync = useInvaderStore((s) => s.requestSync);
 
@@ -251,6 +253,9 @@ export default function AdminDetailScreen() {
                     <Pressable
                       key={s.id}
                       onPress={() => setPickedImageUrl(url)}
+                      onLongPress={() => setPreviewUrl(url)}
+                      onPressOut={() => setPreviewUrl(null)}
+                      delayLongPress={250}
                       style={[styles.photoFrame, selected && styles.photoFrameSelected]}
                     >
                       <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
@@ -306,6 +311,15 @@ export default function AdminDetailScreen() {
           </Pressable>
         </View>
       )}
+
+      {/* Full-size photo peek — appears on long-press, closes on release or tap */}
+      <Modal visible={!!previewUrl} transparent animationType="fade" onRequestClose={() => setPreviewUrl(null)}>
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewUrl(null)}>
+          {previewUrl && (
+            <Image source={{ uri: previewUrl }} style={styles.previewImage} resizeMode="contain" />
+          )}
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -362,6 +376,11 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     photoFrameSelected: { borderColor: t.accent },
     photoThumb:   { width: 96, height: 96, borderRadius: BorderRadius.sm, backgroundColor: t.bg },
     photoCaption: { color: t.textMuted, fontSize: sz(10), fontFamily: font, marginTop: 2, maxWidth: 96 },
+    previewBackdrop: {
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.9)',
+      justifyContent: 'center', alignItems: 'center',
+    },
+    previewImage: { width: '90%', aspectRatio: 1 },
     actions: {
       position: 'absolute', bottom: 0, left: 0, right: 0,
       flexDirection: 'row', gap: Spacing.two,
