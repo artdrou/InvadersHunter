@@ -48,11 +48,15 @@ export function UserLocationLayer({ location }: Props) {
     features: location && heading !== null ? [buildCone(coords, heading)] : [],
   };
 
+  // Re-key on accent so the native layer is fully remounted when the user
+  // changes the accent color — avoids a one-frame flash of the previous
+  // color while MapLibre applies the new style.
   return (
     <>
       {/* Heading cone */}
       <ShapeSource id="user-heading" shape={coneGeojson}>
         <FillLayer
+          key={`cone-${accent}`}
           id="user-heading-fill"
           style={{ fillColor: accent, fillOpacity: 0.25 }}
         />
@@ -61,6 +65,7 @@ export function UserLocationLayer({ location }: Props) {
       {/* Position dot */}
       <ShapeSource id="user-location" shape={dotGeojson}>
         <CircleLayer
+          key={`dot-${accent}`}
           id="user-location-dot"
           style={{
             circleRadius: 8,
