@@ -9,6 +9,7 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings";
 
 export default function MapScreen() {
   const { t } = useTranslation();
@@ -138,12 +139,14 @@ export default function MapScreen() {
   async function handleFlash(invader: InvaderWithState) {
     if (!user) return;
     const capture = await flash(user.id, invader.id);
+    hapticSuccess();
     selectInvader({ ...invader, isCaptured: true, capturedAt: capture.found_at, progressId: capture.id });
   }
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
     await unflash(invader.progressId);
+    hapticDisappoint();
     selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
 
@@ -159,6 +162,7 @@ export default function MapScreen() {
 
   async function validatePicking() {
     if (!picking) return;
+    hapticTap();
     const c = await mapRef.current?.getCenter();
     if (c) {
       setPendingCoords({ invaderId: picking.invader.id, lon: c[0], lat: c[1] });
@@ -170,6 +174,7 @@ export default function MapScreen() {
 
   function cancelPicking() {
     if (!picking) return;
+    hapticTap();
     const inv = picking.invader;
     setPicking(null);
     selectInvader(inv);

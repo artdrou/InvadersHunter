@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Modal, TextInput } from 'react-nativ
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 
 // 5x5 neon palette. Each row is a hue family, sliding along the hue gradient.
 // Rows follow the visible spectrum: red/orange → yellow → green → cyan/blue → purple/pink.
@@ -27,9 +27,9 @@ export default function AppearanceScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draftHex, setDraftHex] = useState<string>(theme.accent);
 
-  function openPicker() { setDraftHex(theme.accent); setPickerOpen(true); }
-  function applyPicker() { if (isValidHex(draftHex)) setAccentOverride(draftHex); setPickerOpen(false); }
-  function resetAccent() { setAccentOverride(null); setDraftHex(defaultAccent); }
+  function openPicker() { hapticTap(); setDraftHex(theme.accent); setPickerOpen(true); }
+  function applyPicker() { hapticTap(); if (isValidHex(draftHex)) setAccentOverride(draftHex); setPickerOpen(false); }
+  function resetAccent() { hapticTap(); setAccentOverride(null); setDraftHex(defaultAccent); }
 
   return (
     <SettingsShell title={t('settings.appearance')}>
@@ -46,7 +46,7 @@ export default function AppearanceScreen() {
                   isActive && { borderColor: theme.accent },
                   pressed && styles.pressed,
                 ]}
-                onPress={() => setTheme(name)}
+                onPress={() => { hapticTap(); setTheme(name); }}
               >
                 <Text style={[styles.optionText, isActive && { color: theme.accent }]}>
                   {t(`themeNames.${name}`)}
@@ -95,7 +95,7 @@ export default function AppearanceScreen() {
                         return (
                           <Pressable
                             key={hex}
-                            onPress={() => setDraftHex(hex)}
+                            onPress={() => { hapticTap(); setDraftHex(hex); }}
                             style={({ pressed }) => [
                               styles.swatch,
                               { backgroundColor: hex, borderColor: isActive ? theme.text : theme.border },
@@ -126,7 +126,7 @@ export default function AppearanceScreen() {
                 <View style={styles.modalActions}>
                   <Pressable
                     style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.pressed]}
-                    onPress={() => setPickerOpen(false)}
+                    onPress={() => { hapticTap(); setPickerOpen(false); }}
                   >
                     <Text style={styles.modalSecondaryText}>{t('common.cancel')}</Text>
                   </Pressable>

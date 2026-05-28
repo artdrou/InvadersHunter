@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 import { SUPPORTED_LANGUAGES, setLanguage, type LanguageCode } from '@/services/i18n';
 
 export default function LanguageScreen() {
@@ -11,7 +11,7 @@ export default function LanguageScreen() {
   const styles = makeStyles(theme);
   const currentLang = i18n.language;
 
-  async function handleChange(code: LanguageCode) { await setLanguage(code); }
+  async function handleChange(code: LanguageCode) { hapticTap(); await setLanguage(code); }
 
   return (
     <SettingsShell title={t('settings.language')}>

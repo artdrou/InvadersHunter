@@ -51,6 +51,11 @@ export default function SettingsLanding() {
           label={t('settings.language')}
           onPress={() => router.push('/settings/language')}
         />
+        <SettingsRow
+          icon="pulse-outline"
+          label={t('settings.haptics')}
+          onPress={() => router.push('/settings/haptics')}
+        />
       </SettingsSection>
 
       <SettingsSection title={t('settings.sectionData')}>
@@ -100,15 +105,16 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       backgroundColor: t.bg,
     },
     content: {
-      paddingTop: topInset + Spacing.three,
+      flex: 1,
+      paddingTop: topInset + Spacing.two,
       paddingHorizontal: Spacing.four,
-      paddingBottom: Spacing.six,
-      gap: Spacing.three,
+      paddingBottom: Spacing.three,
+      gap: Spacing.two,
     },
     title: {
       color: t.accent,
       fontFamily: font,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: ButtonFontSize.xl,
       letterSpacing: 1,
     },
   });

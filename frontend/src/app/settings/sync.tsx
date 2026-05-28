@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { useInvaderStore } from '@/features/invaders';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 
 export default function SyncScreen() {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export default function SyncScreen() {
     <SettingsShell title={t('settings.sync')}>
       <Pressable
         style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
-        onPress={requestSync}
+        onPress={() => { hapticTap(); requestSync(); }}
         disabled={isSyncing}
       >
         <Text style={styles.btnText}>{isSyncing ? t('settings.syncing') : t('settings.syncNow')}</Text>
@@ -26,7 +26,7 @@ export default function SyncScreen() {
 
       <Pressable
         style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
-        onPress={() => router.push('/flash-import')}
+        onPress={() => { hapticTap(); router.push('/flash-import'); }}
       >
         <Text style={styles.btnText}>{t('settings.importFlashes')}</Text>
       </Pressable>

@@ -29,7 +29,7 @@ function makeStyles(t: ThemeTokens) {
     label: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: ButtonFontSize.xs,
       letterSpacing: 1,
       textTransform: 'uppercase',
       paddingHorizontal: Spacing.two,

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, registerUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
+import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 
 export default function RegisterScreen() {
@@ -20,6 +21,7 @@ export default function RegisterScreen() {
 
   async function handleRegister() {
     if (!username || !email || !password) return;
+    hapticTap();
     setLoading(true);
     setError(null);
     try {

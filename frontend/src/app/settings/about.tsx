@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import * as Updates from 'expo-updates';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { SettingsShell, hapticTap } from '@/features/settings';
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from '@/features/app-update';
 import { getDateLocale } from '@/services/i18n';
 
@@ -19,6 +19,7 @@ export default function AboutScreen() {
   const otaChannel = Updates.channel ?? null;
 
   async function handleCheckForUpdates() {
+    hapticTap();
     const manifest = await fetchVersionManifest();
     if (!manifest) {
       Alert.alert(t('common.error'), t('appUpdate.checkFailed'));
