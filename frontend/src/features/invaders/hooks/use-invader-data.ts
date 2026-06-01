@@ -7,9 +7,10 @@ import {
   insertCapture, deleteCapture,
   insertPendingSync, deletePendingSync, getPendingSyncs,
 } from '@/services/db';
-import { syncAll, isNetworkError } from '@/services/sync';
+import { syncAll, isNetworkError, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '@/services/sync';
 import { useConnectivityStore } from '@/services/connectivity';
-import { flashInvader as apiFlash, unflashInvader as apiUnflash } from '../services/invaders.api';
+import { useNetworkConnectivity } from '@/hooks/use-network-connectivity';
+import { flashInvader as apiFlash, unflashInvader as apiUnflash, type ModifyRequestPayload, type CreateRequestPayload } from '../services/invaders.api';
 import { useInvaderStore } from '../store';
 import type { Capture } from '../types';
 
@@ -91,6 +92,14 @@ export function useInvaderData() {
       setIsSyncing(false);
     }
   }, [db, loadFromDb, clearRetry, setOnline, setIsSyncing, setSyncError]);
+
+  // Trigger a sync whenever NetInfo detects an offline → online transition
+  useNetworkConnectivity(useCallback(() => {
+    if (user) {
+      lastSyncAt = 0;
+      runSync(user.id);
+    }
+  }, [user, runSync]));
 
   // On mount: load from SQLite instantly, then sync in background
   useEffect(() => {
@@ -181,5 +190,15 @@ export function useInvaderData() {
     });
   }, [db, progress, setProgress]);
 
-  return { invaders, progress, isSyncing, syncError, flash, unflash };
+  const submitModifyRequest = useCallback(
+    (payload: ModifyRequestPayload) => submitModifyRequestOfflineAware(db, user!.id, payload),
+    [db, user],
+  );
+
+  const submitCreateRequest = useCallback(
+    (payload: CreateRequestPayload) => submitCreateRequestOfflineAware(db, user!.id, payload),
+    [db, user],
+  );
+
+  return { invaders, progress, isSyncing, syncError, flash, unflash, submitModifyRequest, submitCreateRequest };
 }

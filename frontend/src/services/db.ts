@@ -11,11 +11,12 @@ import type { Invader, Capture, UserRequest } from '@/features/invaders/types';
 
 export type PendingSync = {
   id: number;
-  type: 'flash' | 'unflash';
-  invader_id: number | null;  // for flash
+  type: 'flash' | 'unflash' | 'modify_request' | 'create_request';
+  invader_id: number | null;
   capture_id: number | null;  // temp local ID (flash) or real server ID (unflash)
   user_id: number;
   created_at: string;
+  payload: string | null;     // JSON for modify_request / create_request
 };
 
 // ── Init / migrations ─────────────────────────────────────────────────────────
@@ -73,11 +74,17 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
       invader_id  INTEGER,
       capture_id  INTEGER,
       user_id     INTEGER NOT NULL,
-      created_at  TEXT    NOT NULL
+      created_at  TEXT    NOT NULL,
+      payload     TEXT
     )`
   );
 
   // Migrations: add columns that were added after initial release
+  const pendingSyncCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(pending_syncs)');
+  if (!pendingSyncCols.some((c) => c.name === 'payload')) {
+    await db.runAsync('ALTER TABLE pending_syncs ADD COLUMN payload TEXT');
+  }
+
   const captureCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(captures)');
   if (!captureCols.some((c) => c.name === 'is_pending')) {
     await db.runAsync('ALTER TABLE captures ADD COLUMN is_pending INTEGER NOT NULL DEFAULT 0');
@@ -204,8 +211,8 @@ export async function insertPendingSync(
   sync: Omit<PendingSync, 'id' | 'created_at'>,
 ): Promise<void> {
   await db.runAsync(
-    'INSERT INTO pending_syncs (type, invader_id, capture_id, user_id, created_at) VALUES (?, ?, ?, ?, ?)',
-    [sync.type, sync.invader_id ?? null, sync.capture_id ?? null, sync.user_id, new Date().toISOString()],
+    'INSERT INTO pending_syncs (type, invader_id, capture_id, user_id, created_at, payload) VALUES (?, ?, ?, ?, ?, ?)',
+    [sync.type, sync.invader_id ?? null, sync.capture_id ?? null, sync.user_id, new Date().toISOString(), sync.payload ?? null],
   );
 }
 

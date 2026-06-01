@@ -13,7 +13,7 @@ import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings"
 
 export default function MapScreen() {
   const { t } = useTranslation();
-  const { invaders, progress, syncError, flash, unflash } = useInvaderData();
+  const { invaders, progress, syncError, flash, unflash, submitModifyRequest, submitCreateRequest } = useInvaderData();
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
@@ -224,13 +224,13 @@ export default function MapScreen() {
             <InvaderPopup
               key={selectedInvader.id}
               invader={selectedInvader}
-              isOffline={syncError === 'network'}
               pendingCoords={pendingCoords?.invaderId === selectedInvader.id ? { lat: pendingCoords.lat, lon: pendingCoords.lon } : null}
               onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); }}
               onFlash={handleFlash}
               onUnflash={handleUnflash}
               onPickLocation={startPickingLocation}
               onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); showToast(); }}
+              onSubmitModifyRequest={submitModifyRequest}
             />
           </View>
         </View>
@@ -283,6 +283,7 @@ export default function MapScreen() {
             onPickLocation={startCreatingPickLoc}
             onRequestSent={() => { setCreatingModal(null); showToast(); }}
             onClose={() => setCreatingModal(null)}
+            onSubmitCreateRequest={submitCreateRequest}
           />
         </View>
       )}

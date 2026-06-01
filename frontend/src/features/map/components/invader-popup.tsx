@@ -7,15 +7,13 @@ import { getDateLocale } from "@/services/i18n";
 import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
-import { submitModifyRequest } from "@/features/invaders/services/invaders.api";
-import { isNetworkError } from "@/services/sync";
+import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 
 type Props = {
   invader: InvaderWithState;
-  isOffline?: boolean;
   pendingCoords?: { lat: number; lon: number } | null;
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
@@ -23,6 +21,7 @@ type Props = {
   onPickLocation?: (invader: InvaderWithState) => void;
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
+  onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<void>;
 };
 
 const STATE_OPTIONS = [
@@ -54,7 +53,7 @@ function formatDate(iso?: string) {
   });
 }
 
-export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent }: Props) {
+export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest }: Props) {
   const db = useSQLiteContext();
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
@@ -81,7 +80,7 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
     setSubmitting(true);
     setOfflineError(false);
     try {
-      await submitModifyRequest({
+      await onSubmitModifyRequest({
         invader_id: invader.id,
         proposed_state: invaderState || undefined,
         proposed_latitude: pendingCoords?.lat,
@@ -90,8 +89,9 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
       onRequestSent?.();
       onClose();
     } catch (err) {
+      // Only non-network errors reach here (offline is queued silently)
       setSubmitting(false);
-      if (isNetworkError(err)) setOfflineError(true);
+      setOfflineError(true);
     }
   }
 
@@ -262,7 +262,6 @@ export function InvaderPopup({ invader, isOffline = false, pendingCoords, onClos
         {!isISS && (
           <Pressable
             onPress={() => {
-              if (isOffline) { setOfflineError(true); return; }
               if (!alreadySent) { setOfflineError(false); setMode("edit"); }
             }}
             disabled={alreadySent}

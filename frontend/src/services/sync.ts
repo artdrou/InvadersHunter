@@ -2,11 +2,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   getMeta, setMeta,
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
-  getPendingSyncs, deletePendingSync, deleteCapture, insertCapture,
+  getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
 } from './db';
 import {
   fetchInvaders, fetchDeletedInvaderIds, fetchProgress, fetchUserRequests,
   flashInvader as apiFlash, unflashInvader as apiUnflash,
+  submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
+  type ModifyRequestPayload, type CreateRequestPayload,
 } from '@/features/invaders/services/invaders.api';
 
 export function isNetworkError(err: unknown): boolean {
@@ -32,12 +34,17 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
     try {
       if (item.type === 'flash') {
         const capture = await apiFlash(userId, item.invader_id!);
-        // Swap the temp local capture for the real server one
         await deleteCapture(db, item.capture_id!);
         await insertCapture(db, capture);
         await deletePendingSync(db, item.id);
       } else if (item.type === 'unflash') {
         await apiUnflash(item.capture_id!);
+        await deletePendingSync(db, item.id);
+      } else if (item.type === 'modify_request') {
+        await apiSubmitModify(JSON.parse(item.payload!) as ModifyRequestPayload);
+        await deletePendingSync(db, item.id);
+      } else if (item.type === 'create_request') {
+        await apiSubmitCreate(JSON.parse(item.payload!) as CreateRequestPayload);
         await deletePendingSync(db, item.id);
       }
     } catch (err) {
@@ -45,6 +52,56 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
       // Server rejected it (conflict, 404, etc.) — drop and move on
       await deletePendingSync(db, item.id);
     }
+  }
+}
+
+// ── Offline-aware request submission ─────────────────────────────────────────
+
+export async function submitModifyRequestOfflineAware(
+  db: SQLiteDatabase,
+  userId: number,
+  payload: ModifyRequestPayload,
+): Promise<void> {
+  try {
+    await apiSubmitModify(payload);
+  } catch (err) {
+    if (isNetworkError(err)) {
+      await insertPendingSync(db, {
+        type: 'modify_request',
+        invader_id: payload.invader_id,
+        capture_id: null,
+        user_id: userId,
+        payload: JSON.stringify(payload),
+      });
+    } else {
+      throw err;
+    }
+  }
+}
+
+/**
+ * Returns the created UserRequest when online, null when queued offline.
+ * Callers that need the request id (e.g. photo upload) must handle null.
+ */
+export async function submitCreateRequestOfflineAware(
+  db: SQLiteDatabase,
+  userId: number,
+  payload: CreateRequestPayload,
+): Promise<import('@/features/invaders/types').UserRequest | null> {
+  try {
+    return await apiSubmitCreate(payload);
+  } catch (err) {
+    if (isNetworkError(err)) {
+      await insertPendingSync(db, {
+        type: 'create_request',
+        invader_id: null,
+        capture_id: null,
+        user_id: userId,
+        payload: JSON.stringify(payload),
+      });
+      return null;
+    }
+    throw err;
   }
 }
 

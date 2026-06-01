@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { InvaderState } from "@/features/invaders/types";
 import { useInvaderStore } from "@/features/invaders/store";
 import { cityOf } from "@/features/invaders/utils/invader-list";
-import { submitCreateRequest, uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
+import { uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
+import type { CreateRequestPayload, UserRequest } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
@@ -36,9 +37,10 @@ type Props = {
   onPickLocation: () => void;
   onRequestSent: () => void;
   onClose: () => void;
+  onSubmitCreateRequest: (payload: CreateRequestPayload) => Promise<UserRequest | null>;
 };
 
-export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, onClose }: Props) {
+export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, onClose, onSubmitCreateRequest }: Props) {
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
@@ -110,18 +112,18 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
     setOfflineError(false);
     setUploadError(false);
     try {
-      const req = await submitCreateRequest({
+      const req = await onSubmitCreateRequest({
         proposed_name: proposedName,
         proposed_latitude: lat,
         proposed_longitude: lon,
         proposed_state: invaderState || null,
         proposed_points: points ? parseInt(points, 10) : null,
       });
-      if (imageUri) {
+      // req is null when queued offline — skip photo upload (no req id yet)
+      if (req && imageUri) {
         try {
           await uploadRequestPhoto(req.id, imageUri);
         } catch (uploadErr) {
-          // Roll back: delete the just-created request and show error
           await cancelRequest(req.id).catch(() => {});
           setSubmitting(false);
           if (isNetworkError(uploadErr)) {
@@ -136,7 +138,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
       onClose();
     } catch (err) {
       setSubmitting(false);
-      if (isNetworkError(err)) setOfflineError(true);
+      setUploadError(true);
     }
   }
 
