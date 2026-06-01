@@ -12,7 +12,7 @@ Scan the QR code below or use the direct link to install the latest preview buil
 
 ![APK QR Code](docs/apk-qr.png)
 
-[Direct download link](https://github.com/artdrou/InvadersHunter/releases/latest/download/InvadersHunter-latest.apk)
+[Direct download link](https://invader-hunter-development.up.railway.app/apk/download)
 
 Once installed, the app prompts you in-app when a new APK is available (no need to scan again).
 
