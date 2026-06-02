@@ -3,10 +3,11 @@ import { View, Text, Pressable, StyleSheet, TextInput, Image, Alert } from "reac
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { InvaderState } from "@/features/invaders/types";
+import type { UserRequest } from "@/features/invaders/types";
 import { useInvaderStore } from "@/features/invaders/store";
 import { cityOf } from "@/features/invaders/utils/invader-list";
 import { uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
-import type { CreateRequestPayload, UserRequest } from "@/features/invaders/services/invaders.api";
+import type { CreateRequestPayload } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";

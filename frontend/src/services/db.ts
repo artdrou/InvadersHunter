@@ -16,7 +16,7 @@ export type PendingSync = {
   capture_id: number | null;  // temp local ID (flash) or real server ID (unflash)
   user_id: number;
   created_at: string;
-  payload: string | null;     // JSON for modify_request / create_request
+  payload?: string | null;    // JSON for modify_request / create_request; absent for flash/unflash
 };
 
 // ── Init / migrations ─────────────────────────────────────────────────────────
