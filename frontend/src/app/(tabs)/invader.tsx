@@ -4,20 +4,18 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
-  mapInvadersWithProgress, buildGroups, SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR,
+  mapInvadersWithProgress, buildGroups,
   InvaderInfoPanel, CityHeader, InvaderListRow, InvaderGridCell,
-  InvaderSearchBar,
+  MosaicToolbar, DEFAULT_TOOLBAR_STATE,
 } from "@/features/invaders";
-import type { InvaderWithState, SortOption, GroupMode, SortDir } from "@/features/invaders";
-import { applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
-import type { MapFilter } from "@/features/map";
+import type { InvaderWithState, ToolbarState } from "@/features/invaders";
+import { applyMapFilter, useLocateStore } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing } from "@/constants/theme";
 
-const GRID_COLS = 3;
-const GRID_GAP  = 4;
+const GRID_GAP = 4;
 
 // ── flat list item types ─────────────────────────────────────────────────────
 
@@ -37,12 +35,7 @@ export default function InvadersScreen() {
 
   const [expandedCities, setExpandedCities]       = useState<Set<string>>(new Set());
   const [expandedInvaderId, setExpandedInvaderId] = useState<number | null>(null);
-  const [search, setSearch]       = useState("");
-  const [filter, setFilter]       = useState<MapFilter>(DEFAULT_FILTER);
-  const [groupMode, setGroupMode] = useState<GroupMode>("city");
-  const [sortBy,  setSortBy]      = useState<SortOption>("number");
-  const [sortDir, setSortDir]     = useState<SortDir>("asc");
-  const [viewMode, setViewMode]   = useState<"list" | "grid">("grid");
+  const [toolbar, setToolbar]                     = useState<ToolbarState>(DEFAULT_TOOLBAR_STATE);
 
   const user = useAuthStore((s) => s.user);
   const { theme, appFont } = useTheme();
@@ -50,35 +43,34 @@ export default function InvadersScreen() {
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
 
-  // ── derived data (memoized so FlatList gets stable references) ───────────
+  // ── derived data ─────────────────────────────────────────────────────────
 
   const invadersWithState = useMemo(
     () => mapInvadersWithProgress(invaders, progress),
     [invaders, progress],
   );
 
-  const query       = search.trim().toUpperCase();
+  const query       = toolbar.search.trim().toUpperCase();
   const isSearching = query.length > 0;
 
   const filtered = useMemo(() => {
     const searched = isSearching
       ? invadersWithState.filter((inv) => inv.name.toUpperCase().includes(query))
       : invadersWithState;
-    return applyMapFilter(searched, filter);
-  }, [invadersWithState, query, isSearching, filter]);
+    return applyMapFilter(searched, toolbar.filter);
+  }, [invadersWithState, query, isSearching, toolbar.filter]);
 
   const groups = useMemo(
-    () => buildGroups(filtered, groupMode, sortBy, sortDir),
-    [filtered, groupMode, sortBy, sortDir],
+    () => buildGroups(filtered, toolbar.groupMode, toolbar.sortBy, toolbar.sortDir),
+    [filtered, toolbar.groupMode, toolbar.sortBy, toolbar.sortDir],
   );
 
-  const cellSize = Math.floor(
-    (screenWidth - Spacing.two * 2 - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS
-  );
+  const cellSize = useMemo(() => {
+    const cols = toolbar.viewMode === "grid" ? toolbar.gridCols : 3;
+    return Math.floor((screenWidth - Spacing.two * 2 - GRID_GAP * (cols - 1)) / cols);
+  }, [screenWidth, toolbar.viewMode, toolbar.gridCols]);
 
-  // ── flat data for FlatList ─────────────────────────────────────────────────
-  // Groups are flattened into a typed item array. Only expanded groups emit
-  // their children, so collapsed sections cost only the header item.
+  // ── flat data for FlatList ────────────────────────────────────────────────
 
   const flatData = useMemo<FlatItem[]>(() => {
     const items: FlatItem[] = [];
@@ -100,17 +92,18 @@ export default function InvadersScreen() {
 
       if (!isExpanded) continue;
 
-      if (viewMode === "list") {
+      if (toolbar.viewMode === "list") {
         for (const inv of groupInvaders) {
-          const isExpanded = expandedInvaderId === inv.id;
-          items.push({ type: "row",  key: `r|${inv.id}`,    invader: inv, isExpanded });
-          if (isExpanded) {
+          const isExpandedInv = expandedInvaderId === inv.id;
+          items.push({ type: "row",  key: `r|${inv.id}`,    invader: inv, isExpanded: isExpandedInv });
+          if (isExpandedInv) {
             items.push({ type: "info", key: `info|${inv.id}`, invader: inv });
           }
         }
       } else {
-        for (let i = 0; i < groupInvaders.length; i += GRID_COLS) {
-          const rowInvaders = groupInvaders.slice(i, i + GRID_COLS);
+        const cols = toolbar.gridCols;
+        for (let i = 0; i < groupInvaders.length; i += cols) {
+          const rowInvaders = groupInvaders.slice(i, i + cols);
           const selected    = rowInvaders.find((inv) => inv.id === expandedInvaderId);
           items.push({ type: "grid-row",  key: `gr|${groupKey}|${i}`, invaders: rowInvaders });
           if (selected) {
@@ -121,9 +114,9 @@ export default function InvadersScreen() {
     }
 
     return items;
-  }, [groups, expandedCities, expandedInvaderId, isSearching, viewMode]);
+  }, [groups, expandedCities, expandedInvaderId, isSearching, toolbar.viewMode, toolbar.gridCols]);
 
-  // ── handlers ────────────────────────────────────────────────────────────────
+  // ── handlers ─────────────────────────────────────────────────────────────
 
   const toggleCity = useCallback((key: string) => {
     setExpandedCities((prev) => {
@@ -154,38 +147,7 @@ export default function InvadersScreen() {
     router.push("/(tabs)/map");
   }, [setPendingInvader, router]);
 
-  const handleGroupModeChange = useCallback((g: GroupMode) => {
-    setGroupMode(g);
-    setSortBy((prev) => SORT_OPTIONS_BY_GROUP[g].includes(prev) ? prev : "number");
-  }, []);
-
-  const handleSortChange = useCallback((option: SortOption) => {
-    if (sortBy !== option) {
-      setSortBy(option);
-      setSortDir(SORT_DEFAULT_DIR[option]);
-    } else {
-      const defaultDir = SORT_DEFAULT_DIR[option];
-      if (sortDir !== defaultDir) {
-        // 3rd click: was inverted → reset
-        setSortBy("number");
-        setSortDir("asc");
-      } else {
-        // 2nd click: on default dir → invert
-        setSortDir(sortDir === "asc" ? "desc" : "asc");
-      }
-    }
-  }, [sortBy, sortDir]);
-
-  const handleSortReset = useCallback(() => {
-    setSortBy("number");
-    setSortDir("asc");
-  }, []);
-
-  const handleToggleView = useCallback(() => {
-    setViewMode((v) => v === "list" ? "grid" : "list");
-  }, []);
-
-  // ── render item ─────────────────────────────────────────────────────────────
+  // ── render item ──────────────────────────────────────────────────────────
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
     switch (item.type) {
@@ -256,24 +218,11 @@ export default function InvadersScreen() {
     }
   }, [toggleCity, toggleInvader, handleFlash, handleUnflash, handleLocate, theme, cellSize, expandedInvaderId]);
 
-  // ── render ──────────────────────────────────────────────────────────────────
+  // ── render ───────────────────────────────────────────────────────────────
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.bg }]}>
-      <InvaderSearchBar
-        value={search}
-        onChange={setSearch}
-        filter={filter}
-        onFilterChange={setFilter}
-        groupMode={groupMode}
-        onGroupModeChange={handleGroupModeChange}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSortChange={handleSortChange}
-        onSortReset={handleSortReset}
-        viewMode={viewMode}
-        onToggleView={handleToggleView}
-      />
+      <MosaicToolbar state={toolbar} onChange={setToolbar} />
 
       {isOfflineEmpty ? (
         <View style={styles.emptyState}>

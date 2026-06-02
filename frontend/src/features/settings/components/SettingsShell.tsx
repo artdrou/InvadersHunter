@@ -65,6 +65,10 @@ function makeStyles(t: ThemeTokens, font: string) {
       letterSpacing: 1,
     },
     body: {
+      // Center the content vertically in the space below the title; flexGrow lets it
+      // grow to fill (so justifyContent centers) yet still scroll if it ever overflows.
+      flexGrow: 1,
+      justifyContent: 'center',
       paddingHorizontal: Spacing.four,
       paddingBottom: Spacing.six,
       gap: Spacing.three,

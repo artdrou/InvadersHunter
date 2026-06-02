@@ -21,9 +21,10 @@ export default function SettingsLanding() {
   const styles = makeStyles(theme, appFont, insets.top);
 
   return (
-    <View style={[styles.container, styles.content]}>
+    <View style={styles.container}>
       <Text style={styles.title}>{t('settings.title')}</Text>
 
+      <View style={styles.body}>
       <SettingsSection title={t('settings.sectionAccount')}>
         <SettingsRow
           icon="person-outline"
@@ -93,6 +94,7 @@ export default function SettingsLanding() {
           onPress={() => router.push('/settings/roadmap')}
         />
       </SettingsSection>
+      </View>
 
     </View>
   );
@@ -103,12 +105,15 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
     container: {
       flex: 1,
       backgroundColor: t.bg,
-    },
-    content: {
-      flex: 1,
       paddingTop: topInset + Spacing.two,
       paddingHorizontal: Spacing.four,
       paddingBottom: Spacing.three,
+      gap: Spacing.two,
+    },
+    body: {
+      // Everything below the title, centered vertically in the remaining space.
+      flex: 1,
+      justifyContent: 'center',
       gap: Spacing.two,
     },
     title: {

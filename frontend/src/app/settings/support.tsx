@@ -26,7 +26,6 @@ export default function SupportScreen() {
       <View style={styles.block}>
         <Text style={styles.body}>{t('settings.supportIntro')}</Text>
         <Text style={styles.body}>{t('settings.supportFree')}</Text>
-        <Text style={styles.bodyMuted}>{t('settings.supportArtist')}</Text>
         <Pressable
           style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
           onPress={openDonation}
@@ -49,7 +48,6 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.three,
     },
     body: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.md, lineHeight: 22 },
-    bodyMuted: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20, fontStyle: 'italic' },
     btn: {
       paddingVertical: 12,
       borderRadius: BorderRadius.sm,

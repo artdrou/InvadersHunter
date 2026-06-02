@@ -1,7 +1,7 @@
 import type { InvaderWithState } from "../types";
 import { getDateLocale } from "@/services/i18n";
 
-export type GroupMode  = "city" | "points" | "year";
+export type GroupMode  = "none" | "city" | "points" | "year";
 export type SortOption = "number" | "name" | "points" | "pose_date" | "flash_date" | "update_date";
 export type SortDir    = "asc" | "desc";
 
@@ -17,6 +17,7 @@ export const SORT_DEFAULT_DIR: Record<SortOption, SortDir> = {
 
 // Sort options available for each group mode — excludes the dimension already used for grouping
 export const SORT_OPTIONS_BY_GROUP: Record<GroupMode, SortOption[]> = {
+  none:   ["name", "points", "pose_date", "flash_date", "update_date"],
   city:   ["name", "points", "pose_date", "flash_date", "update_date"],
   points: ["name", "pose_date", "flash_date", "update_date"],
   year:   ["name", "points", "flash_date", "update_date"],
@@ -36,12 +37,19 @@ function dateMs(s?: string | null) {
   return s ? new Date(s).getTime() : 0;
 }
 
+// Hybrid name order: city alphabetically, then number numerically (PA_1, PA_2, PA_10 — not PA_1, PA_10, PA_2)
+export function compareName(a: InvaderWithState, b: InvaderWithState): number {
+  const ca = cityOf(a.name), cb = cityOf(b.name);
+  if (ca !== cb) return ca.localeCompare(cb);
+  return numOf(a.name) - numOf(b.name);
+}
+
 function sortWithinGroup(list: InvaderWithState[], sortBy: SortOption, sortDir: SortDir): InvaderWithState[] {
   const asc = sortDir === "asc";
   return [...list].sort((a, b) => {
     switch (sortBy) {
       case "name":
-        return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+        return asc ? compareName(a, b) : -compareName(a, b);
       case "points":
         return asc ? (a.points ?? 0) - (b.points ?? 0) : (b.points ?? 0) - (a.points ?? 0);
       case "pose_date":
@@ -54,6 +62,11 @@ function sortWithinGroup(list: InvaderWithState[], sortBy: SortOption, sortDir: 
         return numOf(a.name) - numOf(b.name);
     }
   });
+}
+
+// No grouping: a single headerless group (key "") holding every invader, hybrid-name ordered by default.
+function groupNone(invaders: InvaderWithState[]): [string, InvaderWithState[]][] {
+  return [["", [...invaders].sort(compareName)]];
 }
 
 export function groupByCity(invaders: InvaderWithState[]): [string, InvaderWithState[]][] {
@@ -96,6 +109,10 @@ function groupByYear(invaders: InvaderWithState[]): [string, InvaderWithState[]]
     .map(([year, list]) => [year, list.sort((a, b) => numOf(a.name) - numOf(b.name))]);
 }
 
+function flashedCount(list: InvaderWithState[]): number {
+  return list.reduce((n, inv) => n + (inv.isCaptured ? 1 : 0), 0);
+}
+
 export function buildGroups(
   invaders: InvaderWithState[],
   groupMode: GroupMode,
@@ -104,8 +121,14 @@ export function buildGroups(
 ): [string, InvaderWithState[]][] {
   const base = groupMode === "points" ? groupByPoints(invaders)
              : groupMode === "year"   ? groupByYear(invaders)
+             : groupMode === "none"   ? groupNone(invaders)
              :                         groupByCity(invaders);
-  if (sortBy === "number") return base;
+  if (sortBy === "number") {
+    // Default order: the most-flashed group floats to the top.
+    // Stable sort keeps each group's natural order (alphabetical / points / year) as the tiebreak.
+    if (groupMode === "none") return base;
+    return [...base].sort(([, a], [, b]) => flashedCount(b) - flashedCount(a));
+  }
   return base.map(([key, list]) => [key, sortWithinGroup(list, sortBy, sortDir)]);
 }
 

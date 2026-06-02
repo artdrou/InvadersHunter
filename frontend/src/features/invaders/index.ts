@@ -10,5 +10,6 @@ export { InvaderInfoPanel } from './components/InvaderInfoPanel';
 export { CityHeader } from './components/CityHeader';
 export { InvaderListRow } from './components/InvaderListRow';
 export { InvaderGridCell } from './components/InvaderGridCell';
-export { InvaderSearchBar } from './components/InvaderSearchBar';
+export { MosaicToolbar, DEFAULT_TOOLBAR_STATE } from './components/MosaicToolbar';
+export type { ToolbarState } from './components/MosaicToolbar';
 export { InvaderFilterBar } from './components/InvaderFilterBar';
