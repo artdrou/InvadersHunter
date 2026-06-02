@@ -4,11 +4,11 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
-  mapInvadersWithProgress, buildGroups, SORT_OPTIONS_BY_GROUP,
+  mapInvadersWithProgress, buildGroups, SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR,
   InvaderInfoPanel, CityHeader, InvaderListRow, InvaderGridCell,
   InvaderSearchBar,
 } from "@/features/invaders";
-import type { InvaderWithState, SortOption, GroupMode } from "@/features/invaders";
+import type { InvaderWithState, SortOption, GroupMode, SortDir } from "@/features/invaders";
 import { applyMapFilter, DEFAULT_FILTER, useLocateStore } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
@@ -40,7 +40,8 @@ export default function InvadersScreen() {
   const [search, setSearch]       = useState("");
   const [filter, setFilter]       = useState<MapFilter>(DEFAULT_FILTER);
   const [groupMode, setGroupMode] = useState<GroupMode>("city");
-  const [sortBy, setSortBy]       = useState<SortOption>("number");
+  const [sortBy,  setSortBy]      = useState<SortOption>("number");
+  const [sortDir, setSortDir]     = useState<SortDir>("asc");
   const [viewMode, setViewMode]   = useState<"list" | "grid">("grid");
 
   const user = useAuthStore((s) => s.user);
@@ -67,8 +68,8 @@ export default function InvadersScreen() {
   }, [invadersWithState, query, isSearching, filter]);
 
   const groups = useMemo(
-    () => buildGroups(filtered, groupMode, sortBy),
-    [filtered, groupMode, sortBy],
+    () => buildGroups(filtered, groupMode, sortBy, sortDir),
+    [filtered, groupMode, sortBy, sortDir],
   );
 
   const cellSize = Math.floor(
@@ -158,6 +159,28 @@ export default function InvadersScreen() {
     setSortBy((prev) => SORT_OPTIONS_BY_GROUP[g].includes(prev) ? prev : "number");
   }, []);
 
+  const handleSortChange = useCallback((option: SortOption) => {
+    if (sortBy !== option) {
+      setSortBy(option);
+      setSortDir(SORT_DEFAULT_DIR[option]);
+    } else {
+      const defaultDir = SORT_DEFAULT_DIR[option];
+      if (sortDir !== defaultDir) {
+        // 3rd click: was inverted → reset
+        setSortBy("number");
+        setSortDir("asc");
+      } else {
+        // 2nd click: on default dir → invert
+        setSortDir(sortDir === "asc" ? "desc" : "asc");
+      }
+    }
+  }, [sortBy, sortDir]);
+
+  const handleSortReset = useCallback(() => {
+    setSortBy("number");
+    setSortDir("asc");
+  }, []);
+
   const handleToggleView = useCallback(() => {
     setViewMode((v) => v === "list" ? "grid" : "list");
   }, []);
@@ -245,7 +268,9 @@ export default function InvadersScreen() {
         groupMode={groupMode}
         onGroupModeChange={handleGroupModeChange}
         sortBy={sortBy}
-        onSortChange={setSortBy}
+        sortDir={sortDir}
+        onSortChange={handleSortChange}
+        onSortReset={handleSortReset}
         viewMode={viewMode}
         onToggleView={handleToggleView}
       />

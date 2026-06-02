@@ -7,7 +7,7 @@ import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } f
 import { isFilterActive } from "@/features/map";
 import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map";
 import { PixelButton } from "@/components/ui/pixel-button";
-import type { SortOption, GroupMode } from "../utils/invader-list";
+import type { SortOption, GroupMode, SortDir } from "../utils/invader-list";
 import { SORT_OPTIONS_BY_GROUP } from "../utils/invader-list";
 
 const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100];
@@ -31,10 +31,11 @@ const GROUP_KEYS: Record<GroupMode, string> = {
 };
 
 const SORT_KEYS: Record<SortOption, string> = {
-  number: "invaders.sortNumber",
-  points: "invaders.sortPoints",
-  pose_date: "invaders.sortPoseDate",
-  flash_date: "invaders.sortFlashDate",
+  number:      "invaders.sortNumber",
+  name:        "invaders.sortName",
+  points:      "invaders.sortPoints",
+  pose_date:   "invaders.sortPoseDate",
+  flash_date:  "invaders.sortFlashDate",
   update_date: "invaders.sortUpdated",
 };
 
@@ -46,14 +47,16 @@ type Props = {
   groupMode: GroupMode;
   onGroupModeChange: (g: GroupMode) => void;
   sortBy: SortOption;
+  sortDir: SortDir;
   onSortChange: (s: SortOption) => void;
+  onSortReset: () => void;
   viewMode: "list" | "grid";
   onToggleView: () => void;
 };
 
 export function InvaderSearchBar({
   value, onChange, filter, onFilterChange,
-  groupMode, onGroupModeChange, sortBy, onSortChange,
+  groupMode, onGroupModeChange, sortBy, sortDir, onSortChange, onSortReset,
   viewMode, onToggleView,
 }: Props) {
   const { t } = useTranslation();
@@ -237,8 +240,19 @@ export function InvaderSearchBar({
                   key={o.key}
                   style={({ pressed }) => [styles.option, selected && styles.optionSelected, pressed && styles.optionPressed]}
                   onPress={() => onSortChange(o.key)}
+                  onLongPress={onSortReset}
+                  delayLongPress={400}
                 >
-                  <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{o.label}</Text>
+                  <View style={styles.sortOptionRow}>
+                    <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{o.label}</Text>
+                    {selected && (
+                      <Ionicons
+                        name={sortDir === "asc" ? "arrow-up-outline" : "arrow-down-outline"}
+                        size={14}
+                        color={theme.bg}
+                      />
+                    )}
+                  </View>
                 </Pressable>
               );
             })}
@@ -327,6 +341,11 @@ function makeStyles(t: ThemeTokens) {
       paddingBottom: 4,
     },
     optionGroup: {},
+    sortOptionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
     option: {
       paddingHorizontal: Spacing.three,
       paddingVertical: 9,
