@@ -80,6 +80,7 @@ def approve(
             points=admin_req.proposed_points,
             state=admin_req.proposed_state or "active",
             image_url=final_image_url,
+            date_pose=admin_req.proposed_date_pose,
         )
         db.add(invader)
         db.flush()
@@ -103,6 +104,8 @@ def approve(
             invader.state = admin_req.proposed_state
         if final_image_url is not None:
             invader.image_url = final_image_url
+        if admin_req.proposed_date_pose is not None:
+            invader.date_pose = admin_req.proposed_date_pose
 
     submission_urls = _submission_photo_urls(db, admin_req.id)
 

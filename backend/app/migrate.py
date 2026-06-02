@@ -19,6 +19,10 @@ MIGRATIONS = [
     "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE",
     "UPDATE admin_requests SET updated_at = created_at WHERE updated_at IS NULL",
 
+    # Proposed installation year (stored as a DATE, YYYY-01-01) on both request tables
+    "ALTER TABLE user_requests ADD COLUMN IF NOT EXISTS proposed_date_pose DATE",
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS proposed_date_pose DATE",
+
     # Invaders: track when an invader record was last changed
     "ALTER TABLE invaders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITHOUT TIME ZONE",
     # User requests: track when a request status was last changed (pending → processed/rejected)

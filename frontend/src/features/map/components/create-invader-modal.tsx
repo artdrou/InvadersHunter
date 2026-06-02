@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, TextInput, Image, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, TextInput, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { InvaderState } from "@/features/invaders/types";
@@ -20,6 +20,8 @@ const STATE_OPTIONS = [
   InvaderState.NotVisible,
   InvaderState.Unknown,
 ] as const;
+
+const POINT_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 
 const STATE_KEYS: Record<string, string> = {
   [InvaderState.Good]:             "states.Good",
@@ -48,7 +50,8 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   const [nameCity, setNameCity] = useState("");
   const [nameNum, setNameNum] = useState("");
   const [invaderState, setInvaderState] = useState("");
-  const [points, setPoints] = useState("");
+  const [points, setPoints] = useState<number | null>(null);
+  const [year, setYear] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
@@ -117,7 +120,8 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         proposed_latitude: lat,
         proposed_longitude: lon,
         proposed_state: invaderState || null,
-        proposed_points: points ? parseInt(points, 10) : null,
+        proposed_points: points,
+        proposed_date_pose: year.length === 4 ? `${year}-01-01` : null,
       });
       // req is null when queued offline — skip photo upload (no req id yet)
       if (req && imageUri) {
@@ -155,7 +159,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
 
       <View style={styles.divider} />
 
-      <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+      <View style={styles.form}>
 
         <Text style={styles.fieldLabel}>{t('popup.name')}</Text>
         <View style={[styles.nameRow, nameError && styles.nameRowError]}>
@@ -187,18 +191,36 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         )}
 
         <Text style={styles.fieldLabel}>{t('popup.points')}</Text>
+        <View style={styles.pointsRow}>
+          {POINT_OPTIONS.map((p) => {
+            const selected = points === p;
+            return (
+              <Pressable
+                key={p}
+                style={[styles.pointOption, selected && styles.stateOptionSelected]}
+                onPress={() => setPoints(selected ? null : p)}
+              >
+                <Text style={[styles.pointOptionText, selected && styles.stateOptionTextSelected]}>
+                  {p}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Text style={styles.fieldLabel}>{t('popup.yearOptional')}</Text>
         <TextInput
-          style={styles.input}
-          placeholder="—"
+          style={[styles.input, styles.yearInput]}
+          placeholder={t('popup.yearPlaceholder')}
           placeholderTextColor={theme.textMuted}
-          value={points}
-          onChangeText={(v) => setPoints(v.replace(/\D/g, ""))}
+          value={year}
+          onChangeText={(v) => setYear(v.replace(/\D/g, ""))}
           keyboardType="numeric"
           maxLength={4}
         />
 
         <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
-        <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
+        <View style={styles.stateGrid}>
           {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4), STATE_OPTIONS.slice(4, 6)].map((pair, ri) => (
             <View key={ri} style={styles.stateRow}>
               {pair.map((s) => {
@@ -250,7 +272,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           </Pressable>
         )}
 
-      </ScrollView>
+      </View>
 
       <View style={styles.divider} />
 
@@ -302,7 +324,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       borderRadius: BorderRadius.lg,
       padding: Spacing.four,
       width: 300,
-      gap: 14,
+      gap: 10,
     },
     header: {
       flexDirection: "row",
@@ -327,15 +349,13 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       height: 1,
       backgroundColor: t.bgDivider,
     },
-    form: {
-      maxHeight: 340,
-    },
+    form: {},
     fieldLabel: {
       color: t.textMuted,
       fontSize: sz(12),
       fontFamily: font,
       marginBottom: 4,
-      marginTop: Spacing.two,
+      marginTop: Spacing.one,
     },
     input: {
       backgroundColor: t.bg,
@@ -381,6 +401,26 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: font,
       marginTop: 2,
     },
+    pointsRow: {
+      flexDirection: "row",
+      gap: 5,
+    },
+    pointOption: {
+      flex: 1,
+      paddingVertical: 8,
+      borderRadius: BorderRadius.sm,
+      borderWidth: 1,
+      borderColor: t.border,
+      alignItems: "center",
+    },
+    pointOptionText: {
+      color: t.textMuted,
+      fontSize: sz(13),
+      fontFamily: font,
+    },
+    yearInput: {
+      width: 90,
+    },
     stateGrid: {
       gap: 5,
     },
@@ -420,7 +460,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       borderWidth: 1,
       borderColor: t.border,
       borderRadius: BorderRadius.sm,
-      marginBottom: Spacing.two,
     },
     positionValue: {
       color: t.text,
@@ -471,7 +510,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       flexDirection: "row",
       alignItems: "center",
       gap: 10,
-      marginBottom: Spacing.two,
     },
     imageThumb: {
       width: 64,
@@ -496,7 +534,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       borderWidth: 1,
       borderColor: t.border,
       borderRadius: BorderRadius.sm,
-      marginBottom: Spacing.two,
       alignItems: "center",
     },
     addPhotoBtnText: {

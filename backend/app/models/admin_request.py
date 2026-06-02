@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey
 from datetime import datetime
 from ..database import Base
 
@@ -23,6 +23,7 @@ class AdminRequest(Base):
     proposed_points = Column(Integer, nullable=True)
     proposed_state = Column(String, nullable=True)
     proposed_image_url = Column(String, nullable=True)
+    proposed_date_pose = Column(Date, nullable=True)  # year of installation (stored as YYYY-01-01)
 
     request_count = Column(Integer, nullable=False, default=0)
     confidence = Column(Integer, nullable=False, default=0)

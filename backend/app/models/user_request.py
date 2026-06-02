@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey
 from datetime import datetime
 from ..database import Base
 
@@ -24,6 +24,7 @@ class UserRequest(Base):
     proposed_points = Column(Integer, nullable=True)
     proposed_state = Column(String, nullable=True)
     proposed_image_url = Column(String, nullable=True)
+    proposed_date_pose = Column(Date, nullable=True)  # year of installation (stored as YYYY-01-01)
 
     # Set once this request is aggregated into an admin_request
     admin_request_id = Column(Integer, ForeignKey("admin_requests.id"), nullable=True)

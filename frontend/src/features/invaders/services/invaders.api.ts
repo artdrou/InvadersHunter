@@ -49,6 +49,8 @@ export type CreateRequestPayload = {
   proposed_state?: string | null;
   proposed_points?: number | null;
   proposed_description?: string | null;
+  /** Installation year, sent as an ISO date (YYYY-01-01). */
+  proposed_date_pose?: string | null;
 };
 
 export async function submitCreateRequest(payload: CreateRequestPayload): Promise<UserRequest> {

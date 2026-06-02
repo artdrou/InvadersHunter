@@ -17,6 +17,13 @@ import { useInvaderStore } from '@/features/invaders/store';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
 
+/** Pull the year out of an ISO date string (YYYY-...) for compact display. */
+function yearOf(date?: string | null): number | null {
+  if (!date) return null;
+  const y = parseInt(date.slice(0, 4), 10);
+  return Number.isNaN(y) ? null : y;
+}
+
 function Diff({ label, current, proposed }: { label: string; current?: string | number | null; proposed?: string | number | null }) {
   const { theme, appFont } = useTheme();
   if (proposed === undefined || proposed === null) return null;
@@ -225,6 +232,7 @@ export default function AdminDetailScreen() {
           <Diff label={t('admin.name')}   current={invader?.name}   proposed={req.proposed_name} />
           <Diff label={t('admin.state')}  current={invader?.state}  proposed={req.proposed_state} />
           <Diff label={t('admin.points')} current={invader?.points} proposed={req.proposed_points} />
+          <Diff label={t('admin.year')}   current={yearOf(invader?.date_pose)} proposed={yearOf(req.proposed_date_pose)} />
           {hasLocation && (
             <View>
               <Text style={styles.diffLabel}>{t('admin.location')}</Text>

@@ -167,6 +167,8 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
     agg_points = first_pts.proposed_points if first_pts else new_request.proposed_points
     first_img = next((r for r in siblings if r.proposed_image_url is not None), None)
     agg_image_url = first_img.proposed_image_url if first_img else new_request.proposed_image_url
+    first_date = next((r for r in siblings if r.proposed_date_pose is not None), None)
+    agg_date_pose = first_date.proposed_date_pose if first_date else new_request.proposed_date_pose
 
     confidence = compute_confidence(siblings)
 
@@ -183,6 +185,7 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             proposed_points=agg_points,
             proposed_state=best_state,
             proposed_image_url=agg_image_url,
+            proposed_date_pose=agg_date_pose,
             request_count=len(siblings),
             confidence=confidence,
         )
@@ -196,6 +199,7 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
         admin_req.proposed_points = agg_points
         admin_req.proposed_state = best_state
         admin_req.proposed_image_url = agg_image_url
+        admin_req.proposed_date_pose = agg_date_pose
         admin_req.request_count = len(siblings)
         admin_req.confidence = confidence
 
@@ -257,6 +261,7 @@ def submit(db: Session, current_user: User, data) -> UserRequest:
         proposed_points=data.proposed_points,
         proposed_state=data.proposed_state,
         proposed_image_url=data.proposed_image_url,
+        proposed_date_pose=data.proposed_date_pose,
     )
     db.add(new_req)
     db.flush()  # need new_req.id before aggregation

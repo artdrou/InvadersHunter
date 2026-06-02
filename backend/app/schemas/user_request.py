@@ -1,6 +1,6 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, date
 from ..core.name_utils import normalize_name, validate_name_format
 
 
@@ -14,6 +14,7 @@ class UserRequestCreate(BaseModel):
     proposed_points: Optional[int] = None
     proposed_state: Optional[str] = None
     proposed_image_url: Optional[str] = None
+    proposed_date_pose: Optional[date] = None
 
     @field_validator("proposed_name")
     @classmethod
@@ -44,6 +45,7 @@ class UserRequestOut(BaseModel):
     proposed_points: Optional[int]
     proposed_state: Optional[str]
     proposed_image_url: Optional[str]
+    proposed_date_pose: Optional[date]
     admin_request_id: Optional[int]
     created_at: datetime
     updated_at: Optional[datetime] = None

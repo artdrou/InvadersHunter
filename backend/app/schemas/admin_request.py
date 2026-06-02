@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 
 class AdminRequestOut(BaseModel):
@@ -16,6 +16,7 @@ class AdminRequestOut(BaseModel):
     proposed_points: Optional[int]
     proposed_state: Optional[str]
     proposed_image_url: Optional[str]
+    proposed_date_pose: Optional[date]
     request_count: int
     confidence: int
     created_at: datetime

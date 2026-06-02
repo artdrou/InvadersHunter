@@ -13,6 +13,7 @@ export type AdminRequest = {
   proposed_points: number | null;
   proposed_state: string | null;
   proposed_image_url: string | null;
+  proposed_date_pose: string | null;
   request_count: number;
   confidence: number;
   created_at: string;
