@@ -12,6 +12,8 @@ import { UserLocationLayer } from "./user-location-layer";
 import { MARKER_IMAGES } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/iss-marker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
+import { RouteLayer } from "@/features/routing/components/RouteLayer";
+import type { RouteResult, TravelMode } from "@/features/routing/types";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -47,6 +49,7 @@ export type WebMapHandle = {
   centerOnUser: () => void;
   getCenter: () => Promise<[number, number] | null>;
   resetNorth: () => void;
+  getUserCoords: () => [number, number] | null;
 };
 
 type Props = {
@@ -58,9 +61,11 @@ type Props = {
   onHeadingChange?: (heading: number) => void;
   greyMode?: import("./map-filter-bar").GreyMode;
   colorMode?: import("./map-filter-bar").ColorMode;
+  route?: RouteResult | null;
+  routeTravelMode?: TravelMode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash" }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", route, routeTravelMode }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -119,6 +124,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       cameraRef.current?.setCamera({ heading: 0, animationDuration: 350 });
       setTimeout(() => cameraRef.current?.setCamera({}), 450);
     },
+    getUserCoords: () => userCoordsRef.current,
   }), []);
 
   return (
@@ -152,6 +158,9 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
           greyMode={greyMode}
           onPress={onInvaderClick}
         />
+      )}
+      {route && routeTravelMode && (
+        <RouteLayer route={route} travelMode={routeTravelMode} />
       )}
     </MapView>
   );
