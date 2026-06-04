@@ -5,7 +5,6 @@ import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter,
 import { useHeadingStore } from "@/features/map/store";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map.native";
-import type { RouteAction } from "@/features/map/components/invader-popup";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
@@ -39,22 +38,8 @@ export default function MapScreen() {
   // ── Routing ───────────────────────────────────────────────────────────────
   const { route, loading: routeLoading, error: routeError, computeRoute, clearRoute } = useRouting();
   const [routingSheetOpen, setRoutingSheetOpen] = useState(false);
-  const [routingTarget, setRoutingTarget] = useState<InvaderWithState | null>(null);
-  const [routingInitialMode, setRoutingInitialMode] = useState<'ab' | 'walk' | 'multi'>('ab');
   const [multiInvaders, setMultiInvaders] = useState<InvaderWithState[]>([]);
   const routeTravelMode = useRef<TravelMode>('foot-walking');
-
-  function handleRouteAction(invader: InvaderWithState, action: RouteAction) {
-    if (action === 'add-multi') {
-      setMultiInvaders((prev) =>
-        prev.some((i) => i.id === invader.id) ? prev.filter((i) => i.id !== invader.id) : [...prev, invader],
-      );
-      return;
-    }
-    setRoutingTarget(invader);
-    setRoutingInitialMode(action);
-    setRoutingSheetOpen(true);
-  }
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
@@ -259,8 +244,6 @@ export default function MapScreen() {
               onPickLocation={startPickingLocation}
               onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); showToast(); }}
               onSubmitModifyRequest={submitModifyRequest}
-              onRouteAction={handleRouteAction}
-              isInMulti={multiInvaders.some((i) => i.id === selectedInvader.id)}
             />
           </View>
         </View>
@@ -357,7 +340,7 @@ export default function MapScreen() {
       <RoutingSheet
         visible={routingSheetOpen}
         onClose={() => setRoutingSheetOpen(false)}
-        targetInvader={routingTarget}
+        targetInvader={null}
         allInvaders={invadersWithState}
         multiInvaders={multiInvaders}
         onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
@@ -371,7 +354,7 @@ export default function MapScreen() {
         }}
         onClear={clearRoute}
         userLocation={mapRef.current?.getUserCoords() ?? null}
-        initialMode={routingInitialMode}
+        initialMode="ab"
       />
 
       {/* ── Modify-invader: location picker ── */}
@@ -452,12 +435,10 @@ const styles = StyleSheet.create({
   },
   routingFAB: {
     position: "absolute",
-    bottom: 32,
-    alignSelf: "center",
-    left: "50%",
-    marginLeft: -24,
-    width: 48,
-    height: 48,
+    bottom: 140,
+    left: 16,
+    width: 54,
+    height: 54,
     zIndex: 10,
   },
   locateButton: {

@@ -12,8 +12,6 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
 
-export type RouteAction = 'ab' | 'walk' | 'add-multi'
-
 type Props = {
   invader: InvaderWithState;
   pendingCoords?: { lat: number; lon: number } | null;
@@ -24,8 +22,6 @@ type Props = {
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
   onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<void>;
-  onRouteAction?: (invader: InvaderWithState, action: RouteAction) => void;
-  isInMulti?: boolean;
 };
 
 const STATE_OPTIONS = [
@@ -57,7 +53,7 @@ function formatDate(iso?: string) {
   });
 }
 
-export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest, onRouteAction, isInMulti = false }: Props) {
+export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnflash, onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest }: Props) {
   const db = useSQLiteContext();
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
@@ -251,39 +247,6 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
           </View>
         )}
 
-        {!isISS && onRouteAction && (
-          <View style={styles.routeRow}>
-            <Pressable
-              style={({ pressed }) => [styles.routeBtn, { borderColor: theme.border }, pressed && styles.btnPressed]}
-              onPress={() => onRouteAction(invader, 'ab')}
-              hitSlop={4}
-            >
-              <Ionicons name="navigate-circle-outline" size={16} color={theme.accent} />
-              <Text style={[styles.routeBtnText, { color: theme.accent, fontFamily: appFont }]}>A→B</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.routeBtn, { borderColor: theme.border }, pressed && styles.btnPressed]}
-              onPress={() => onRouteAction(invader, 'walk')}
-              hitSlop={4}
-            >
-              <Ionicons name="walk-outline" size={16} color={theme.accent} />
-              <Text style={[styles.routeBtnText, { color: theme.accent, fontFamily: appFont }]}>Balade</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.routeBtn,
-                { borderColor: isInMulti ? theme.accent : theme.border },
-                isInMulti && { backgroundColor: theme.bg },
-                pressed && styles.btnPressed,
-              ]}
-              onPress={() => onRouteAction(invader, 'add-multi')}
-              hitSlop={4}
-            >
-              <Ionicons name={isInMulti ? 'checkmark-circle' : 'add-circle-outline'} size={16} color={theme.accent} />
-              <Text style={[styles.routeBtnText, { color: theme.accent, fontFamily: appFont }]}>Multi</Text>
-            </Pressable>
-          </View>
-        )}
 
         <Pressable
           style={({ pressed }) => [
@@ -424,24 +387,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     linkIconBtn: {
       padding: Spacing.one,
-    },
-    routeRow: {
-      flexDirection: "row",
-      gap: Spacing.two,
-    },
-    routeBtn: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 4,
-      paddingVertical: 7,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-    },
-    routeBtnText: {
-      fontSize: 11,
-      fontWeight: "600",
     },
     modifyLink: {
       alignItems: "center",

@@ -1,6 +1,9 @@
 import { Pressable, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { PixelButton } from '@/components/ui/pixel-button'
 import type { ThemeTokens } from '@/constants/theme'
+
+const SIZE = 54
 
 type Props = {
   onPress: () => void
@@ -9,25 +12,23 @@ type Props = {
 }
 
 /**
- * Isolated FAB — position is set by the parent so it can be moved without touching this file.
+ * Isolated routing button — position is set by the parent so it can be moved without touching this file.
  */
 export function RoutingFAB({ onPress, active, theme }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.btn,
-        {
-          backgroundColor: active ? theme.accent : theme.bgElement,
-          borderColor: active ? theme.accent : theme.border,
-        },
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
     >
+      <PixelButton
+        size={SIZE}
+        fill={theme.bgElement}
+        stroke={active ? theme.accent : theme.border}
+      />
       <Ionicons
-        name={active ? 'navigate' : 'navigate-outline'}
-        size={22}
-        color={active ? theme.bg : theme.accent}
+        name="navigate-outline"
+        size={26}
+        color={active ? theme.accent : theme.textMuted}
       />
     </Pressable>
   )
@@ -35,17 +36,10 @@ export function RoutingFAB({ onPress, active, theme }: Props) {
 
 const styles = StyleSheet.create({
   btn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
+    width: SIZE,
+    height: SIZE,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
   },
   pressed: { opacity: 0.7 },
 })
