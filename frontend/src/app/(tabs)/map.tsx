@@ -13,6 +13,7 @@ import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings"
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
+import type { RoutingPickerTarget } from "@/features/routing/components/RoutingSheet";
 import { RouteLayer } from "@/features/routing/components/RouteLayer";
 import type { TravelMode } from "@/features/routing/types";
 
@@ -38,8 +39,36 @@ export default function MapScreen() {
   // ── Routing ───────────────────────────────────────────────────────────────
   const { route, loading: routeLoading, error: routeError, computeRoute, clearRoute } = useRouting();
   const [routingSheetOpen, setRoutingSheetOpen] = useState(false);
-  const [multiInvaders, setMultiInvaders] = useState<InvaderWithState[]>([]);
-  const routeTravelMode = useRef<TravelMode>('foot-walking');
+  const [multiInvaders, setMultiInvaders]       = useState<InvaderWithState[]>([]);
+  const routeTravelMode                         = useRef<TravelMode>('foot-walking');
+  // A→B / Walk coords
+  const [routingFrom, setRoutingFrom]           = useState<[number, number] | null>(null);
+  const [routingFromLabel, setRoutingFromLabel] = useState<string | null>(null);
+  const [routingTo, setRoutingTo]               = useState<[number, number] | null>(null);
+  const [routingToLabel, setRoutingToLabel]     = useState<string | null>(null);
+  // Map picker for routing
+  const [routingPickerTarget, setRoutingPickerTarget] = useState<'from' | 'to' | null>(null);
+
+  function handleRoutingPickOnMap(target: 'from' | 'to') {
+    setRoutingSheetOpen(false);
+    setRoutingPickerTarget(target);
+  }
+
+  async function validateRoutingPicker() {
+    const c = await mapRef.current?.getCenter();
+    if (!c || !routingPickerTarget) return;
+    const coords: [number, number] = [c[0], c[1]];
+    const label = `${c[1].toFixed(5)}, ${c[0].toFixed(5)}`;
+    if (routingPickerTarget === 'from') { setRoutingFrom(coords); setRoutingFromLabel(label); }
+    else                                { setRoutingTo(coords);   setRoutingToLabel(label); }
+    setRoutingPickerTarget(null);
+    setRoutingSheetOpen(true);
+  }
+
+  function cancelRoutingPicker() {
+    setRoutingPickerTarget(null);
+    setRoutingSheetOpen(true);
+  }
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
@@ -191,7 +220,7 @@ export default function MapScreen() {
     selectInvader(inv);
   }
 
-  const anyCreating = creatingPicker || !!creatingModal || !!creatingPickLoc;
+  const anyCreating = creatingPicker || !!creatingModal || !!creatingPickLoc || !!routingPickerTarget;
 
   return (
     <View style={styles.container}>
@@ -340,7 +369,19 @@ export default function MapScreen() {
       <RoutingSheet
         visible={routingSheetOpen}
         onClose={() => setRoutingSheetOpen(false)}
-        targetInvader={null}
+        fromCoords={routingFrom}
+        fromLabel={routingFromLabel}
+        toCoords={routingTo}
+        toLabel={routingToLabel}
+        onSetCoords={(target, coords, label) => {
+          if (target === 'from') { setRoutingFrom(coords); setRoutingFromLabel(label); }
+          else                   { setRoutingTo(coords);   setRoutingToLabel(label); }
+        }}
+        onClearCoords={(target) => {
+          if (target === 'from') { setRoutingFrom(null); setRoutingFromLabel(null); }
+          else                   { setRoutingTo(null);   setRoutingToLabel(null); }
+        }}
+        onPickOnMap={handleRoutingPickOnMap}
         allInvaders={invadersWithState}
         multiInvaders={multiInvaders}
         onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
@@ -353,9 +394,31 @@ export default function MapScreen() {
           setRoutingSheetOpen(false);
         }}
         onClear={clearRoute}
-        userLocation={mapRef.current?.getUserCoords() ?? null}
-        initialMode="ab"
       />
+
+      {/* ── Routing map picker ── */}
+      {routingPickerTarget && (
+        <>
+          <View style={styles.pickerPinWrapper} pointerEvents="none">
+            <View style={[styles.pickerPin, { backgroundColor: theme.accent, borderColor: theme.bg }]} />
+            <View style={[styles.pickerPinStem, { backgroundColor: theme.accent }]} />
+          </View>
+          <View style={styles.pickerBar}>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
+              onPress={cancelRoutingPicker}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
+              onPress={validateRoutingPicker}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>{t('common.validate')}</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* ── Modify-invader: location picker ── */}
       {picking && (
