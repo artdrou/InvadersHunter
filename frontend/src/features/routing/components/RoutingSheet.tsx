@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Modal, View, Text, Pressable, ScrollView, TextInput,
-  StyleSheet, ActivityIndicator,
+  StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/theme-context'
@@ -9,6 +9,7 @@ import type { ThemeTokens } from '@/constants/theme'
 import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme'
 import type { InvaderWithState } from '@/features/invaders/types'
 import { isNonFlashable } from '@/features/invaders/types'
+import { useTranslation } from 'react-i18next'
 import type { RoutingParams, RouteResult } from '../types'
 import { useAddressSearch } from '../hooks/use-address-search'
 
@@ -46,6 +47,7 @@ export function RoutingSheet({
   onCompute, onClear,
 }: Props) {
   const { theme, appFont } = useTheme()
+  const { t } = useTranslation()
   const s = makeStyles(theme, appFont)
 
   const [mode, setMode]               = useState<SheetMode>('ab')
@@ -128,6 +130,10 @@ export function RoutingSheet({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={s.kav}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <Pressable style={s.backdrop} onPress={onClose} />
 
       <View style={[s.sheet, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
@@ -142,7 +148,7 @@ export function RoutingSheet({
               onPress={() => { setMode(m); closeSearch() }}
             >
               <Text style={[s.tabText, { color: mode === m ? theme.accent : theme.textMuted, fontFamily: appFont }]}>
-                {m === 'ab' ? 'A → B' : m === 'walk' ? 'Balade' : 'Multi'}
+                {m === 'ab' ? t('routing.modeAB') : m === 'walk' ? t('routing.modeWalk') : t('routing.modeMulti')}
               </Text>
             </Pressable>
           ))}
@@ -162,7 +168,7 @@ export function RoutingSheet({
               onPress={() => setIncludeCaptures((v) => !v)}
             >
               <Text style={[s.filterChipText, { color: !includeCaptures ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
-                Non flashés
+                {t('routing.filterUncaptured')}
               </Text>
             </Pressable>
             <Pressable
@@ -170,7 +176,7 @@ export function RoutingSheet({
               onPress={() => setFlashableOnly((v) => !v)}
             >
               <Text style={[s.filterChipText, { color: flashableOnly ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
-                Flashables
+                {t('routing.filterFlashable')}
               </Text>
             </Pressable>
           </View>
@@ -179,7 +185,7 @@ export function RoutingSheet({
           {mode === 'ab' && (
             <>
               <CoordField
-                label="Départ"
+                label={t('routing.labelFrom')}
                 coords={fromCoords}
                 displayLabel={fromLabel}
                 isSearchOpen={searchTarget === 'from'}
@@ -197,7 +203,7 @@ export function RoutingSheet({
                 s={s}
               />
               <CoordField
-                label="Arrivée"
+                label={t('routing.labelTo')}
                 coords={toCoords}
                 displayLabel={toLabel}
                 isSearchOpen={searchTarget === 'to'}
@@ -214,7 +220,7 @@ export function RoutingSheet({
                 appFont={appFont}
                 s={s}
               />
-              <Text style={[s.label, { color: theme.textMuted }]}>Détour max</Text>
+              <Text style={[s.label, { color: theme.textMuted }]}>{t('routing.labelDetour')}</Text>
               <View style={s.stepper}>
                 <Pressable style={[s.stepBtn, { borderColor: theme.border }]} onPress={() => setDetourPct(Math.max(10, detourPct - 10))}>
                   <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
@@ -231,7 +237,7 @@ export function RoutingSheet({
           {mode === 'walk' && (
             <>
               <CoordField
-                label="Départ"
+                label={t('routing.labelFrom')}
                 coords={fromCoords}
                 displayLabel={fromLabel}
                 isSearchOpen={searchTarget === 'from'}
@@ -248,7 +254,7 @@ export function RoutingSheet({
                 appFont={appFont}
                 s={s}
               />
-              <Text style={[s.label, { color: theme.textMuted }]}>Durée</Text>
+              <Text style={[s.label, { color: theme.textMuted }]}>{t('routing.labelDuration')}</Text>
               <View style={s.stepper}>
                 <Pressable style={[s.stepBtn, { borderColor: theme.border }]} onPress={() => setDurationMin(Math.max(10, durationMin - 10))}>
                   <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
@@ -258,7 +264,7 @@ export function RoutingSheet({
                   <Text style={[s.stepBtnText, { color: theme.text }]}>+</Text>
                 </Pressable>
               </View>
-              <Text style={[s.label, { color: theme.textMuted }]}>Type</Text>
+              <Text style={[s.label, { color: theme.textMuted }]}>{t('routing.labelType')}</Text>
               <View style={s.pillRow}>
                 {(['circuit', 'libre'] as const).map((wm) => (
                   <Pressable
@@ -267,14 +273,14 @@ export function RoutingSheet({
                     onPress={() => setWalkMode(wm)}
                   >
                     <Text style={[s.pillText, { color: walkMode === wm ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
-                      {wm === 'circuit' ? 'Circuit' : 'Libre'}
+                      {wm === 'circuit' ? t('routing.walkCircuit') : t('routing.walkFree')}
                     </Text>
                   </Pressable>
                 ))}
               </View>
               {walkMode === 'libre' && (
                 <CoordField
-                  label="Arrivée"
+                  label={t('routing.labelTo')}
                   coords={toCoords}
                   displayLabel={toLabel}
                   isSearchOpen={searchTarget === 'to'}
@@ -300,12 +306,14 @@ export function RoutingSheet({
             <>
               <Text style={[s.label, { color: theme.textMuted }]}>
                 {multiInvaders.length === 0
-                  ? 'Aucun invader sélectionné'
-                  : `${multiInvaders.length} invader${multiInvaders.length > 1 ? 's' : ''} sélectionné${multiInvaders.length > 1 ? 's' : ''}`}
+                  ? t('routing.noInvaderSelected')
+                  : multiInvaders.length === 1
+                    ? t('routing.invaderSelectedOne')
+                    : t('routing.invaderSelectedMany', { count: multiInvaders.length })}
               </Text>
               {multiInvaders.length === 0 && (
                 <Text style={[s.hint, { color: theme.textMuted }]}>
-                  Sélectionne des invaders sur la carte pour construire ton itinéraire.
+                  {t('routing.multiHint')}
                 </Text>
               )}
               {multiInvaders.map((inv) => (
@@ -323,10 +331,12 @@ export function RoutingSheet({
           {route && (
             <View style={[s.result, { backgroundColor: theme.bg, borderColor: theme.border }]}>
               <Text style={[s.resultText, { color: theme.success }]}>
-                {route.orderedInvaders.length} invader{route.orderedInvaders.length !== 1 ? 's' : ''} · {route.totalMinutes} min · {route.totalKm} km
+                {route.orderedInvaders.length === 1
+                  ? t('routing.resultInvaderOne')
+                  : t('routing.resultInvaderMany', { count: route.orderedInvaders.length })} · {t('routing.resultSuffix', { minutes: route.totalMinutes, km: route.totalKm })}
               </Text>
               {route.detourMinutes !== undefined && route.detourMinutes > 0 && (
-                <Text style={[s.resultSub, { color: theme.textMuted }]}>+{route.detourMinutes} min de détour</Text>
+                <Text style={[s.resultSub, { color: theme.textMuted }]}>{t('routing.detourMinutes', { minutes: route.detourMinutes })}</Text>
               )}
             </View>
           )}
@@ -338,7 +348,7 @@ export function RoutingSheet({
         <View style={s.footer}>
           {route && (
             <Pressable style={[s.clearBtn, { borderColor: theme.danger }]} onPress={() => { onClear(); onClose() }}>
-              <Text style={[s.clearBtnText, { color: theme.danger, fontFamily: appFont }]}>Effacer l'itinéraire</Text>
+              <Text style={[s.clearBtnText, { color: theme.danger, fontFamily: appFont }]}>{t('routing.clearRoute')}</Text>
             </Pressable>
           )}
           <Pressable
@@ -349,12 +359,13 @@ export function RoutingSheet({
             {loading
               ? <ActivityIndicator size="small" color={theme.bg} />
               : <Text style={[s.computeBtnText, { color: canCompute ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
-                  Calculer l'itinéraire
+                  {t('routing.computeRoute')}
                 </Text>
             }
           </Pressable>
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
@@ -386,6 +397,7 @@ function CoordField({
   onOpenSearch, onPickOnMap, onSearchChange, onSelectResult, onClear, onCloseSearch,
   theme, appFont, s,
 }: CoordFieldProps) {
+  const { t } = useTranslation()
   return (
     <View style={s.coordBlock}>
       <Text style={[s.label, { color: theme.textMuted }]}>{label}</Text>
@@ -393,7 +405,7 @@ function CoordField({
       {/* Row: label/coords + action buttons */}
       <View style={[s.coordRow, { borderColor: theme.border, backgroundColor: theme.bg }]}>
         <Text style={[s.coordLabel, { color: coords ? theme.text : theme.textMuted }]} numberOfLines={1}>
-          {displayLabel ?? (coords ? `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}` : 'Non défini')}
+          {displayLabel ?? (coords ? `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}` : t('routing.coordNotSet'))}
         </Text>
         <View style={s.coordActions}>
           {coords && (
@@ -416,7 +428,7 @@ function CoordField({
           <View style={s.searchInputRow}>
             <TextInput
               style={[s.searchInput, { color: theme.text, fontFamily: appFont }]}
-              placeholder="Rechercher une adresse..."
+              placeholder={t('routing.searchPlaceholder')}
               placeholderTextColor={theme.textMuted}
               value={searchQuery}
               onChangeText={onSearchChange}
@@ -447,6 +459,7 @@ function CoordField({
 
 function makeStyles(t: ThemeTokens, _font: string) {
   return StyleSheet.create({
+    kav:        { flex: 1, justifyContent: 'flex-end' },
     backdrop:   { flex: 1 },
     sheet: {
       borderTopLeftRadius:  BorderRadius.lg,

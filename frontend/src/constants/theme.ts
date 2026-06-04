@@ -190,11 +190,11 @@ export const Spacing = {
 // ─── App fonts ────────────────────────────────────────────────────────────────
 
 /** Main text font (labels, values, titles). */
-export const AppFont = 'Pixelmix';
+export const AppFont = 'FreePixel';
 export const AppFontScale = 0.9;
 
 /** Font for interactive controls (buttons, pills, selectors). */
-export const ButtonFont = 'Pixelade';
+export const ButtonFont = 'FreePixel';
 
 /** Used exclusively for the app title on the login screen. */
 export const TitleFont = 'Pixelmania';

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Animated, View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
 import { useHeadingStore } from "@/features/map/store";
@@ -284,6 +284,13 @@ export default function MapScreen() {
         </View>
       )}
 
+      {routeLoading && (
+        <View style={styles.routingLoader} pointerEvents="none">
+          <ActivityIndicator size="small" color="#fff" />
+          <Text style={styles.routingLoaderText}>{t('routing.computing')}</Text>
+        </View>
+      )}
+
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]} pointerEvents="none">
         <Text style={styles.toastText}>{t('map.modificationSent')}</Text>
       </Animated.View>
@@ -476,6 +483,24 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     zIndex: 20,
+  },
+  routingLoader: {
+    position: "absolute",
+    top: 16,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    zIndex: 20,
+  },
+  routingLoaderText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
   },
   offlineText: {
     color: "#ffffff",
