@@ -14,6 +14,7 @@ import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings"
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
+import { RouteLayer } from "@/features/routing/components/RouteLayer";
 import type { TravelMode } from "@/features/routing/types";
 
 export default function MapScreen() {
@@ -209,7 +210,9 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} route={route} routeTravelMode={routeTravelMode.current} />
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode}>
+        {route && <RouteLayer route={route} travelMode={routeTravelMode.current} />}
+      </WebMap>
 
       {!picking && !anyCreating && (
         <View style={styles.filterBar}>

@@ -1,5 +1,5 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle, memo } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { StyleSheet } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef, MapViewRef } from "@maplibre/maplibre-react-native";
@@ -12,8 +12,6 @@ import { UserLocationLayer } from "./user-location-layer";
 import { MARKER_IMAGES } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/iss-marker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
-import { RouteLayer } from "@/features/routing/components/RouteLayer";
-import type { RouteResult, TravelMode } from "@/features/routing/types";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -61,11 +59,10 @@ type Props = {
   onHeadingChange?: (heading: number) => void;
   greyMode?: import("./map-filter-bar").GreyMode;
   colorMode?: import("./map-filter-bar").ColorMode;
-  route?: RouteResult | null;
-  routeTravelMode?: TravelMode;
+  children?: ReactNode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", route, routeTravelMode }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", children }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -159,9 +156,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
           onPress={onInvaderClick}
         />
       )}
-      {route && routeTravelMode && (
-        <RouteLayer route={route} travelMode={routeTravelMode} />
-      )}
+      {children}
     </MapView>
   );
 });
