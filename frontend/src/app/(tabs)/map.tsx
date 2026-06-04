@@ -9,6 +9,7 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { Brand, BottomTabInset } from "@/constants/theme";
 import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
@@ -286,7 +287,7 @@ export default function MapScreen() {
 
       {routeLoading && (
         <View style={styles.routingLoader} pointerEvents="none">
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="small" color={Brand.cyan} />
           <Text style={styles.routingLoaderText}>{t('routing.computing')}</Text>
         </View>
       )}
@@ -486,19 +487,21 @@ const styles = StyleSheet.create({
   },
   routingLoader: {
     position: "absolute",
-    top: 16,
+    bottom: BottomTabInset + 16,
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(0,0,0,0.75)",
+    backgroundColor: "rgba(0,0,0,0.85)",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Brand.cyan,
     zIndex: 20,
   },
   routingLoaderText: {
-    color: "#fff",
+    color: Brand.cyan,
     fontSize: 13,
     fontWeight: "600",
   },

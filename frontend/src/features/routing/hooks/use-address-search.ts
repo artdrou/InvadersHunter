@@ -5,7 +5,7 @@ export type AddressResult = {
   coords: [number, number]
 }
 
-export function useAddressSearch() {
+export function useAddressSearch(userLocation?: [number, number] | null) {
   const [results, setResults]   = useState<AddressResult[]>([])
   const [loading, setLoading]   = useState(false)
   const debounceRef             = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -17,22 +17,33 @@ export function useAddressSearch() {
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr`
+        // Bias results toward user's location using a viewbox (±0.15° ≈ 15 km)
+        const proximity = userLocation
+          ? `&viewbox=${userLocation[0] - 0.15},${userLocation[1] - 0.15},${userLocation[0] + 0.15},${userLocation[1] + 0.15}&bounded=0`
+          : ''
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
         const res  = await fetch(url, { headers: { 'User-Agent': 'InvaderHunter/1.0' } })
         const data = await res.json() as Array<{ display_name: string; lon: string; lat: string }>
-        setResults(
-          data.map((item) => ({
-            label:  item.display_name,
-            coords: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],
-          })),
-        )
+        const mapped = data.map((item) => ({
+          label:  item.display_name,
+          coords: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],
+        }))
+        if (userLocation) {
+          const [ulon, ulat] = userLocation
+          mapped.sort((a, b) => {
+            const da = (a.coords[1] - ulat) ** 2 + (a.coords[0] - ulon) ** 2
+            const db = (b.coords[1] - ulat) ** 2 + (b.coords[0] - ulon) ** 2
+            return da - db
+          })
+        }
+        setResults(mapped)
       } catch {
         setResults([])
       } finally {
         setLoading(false)
       }
     }, 400)
-  }, [])
+  }, [userLocation?.[0], userLocation?.[1]])
 
   const clear = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
