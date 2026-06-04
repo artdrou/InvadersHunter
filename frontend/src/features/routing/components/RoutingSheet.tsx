@@ -30,6 +30,7 @@ type Props = {
   allInvaders: InvaderWithState[]
   multiInvaders: InvaderWithState[]
   onRemoveFromMulti: (id: number) => void
+  onPickInvadersOnMap: () => void
   loading: boolean
   error: string | null
   route: RouteResult | null
@@ -42,7 +43,7 @@ export function RoutingSheet({
   visible, onClose,
   fromCoords, fromLabel, toCoords, toLabel,
   onSetCoords, onClearCoords, onPickOnMap,
-  allInvaders, multiInvaders, onRemoveFromMulti,
+  allInvaders, multiInvaders, onRemoveFromMulti, onPickInvadersOnMap,
   loading, error, route,
   onCompute, onClear,
   userLocation,
@@ -245,6 +246,15 @@ export function RoutingSheet({
             {/* ── Multi ── */}
             {mode === 'multi' && (
               <>
+                <Pressable
+                  style={[s.selectBtn, { backgroundColor: theme.accent }]}
+                  onPress={onPickInvadersOnMap}
+                >
+                  <Ionicons name="location-outline" size={16} color={theme.bg} />
+                  <Text style={[s.selectBtnText, { color: theme.bg, fontFamily: appFont }]}>
+                    {t('routing.selectOnMap')}
+                  </Text>
+                </Pressable>
                 <Text style={[s.label, { color: theme.textMuted }]}>
                   {multiInvaders.length === 0
                     ? t('routing.noInvaderSelected')
@@ -457,6 +467,12 @@ function makeStyles(t: ThemeTokens, _font: string) {
     stepBtn:     { width: 36, height: 36, borderRadius: BorderRadius.sm, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     stepBtnText: { fontSize: 20, lineHeight: 24 },
     stepValue:   { fontSize: 16, minWidth: 80, textAlign: 'center' },
+
+    selectBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+      paddingVertical: 12, borderRadius: BorderRadius.sm, marginTop: Spacing.two,
+    },
+    selectBtnText: { fontSize: 14, fontWeight: '700' },
 
     multiRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1 },
     multiName: { fontSize: 14, flex: 1, marginRight: 8 },

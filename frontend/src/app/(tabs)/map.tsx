@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
@@ -49,10 +49,47 @@ export default function MapScreen() {
   const [routingToLabel, setRoutingToLabel]     = useState<string | null>(null);
   // Map picker for routing
   const [routingPickerTarget, setRoutingPickerTarget] = useState<'from' | 'to' | null>(null);
+  // Invader picker for multi-stop itineraries: tap markers to toggle them in/out
+  const [selectingInvaders, setSelectingInvaders] = useState(false);
+  // While picking, selected invaders are drawn with the golden marker
+  const selectedInvaderIds = useMemo(
+    () => (selectingInvaders ? multiInvaders.map((i) => i.id) : undefined),
+    [selectingInvaders, multiInvaders]
+  );
 
   function handleRoutingPickOnMap(target: 'from' | 'to') {
     setRoutingSheetOpen(false);
     setRoutingPickerTarget(target);
+  }
+
+  function startSelectingInvaders() {
+    setRoutingSheetOpen(false);
+    setSelectedInvader(null);
+    selectedInvaderRef.current = null;
+    setSelectingInvaders(true);
+  }
+
+  function toggleInvaderSelection(invader: InvaderWithState) {
+    hapticTap();
+    setMultiInvaders((prev) =>
+      prev.some((i) => i.id === invader.id)
+        ? prev.filter((i) => i.id !== invader.id)
+        : [...prev, invader]
+    );
+  }
+
+  // Cancel = drop the whole selection and go back to the routing panel.
+  function cancelSelectingInvaders() {
+    setMultiInvaders([]);
+    setSelectingInvaders(false);
+    setRoutingSheetOpen(true);
+  }
+
+  // Validate = keep the selection and go back to the routing panel, where the
+  // "Calculer l'itinéraire" button runs the actual computation.
+  function validateSelectingInvaders() {
+    setSelectingInvaders(false);
+    setRoutingSheetOpen(true);
   }
 
   async function validateRoutingPicker() {
@@ -78,8 +115,17 @@ export default function MapScreen() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingZoomRef = useRef<number | undefined>(undefined);
 
-  const invadersWithState = mapInvadersWithProgress(invaders, progress);
-  const filteredInvaders = applyMapFilter(invadersWithState, filter);
+  // Memoised so the marker geojson (and the MapLibre marker layer) only rebuilds
+  // when the data or filter actually changes — not on every unrelated re-render
+  // (toast, selection, popup…), which otherwise blocks the JS thread and lags taps.
+  const invadersWithState = useMemo(
+    () => mapInvadersWithProgress(invaders, progress),
+    [invaders, progress]
+  );
+  const filteredInvaders = useMemo(
+    () => applyMapFilter(invadersWithState, filter),
+    [invadersWithState, filter]
+  );
 
   useEffect(() => {
     if (!selectedInvader) return;
@@ -108,10 +154,11 @@ export default function MapScreen() {
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
+    if (selectingInvaders) { toggleInvaderSelection(invader); return; }
     if (picking || creatingPicker || creatingModal || creatingPickLoc) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, [picking, creatingPicker, creatingModal, creatingPickLoc]);
+  }, [selectingInvaders, picking, creatingPicker, creatingModal, creatingPickLoc]);
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || creatingModal || creatingPickLoc) return;
@@ -225,11 +272,11 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode}>
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds}>
         {route && <RouteLayer route={route} travelMode={routeTravelMode.current} />}
       </WebMap>
 
-      {!picking && !anyCreating && (
+      {!picking && !anyCreating && !selectingInvaders && (
         <View style={styles.filterBar}>
           <MapFilterBar value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
@@ -363,7 +410,7 @@ export default function MapScreen() {
       )}
 
       {/* ── Routing FAB — centered at the bottom ── */}
-      {!picking && !anyCreating && (
+      {!picking && !anyCreating && !selectingInvaders && (
         <View style={styles.routingFAB} pointerEvents="box-none">
           <RoutingFAB
             active={!!route}
@@ -393,6 +440,8 @@ export default function MapScreen() {
         allInvaders={invadersWithState}
         multiInvaders={multiInvaders}
         onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
+        onPickInvadersOnMap={startSelectingInvaders}
+        userLocation={mapRef.current?.getUserCoords() ?? null}
         loading={routeLoading}
         error={routeError}
         route={route}
@@ -423,6 +472,36 @@ export default function MapScreen() {
               onPress={validateRoutingPicker}
             >
               <Text style={[styles.pickerBtnText, { color: theme.bg }]}>{t('common.validate')}</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
+      {/* ── Multi-itinerary: invader selection picker ── */}
+      {selectingInvaders && (
+        <>
+          <View style={[styles.selectBanner, { backgroundColor: theme.bgElement, borderColor: theme.border }]} pointerEvents="none">
+            <Text style={[styles.selectBannerCount, { color: theme.accent }]}>
+              {multiInvaders.length}
+            </Text>
+            <Text style={[styles.selectBannerText, { color: theme.text }]}>
+              {t('routing.selectTapHint')}
+            </Text>
+          </View>
+          <View style={styles.pickerBar}>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
+              onPress={cancelSelectingInvaders}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
+              onPress={validateSelectingInvaders}
+            >
+              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>
+                {t('common.validate')}{multiInvaders.length > 0 ? ` (${multiInvaders.length})` : ''}
+              </Text>
             </TouchableOpacity>
           </View>
         </>
@@ -530,7 +609,9 @@ const styles = StyleSheet.create({
     left: 16,
     width: 54,
     height: 54,
-    zIndex: 10,
+    // Below the filter/color-mode panels and invader popup (all zIndex 10) so any
+    // open popup always paints over the routing button instead of under it.
+    zIndex: 5,
   },
   locateButton: {
     position: "absolute",
@@ -547,6 +628,28 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     zIndex: 10,
+  },
+  selectBanner: {
+    position: "absolute",
+    top: 16,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    maxWidth: "88%",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    zIndex: 20,
+  },
+  selectBannerCount: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  selectBannerText: {
+    fontSize: 13,
+    flexShrink: 1,
   },
   pickerPinWrapper: {
     position: "absolute",

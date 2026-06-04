@@ -199,6 +199,8 @@
     "invaderSelectedOne": "1 invader selected",
     "invaderSelectedMany": "{{count}} invaders selected",
     "multiHint": "Select invaders on the map to build your route.",
+    "selectOnMap": "Select on map",
+    "selectTapHint": "Tap the invaders to add to your route",
     "clearRoute": "Clear route",
     "computeRoute": "Compute route",
     "searchPlaceholder": "Search for an address…",

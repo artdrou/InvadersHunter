@@ -199,6 +199,8 @@
     "invaderSelectedOne": "1 invader sélectionné",
     "invaderSelectedMany": "{{count}} invaders sélectionnés",
     "multiHint": "Sélectionne des invaders sur la carte pour construire ton itinéraire.",
+    "selectOnMap": "Sélectionner sur la carte",
+    "selectTapHint": "Touchez les invaders à ajouter à l'itinéraire",
     "clearRoute": "Effacer l'itinéraire",
     "computeRoute": "Calculer l'itinéraire",
     "searchPlaceholder": "Rechercher une adresse…",

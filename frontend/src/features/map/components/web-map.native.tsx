@@ -59,16 +59,17 @@ type Props = {
   onHeadingChange?: (heading: number) => void;
   greyMode?: import("./map-filter-bar").GreyMode;
   colorMode?: import("./map-filter-bar").ColorMode;
+  highlightedIds?: number[];
   children?: ReactNode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", children }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, children }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
   const { themeName } = useTheme();
   const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
-  const geojson       = useInvaderGeojson(invaders, greyMode, colorMode);
+  const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);
 
