@@ -165,6 +165,7 @@
     "build": "build",
     "language": "Language",
     "accentColor": "Accent color",
+    "routeColor": "Route color",
     "resetAccent": "Reset"
   },
   "themeNames": {
@@ -183,7 +184,7 @@
     "createBtn": "Create"
   },
   "routing": {
-    "modeAB": "A → B",
+    "modeAB": "Hunt",
     "modeWalk": "Walk",
     "modeMulti": "Multi",
     "filterUncaptured": "Uncaptured",

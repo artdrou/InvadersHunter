@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/theme-context'
 import type { ThemeTokens } from '@/constants/theme'
-import { BorderRadius, Spacing } from '@/constants/theme'
+import { BorderRadius, Spacing, ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme'
 import type { InvaderWithState } from '@/features/invaders/types'
 import { isNonFlashable } from '@/features/invaders/types'
 import { useTranslation } from 'react-i18next'
@@ -48,9 +48,9 @@ export function RoutingSheet({
   onCompute, onClear,
   userLocation,
 }: Props) {
-  const { theme, appFont } = useTheme()
+  const { theme, appFont, fontScale } = useTheme()
   const { t } = useTranslation()
-  const s = makeStyles(theme, appFont)
+  const s = makeStyles(theme, appFont, fontScale)
 
   const [mode, setMode]               = useState<SheetMode>('ab')
   const [boucle, setBoucle]           = useState(false)
@@ -127,10 +127,10 @@ export function RoutingSheet({
             {(['ab', 'multi'] as SheetMode[]).map((m) => (
               <Pressable
                 key={m}
-                style={[s.tab, mode === m && { borderBottomColor: theme.accent, borderBottomWidth: 2 }]}
+                style={({ pressed }) => [s.tab, mode === m && { borderBottomColor: theme.accent, borderBottomWidth: 2 }, pressed && s.btnPressed]}
                 onPress={() => { setMode(m); closeSearch() }}
               >
-                <Text style={[s.tabText, { color: mode === m ? theme.accent : theme.textMuted, fontFamily: appFont }]}>
+                <Text style={[s.tabText, { color: mode === m ? theme.accent : theme.textMuted }]}>
                   {m === 'ab' ? t('routing.modeAB') : t('routing.modeMulti')}
                 </Text>
               </Pressable>
@@ -142,33 +142,33 @@ export function RoutingSheet({
             {/* ── Invader filters ── */}
             <View style={s.filterRow}>
               <Pressable
-                style={[s.filterChip, { borderColor: theme.border }, !includeCaptures && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                style={({ pressed }) => [s.chip, { borderColor: theme.border }, !includeCaptures && s.chipActive, pressed && s.btnPressed]}
                 onPress={() => setIncludeCaptures((v) => !v)}
               >
-                <Text style={[s.filterChipText, { color: !includeCaptures ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
+                <Text style={[s.chipText, { color: !includeCaptures ? theme.bg : theme.textMuted }]}>
                   {t('routing.filterUncaptured')}
                 </Text>
               </Pressable>
               <Pressable
-                style={[s.filterChip, { borderColor: theme.border }, flashableOnly && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                style={({ pressed }) => [s.chip, { borderColor: theme.border }, flashableOnly && s.chipActive, pressed && s.btnPressed]}
                 onPress={() => setFlashableOnly((v) => !v)}
               >
-                <Text style={[s.filterChipText, { color: flashableOnly ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
+                <Text style={[s.chipText, { color: flashableOnly ? theme.bg : theme.textMuted }]}>
                   {t('routing.filterFlashable')}
                 </Text>
               </Pressable>
             </View>
 
-            {/* ── A→B mode ── */}
+            {/* ── Chasse mode ── */}
             {mode === 'ab' && (
               <>
                 {/* Boucle toggle */}
                 <Pressable
-                  style={[s.boucleBtn, { borderColor: theme.border }, boucle && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                  style={({ pressed }) => [s.chip, { borderColor: theme.border }, boucle && s.chipActive, pressed && s.btnPressed]}
                   onPress={() => setBoucle((v) => !v)}
                 >
                   <Ionicons name={boucle ? 'refresh-circle' : 'refresh-circle-outline'} size={16} color={boucle ? theme.bg : theme.textMuted} />
-                  <Text style={[s.boucleBtnText, { color: boucle ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
+                  <Text style={[s.chipText, { color: boucle ? theme.bg : theme.textMuted }]}>
                     {t('routing.loop')}
                   </Text>
                 </Pressable>
@@ -190,6 +190,7 @@ export function RoutingSheet({
                   onCloseSearch={closeSearch}
                   theme={theme}
                   appFont={appFont}
+                  fontScale={fontScale}
                   s={s}
                 />
 
@@ -211,28 +212,29 @@ export function RoutingSheet({
                     onCloseSearch={closeSearch}
                     theme={theme}
                     appFont={appFont}
+                    fontScale={fontScale}
                     s={s}
                   />
                 )}
 
-                {/* Détour % or Durée depending on boucle */}
-                <Text style={[s.label, { color: theme.textMuted }]}>
+                {/* Détour % or Walk time depending on boucle */}
+                <Text style={[s.fieldLabel, { color: theme.textMuted }]}>
                   {boucle ? t('routing.labelDuration') : t('routing.labelDetour')}
                 </Text>
                 <View style={s.stepper}>
                   <Pressable
-                    style={[s.stepBtn, { borderColor: theme.border }]}
+                    style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]}
                     onPress={() => boucle
                       ? setDurationMin((v) => Math.max(10, v - 10))
                       : setDetourPct((v) => Math.max(10, v - 10))}
                   >
                     <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
                   </Pressable>
-                  <Text style={[s.stepValue, { color: theme.text, fontFamily: appFont }]}>
+                  <Text style={[s.stepValue, { color: theme.text }]}>
                     {boucle ? `${durationMin} min` : `${detourPct}%`}
                   </Text>
                   <Pressable
-                    style={[s.stepBtn, { borderColor: theme.border }]}
+                    style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]}
                     onPress={() => boucle
                       ? setDurationMin((v) => Math.min(180, v + 10))
                       : setDetourPct((v) => Math.min(100, v + 10))}
@@ -247,15 +249,15 @@ export function RoutingSheet({
             {mode === 'multi' && (
               <>
                 <Pressable
-                  style={[s.selectBtn, { backgroundColor: theme.accent }]}
+                  style={({ pressed }) => [s.selectBtn, { backgroundColor: theme.accent }, pressed && s.btnPressed]}
                   onPress={onPickInvadersOnMap}
                 >
                   <Ionicons name="location-outline" size={16} color={theme.bg} />
-                  <Text style={[s.selectBtnText, { color: theme.bg, fontFamily: appFont }]}>
+                  <Text style={[s.selectBtnText, { color: theme.bg }]}>
                     {t('routing.selectOnMap')}
                   </Text>
                 </Pressable>
-                <Text style={[s.label, { color: theme.textMuted }]}>
+                <Text style={[s.fieldLabel, { color: theme.textMuted }]}>
                   {multiInvaders.length === 0
                     ? t('routing.noInvaderSelected')
                     : multiInvaders.length === 1
@@ -268,7 +270,11 @@ export function RoutingSheet({
                 {multiInvaders.map((inv) => (
                   <View key={inv.id} style={[s.multiRow, { borderColor: theme.bgDivider }]}>
                     <Text style={[s.multiName, { color: theme.text }]} numberOfLines={1}>{inv.name}</Text>
-                    <Pressable onPress={() => onRemoveFromMulti(inv.id)} hitSlop={8}>
+                    <Pressable
+                      onPress={() => onRemoveFromMulti(inv.id)}
+                      hitSlop={8}
+                      style={({ pressed }) => pressed && s.btnPressed}
+                    >
                       <Ionicons name="close-circle" size={18} color={theme.textMuted} />
                     </Pressable>
                   </View>
@@ -296,20 +302,23 @@ export function RoutingSheet({
           </ScrollView>
 
           {/* Footer */}
-          <View style={s.footer}>
+          <View style={[s.footer, { borderTopColor: theme.bgDivider }]}>
             {route && (
-              <Pressable style={[s.clearBtn, { borderColor: theme.danger }]} onPress={() => { onClear(); onClose() }}>
-                <Text style={[s.clearBtnText, { color: theme.danger, fontFamily: appFont }]}>{t('routing.clearRoute')}</Text>
+              <Pressable
+                style={({ pressed }) => [s.clearBtn, { borderColor: theme.danger }, pressed && s.btnPressed]}
+                onPress={() => { onClear(); onClose() }}
+              >
+                <Text style={[s.clearBtnText, { color: theme.danger }]}>{t('routing.clearRoute')}</Text>
               </Pressable>
             )}
             <Pressable
-              style={[s.computeBtn, { backgroundColor: canCompute ? theme.accent : theme.bgDivider }]}
+              style={({ pressed }) => [s.computeBtn, { backgroundColor: canCompute ? theme.accent : theme.bgDivider }, pressed && canCompute && s.btnPressed]}
               onPress={handleCompute}
               disabled={!canCompute}
             >
               {loading
                 ? <ActivityIndicator size="small" color={theme.bg} />
-                : <Text style={[s.computeBtnText, { color: canCompute ? theme.bg : theme.textMuted, fontFamily: appFont }]}>
+                : <Text style={[s.computeBtnText, { color: canCompute ? theme.bg : theme.textMuted }]}>
                     {t('routing.computeRoute')}
                   </Text>
               }
@@ -339,6 +348,7 @@ type CoordFieldProps = {
   onCloseSearch: () => void
   theme: ThemeTokens
   appFont: string
+  fontScale: number
   s: ReturnType<typeof makeStyles>
 }
 
@@ -346,27 +356,31 @@ function CoordField({
   label, coords, displayLabel,
   isSearchOpen, searchQuery, searchLoading, searchResults,
   onOpenSearch, onPickOnMap, onSearchChange, onSelectResult, onClear, onCloseSearch,
-  theme, appFont, s,
+  theme, appFont, fontScale, s,
 }: CoordFieldProps) {
   const { t } = useTranslation()
+  const sz = (n: number) => Math.round(n * fontScale)
 
   return (
     <View style={s.coordBlock}>
-      <Text style={[s.label, { color: theme.textMuted }]}>{label}</Text>
+      <Text style={[s.fieldLabel, { color: theme.textMuted }]}>{label}</Text>
       <View style={[s.coordRow, { borderColor: theme.border, backgroundColor: theme.bg }]}>
-        <Text style={[s.coordLabel, { color: coords ? theme.text : theme.textMuted }]} numberOfLines={1}>
+        <Text
+          style={[s.coordLabel, { color: coords ? theme.text : theme.textMuted, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
+          numberOfLines={1}
+        >
           {displayLabel ?? (coords ? `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}` : t('routing.coordNotSet'))}
         </Text>
         <View style={s.coordActions}>
           {coords && (
-            <Pressable onPress={onClear} hitSlop={6}>
+            <Pressable onPress={onClear} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
               <Ionicons name="close" size={16} color={theme.textMuted} />
             </Pressable>
           )}
-          <Pressable onPress={onOpenSearch} hitSlop={6}>
+          <Pressable onPress={onOpenSearch} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
             <Ionicons name="search-outline" size={18} color={isSearchOpen ? theme.accent : theme.textMuted} />
           </Pressable>
-          <Pressable onPress={onPickOnMap} hitSlop={6}>
+          <Pressable onPress={onPickOnMap} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
             <Ionicons name="locate-outline" size={18} color={theme.textMuted} />
           </Pressable>
         </View>
@@ -376,14 +390,14 @@ function CoordField({
         <View style={[s.searchBox, { backgroundColor: theme.bg, borderColor: theme.border }]}>
           <View style={s.searchInputRow}>
             <TextInput
-              style={[s.searchInput, { color: theme.text, fontFamily: appFont }]}
+              style={[s.searchInput, { color: theme.text, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
               placeholder={t('routing.searchPlaceholder')}
               placeholderTextColor={theme.textMuted}
               value={searchQuery}
               onChangeText={onSearchChange}
               autoFocus
             />
-            <Pressable onPress={onCloseSearch} hitSlop={6}>
+            <Pressable onPress={onCloseSearch} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
               <Ionicons name="close" size={18} color={theme.textMuted} />
             </Pressable>
           </View>
@@ -391,11 +405,16 @@ function CoordField({
           {searchResults.map((r, i) => (
             <Pressable
               key={i}
-              style={[s.searchResult, { borderTopColor: theme.bgDivider }]}
+              style={({ pressed }) => [s.searchResult, { borderTopColor: theme.bgDivider }, pressed && s.btnPressed]}
               onPress={() => onSelectResult(r.coords, r.label)}
             >
               <Ionicons name="location-outline" size={14} color={theme.textMuted} />
-              <Text style={[s.searchResultText, { color: theme.text }]} numberOfLines={2}>{r.label}</Text>
+              <Text
+                style={[s.searchResultText, { color: theme.text, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
+                numberOfLines={2}
+              >
+                {r.label}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -406,10 +425,11 @@ function CoordField({
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
-function makeStyles(t: ThemeTokens, _font: string) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
+  const sz = (n: number) => Math.round(n * scale)
   return StyleSheet.create({
-    kav:        { flex: 1, justifyContent: 'flex-end' },
-    backdrop:   { flex: 1 },
+    kav:      { flex: 1, justifyContent: 'flex-end' },
+    backdrop: { flex: 1 },
     sheet: {
       borderTopLeftRadius:  BorderRadius.lg,
       borderTopRightRadius: BorderRadius.lg,
@@ -420,73 +440,92 @@ function makeStyles(t: ThemeTokens, _font: string) {
       width: 36, height: 4, borderRadius: 2,
       alignSelf: 'center', marginVertical: 10,
     },
+
+    // Tabs
     tabs: {
       flexDirection: 'row', borderBottomWidth: 1,
       marginHorizontal: Spacing.four,
     },
     tab: {
-      flex: 1, alignItems: 'center', paddingVertical: 10,
+      flex: 1, alignItems: 'center', paddingVertical: Spacing.two,
       borderBottomWidth: 2, borderBottomColor: 'transparent',
     },
-    tabText: { fontSize: 13, fontWeight: '600' },
+    tabText: {
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.lg,
+    },
+
     body:        { paddingHorizontal: Spacing.four },
     bodyContent: { paddingTop: Spacing.three, gap: Spacing.two, paddingBottom: Spacing.two },
 
-    filterRow:      { flexDirection: 'row', gap: Spacing.two },
-    filterChip:     { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
-    filterChipText: { fontSize: 12, fontWeight: '600' },
-
-    boucleBtn: {
+    // Chips — filters, boucle toggle (unified style)
+    filterRow: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
+    chip: {
       flexDirection: 'row', alignItems: 'center', gap: 6,
-      paddingHorizontal: 12, paddingVertical: 8,
+      paddingHorizontal: Spacing.two, paddingVertical: 6,
       borderRadius: BorderRadius.sm, borderWidth: 1,
-      alignSelf: 'flex-start',
     },
-    boucleBtnText: { fontSize: 13 },
+    chipActive:   { backgroundColor: t.accent, borderColor: t.accent },
+    chipText: {
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.lg,
+    },
 
-    coordBlock: { gap: 4 },
+    // Field labels (above inputs)
+    fieldLabel: {
+      fontFamily: font,
+      fontSize: sz(FontSize.xs),
+      marginTop: Spacing.two,
+      marginBottom: 2,
+    },
+
+    // Coord input row
+    coordBlock: { gap: 2 },
     coordRow: {
       flexDirection: 'row', alignItems: 'center',
       borderWidth: 1, borderRadius: BorderRadius.sm,
       paddingHorizontal: Spacing.two, paddingVertical: 10, gap: 8,
     },
-    coordLabel:   { flex: 1, fontSize: 13 },
+    coordLabel:   { flex: 1 },
     coordActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 
-    searchBox:      { borderWidth: 1, borderRadius: BorderRadius.sm, marginTop: 4, overflow: 'hidden' },
-    searchInputRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.two, paddingVertical: 8, gap: 8 },
-    searchInput:    { flex: 1, fontSize: 14, paddingVertical: 0 },
-    searchResult:   { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: Spacing.two, paddingVertical: 10, borderTopWidth: 1 },
-    searchResultText: { flex: 1, fontSize: 13, lineHeight: 18 },
+    // Search
+    searchBox:        { borderWidth: 1, borderRadius: BorderRadius.sm, marginTop: 4, overflow: 'hidden' },
+    searchInputRow:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.two, paddingVertical: 8, gap: 8 },
+    searchInput:      { flex: 1, paddingVertical: 0 },
+    searchResult:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: Spacing.two, paddingVertical: 10, borderTopWidth: 1 },
+    searchResultText: { flex: 1, lineHeight: 18 },
 
-    label: {
-      fontSize: 11, fontWeight: '600', letterSpacing: 0.5,
-      textTransform: 'uppercase', marginTop: Spacing.two,
-    },
+    // Stepper
     stepper:     { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
     stepBtn:     { width: 36, height: 36, borderRadius: BorderRadius.sm, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    stepBtnText: { fontSize: 20, lineHeight: 24 },
-    stepValue:   { fontSize: 16, minWidth: 80, textAlign: 'center' },
+    stepBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
+    stepValue:   { fontFamily: font, fontSize: sz(FontSize.md), minWidth: 80, textAlign: 'center' },
 
+    // Multi mode
     selectBtn: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-      paddingVertical: 12, borderRadius: BorderRadius.sm, marginTop: Spacing.two,
+      paddingVertical: 13, borderRadius: BorderRadius.sm, marginTop: Spacing.two,
     },
-    selectBtnText: { fontSize: 14, fontWeight: '700' },
+    selectBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xxl },
 
     multiRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1 },
-    multiName: { fontSize: 14, flex: 1, marginRight: 8 },
+    multiName: { fontFamily: font, fontSize: sz(FontSize.sm), flex: 1, marginRight: 8 },
+    hint:      { fontFamily: font, fontSize: sz(FontSize.xs), lineHeight: sz(FontSize.xs) * 1.5 },
 
+    // Result card
     result:     { borderWidth: 1, borderRadius: BorderRadius.sm, padding: Spacing.three, gap: 4, marginTop: Spacing.two },
-    resultText: { fontSize: 14, fontWeight: '600' },
-    resultSub:  { fontSize: 12 },
-    error:      { fontSize: 12, textAlign: 'center', marginTop: Spacing.two },
-    hint:       { fontSize: 12, lineHeight: 18 },
+    resultText: { fontFamily: font, fontSize: sz(FontSize.sm) },
+    resultSub:  { fontFamily: font, fontSize: sz(FontSize.xs) },
+    error:      { fontFamily: font, fontSize: sz(FontSize.xs), textAlign: 'center', marginTop: Spacing.two },
 
-    footer:       { paddingHorizontal: Spacing.four, paddingTop: Spacing.three, gap: Spacing.two },
+    // Footer
+    footer:       { paddingHorizontal: Spacing.four, paddingTop: Spacing.three, gap: Spacing.two, borderTopWidth: 1 },
     clearBtn:     { borderWidth: 1, borderRadius: BorderRadius.sm, paddingVertical: 12, alignItems: 'center' },
-    clearBtnText: { fontSize: 13 },
-    computeBtn:   { borderRadius: BorderRadius.sm, paddingVertical: 14, alignItems: 'center' },
-    computeBtnText: { fontSize: 14, fontWeight: '700' },
+    clearBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
+    computeBtn:   { borderRadius: BorderRadius.sm, paddingVertical: 13, alignItems: 'center' },
+    computeBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xxl },
+
+    btnPressed: { opacity: 0.7 },
   })
 }

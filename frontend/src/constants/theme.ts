@@ -61,6 +61,7 @@ export type ThemeTokens = {
   danger: string;      // error / destructive
   success: string;     // captured / success state
   locationDot: string; // GPS position marker & cone
+  routePath: string;   // navigation route line color
 };
 
 // ─── Built-in themes ──────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ export const darkTheme: ThemeTokens = {
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: Brand.yellow,
+  routePath: '#3effa0',
 };
 
 export const lightTheme: ThemeTokens = {
@@ -103,6 +105,7 @@ export const lightTheme: ThemeTokens = {
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: '#4a90e2',
+  routePath: '#00aa66',
 };
 
 export const blueTheme: ThemeTokens = {
@@ -123,6 +126,7 @@ export const blueTheme: ThemeTokens = {
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: Brand.cyan,
+  routePath: '#3effa0',
 };
 
 export const themes = {

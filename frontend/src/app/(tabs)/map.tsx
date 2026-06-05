@@ -9,14 +9,13 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { Brand, BottomTabInset } from "@/constants/theme";
+import { Brand, BottomTabInset, AppFont } from "@/constants/theme";
 import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
 import type { RoutingPickerTarget } from "@/features/routing/components/RoutingSheet";
 import { RouteLayer } from "@/features/routing/components/RouteLayer";
-import type { TravelMode } from "@/features/routing/types";
 
 export default function MapScreen() {
   const { t } = useTranslation();
@@ -41,7 +40,6 @@ export default function MapScreen() {
   const { route, loading: routeLoading, error: routeError, computeRoute, clearRoute } = useRouting();
   const [routingSheetOpen, setRoutingSheetOpen] = useState(false);
   const [multiInvaders, setMultiInvaders]       = useState<InvaderWithState[]>([]);
-  const routeTravelMode                         = useRef<TravelMode>('foot-walking');
   // A→B / Walk coords
   const [routingFrom, setRoutingFrom]           = useState<[number, number] | null>(null);
   const [routingFromLabel, setRoutingFromLabel] = useState<string | null>(null);
@@ -273,7 +271,7 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds}>
-        {route && <RouteLayer route={route} travelMode={routeTravelMode.current} />}
+        {route && <RouteLayer route={route} />}
       </WebMap>
 
       {!picking && !anyCreating && !selectingInvaders && (
@@ -334,7 +332,7 @@ export default function MapScreen() {
 
       {routeLoading && (
         <View style={styles.routingLoader} pointerEvents="none">
-          <ActivityIndicator size="small" color={Brand.cyan} />
+          <ActivityIndicator size="small" color="#ffffff" />
           <Text style={styles.routingLoaderText}>{t('routing.computing')}</Text>
         </View>
       )}
@@ -446,7 +444,6 @@ export default function MapScreen() {
         error={routeError}
         route={route}
         onCompute={(params) => {
-          if ('travelMode' in params) routeTravelMode.current = params.travelMode;
           computeRoute(params);
           setRoutingSheetOpen(false);
         }}
@@ -571,18 +568,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(0,0,0,0.85)",
+    backgroundColor: Brand.cyan,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Brand.cyan,
     zIndex: 20,
   },
   routingLoaderText: {
-    color: Brand.cyan,
+    color: "#ffffff",
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: AppFont,
   },
   offlineText: {
     color: "#ffffff",
