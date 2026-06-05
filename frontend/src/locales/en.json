@@ -189,6 +189,7 @@
     "modeMulti": "Journey",
     "filterUncaptured": "Uncaptured",
     "filterFlashable": "Flashable",
+    "myLocation": "My location",
     "labelFrom": "Start",
     "labelTo": "Destination",
     "labelDetour": "Max detour",

@@ -329,7 +329,7 @@ export default function MapScreen() {
         </View>
       )}
 
-      {routeLoading && (
+      {routeLoading && !routingSheetOpen && (
         <View style={styles.routingLoader} pointerEvents="none">
           <ActivityIndicator size="small" color="#ffffff" />
           <Text style={styles.routingLoaderText}>{t('routing.computing')}</Text>
@@ -418,36 +418,34 @@ export default function MapScreen() {
       )}
 
       {/* ── Routing Sheet ── */}
-      <RoutingSheet
-        visible={routingSheetOpen}
-        onClose={() => setRoutingSheetOpen(false)}
-        fromCoords={routingFrom}
-        fromLabel={routingFromLabel}
-        toCoords={routingTo}
-        toLabel={routingToLabel}
-        onSetCoords={(target, coords, label) => {
-          if (target === 'from') { setRoutingFrom(coords); setRoutingFromLabel(label); }
-          else                   { setRoutingTo(coords);   setRoutingToLabel(label); }
-        }}
-        onClearCoords={(target) => {
-          if (target === 'from') { setRoutingFrom(null); setRoutingFromLabel(null); }
-          else                   { setRoutingTo(null);   setRoutingToLabel(null); }
-        }}
-        onPickOnMap={handleRoutingPickOnMap}
-        allInvaders={invadersWithState}
-        multiInvaders={multiInvaders}
-        onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
-        onPickInvadersOnMap={startSelectingInvaders}
-        userLocation={mapRef.current?.getUserCoords() ?? null}
-        loading={routeLoading}
-        error={routeError}
-        route={route}
-        onCompute={(params) => {
-          computeRoute(params);
-          setRoutingSheetOpen(false);
-        }}
-        onClear={clearRoute}
-      />
+      {routingSheetOpen && (
+        <RoutingSheet
+          onClose={() => setRoutingSheetOpen(false)}
+          fromCoords={routingFrom}
+          fromLabel={routingFromLabel}
+          toCoords={routingTo}
+          toLabel={routingToLabel}
+          onSetCoords={(target, coords, label) => {
+            if (target === 'from') { setRoutingFrom(coords); setRoutingFromLabel(label); }
+            else                   { setRoutingTo(coords);   setRoutingToLabel(label); }
+          }}
+          onClearCoords={(target) => {
+            if (target === 'from') { setRoutingFrom(null); setRoutingFromLabel(null); }
+            else                   { setRoutingTo(null);   setRoutingToLabel(null); }
+          }}
+          onPickOnMap={handleRoutingPickOnMap}
+          allInvaders={invadersWithState}
+          multiInvaders={multiInvaders}
+          onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
+          onPickInvadersOnMap={startSelectingInvaders}
+          userLocation={mapRef.current?.getUserCoords() ?? null}
+          loading={routeLoading}
+          error={routeError}
+          route={route}
+          onCompute={computeRoute}
+          onClear={clearRoute}
+        />
+      )}
 
       {/* ── Routing map picker ── */}
       {routingPickerTarget && (
