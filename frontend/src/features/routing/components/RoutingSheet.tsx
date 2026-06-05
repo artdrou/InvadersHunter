@@ -146,25 +146,27 @@ export function RoutingSheet({
 
           <ScrollView style={s.body} showsVerticalScrollIndicator={false} contentContainerStyle={s.bodyContent} keyboardShouldPersistTaps="handled">
 
-            {/* ── Invader filters ── */}
-            <View style={s.filterRow}>
-              <Pressable
-                style={({ pressed }) => [s.chip, { borderColor: theme.border }, !includeCaptures && s.chipActive, pressed && s.btnPressed]}
-                onPress={() => setIncludeCaptures((v) => !v)}
-              >
-                <Text style={[s.chipText, { color: !includeCaptures ? theme.bg : theme.textMuted }]}>
-                  {t('routing.filterUncaptured')}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [s.chip, { borderColor: theme.border }, flashableOnly && s.chipActive, pressed && s.btnPressed]}
-                onPress={() => setFlashableOnly((v) => !v)}
-              >
-                <Text style={[s.chipText, { color: flashableOnly ? theme.bg : theme.textMuted }]}>
-                  {t('routing.filterFlashable')}
-                </Text>
-              </Pressable>
-            </View>
+            {/* ── Invader filters — hunt mode only ── */}
+            {mode === 'ab' && (
+              <View style={s.filterRow}>
+                <Pressable
+                  style={({ pressed }) => [s.chip, { borderColor: theme.border }, !includeCaptures && s.chipActive, pressed && s.btnPressed]}
+                  onPress={() => setIncludeCaptures((v) => !v)}
+                >
+                  <Text style={[s.chipText, { color: !includeCaptures ? theme.bg : theme.textMuted }]}>
+                    {t('routing.filterUncaptured')}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [s.chip, { borderColor: theme.border }, flashableOnly && s.chipActive, pressed && s.btnPressed]}
+                  onPress={() => setFlashableOnly((v) => !v)}
+                >
+                  <Text style={[s.chipText, { color: flashableOnly ? theme.bg : theme.textMuted }]}>
+                    {t('routing.filterFlashable')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
 
             {/* ── Chasse mode ── */}
             {mode === 'ab' && (

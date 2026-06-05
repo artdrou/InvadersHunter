@@ -46,24 +46,22 @@ export function RouteLayer({ route }: Props) {
   return (
     <>
       <ShapeSource id="ors-route" shape={route.geojson}>
-        {/* Layer 1 — outer bloom: diffuse halo */}
+        {/* Layer 1 — outer halo: wide, very transparent */}
         <LineLayer
-          id="ors-route-bloom"
+          id="ors-route-halo"
           style={{
             lineColor: hexToRgba(color, 0.12),
-            lineWidth: zoomWidth([[10, 16], [14, 42], [17, 72]]),
-            lineBlur: 12,
+            lineWidth: zoomWidth([[10, 16], [14, 38], [17, 64]]),
             lineCap: 'round',
             lineJoin: 'round',
           } as any}
         />
-        {/* Layer 2 — inner glow */}
+        {/* Layer 2 — mid glow */}
         <LineLayer
           id="ors-route-glow"
           style={{
-            lineColor: hexToRgba(color, 0.30),
-            lineWidth: zoomWidth([[10, 9], [14, 22], [17, 38]]),
-            lineBlur: 5,
+            lineColor: hexToRgba(color, 0.28),
+            lineWidth: zoomWidth([[10, 9], [14, 20], [17, 34]]),
             lineCap: 'round',
             lineJoin: 'round',
           } as any}
@@ -79,13 +77,12 @@ export function RouteLayer({ route }: Props) {
             lineJoin: 'round',
           } as any}
         />
-        {/* Layer 4 — tinted core: subtle neon highlight mixed with path color */}
+        {/* Layer 4 — tinted core highlight */}
         <LineLayer
           id="ors-route-core"
           style={{
-            lineColor: hexToRgba(coreColor, 0.40),
+            lineColor: hexToRgba(coreColor, 0.45),
             lineWidth: zoomWidth([[10, 1.5], [14, 4], [17, 7]]),
-            lineBlur: 1.5,
             lineCap: 'round',
             lineJoin: 'round',
           } as any}

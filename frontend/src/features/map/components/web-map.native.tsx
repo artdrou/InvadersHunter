@@ -60,10 +60,12 @@ type Props = {
   greyMode?: import("./map-filter-bar").GreyMode;
   colorMode?: import("./map-filter-bar").ColorMode;
   highlightedIds?: number[];
+  /** Rendered before invader markers — use for route/path layers. */
+  routeLayer?: ReactNode;
   children?: ReactNode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, children }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, routeLayer, children }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -143,6 +145,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       <StableCamera cameraRef={cameraRef} />
       <UserLocationLayer location={userLocation} />
       <Images images={MARKER_IMAGES} />
+      {routeLayer}
       <InvaderClusterSource
         geojson={geojson}
         invaders={invaders}
