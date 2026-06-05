@@ -26,6 +26,8 @@ function fmtMin(min: number): string {
 }
 
 type Props = {
+  mode: SheetMode
+  onModeChange: (mode: SheetMode) => void
   onClose: () => void
   fromCoords: [number, number] | null
   fromLabel: string | null
@@ -47,6 +49,7 @@ type Props = {
 }
 
 export function RoutingSheet({
+  mode, onModeChange,
   onClose,
   fromCoords, fromLabel, toCoords, toLabel,
   onSetCoords, onClearCoords, onPickOnMap,
@@ -60,7 +63,7 @@ export function RoutingSheet({
   const insets = useSafeAreaInsets()
   const s = makeStyles(theme, appFont, fontScale)
 
-  const [mode, setMode]               = useState<SheetMode>('ab')
+  // mode is lifted to map.tsx (survives sheet remounts)
   const [boucle, setBoucle]           = useState(false)
   const [detourMin, setDetourMin]     = useState(15)
   const [durationMin, setDurationMin] = useState(30)
@@ -139,7 +142,7 @@ export function RoutingSheet({
               <Pressable
                 key={m}
                 style={({ pressed }) => [s.tab, mode === m && { borderBottomColor: theme.accent, borderBottomWidth: 2 }, pressed && s.btnPressed]}
-                onPress={() => { setMode(m); closeSearch() }}
+                onPress={() => { onModeChange(m); closeSearch() }}
               >
                 <Text style={[s.tabText, { color: mode === m ? theme.accent : theme.textMuted }]}>
                   {m === 'ab' ? t('routing.modeAB') : t('routing.modeMulti')}
@@ -256,20 +259,13 @@ export function RoutingSheet({
           {/* ── Journey mode ── */}
           {mode === 'multi' && (
             <View style={s.journeyPanel}>
-              <Pressable
-                style={({ pressed }) => [s.selectBtn, { backgroundColor: theme.accent }, pressed && s.btnPressed]}
-                onPress={onPickInvadersOnMap}
-              >
-                <Ionicons name="location-outline" size={14} color={theme.bg} />
-                <Text style={[s.selectBtnText, { color: theme.bg }]}>{t('routing.selectOnMap')}</Text>
-              </Pressable>
-              {multiInvaders.length > 0 && (
-                <Text style={[s.selectionCount, { color: theme.textMuted }]}>
-                  {multiInvaders.length === 1
+              <Text style={[s.selectionCount, { color: multiInvaders.length > 0 ? theme.accent : theme.textMuted }]}>
+                {multiInvaders.length === 0
+                  ? t('routing.selectTapHint')
+                  : multiInvaders.length === 1
                     ? t('routing.invaderSelectedOne')
                     : t('routing.invaderSelectedMany', { count: multiInvaders.length })}
-                </Text>
-              )}
+              </Text>
             </View>
           )}
 
@@ -310,10 +306,8 @@ export function RoutingSheet({
             disabled={!canCompute}
           >
             {loading
-              ? <ActivityIndicator size="small" color={theme.bg} />
-              : <Text style={[s.computeBtnText, { color: canCompute ? theme.bg : theme.textMuted }]}>
-                  {t('routing.computeRoute')}
-                </Text>
+              ? <ActivityIndicator size="small" color={canCompute ? theme.bg : theme.textMuted} />
+              : <Ionicons name="arrow-forward" size={26} color={canCompute ? theme.bg : theme.textMuted} />
             }
           </Pressable>
         </View>
@@ -565,8 +559,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
     },
     clearBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
-    computeBtn:   { flex: 1, borderRadius: BorderRadius.sm, paddingVertical: 13, alignItems: 'center' },
-    computeBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xxl },
+    computeBtn: {
+      width: 56, height: 56, borderRadius: 28,
+      alignItems: 'center', justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 6,
+    },
 
     btnPressed: { opacity: 0.7 },
   })

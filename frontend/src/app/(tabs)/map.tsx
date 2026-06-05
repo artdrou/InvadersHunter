@@ -49,6 +49,7 @@ export default function MapScreen() {
   const [routingPickerTarget, setRoutingPickerTarget] = useState<'from' | 'to' | null>(null);
   // Invader picker for multi-stop itineraries: tap markers to toggle them in/out
   const [selectingInvaders, setSelectingInvaders] = useState(false);
+  const [routingMode, setRoutingMode] = useState<'ab' | 'multi'>('ab');
   // While picking, selected invaders are drawn with the golden marker
   const selectedInvaderIds = useMemo(
     () => (selectingInvaders ? multiInvaders.map((i) => i.id) : undefined),
@@ -61,7 +62,7 @@ export default function MapScreen() {
   }
 
   function startSelectingInvaders() {
-    setRoutingSheetOpen(false);
+    // Keep sheet open — selection happens in overlay
     setSelectedInvader(null);
     selectedInvaderRef.current = null;
     setSelectingInvaders(true);
@@ -76,18 +77,15 @@ export default function MapScreen() {
     );
   }
 
-  // Cancel = drop the whole selection and go back to the routing panel.
   function cancelSelectingInvaders() {
     setMultiInvaders([]);
     setSelectingInvaders(false);
-    setRoutingSheetOpen(true);
+    if (!routingSheetOpen) setRoutingSheetOpen(true);
   }
 
-  // Validate = keep the selection and go back to the routing panel, where the
-  // "Calculer l'itinéraire" button runs the actual computation.
   function validateSelectingInvaders() {
     setSelectingInvaders(false);
-    setRoutingSheetOpen(true);
+    if (!routingSheetOpen) setRoutingSheetOpen(true);
   }
 
   async function validateRoutingPicker() {
@@ -407,12 +405,17 @@ export default function MapScreen() {
       )}
 
       {/* ── Routing FAB — centered at the bottom ── */}
-      {!picking && !anyCreating && !selectingInvaders && (
+      {!picking && !anyCreating && (!selectingInvaders || routingSheetOpen) && (
         <View style={styles.routingFAB} pointerEvents="box-none">
           <RoutingFAB
             active={!!route}
             theme={theme}
-            onPress={() => setRoutingSheetOpen(true)}
+            onPress={() => {
+              setRoutingSheetOpen((v) => {
+                if (v) { setSelectingInvaders(false); }
+                return !v;
+              });
+            }}
           />
         </View>
       )}
@@ -420,7 +423,18 @@ export default function MapScreen() {
       {/* ── Routing Sheet ── */}
       {routingSheetOpen && (
         <RoutingSheet
-          onClose={() => setRoutingSheetOpen(false)}
+          mode={routingMode}
+          onModeChange={(m) => {
+            setRoutingMode(m);
+            if (m === 'multi') {
+              setSelectedInvader(null);
+              selectedInvaderRef.current = null;
+              setSelectingInvaders(true);
+            } else {
+              setSelectingInvaders(false);
+            }
+          }}
+          onClose={() => { setRoutingSheetOpen(false); setSelectingInvaders(false); }}
           fromCoords={routingFrom}
           fromLabel={routingFromLabel}
           toCoords={routingTo}
@@ -442,7 +456,11 @@ export default function MapScreen() {
           loading={routeLoading}
           error={routeError}
           route={route}
-          onCompute={computeRoute}
+          onCompute={(params) => {
+            computeRoute(params);
+            setRoutingSheetOpen(false);
+            setSelectingInvaders(false);
+          }}
           onClear={clearRoute}
         />
       )}
@@ -471,8 +489,8 @@ export default function MapScreen() {
         </>
       )}
 
-      {/* ── Multi-itinerary: invader selection picker ── */}
-      {selectingInvaders && (
+      {/* ── Multi-itinerary: invader selection picker (hidden when routing overlay is open) ── */}
+      {selectingInvaders && !routingSheetOpen && (
         <>
           <View style={[styles.selectBanner, { backgroundColor: theme.bgElement, borderColor: theme.border }]} pointerEvents="none">
             <Text style={[styles.selectBannerCount, { color: theme.accent }]}>
