@@ -38,6 +38,31 @@ function bestInsertion(
   return { bestPos, bestExtra }
 }
 
+// Nearest-neighbor circuit time estimate starting from origin.
+// Uses the pre-computed durations matrix — no API calls.
+// Returns the total time for: origin → nearest unvisited → ... → origin.
+function estimateCircuitSec(
+  originIdx: number,
+  matIndices: number[],
+  durations: number[][],
+): number {
+  if (matIndices.length === 0) return 0
+  const remaining = new Set(matIndices)
+  let current = originIdx
+  let total = 0
+  while (remaining.size > 0) {
+    let best = -1
+    let bestDist = Infinity
+    for (const idx of remaining) {
+      if (durations[current][idx] < bestDist) { bestDist = durations[current][idx]; best = idx }
+    }
+    total += bestDist
+    current = best!
+    remaining.delete(best!)
+  }
+  return total + durations[current][originIdx]
+}
+
 // ── mode ab ────────────────────────────────────────────────────────────────
 // 2–3 ORS requests total (was 3 + N where N = invaders within budget)
 
@@ -46,16 +71,18 @@ async function computeAb(
   to: [number, number],
   invaders: InvaderWithState[],
   travelMode: TravelMode,
-  detourPct: number,
+  detourMin: number,
 ): Promise<RouteResult> {
   const candidates = invaders.filter(hasCoords).filter((inv) => !inv.isCaptured)
 
-  // request 1: base route for budget
+  // request 1: base route
   const base = await fetchDirections(travelMode, [from, to])
   const baseSeconds = base.durationSec
-  const budget = baseSeconds * (1 + detourPct / 100)
+  const detourSec = detourMin * 60
+  const budget = baseSeconds + detourSec
 
-  if (candidates.length === 0) {
+  // 0-min detour = direct route, skip matrix entirely
+  if (detourMin === 0 || candidates.length === 0) {
     return {
       geojson: base.geojson,
       orderedInvaders: [],
@@ -81,7 +108,7 @@ async function computeAb(
       const detourSec = durations[0][matIdx] + durations[matIdx][toIdx] - baseSeconds
       return { inv, detourSec, matIdx }
     })
-    .filter(({ detourSec }) => detourSec <= baseSeconds * detourPct / 100)
+    .filter(({ detourSec: d }) => d <= detourSec)
     .sort((a, b) => a.detourSec - b.detourSec)
 
   // greedy insertion — all distances already in matrix, zero extra requests
@@ -123,20 +150,52 @@ async function computeAb(
 }
 
 // ── mode multi ─────────────────────────────────────────────────────────────
-// 2 ORS requests (unchanged)
+// 2 ORS requests. When `from` is provided, includes origin in the matrix so
+// the route starts from the user's position (fixing the time estimate).
 
 async function computeMulti(
   invaders: InvaderWithState[],
   travelMode: TravelMode,
+  from?: [number, number],
 ): Promise<RouteResult> {
   const valid = invaders.filter(hasCoords)
   if (valid.length < 2) throw new Error('At least 2 invaders with coordinates required')
 
+  if (from) {
+    // Include origin — matrix layout: from(0), invaders(1..n)
+    const locs: [number, number][] = [from, ...valid.map(invaderCoord)]
+    const { durations } = await fetchMatrix(travelMode, locs)
+
+    // Sub-matrix for invaders only
+    const n = valid.length
+    const invDur: number[][] = Array.from({ length: n }, (_, a) =>
+      Array.from({ length: n }, (_, b) => durations[a + 1][b + 1]),
+    )
+
+    // TSP starting from the invader nearest to from
+    let startIdx = 0
+    let minDist = Infinity
+    for (let i = 0; i < n; i++) {
+      if (durations[0][i + 1] < minDist) { minDist = durations[0][i + 1]; startIdx = i }
+    }
+
+    const order = nearestNeighborTSP(valid, invDur, startIdx)
+    const ordered = order.map((i) => valid[i])
+    const final = await fetchDirections(travelMode, [from, ...ordered.map(invaderCoord)])
+
+    return {
+      geojson: final.geojson,
+      orderedInvaders: ordered,
+      totalMinutes: Math.round(final.durationSec / 60),
+      totalKm: Math.round(final.distanceKm * 10) / 10,
+    }
+  }
+
+  // No origin — fallback: start from nearest invader among selection
   const locs = valid.map(invaderCoord)
   const { durations } = await fetchMatrix(travelMode, locs)
   const order = nearestNeighborTSP(valid, durations, 0)
   const ordered = order.map((i) => valid[i])
-
   const final = await fetchDirections(travelMode, ordered.map(invaderCoord))
 
   return {
@@ -163,43 +222,38 @@ async function computeWalk(
   const budgetSec = durationMin * 60
 
   if (walkMode === 'circuit') {
-    const effectiveBudget = budgetSec * 0.88
-
     const sorted = [...valid].sort((a, b) => {
       const da = Math.hypot(a.longitude! - from[0], a.latitude! - from[1])
       const db = Math.hypot(b.longitude! - from[0], b.latitude! - from[1])
       return da - db
     })
 
-    // request 1: matrix [from, ...sorted_candidates]
+    // request 1: matrix [from(0), ...sorted_candidates(1..n)]
     const locs: [number, number][] = [from, ...sorted.map(invaderCoord)]
     const { durations } = await fetchMatrix(travelMode, locs.slice(0, MATRIX_MAX_POINTS))
 
-    const selected: number[] = []
-    let currentIdx = 0
-    let timeUsed = 0
+    // Select invaders by verifying that the estimated circuit (nearest-neighbor
+    // from origin) stays within budget. This matches the TSP logic used later,
+    // so the predicted vs actual time is accurate instead of diverging 2×.
+    const selectedMatIdx: number[] = []
 
     for (let i = 0; i < sorted.length && i < MATRIX_MAX_POINTS - 1; i++) {
-      const timeToInv = durations[currentIdx][i + 1]
-      const timeBack  = durations[i + 1][0]
-      if (timeUsed + timeToInv + timeBack <= effectiveBudget) {
-        timeUsed += timeToInv
-        currentIdx = i + 1
-        selected.push(i)
+      const tentative = [...selectedMatIdx, i + 1]
+      if (estimateCircuitSec(0, tentative, durations) <= budgetSec * 0.97) {
+        selectedMatIdx.push(i + 1)
       }
     }
 
-    if (selected.length === 0) {
+    if (selectedMatIdx.length === 0) {
       const final = await fetchDirections(travelMode, [from, from])
       return { geojson: final.geojson, orderedInvaders: [], totalMinutes: 0, totalKm: 0 }
     }
 
-    // extract TSP sub-matrix from the existing durations — no extra request
-    const selMatIdx = selected.map((i) => i + 1)
-    const selectedInvaders = selected.map((i) => sorted[i])
-    const n = selMatIdx.length
+    // Extract TSP sub-matrix from existing durations — no extra request
+    const selectedInvaders = selectedMatIdx.map((matIdx) => sorted[matIdx - 1])
+    const n = selectedMatIdx.length
     const selDur: number[][] = Array.from({ length: n }, (_, a) =>
-      Array.from({ length: n }, (_, b) => durations[selMatIdx[a]][selMatIdx[b]]),
+      Array.from({ length: n }, (_, b) => durations[selectedMatIdx[a]][selectedMatIdx[b]]),
     )
 
     const order = nearestNeighborTSP(selectedInvaders, selDur, 0)
@@ -295,9 +349,9 @@ export function useRouting() {
       try {
         let result: RouteResult
         if (params.mode === 'ab') {
-          result = await computeAb(params.from, params.to, params.invaders, params.travelMode, params.detourPct)
+          result = await computeAb(params.from, params.to, params.invaders, params.travelMode, params.detourMin)
         } else if (params.mode === 'multi') {
-          result = await computeMulti(params.invaders, params.travelMode)
+          result = await computeMulti(params.invaders, params.travelMode, params.from)
         } else {
           result = await computeWalk(params.from, params.invaders, params.travelMode, params.durationMin, params.walkMode, params.to)
         }

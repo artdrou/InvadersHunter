@@ -15,11 +15,22 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`
 }
 
+// Blend hex color toward white. amount=0 → original, amount=1 → pure white.
+// Returns a hex string so it stays compatible with hexToRgba.
+function lightenColor(hex: string, amount: number): string {
+  const clean = hex.replace('#', '')
+  const full = clean.length === 3
+    ? clean.split('').map((c) => c + c).join('')
+    : clean
+  const r = Math.round(parseInt(full.slice(0, 2), 16) + (255 - parseInt(full.slice(0, 2), 16)) * amount)
+  const g = Math.round(parseInt(full.slice(2, 4), 16) + (255 - parseInt(full.slice(2, 4), 16)) * amount)
+  const b = Math.round(parseInt(full.slice(4, 6), 16) + (255 - parseInt(full.slice(4, 6), 16)) * amount)
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
+
 // Zoom-interpolated width expression for MapLibre.
-// breakpoints: [[zoom, width], ...]
 function zoomWidth(breakpoints: [number, number][]): unknown[] {
-  const stops = breakpoints.flatMap(([z, w]) => [z, w])
-  return ['interpolate', ['linear'], ['zoom'], ...stops]
+  return ['interpolate', ['linear'], ['zoom'], ...breakpoints.flatMap(([z, w]) => [z, w])]
 }
 
 type Props = {
@@ -29,16 +40,18 @@ type Props = {
 export function RouteLayer({ route }: Props) {
   const { theme } = useTheme()
   const color = theme.routePath
+  // Tinted inner core: blend 70% toward white so it echoes the path color
+  const coreColor = lightenColor(color, 0.70)
 
   return (
     <>
       <ShapeSource id="ors-route" shape={route.geojson}>
-        {/* Layer 1 — outer bloom: wide halo */}
+        {/* Layer 1 — outer bloom: diffuse halo */}
         <LineLayer
           id="ors-route-bloom"
           style={{
             lineColor: hexToRgba(color, 0.12),
-            lineWidth: zoomWidth([[10, 12], [14, 28], [17, 48]]),
+            lineWidth: zoomWidth([[10, 16], [14, 42], [17, 72]]),
             lineBlur: 12,
             lineCap: 'round',
             lineJoin: 'round',
@@ -48,8 +61,8 @@ export function RouteLayer({ route }: Props) {
         <LineLayer
           id="ors-route-glow"
           style={{
-            lineColor: hexToRgba(color, 0.28),
-            lineWidth: zoomWidth([[10, 7], [14, 16], [17, 28]]),
+            lineColor: hexToRgba(color, 0.30),
+            lineWidth: zoomWidth([[10, 9], [14, 22], [17, 38]]),
             lineBlur: 5,
             lineCap: 'round',
             lineJoin: 'round',
@@ -60,19 +73,19 @@ export function RouteLayer({ route }: Props) {
           id="ors-route-line"
           style={{
             lineColor: color,
-            lineWidth: zoomWidth([[10, 2.5], [14, 6], [17, 10]]),
+            lineWidth: zoomWidth([[10, 3], [14, 8], [17, 15]]),
             lineOpacity: 0.95,
             lineCap: 'round',
             lineJoin: 'round',
           } as any}
         />
-        {/* Layer 4 — white hot core (neon inner highlight) */}
+        {/* Layer 4 — tinted core: subtle neon highlight mixed with path color */}
         <LineLayer
-          id="ors-route-white"
+          id="ors-route-core"
           style={{
-            lineColor: 'rgba(255,255,255,0.65)',
-            lineWidth: zoomWidth([[10, 1], [14, 2.5], [17, 4]]),
-            lineBlur: 1,
+            lineColor: hexToRgba(coreColor, 0.40),
+            lineWidth: zoomWidth([[10, 1.5], [14, 4], [17, 7]]),
+            lineBlur: 1.5,
             lineCap: 'round',
             lineJoin: 'round',
           } as any}

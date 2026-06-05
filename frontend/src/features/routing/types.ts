@@ -18,10 +18,11 @@ export type RoutingParams =
       to: [number, number]
       invaders: InvaderWithState[]
       travelMode: TravelMode
-      detourPct: number
+      detourMin: number
     }
   | {
       mode: 'multi'
+      from?: [number, number]
       invaders: InvaderWithState[]
       travelMode: TravelMode
     }

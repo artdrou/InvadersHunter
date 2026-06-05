@@ -13,6 +13,13 @@ import { useTranslation } from 'react-i18next'
 import type { RoutingParams, RouteResult } from '../types'
 import { useAddressSearch } from '../hooks/use-address-search'
 
+function fmtMin(min: number): string {
+  if (min < 60) return `${min} min`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
+}
+
 type SheetMode = 'ab' | 'multi'
 
 export type RoutingPickerTarget = 'from' | 'to'
@@ -54,7 +61,7 @@ export function RoutingSheet({
 
   const [mode, setMode]               = useState<SheetMode>('ab')
   const [boucle, setBoucle]           = useState(false)
-  const [detourPct, setDetourPct]     = useState(30)
+  const [detourMin, setDetourMin]     = useState(15)
   const [durationMin, setDurationMin] = useState(30)
   const [includeCaptures, setIncludeCaptures] = useState(false)
   const [flashableOnly, setFlashableOnly]     = useState(true)
@@ -100,11 +107,11 @@ export function RoutingSheet({
         onCompute({ mode: 'walk', from: fromCoords, invaders: uncaptured, travelMode: 'foot-walking', durationMin, walkMode: 'circuit' })
       } else {
         if (!toCoords) return
-        onCompute({ mode: 'ab', from: fromCoords, to: toCoords, invaders: uncaptured, travelMode: 'foot-walking', detourPct })
+        onCompute({ mode: 'ab', from: fromCoords, to: toCoords, invaders: uncaptured, travelMode: 'foot-walking', detourMin })
       }
     } else {
       if (multiInvaders.length < 2) return
-      onCompute({ mode: 'multi', invaders: multiInvaders, travelMode: 'foot-walking' })
+      onCompute({ mode: 'multi', from: userLocation ?? undefined, invaders: multiInvaders, travelMode: 'foot-walking' })
     }
   }
 
@@ -226,18 +233,20 @@ export function RoutingSheet({
                     style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]}
                     onPress={() => boucle
                       ? setDurationMin((v) => Math.max(10, v - 10))
-                      : setDetourPct((v) => Math.max(10, v - 10))}
+                      : setDetourMin((v) => Math.max(0, v - 5))}
                   >
                     <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
                   </Pressable>
-                  <Text style={[s.stepValue, { color: theme.text }]}>
-                    {boucle ? `${durationMin} min` : `${detourPct}%`}
+                  <Text style={[s.stepValue, { color: boucle || detourMin > 0 ? theme.text : theme.accent }]}>
+                    {boucle
+                      ? fmtMin(durationMin)
+                      : detourMin === 0 ? t('routing.detourDirect') : fmtMin(detourMin)}
                   </Text>
                   <Pressable
                     style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]}
                     onPress={() => boucle
                       ? setDurationMin((v) => Math.min(180, v + 10))
-                      : setDetourPct((v) => Math.min(100, v + 10))}
+                      : setDetourMin((v) => Math.min(180, v + 5))}
                   >
                     <Text style={[s.stepBtnText, { color: theme.text }]}>+</Text>
                   </Pressable>
