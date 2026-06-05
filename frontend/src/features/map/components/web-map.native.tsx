@@ -143,9 +143,9 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       onRegionDidChange={(e) => onHeadingChange?.(e.properties.heading)}
     >
       <StableCamera cameraRef={cameraRef} />
+      {routeLayer}
       <UserLocationLayer location={userLocation} />
       <Images images={MARKER_IMAGES} />
-      {routeLayer}
       <InvaderClusterSource
         geojson={geojson}
         invaders={invaders}

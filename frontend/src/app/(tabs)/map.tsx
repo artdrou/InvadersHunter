@@ -150,11 +150,11 @@ export default function MapScreen() {
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
-    if (selectingInvaders) { toggleInvaderSelection(invader); return; }
+    if (selectingInvaders || (routingSheetOpen && routingMode === 'multi')) { toggleInvaderSelection(invader); return; }
     if (picking || creatingPicker || creatingModal || creatingPickLoc) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, [selectingInvaders, picking, creatingPicker, creatingModal, creatingPickLoc]);
+  }, [selectingInvaders, routingSheetOpen, routingMode, picking, creatingPicker, creatingModal, creatingPickLoc]);
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || creatingModal || creatingPickLoc) return;
@@ -268,7 +268,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={route ? <RouteLayer route={route} /> : undefined}>
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={<RouteLayer route={route} />}>
       </WebMap>
 
       {!picking && !anyCreating && !selectingInvaders && (
@@ -404,11 +404,11 @@ export default function MapScreen() {
         </>
       )}
 
-      {/* ── Routing FAB — centered at the bottom ── */}
+      {/* ── Routing FAB ── */}
       {!picking && !anyCreating && (!selectingInvaders || routingSheetOpen) && (
         <View style={styles.routingFAB} pointerEvents="box-none">
           <RoutingFAB
-            active={!!route}
+            active={routingSheetOpen}
             theme={theme}
             onPress={() => {
               setRoutingSheetOpen((v) => {
@@ -442,10 +442,12 @@ export default function MapScreen() {
           onSetCoords={(target, coords, label) => {
             if (target === 'from') { setRoutingFrom(coords); setRoutingFromLabel(label); }
             else                   { setRoutingTo(coords);   setRoutingToLabel(label); }
+            if (route) clearRoute();
           }}
           onClearCoords={(target) => {
             if (target === 'from') { setRoutingFrom(null); setRoutingFromLabel(null); }
             else                   { setRoutingTo(null);   setRoutingToLabel(null); }
+            if (route) clearRoute();
           }}
           onPickOnMap={handleRoutingPickOnMap}
           allInvaders={invadersWithState}
@@ -462,6 +464,7 @@ export default function MapScreen() {
             setSelectingInvaders(false);
           }}
           onClear={clearRoute}
+          onClearMulti={() => setMultiInvaders([])}
         />
       )}
 
@@ -619,8 +622,6 @@ const styles = StyleSheet.create({
     left: 16,
     width: 54,
     height: 54,
-    // Below the filter/color-mode panels and invader popup (all zIndex 10) so any
-    // open popup always paints over the routing button instead of under it.
     zIndex: 5,
   },
   locateButton: {

@@ -11,9 +11,6 @@ type Props = {
   theme: ThemeTokens
 }
 
-/**
- * Isolated routing button — position is set by the parent so it can be moved without touching this file.
- */
 export function RoutingFAB({ onPress, active, theme }: Props) {
   return (
     <Pressable
@@ -33,6 +30,7 @@ export function RoutingFAB({ onPress, active, theme }: Props) {
     </Pressable>
   )
 }
+
 
 const styles = StyleSheet.create({
   btn: {

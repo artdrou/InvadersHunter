@@ -45,6 +45,7 @@ type Props = {
   route: RouteResult | null
   onCompute: (params: RoutingParams) => void
   onClear: () => void
+  onClearMulti: () => void
   userLocation: [number, number] | null
 }
 
@@ -55,7 +56,7 @@ export function RoutingSheet({
   onSetCoords, onClearCoords, onPickOnMap,
   allInvaders, multiInvaders, onRemoveFromMulti, onPickInvadersOnMap,
   loading, error, route,
-  onCompute, onClear,
+  onCompute, onClear, onClearMulti,
   userLocation,
 }: Props) {
   const { theme, appFont, fontScale } = useTheme()
@@ -259,13 +260,20 @@ export function RoutingSheet({
           {/* ── Journey mode ── */}
           {mode === 'multi' && (
             <View style={s.journeyPanel}>
-              <Text style={[s.selectionCount, { color: multiInvaders.length > 0 ? theme.accent : theme.textMuted }]}>
-                {multiInvaders.length === 0
-                  ? t('routing.selectTapHint')
-                  : multiInvaders.length === 1
-                    ? t('routing.invaderSelectedOne')
-                    : t('routing.invaderSelectedMany', { count: multiInvaders.length })}
-              </Text>
+              <View style={s.selectionRow}>
+                <Text style={[s.selectionCount, { color: multiInvaders.length > 0 ? theme.accent : theme.textMuted }]}>
+                  {multiInvaders.length === 0
+                    ? t('routing.selectTapHint')
+                    : multiInvaders.length === 1
+                      ? t('routing.invaderSelectedOne')
+                      : t('routing.invaderSelectedMany', { count: multiInvaders.length })}
+                </Text>
+                {multiInvaders.length > 0 && (
+                  <Pressable onPress={onClearMulti} hitSlop={8} style={({ pressed }) => pressed && s.btnPressed}>
+                    <Ionicons name="close-circle" size={16} color={theme.textMuted} />
+                  </Pressable>
+                )}
+              </View>
             </View>
           )}
 
@@ -289,27 +297,28 @@ export function RoutingSheet({
         </View>
       </View>
 
-      {/* ── Bottom compute button ─────────────────────────────── */}
-      <View style={[s.bottomBar, { bottom: BottomTabInset + 16 }]} pointerEvents="box-none">
+      {/* ── Bottom compute / cancel button ───────────────────── */}
+      <View style={[s.bottomBar, { bottom: BottomTabInset + 8 }]} pointerEvents="box-none">
         <View style={s.bottomButtons} pointerEvents="auto">
-          {route && (
+          {route ? (
             <Pressable
-              style={({ pressed }) => [s.clearBtn, { borderColor: theme.danger }, pressed && s.btnPressed]}
-              onPress={onClear}
+              style={({ pressed }) => [s.computeBtn, { backgroundColor: theme.danger }, pressed && s.btnPressed]}
+              onPress={() => { onClear(); if (mode === 'multi') onClearMulti(); }}
             >
-              <Text style={[s.clearBtnText, { color: theme.danger }]}>{t('routing.clearRoute')}</Text>
+              <Ionicons name="close" size={28} color="#ffffff" />
+            </Pressable>
+          ) : (
+            <Pressable
+              style={({ pressed }) => [s.computeBtn, { backgroundColor: canCompute ? theme.accent : theme.bgDivider }, pressed && canCompute && s.btnPressed]}
+              onPress={handleCompute}
+              disabled={!canCompute}
+            >
+              {loading
+                ? <ActivityIndicator size="small" color={canCompute ? theme.bg : theme.textMuted} />
+                : <Ionicons name="flag" size={24} color={canCompute ? theme.bg : theme.textMuted} />
+              }
             </Pressable>
           )}
-          <Pressable
-            style={({ pressed }) => [s.computeBtn, { backgroundColor: canCompute ? theme.accent : theme.bgDivider }, pressed && canCompute && s.btnPressed]}
-            onPress={handleCompute}
-            disabled={!canCompute}
-          >
-            {loading
-              ? <ActivityIndicator size="small" color={canCompute ? theme.bg : theme.textMuted} />
-              : <Ionicons name="arrow-forward" size={26} color={canCompute ? theme.bg : theme.textMuted} />
-            }
-          </Pressable>
         </View>
       </View>
     </>
@@ -349,69 +358,78 @@ function CoordField({
   const { t } = useTranslation()
   const sz = (n: number) => Math.round(n * fontScale)
 
-  const leadingColor = coords
-    ? (isFrom ? theme.accent : theme.success)
-    : theme.textMuted
+  const leadingColor = isSearchOpen
+    ? theme.accent
+    : coords ? (isFrom ? theme.accent : theme.success) : theme.textMuted
 
   return (
     <View style={s.coordBlock}>
-      <View style={[s.coordRow, { borderColor: theme.border, backgroundColor: theme.bg }]}>
-        {/* Leading icon — GPS button for from, flag for to */}
+      <Pressable
+        style={({ pressed }) => [
+          s.coordRow,
+          { borderColor: isSearchOpen ? theme.accent : theme.border, backgroundColor: theme.bg },
+          !isSearchOpen && pressed && s.btnPressed,
+        ]}
+        onPress={!isSearchOpen ? onOpenSearch : undefined}
+      >
+        {/* Leading icon — GPS button for from (tappable), flag for to */}
         <Pressable
           onPress={isFrom && onUseLocation ? onUseLocation : undefined}
           hitSlop={6}
           style={({ pressed }) => [s.leadingIcon, isFrom && onUseLocation && pressed && s.btnPressed]}
           disabled={!isFrom || !onUseLocation}
         >
-          <Ionicons
-            name={isFrom ? 'navigate' : 'flag'}
-            size={16}
-            color={leadingColor}
-          />
+          <Ionicons name={isFrom ? 'navigate' : 'flag'} size={16} color={leadingColor} />
         </Pressable>
 
-        <Text
-          style={[s.coordLabel, { color: coords ? theme.text : theme.textMuted, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
-          numberOfLines={1}
-        >
-          {displayLabel ?? (coords ? `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}` : placeholder)}
-        </Text>
+        {/* Inline text input when searching, label when not */}
+        {isSearchOpen ? (
+          <TextInput
+            style={[s.coordLabel, { color: theme.text, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
+            placeholder={t('routing.searchPlaceholder')}
+            placeholderTextColor={theme.textMuted}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            autoFocus
+          />
+        ) : (
+          <Text
+            style={[s.coordLabel, { color: coords ? theme.text : theme.textMuted, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
+            numberOfLines={1}
+          >
+            {displayLabel ?? (coords ? `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}` : placeholder)}
+          </Text>
+        )}
 
         <View style={s.coordActions}>
-          {coords && (
-            <Pressable onPress={onClear} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
-              <Ionicons name="close" size={15} color={theme.textMuted} />
-            </Pressable>
+          {isSearchOpen ? (
+            searchLoading
+              ? <ActivityIndicator size="small" color={theme.accent} />
+              : <Pressable onPress={onCloseSearch} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
+                  <Ionicons name="close" size={16} color={theme.textMuted} />
+                </Pressable>
+          ) : (
+            <>
+              {coords && (
+                <Pressable onPress={onClear} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
+                  <Ionicons name="close" size={15} color={theme.textMuted} />
+                </Pressable>
+              )}
+              <Pressable onPress={onPickOnMap} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
+                <Ionicons name="locate-outline" size={16} color={theme.textMuted} />
+              </Pressable>
+            </>
           )}
-          <Pressable onPress={onOpenSearch} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
-            <Ionicons name="search-outline" size={16} color={isSearchOpen ? theme.accent : theme.textMuted} />
-          </Pressable>
-          <Pressable onPress={onPickOnMap} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
-            <Ionicons name="locate-outline" size={16} color={theme.textMuted} />
-          </Pressable>
         </View>
-      </View>
+      </Pressable>
 
-      {isSearchOpen && (
+      {/* Results dropdown — no separate input row */}
+      {isSearchOpen && searchResults.length > 0 && (
         <View style={[s.searchBox, { backgroundColor: theme.bg, borderColor: theme.border }]}>
-          <View style={s.searchInputRow}>
-            <TextInput
-              style={[s.searchInput, { color: theme.text, fontFamily: appFont, fontSize: sz(FontSize.sm) }]}
-              placeholder={t('routing.searchPlaceholder')}
-              placeholderTextColor={theme.textMuted}
-              value={searchQuery}
-              onChangeText={onSearchChange}
-              autoFocus
-            />
-            <Pressable onPress={onCloseSearch} hitSlop={6} style={({ pressed }) => pressed && s.btnPressed}>
-              <Ionicons name="close" size={16} color={theme.textMuted} />
-            </Pressable>
-          </View>
-          {searchLoading && <ActivityIndicator size="small" color={theme.accent} style={{ padding: 6 }} />}
           {searchResults.map((r, i) => (
             <Pressable
               key={i}
-              style={({ pressed }) => [s.searchResult, { borderTopColor: theme.bgDivider }, pressed && s.btnPressed]}
+              style={({ pressed }) => [s.searchResult, { borderTopColor: theme.bgDivider }, i > 0 && { borderTopWidth: 1 }, pressed && s.btnPressed]}
               onPress={() => onSelectResult(r.coords, r.label)}
             >
               <Ionicons name="location-outline" size={13} color={theme.textMuted} />
@@ -522,6 +540,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       gap: 6, paddingVertical: 11, borderRadius: BorderRadius.sm,
     },
     selectBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xxl },
+    selectionRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
     selectionCount: { fontFamily: font, fontSize: sz(FontSize.xs), textAlign: 'center' },
 
     // Result
@@ -537,9 +556,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
 
     // Search
     searchBox:        { borderWidth: 1, borderRadius: BorderRadius.sm, marginTop: 2, overflow: 'hidden' },
-    searchInputRow:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.two, paddingVertical: 7, gap: 8 },
-    searchInput:      { flex: 1, paddingVertical: 0 },
-    searchResult:     { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: Spacing.two, paddingVertical: 9, borderTopWidth: 1 },
+    searchResult:     { flexDirection: 'row', alignItems: 'flex-start', gap: 6, paddingHorizontal: Spacing.two, paddingVertical: 9 },
     searchResultText: { flex: 1, lineHeight: 17 },
 
     // Bottom bar
@@ -553,12 +570,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       gap: Spacing.two,
       paddingHorizontal: Spacing.four,
     },
-    clearBtn: {
-      borderWidth: 1, borderRadius: BorderRadius.sm,
-      paddingVertical: 12, paddingHorizontal: Spacing.three,
-      alignItems: 'center',
-    },
-    clearBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
     computeBtn: {
       width: 56, height: 56, borderRadius: 28,
       alignItems: 'center', justifyContent: 'center',

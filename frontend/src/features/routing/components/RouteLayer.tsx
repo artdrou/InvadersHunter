@@ -33,40 +33,21 @@ function zoomWidth(breakpoints: [number, number][]): unknown[] {
   return ['interpolate', ['linear'], ['zoom'], ...breakpoints.flatMap(([z, w]) => [z, w])]
 }
 
+const EMPTY_COLLECTION: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
 type Props = {
-  route: RouteResult
+  route: RouteResult | null
 }
 
 export function RouteLayer({ route }: Props) {
   const { theme } = useTheme()
   const color = theme.routePath
-  // Tinted inner core: blend 70% toward white so it echoes the path color
   const coreColor = lightenColor(color, 0.70)
 
   return (
     <>
-      <ShapeSource id="ors-route" shape={route.geojson}>
-        {/* Layer 1 — outer halo: wide, very transparent */}
-        <LineLayer
-          id="ors-route-halo"
-          style={{
-            lineColor: hexToRgba(color, 0.12),
-            lineWidth: zoomWidth([[10, 16], [14, 38], [17, 64]]),
-            lineCap: 'round',
-            lineJoin: 'round',
-          } as any}
-        />
-        {/* Layer 2 — mid glow */}
-        <LineLayer
-          id="ors-route-glow"
-          style={{
-            lineColor: hexToRgba(color, 0.28),
-            lineWidth: zoomWidth([[10, 9], [14, 20], [17, 34]]),
-            lineCap: 'round',
-            lineJoin: 'round',
-          } as any}
-        />
-        {/* Layer 3 — main line */}
+      <ShapeSource id="ors-route" shape={route?.geojson ?? EMPTY_COLLECTION}>
+        {/* Main line */}
         <LineLayer
           id="ors-route-line"
           style={{
@@ -77,7 +58,7 @@ export function RouteLayer({ route }: Props) {
             lineJoin: 'round',
           } as any}
         />
-        {/* Layer 4 — tinted core highlight */}
+        {/* Tinted core highlight */}
         <LineLayer
           id="ors-route-core"
           style={{
@@ -89,7 +70,7 @@ export function RouteLayer({ route }: Props) {
         />
       </ShapeSource>
 
-      {route.orderedInvaders.map((inv, index) => {
+      {route?.orderedInvaders.map((inv, index) => {
         if (inv.longitude == null || inv.latitude == null) return null
         return (
           <PointAnnotation
