@@ -25,6 +25,10 @@ const EMPTY_GEOJSON: FeatureCollection = {
 
 const DIRECTIONS_OK = { geojson: EMPTY_GEOJSON, durationSec: 600, distanceKm: 2.5 }
 const MATRIX_2x2   = { durations: [[0, 120], [130, 0]] }
+const MATRIX_4x4   = { durations: [[0, 60, 90, 120], [60, 0, 40, 90], [90, 40, 0, 60], [120, 90, 60, 0]] }
+
+const FROM: [number, number] = [2.33, 48.85]
+const TO:   [number, number] = [2.37, 48.87]
 
 function makeInvader(id: number, lng: number, lat: number, captured = false): InvaderWithState {
   return {
@@ -62,13 +66,12 @@ describe('initial state', () => {
 
 describe('clearRoute', () => {
   it('resets route and error to null', async () => {
-    mockFetchMatrix.mockResolvedValue(MATRIX_2x2)
     mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
 
     const { result } = renderHook(() => useRouting())
 
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [], travelMode: 'foot-walking', detourMin: 0 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.route).not.toBeNull())
@@ -83,12 +86,12 @@ describe('clearRoute', () => {
 
 describe('error handling', () => {
   it('sets error message when ORS throws', async () => {
-    mockFetchMatrix.mockRejectedValue(new Error('ORS error 500'))
+    mockFetchDirections.mockRejectedValue(new Error('ORS error 500'))
 
     const { result } = renderHook(() => useRouting())
 
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [], travelMode: 'foot-walking', detourMin: 0 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -98,23 +101,22 @@ describe('error handling', () => {
   })
 
   it('clears previous error on a new successful call', async () => {
-    mockFetchMatrix
+    mockFetchDirections
       .mockRejectedValueOnce(new Error('ORS error 500'))
-      .mockResolvedValue(MATRIX_2x2)
-    mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
+      .mockResolvedValue(DIRECTIONS_OK)
 
     const { result } = renderHook(() => useRouting())
 
     // First call — fails
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [], travelMode: 'foot-walking', detourMin: 0 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.error).not.toBeNull())
 
     // Second call — succeeds
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [], travelMode: 'foot-walking', detourMin: 0 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -128,11 +130,10 @@ describe('error handling', () => {
 
 describe('debounce', () => {
   it('only executes once when called multiple times within 500ms', async () => {
-    mockFetchMatrix.mockResolvedValue(MATRIX_2x2)
     mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
 
     const { result } = renderHook(() => useRouting())
-    const params = { mode: 'multi' as const, invaders: [INV_A, INV_B], travelMode: 'foot-walking' as const }
+    const params = { mode: 'ab' as const, from: FROM, to: TO, invaders: [], mandatoryInvaders: [], travelMode: 'foot-walking' as const, detourMin: 0 }
 
     act(() => {
       result.current.computeRoute(params)
@@ -142,22 +143,22 @@ describe('debounce', () => {
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    // matrix + directions called once, not three times
-    expect(mockFetchMatrix).toHaveBeenCalledTimes(1)
+    // fetchDirections called once, not three times
+    expect(mockFetchDirections).toHaveBeenCalledTimes(1)
   })
 })
 
-// ── mode multi ─────────────────────────────────────────────────────────────
+// ── mode ab with mandatory stops ────────────────────────────────────────────
 
-describe('mode multi', () => {
-  it('returns route with ordered invaders, totalMinutes and totalKm', async () => {
-    mockFetchMatrix.mockResolvedValue(MATRIX_2x2)
+describe('mode ab with mandatory invaders', () => {
+  it('returns route including mandatory stops in orderedInvaders', async () => {
     mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
+    mockFetchMatrix.mockResolvedValue(MATRIX_4x4)
 
     const { result } = renderHook(() => useRouting())
 
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [INV_A, INV_B], travelMode: 'foot-walking', detourMin: 60 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
     await waitFor(() => expect(result.current.loading).toBe(false))
@@ -170,20 +171,21 @@ describe('mode multi', () => {
   })
 
   it('sets loading=true during computation then false after', async () => {
-    let resolveMatrix!: (v: typeof MATRIX_2x2) => void
+    let resolveMatrix!: (v: typeof MATRIX_4x4) => void
+    mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
     mockFetchMatrix.mockReturnValue(new Promise((r) => { resolveMatrix = r }))
 
     const { result } = renderHook(() => useRouting())
 
     act(() => {
-      result.current.computeRoute({ mode: 'multi', invaders: [INV_A, INV_B], travelMode: 'foot-walking' })
+      result.current.computeRoute({ mode: 'ab', from: FROM, to: TO, invaders: [], mandatoryInvaders: [INV_A, INV_B], travelMode: 'foot-walking', detourMin: 60 })
     })
     await act(async () => { jest.advanceTimersByTime(500) })
 
     expect(result.current.loading).toBe(true)
 
     await act(async () => {
-      resolveMatrix(MATRIX_2x2)
+      resolveMatrix(MATRIX_4x4)
       mockFetchDirections.mockResolvedValue(DIRECTIONS_OK)
     })
     await waitFor(() => expect(result.current.loading).toBe(false))

@@ -17,14 +17,9 @@ export type RoutingParams =
       from: [number, number]
       to: [number, number]
       invaders: InvaderWithState[]
+      mandatoryInvaders: InvaderWithState[]
       travelMode: TravelMode
       detourMin: number
-    }
-  | {
-      mode: 'multi'
-      from?: [number, number]
-      invaders: InvaderWithState[]
-      travelMode: TravelMode
     }
   | {
       mode: 'walk'

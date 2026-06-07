@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { ShapeSource, LineLayer, PointAnnotation, Callout } from '@maplibre/maplibre-react-native'
+import { ShapeSource, LineLayer, CircleLayer, SymbolLayer, PointAnnotation, Callout } from '@maplibre/maplibre-react-native'
 import { useTheme } from '@/contexts/theme-context'
 import { ButtonFont, ButtonFontSize } from '@/constants/theme'
 import type { RouteResult } from '../types'
@@ -57,15 +57,39 @@ const EMPTY_COLLECTION: GeoJSON.FeatureCollection = { type: 'FeatureCollection',
 const SHIMMER_CYCLE_MS = 2800
 const SHIMMER_FPS_MS   = 50   // ~20 fps
 
-type Props = {
-  route: RouteResult | null
+function pinCollection(coords: [number, number] | null, label: string): GeoJSON.FeatureCollection {
+  if (!coords) return EMPTY_COLLECTION
+  return {
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: coords },
+      properties: { label },
+    }],
+  }
 }
 
-export function RouteLayer({ route }: Props) {
+type Props = {
+  route: RouteResult | null
+  fromCoords?: [number, number] | null
+  toCoords?: [number, number] | null
+  fromIsUserLocation?: boolean
+}
+
+export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation }: Props) {
   const { theme } = useTheme()
   const color     = theme.routePath
   const coreColor = lightenColor(color, 0.70)
   const fade      = hexToRgba(color, 0)
+
+  const startShape = useMemo(
+    () => fromIsUserLocation ? EMPTY_COLLECTION : pinCollection(fromCoords ?? null, 'A'),
+    [fromCoords, fromIsUserLocation],
+  )
+  const endShape = useMemo(
+    () => pinCollection(toCoords ?? null, 'B'),
+    [toCoords],
+  )
 
   const [shimmer, setShimmer] = useState(0)
   const tRef = useRef(0)
@@ -141,6 +165,49 @@ export function RouteLayer({ route }: Props) {
             lineBlur: 0.6,
             lineCap: 'round',
             lineJoin: 'round',
+          } as any}
+        />
+      </ShapeSource>
+
+      {/* ── Start / End pins — above path, below invader markers ── */}
+      <ShapeSource id="ors-pin-start" shape={startShape}>
+        <CircleLayer
+          id="ors-pin-start-circle"
+          style={{
+            circleRadius: 11,
+            circleColor: theme.accent,
+            circleStrokeWidth: 2,
+            circleStrokeColor: theme.bg,
+          } as any}
+        />
+        <SymbolLayer
+          id="ors-pin-start-label"
+          style={{
+            textField: ['get', 'label'],
+            textSize: 12,
+            textColor: theme.bg,
+            textAnchor: 'center',
+          } as any}
+        />
+      </ShapeSource>
+
+      <ShapeSource id="ors-pin-end" shape={endShape}>
+        <CircleLayer
+          id="ors-pin-end-circle"
+          style={{
+            circleRadius: 11,
+            circleColor: theme.danger,
+            circleStrokeWidth: 2,
+            circleStrokeColor: theme.bg,
+          } as any}
+        />
+        <SymbolLayer
+          id="ors-pin-end-label"
+          style={{
+            textField: ['get', 'label'],
+            textSize: 12,
+            textColor: theme.bg,
+            textAnchor: 'center',
           } as any}
         />
       </ShapeSource>

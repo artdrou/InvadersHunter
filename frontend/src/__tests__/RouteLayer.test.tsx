@@ -11,10 +11,33 @@ jest.mock('@maplibre/maplibre-react-native', () => {
   return {
     ShapeSource:     ({ children }: any) => <View testID="ShapeSource">{children}</View>,
     LineLayer:       (props: any) => <View testID="LineLayer" {...props} />,
+    CircleLayer:     (props: any) => <View testID="CircleLayer" {...props} />,
+    SymbolLayer:     (props: any) => <View testID="SymbolLayer" {...props} />,
     PointAnnotation: ({ children, id }: any) => <View testID={`PointAnnotation-${id}`}>{children}</View>,
     Callout:         ({ title }: any) => <Text testID="Callout">{title}</Text>,
   }
 })
+
+// constants/theme imports global.css — stub the whole module
+jest.mock('@/constants/theme', () => ({
+  ButtonFont: 'System',
+  ButtonFontSize: { xs: 10, xl: 18 },
+}))
+
+// Theme context re-exports theme tokens — stub to avoid indirect CSS import
+jest.mock('@/contexts/theme-context', () => ({
+  useTheme: () => ({
+    theme: {
+      routePath: '#00bfff',
+      bg: '#000000',
+      accent: '#00ff99',
+      danger: '#ff3366',
+    },
+    appFont: 'System',
+    fontScale: 1,
+    themeName: 'dark',
+  }),
+}))
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -48,18 +71,18 @@ function makeRoute(invaders: InvaderWithState[]): RouteResult {
 // ── tests ──────────────────────────────────────────────────────────────────
 
 describe('RouteLayer', () => {
-  it('renders a ShapeSource and LineLayer for the route', () => {
-    const { getByTestId } = render(
-      <RouteLayer route={makeRoute([])} travelMode="foot-walking" />
+  it('renders ShapeSources and a LineLayer for the route', () => {
+    const { getAllByTestId } = render(
+      <RouteLayer route={makeRoute([])}  />
     )
-    expect(getByTestId('ShapeSource')).toBeTruthy()
-    expect(getByTestId('LineLayer')).toBeTruthy()
+    expect(getAllByTestId('ShapeSource').length).toBeGreaterThanOrEqual(1)
+    expect(getAllByTestId('LineLayer').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders one PointAnnotation per ordered invader', () => {
     const invaders = [makeInvader(1), makeInvader(2), makeInvader(3)]
     const { getByTestId } = render(
-      <RouteLayer route={makeRoute(invaders)} travelMode="foot-walking" />
+      <RouteLayer route={makeRoute(invaders)}  />
     )
     expect(getByTestId('PointAnnotation-route-wp-1')).toBeTruthy()
     expect(getByTestId('PointAnnotation-route-wp-2')).toBeTruthy()
@@ -69,7 +92,7 @@ describe('RouteLayer', () => {
   it('skips invaders with null coordinates', () => {
     const invaders = [makeInvader(1), makeInvader(2, null, null)]
     const { queryByTestId } = render(
-      <RouteLayer route={makeRoute(invaders)} travelMode="foot-walking" />
+      <RouteLayer route={makeRoute(invaders)}  />
     )
     expect(queryByTestId('PointAnnotation-route-wp-1')).toBeTruthy()
     expect(queryByTestId('PointAnnotation-route-wp-2')).toBeNull()
@@ -77,7 +100,7 @@ describe('RouteLayer', () => {
 
   it('renders no PointAnnotations when orderedInvaders is empty', () => {
     const { queryByTestId } = render(
-      <RouteLayer route={makeRoute([])} travelMode="foot-walking" />
+      <RouteLayer route={makeRoute([])}  />
     )
     expect(queryByTestId(/PointAnnotation/)).toBeNull()
   })
@@ -85,7 +108,7 @@ describe('RouteLayer', () => {
   it('callout title shows order number and invader name', () => {
     const invaders = [makeInvader(42)]
     const { getAllByTestId } = render(
-      <RouteLayer route={makeRoute(invaders)} travelMode="foot-walking" />
+      <RouteLayer route={makeRoute(invaders)}  />
     )
     const callouts = getAllByTestId('Callout')
     expect(callouts[0].props.children).toBe('1. INV_42')

@@ -72,17 +72,19 @@ async function computeAb(
   invaders: InvaderWithState[],
   travelMode: TravelMode,
   detourMin: number,
+  mandatoryInvaders: InvaderWithState[] = [],
 ): Promise<RouteResult> {
+  const mandatory  = mandatoryInvaders.filter(hasCoords)
   const candidates = invaders.filter(hasCoords).filter((inv) => !inv.isCaptured)
 
   // request 1: base route
   const base = await fetchDirections(travelMode, [from, to])
   const baseSeconds = base.durationSec
-  const detourSec = detourMin * 60
-  const budget = baseSeconds + detourSec
+  const detourSec   = detourMin * 60
+  const budget      = baseSeconds + detourSec
 
-  // 0-min detour = direct route, skip matrix entirely
-  if (detourMin === 0 || candidates.length === 0) {
+  // No mandatory stops and no optional budget — return direct route
+  if (mandatory.length === 0 && (detourMin === 0 || candidates.length === 0)) {
     return {
       geojson: base.geojson,
       orderedInvaders: [],
@@ -92,41 +94,65 @@ async function computeAb(
     }
   }
 
-  const filtered = candidates.length > MATRIX_MAX_POINTS - 2
-    ? bboxFilter(candidates, from, to).slice(0, MATRIX_MAX_POINTS - 2)
+  // Matrix layout: from(0), mandatory(1..m), optional(m+1..m+n), to(m+n+1)
+  const maxOptional = MATRIX_MAX_POINTS - 2 - mandatory.length
+  const filtered = candidates.length > maxOptional
+    ? bboxFilter(candidates, from, to).slice(0, maxOptional)
     : candidates
 
-  // request 2: single full matrix covering all points at once
-  // layout: from(0), candidates(1..n), to(n+1)
-  const allLocs: [number, number][] = [from, ...filtered.map(invaderCoord), to]
+  const allLocs: [number, number][] = [from, ...mandatory.map(invaderCoord), ...filtered.map(invaderCoord), to]
   const toIdx = allLocs.length - 1
+
+  // request 2: single full matrix
   const { durations } = await fetchMatrix(travelMode, allLocs)
 
-  const withDetour = filtered
-    .map((inv, i) => {
-      const matIdx = i + 1
-      const detourSec = durations[0][matIdx] + durations[matIdx][toIdx] - baseSeconds
-      return { inv, detourSec, matIdx }
-    })
-    .filter(({ detourSec: d }) => d <= detourSec)
-    .sort((a, b) => a.detourSec - b.detourSec)
-
-  // greedy insertion — all distances already in matrix, zero extra requests
-  const routeIndices: number[] = [0, toIdx]
+  // Seed routeIndices with mandatory stops (always included, order them via TSP)
+  let routeIndices: number[] = [0, toIdx]
   let routeTimeSec = baseSeconds
-  const orderedRoute: InvaderWithState[] = []
 
-  for (const { inv, matIdx } of withDetour) {
-    if (routeIndices.length >= MATRIX_MAX_POINTS) break
-    const { bestPos, bestExtra } = bestInsertion(routeIndices, matIdx, durations)
-    if (routeTimeSec + bestExtra <= budget) {
-      routeTimeSec += bestExtra
-      routeIndices.splice(bestPos, 0, matIdx)
-      orderedRoute.splice(bestPos - 1, 0, inv)
+  if (mandatory.length > 0) {
+    let startIdx = 0
+    let minDist  = Infinity
+    for (let i = 0; i < mandatory.length; i++) {
+      if (durations[0][i + 1] < minDist) { minDist = durations[0][i + 1]; startIdx = i }
+    }
+    const mandDur   = mandatory.map((_, a) => mandatory.map((_, b) => durations[a + 1][b + 1]))
+    const mandOrder = nearestNeighborTSP(mandatory, mandDur, startIdx)
+
+    routeIndices = [0, ...mandOrder.map((i) => i + 1), toIdx]
+    routeTimeSec = 0
+    for (let i = 1; i < routeIndices.length; i++) {
+      routeTimeSec += durations[routeIndices[i - 1]][routeIndices[i]]
     }
   }
 
-  if (orderedRoute.length === 0) {
+  // Greedy insertion of optional candidates within budget
+  const optStart = mandatory.length + 1
+  if (filtered.length > 0 && detourMin > 0) {
+    const withDetour = filtered
+      .map((inv, i) => {
+        const matIdx    = optStart + i
+        const directDet = durations[0][matIdx] + durations[matIdx][toIdx] - baseSeconds
+        return { matIdx, directDet }
+      })
+      .filter(({ directDet }) => directDet <= detourSec)
+      .sort((a, b) => a.directDet - b.directDet)
+
+    for (const { matIdx } of withDetour) {
+      if (routeIndices.length >= MATRIX_MAX_POINTS) break
+      const { bestPos, bestExtra } = bestInsertion(routeIndices, matIdx, durations)
+      if (routeTimeSec + bestExtra <= budget) {
+        routeTimeSec += bestExtra
+        routeIndices.splice(bestPos, 0, matIdx)
+      }
+    }
+  }
+
+  // Build ordered invaders from final routeIndices
+  const allInvaders = [...mandatory, ...filtered]
+  const orderedAll  = routeIndices.slice(1, -1).map((matIdx) => allInvaders[matIdx - 1])
+
+  if (orderedAll.length === 0) {
     return {
       geojson: base.geojson,
       orderedInvaders: [],
@@ -142,67 +168,10 @@ async function computeAb(
 
   return {
     geojson: final.geojson,
-    orderedInvaders: orderedRoute,
+    orderedInvaders: orderedAll,
     totalMinutes: Math.round(final.durationSec / 60),
     totalKm: Math.round(final.distanceKm * 10) / 10,
     detourMinutes: Math.round((final.durationSec - baseSeconds) / 60),
-  }
-}
-
-// ── mode multi ─────────────────────────────────────────────────────────────
-// 2 ORS requests. When `from` is provided, includes origin in the matrix so
-// the route starts from the user's position (fixing the time estimate).
-
-async function computeMulti(
-  invaders: InvaderWithState[],
-  travelMode: TravelMode,
-  from?: [number, number],
-): Promise<RouteResult> {
-  const valid = invaders.filter(hasCoords)
-  if (valid.length < 2) throw new Error('At least 2 invaders with coordinates required')
-
-  if (from) {
-    // Include origin — matrix layout: from(0), invaders(1..n)
-    const locs: [number, number][] = [from, ...valid.map(invaderCoord)]
-    const { durations } = await fetchMatrix(travelMode, locs)
-
-    // Sub-matrix for invaders only
-    const n = valid.length
-    const invDur: number[][] = Array.from({ length: n }, (_, a) =>
-      Array.from({ length: n }, (_, b) => durations[a + 1][b + 1]),
-    )
-
-    // TSP starting from the invader nearest to from
-    let startIdx = 0
-    let minDist = Infinity
-    for (let i = 0; i < n; i++) {
-      if (durations[0][i + 1] < minDist) { minDist = durations[0][i + 1]; startIdx = i }
-    }
-
-    const order = nearestNeighborTSP(valid, invDur, startIdx)
-    const ordered = order.map((i) => valid[i])
-    const final = await fetchDirections(travelMode, [from, ...ordered.map(invaderCoord)])
-
-    return {
-      geojson: final.geojson,
-      orderedInvaders: ordered,
-      totalMinutes: Math.round(final.durationSec / 60),
-      totalKm: Math.round(final.distanceKm * 10) / 10,
-    }
-  }
-
-  // No origin — fallback: start from nearest invader among selection
-  const locs = valid.map(invaderCoord)
-  const { durations } = await fetchMatrix(travelMode, locs)
-  const order = nearestNeighborTSP(valid, durations, 0)
-  const ordered = order.map((i) => valid[i])
-  const final = await fetchDirections(travelMode, ordered.map(invaderCoord))
-
-  return {
-    geojson: final.geojson,
-    orderedInvaders: ordered,
-    totalMinutes: Math.round(final.durationSec / 60),
-    totalKm: Math.round(final.distanceKm * 10) / 10,
   }
 }
 
@@ -349,9 +318,7 @@ export function useRouting() {
       try {
         let result: RouteResult
         if (params.mode === 'ab') {
-          result = await computeAb(params.from, params.to, params.invaders, params.travelMode, params.detourMin)
-        } else if (params.mode === 'multi') {
-          result = await computeMulti(params.invaders, params.travelMode, params.from)
+          result = await computeAb(params.from, params.to, params.invaders, params.travelMode, params.detourMin, params.mandatoryInvaders)
         } else {
           result = await computeWalk(params.from, params.invaders, params.travelMode, params.durationMin, params.walkMode, params.to)
         }

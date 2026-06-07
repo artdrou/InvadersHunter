@@ -47,25 +47,15 @@ export default function MapScreen() {
   const [routingToLabel, setRoutingToLabel]     = useState<string | null>(null);
   // Map picker for routing
   const [routingPickerTarget, setRoutingPickerTarget] = useState<'from' | 'to' | null>(null);
-  // Invader picker for multi-stop itineraries: tap markers to toggle them in/out
-  const [selectingInvaders, setSelectingInvaders] = useState(false);
-  const [routingMode, setRoutingMode] = useState<'ab' | 'multi'>('ab');
-  // While picking, selected invaders are drawn with the golden marker
+  // Highlights active whenever the routing sheet is open (tap to toggle mandatory stops)
   const selectedInvaderIds = useMemo(
-    () => (selectingInvaders ? multiInvaders.map((i) => i.id) : undefined),
-    [selectingInvaders, multiInvaders]
+    () => routingSheetOpen ? multiInvaders.map((i) => i.id) : undefined,
+    [routingSheetOpen, multiInvaders]
   );
 
   function handleRoutingPickOnMap(target: 'from' | 'to') {
     setRoutingSheetOpen(false);
     setRoutingPickerTarget(target);
-  }
-
-  function startSelectingInvaders() {
-    // Keep sheet open — selection happens in overlay
-    setSelectedInvader(null);
-    selectedInvaderRef.current = null;
-    setSelectingInvaders(true);
   }
 
   function toggleInvaderSelection(invader: InvaderWithState) {
@@ -75,17 +65,6 @@ export default function MapScreen() {
         ? prev.filter((i) => i.id !== invader.id)
         : [...prev, invader]
     );
-  }
-
-  function cancelSelectingInvaders() {
-    setMultiInvaders([]);
-    setSelectingInvaders(false);
-    if (!routingSheetOpen) setRoutingSheetOpen(true);
-  }
-
-  function validateSelectingInvaders() {
-    setSelectingInvaders(false);
-    if (!routingSheetOpen) setRoutingSheetOpen(true);
   }
 
   async function validateRoutingPicker() {
@@ -150,11 +129,11 @@ export default function MapScreen() {
   }
 
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
-    if (selectingInvaders || (routingSheetOpen && routingMode === 'multi')) { toggleInvaderSelection(invader); return; }
+    if (routingSheetOpen) { toggleInvaderSelection(invader); return; }
     if (picking || creatingPicker || creatingModal || creatingPickLoc) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, [selectingInvaders, routingSheetOpen, routingMode, picking, creatingPicker, creatingModal, creatingPickLoc]);
+  }, [routingSheetOpen, picking, creatingPicker, creatingModal, creatingPickLoc]);
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || creatingModal || creatingPickLoc) return;
@@ -268,10 +247,10 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={<RouteLayer route={route} />}>
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={<RouteLayer route={route} fromCoords={routingFrom} toCoords={routingTo} fromIsUserLocation={routingFromLabel === t('routing.myLocation')} />}>
       </WebMap>
 
-      {!picking && !anyCreating && !selectingInvaders && (
+      {!picking && !anyCreating && (
         <View style={styles.filterBar}>
           <MapFilterBar value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
@@ -405,17 +384,12 @@ export default function MapScreen() {
       )}
 
       {/* ── Routing FAB ── */}
-      {!picking && !anyCreating && (!selectingInvaders || routingSheetOpen) && (
+      {!picking && !anyCreating && (
         <View style={styles.routingFAB} pointerEvents="box-none">
           <RoutingFAB
             active={routingSheetOpen}
             theme={theme}
-            onPress={() => {
-              setRoutingSheetOpen((v) => {
-                if (v) { setSelectingInvaders(false); }
-                return !v;
-              });
-            }}
+            onPress={() => setRoutingSheetOpen((v) => !v)}
           />
         </View>
       )}
@@ -423,18 +397,7 @@ export default function MapScreen() {
       {/* ── Routing Sheet ── */}
       {routingSheetOpen && (
         <RoutingSheet
-          mode={routingMode}
-          onModeChange={(m) => {
-            setRoutingMode(m);
-            if (m === 'multi') {
-              setSelectedInvader(null);
-              selectedInvaderRef.current = null;
-              setSelectingInvaders(true);
-            } else {
-              setSelectingInvaders(false);
-            }
-          }}
-          onClose={() => { setRoutingSheetOpen(false); setSelectingInvaders(false); }}
+          onClose={() => setRoutingSheetOpen(false)}
           fromCoords={routingFrom}
           fromLabel={routingFromLabel}
           toCoords={routingTo}
@@ -452,8 +415,6 @@ export default function MapScreen() {
           onPickOnMap={handleRoutingPickOnMap}
           allInvaders={invadersWithState}
           multiInvaders={multiInvaders}
-          onRemoveFromMulti={(id) => setMultiInvaders((prev) => prev.filter((i) => i.id !== id))}
-          onPickInvadersOnMap={startSelectingInvaders}
           userLocation={mapRef.current?.getUserCoords() ?? null}
           loading={routeLoading}
           error={routeError}
@@ -461,7 +422,7 @@ export default function MapScreen() {
           onCompute={(params) => {
             computeRoute(params);
             setRoutingSheetOpen(false);
-            setSelectingInvaders(false);
+            setMultiInvaders([]);
           }}
           onClear={clearRoute}
           onClearMulti={() => setMultiInvaders([])}
@@ -487,36 +448,6 @@ export default function MapScreen() {
               onPress={validateRoutingPicker}
             >
               <Text style={[styles.pickerBtnText, { color: theme.bg }]}>{t('common.validate')}</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-
-      {/* ── Multi-itinerary: invader selection picker (hidden when routing overlay is open) ── */}
-      {selectingInvaders && !routingSheetOpen && (
-        <>
-          <View style={[styles.selectBanner, { backgroundColor: theme.bgElement, borderColor: theme.border }]} pointerEvents="none">
-            <Text style={[styles.selectBannerCount, { color: theme.accent }]}>
-              {multiInvaders.length}
-            </Text>
-            <Text style={[styles.selectBannerText, { color: theme.text }]}>
-              {t('routing.selectTapHint')}
-            </Text>
-          </View>
-          <View style={styles.pickerBar}>
-            <TouchableOpacity
-              style={[styles.pickerBtn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
-              onPress={cancelSelectingInvaders}
-            >
-              <Text style={[styles.pickerBtnText, { color: theme.textMuted }]}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.pickerBtn, { backgroundColor: theme.accent }]}
-              onPress={validateSelectingInvaders}
-            >
-              <Text style={[styles.pickerBtnText, { color: theme.bg }]}>
-                {t('common.validate')}{multiInvaders.length > 0 ? ` (${multiInvaders.length})` : ''}
-              </Text>
             </TouchableOpacity>
           </View>
         </>
@@ -639,28 +570,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     zIndex: 10,
-  },
-  selectBanner: {
-    position: "absolute",
-    top: 16,
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    maxWidth: "88%",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    zIndex: 20,
-  },
-  selectBannerCount: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  selectBannerText: {
-    fontSize: 13,
-    flexShrink: 1,
   },
   pickerPinWrapper: {
     position: "absolute",

@@ -212,7 +212,8 @@
     "resultInvaderOne": "1 invader",
     "resultInvaderMany": "{{count}} invaders",
     "resultSuffix": "{{minutes}} min · {{km}} km",
-    "detourMinutes": "+{{minutes}} min detour"
+    "detourMinutes": "+{{minutes}} min detour",
+    "start": "Start"
   },
   "invaders": {
     "searchPlaceholder": "Search invaders…",
