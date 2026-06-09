@@ -137,10 +137,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       mapStyle={mapStyle}
       compassEnabled={false}
       attributionPosition={{ bottom: 8, left: 8 }}
-      onLayout={(e) => {
+      {...{ onLayout: (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
         const { width, height } = e.nativeEvent.layout;
         mapSizeRef.current = { width, height };
-      }}
+      } } as any}
       onLongPress={(e: any) => {
         const [lon, lat] = e.geometry.coordinates;
         onLongPress?.(lat, lon);

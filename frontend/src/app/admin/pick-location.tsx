@@ -103,10 +103,10 @@ export default function AdminPickLocationScreen() {
         style={styles.map}
         mapStyle={mapStyle}
         attributionPosition={{ bottom: 8, left: 8 }}
-        onLayout={(e) => {
+        {...{ onLayout: (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
           const { width, height } = e.nativeEvent.layout;
           mapSizeRef.current = { width, height };
-        }}
+        } } as any}
       >
         <Camera
           ref={cameraRef}

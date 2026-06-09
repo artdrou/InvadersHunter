@@ -12,11 +12,14 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+import type { ReactNode } from 'react';
+
 export type StepItem    = { type: 'step';    title: string; body?: string };
 export type SectionItem = { type: 'section'; label: string; body: string };
 export type TipItem     = { type: 'tip';     body: string };
 export type ImageItem   = { type: 'image';   placeholder: string };
-export type TutorialItem = StepItem | SectionItem | TipItem | ImageItem;
+export type NodeItem    = { type: 'node';    content: ReactNode };
+export type TutorialItem = StepItem | SectionItem | TipItem | ImageItem | NodeItem;
 
 export type TutorialPage = {
   key: string;
@@ -197,6 +200,10 @@ function PageItems({ items, s, theme }: { items: TutorialItem[]; s: ReturnType<t
               <Text style={[s.tipBody, { color: theme.textMuted }]}>{item.body}</Text>
             </View>
           );
+        }
+
+        if (item.type === 'node') {
+          return <View key={idx}>{item.content}</View>;
         }
 
         // image placeholder
