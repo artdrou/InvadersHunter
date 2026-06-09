@@ -10,6 +10,7 @@ import { InfoButton, TutorialModal } from "@/features/tutorial";
 import type { TutorialPage } from "@/features/tutorial";
 import { ColorModeIllustration } from "./ColorModeIllustration";
 import { GreyModeIllustration } from "./GreyModeIllustration";
+import { FilterIllustration } from "./FilterIllustration";
 
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";
@@ -81,10 +82,24 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
   ];
   const [filterOpen, setFilterOpen] = useState(false);
   const [greyOpen, setGreyOpen] = useState(false);
-  const [colorTutVisible, setColorTutVisible] = useState(false);
-  const [greyTutVisible, setGreyTutVisible] = useState(false);
+  const [tutorialVisible, setTutorialVisible] = useState(false);
+  const [filterTutVisible, setFilterTutVisible] = useState(false);
 
-  const colorPages = useMemo<TutorialPage[]>(() => [
+  const filterPages = useMemo<TutorialPage[]>(() => [
+    {
+      key: 'filters',
+      tab: t('tutorial.filters.title'),
+      items: [
+        { type: 'section', label: t('invaders.filterStatus'), body: t('tutorial.filters.statusBody') },
+        { type: 'section', label: t('invaders.filterCondition'), body: t('tutorial.filters.condBody') },
+        { type: 'section', label: t('invaders.filterPoints'), body: t('tutorial.filters.pointsBody') },
+        { type: 'node', content: <FilterIllustration /> },
+        { type: 'tip', body: t('tutorial.filters.combineTip') },
+      ],
+    },
+  ], [t]);
+
+  const tutorialPages = useMemo<TutorialPage[]>(() => [
     {
       key: 'colorMode',
       tab: t('tutorial.colorMode.title'),
@@ -94,9 +109,6 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
         { type: 'node', content: <ColorModeIllustration /> },
       ],
     },
-  ], [t]);
-
-  const greyPages = useMemo<TutorialPage[]>(() => [
     {
       key: 'greyMode',
       tab: t('tutorial.greyMode.title'),
@@ -139,7 +151,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
         <View style={styles.panel}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionLabelText}>{t('invaders.colorMode')}</Text>
-            <InfoButton size={14} onPress={() => setColorTutVisible(true)} color={theme.textMuted} />
+            <InfoButton size={14} onPress={() => setTutorialVisible(true)} color={theme.accent} showLabel={false} />
           </View>
           <View style={styles.optionGroup}>
             {COLOR_MODE_OPTIONS.map((o) => {
@@ -157,10 +169,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
           </View>
 
           <View style={styles.divider} />
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionLabelText}>{t('invaders.greyOut')}</Text>
-            <InfoButton size={14} onPress={() => setGreyTutVisible(true)} color={theme.textMuted} />
-          </View>
+          <Text style={styles.sectionLabel}>{t('invaders.greyOut')}</Text>
           <View style={styles.optionGroup}>
             {(colorMode === "flash" ? GREY_OPTIONS_FLASH : GREY_OPTIONS_RARITY).map((o) => {
               const selected = greyMode === o.key;
@@ -191,7 +200,10 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
 
       {filterOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>{t('invaders.filterStatus')}</Text>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionLabelText}>{t('invaders.filterStatus')}</Text>
+            <InfoButton size={14} onPress={() => setFilterTutVisible(true)} color={theme.accent} showLabel={false} />
+          </View>
           <View style={styles.optionGroup}>
             {STATUS_OPTIONS.map((o) => {
               const selected = value.status === o.key;
@@ -255,16 +267,16 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
       </Pressable>
     </View>
     <TutorialModal
-      visible={colorTutVisible}
-      onClose={() => setColorTutVisible(false)}
+      visible={tutorialVisible}
+      onClose={() => setTutorialVisible(false)}
       title={t('tutorial.colorMode.title')}
-      pages={colorPages}
+      pages={tutorialPages}
     />
     <TutorialModal
-      visible={greyTutVisible}
-      onClose={() => setGreyTutVisible(false)}
-      title={t('tutorial.greyMode.title')}
-      pages={greyPages}
+      visible={filterTutVisible}
+      onClose={() => setFilterTutVisible(false)}
+      title={t('tutorial.filters.title')}
+      pages={filterPages}
     />
     </>
   );
@@ -301,10 +313,10 @@ function makeStyles(t: ThemeTokens) {
     sectionRow: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
       paddingBottom: 4,
-      gap: 6,
     },
     sectionLabelText: {
       color: t.textMuted,

@@ -390,6 +390,13 @@
       "subFlashed": "Cap. colored",
       "subOff": "All colored"
     },
+    "filters": {
+      "title": "Filters",
+      "statusBody": "Show all invaders, only those you've already flashed, or only those you haven't captured yet.",
+      "condBody": "'Flashable' shows invaders in a state that can still be flashed. 'Unflashable' shows destroyed or not-visible ones only.",
+      "pointsBody": "Restrict to one or more rarity tiers. Select multiple values to combine them.",
+      "combineTip": "All three filters combine. Example: Unflashed + Flashable + 50pts shows only 50-point invaders you haven't captured that can still be flashed."
+    },
     "routing": {
       "title": "Hunt",
       "tab1": "Overview",

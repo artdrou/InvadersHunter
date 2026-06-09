@@ -6,9 +6,10 @@ type Props = {
   onPress: () => void;
   size?: number;
   color?: string;
+  showLabel?: boolean;
 };
 
-export function InfoButton({ onPress, size = 22, color }: Props) {
+export function InfoButton({ onPress, size = 22, color, showLabel = true }: Props) {
   const { theme } = useTheme();
   const fg = color ?? theme.textMuted;
 
@@ -32,7 +33,7 @@ export function InfoButton({ onPress, size = 22, color }: Props) {
       >
         <Text style={[styles.label, { color: fg, fontSize: Math.round(size * 0.52) }]}>i</Text>
       </View>
-      <Text style={[styles.helpText, { color: fg }]}>help</Text>
+      {showLabel && <Text style={[styles.helpText, { color: fg }]}>help</Text>}
     </Pressable>
   );
 }

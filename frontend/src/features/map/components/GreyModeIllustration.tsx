@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { Fonts, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 
-const markerGrey = require('../../../../assets/images/marker-50pts-grey.png');
+const markerGrey  = require('../../../../assets/images/marker-50pts-grey.png');
 const markerUncap = require('../../../../assets/images/marker-50pts-flash-uncaptured.png');
 const markerCap   = require('../../../../assets/images/marker-50pts-flash-captured.png');
 
@@ -13,38 +13,44 @@ export function GreyModeIllustration() {
 
   return (
     <View style={[s.container, { backgroundColor: theme.bg, borderColor: theme.border }]}>
-      {/* All — every non-flashable marker is grey */}
-      <View style={s.col}>
-        <Text style={[s.colLabel, { color: theme.textMuted }]}>{t('invaders.greyAll')}</Text>
-        <View style={s.pair}>
+      {/* All — every non-flashable is grey */}
+      <View style={s.row}>
+        <View style={s.markerPair}>
           <Image source={markerGrey} style={s.marker} resizeMode="contain" />
           <Image source={markerGrey} style={s.marker} resizeMode="contain" />
         </View>
-        <Text style={[s.sub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subAll')}</Text>
+        <View style={s.textBlock}>
+          <Text style={[s.rowLabel, { color: theme.text }]}>{t('invaders.greyAll')}</Text>
+          <Text style={[s.rowSub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subAll')}</Text>
+        </View>
       </View>
 
-      <View style={[s.vDivider, { backgroundColor: theme.border }]} />
+      <View style={[s.hDivider, { backgroundColor: theme.border }]} />
 
-      {/* Flashed — only uncaptured non-flashable are grey; captured stay colored */}
-      <View style={s.col}>
-        <Text style={[s.colLabel, { color: theme.textMuted }]}>{t('invaders.greyFlashed')}</Text>
-        <View style={s.pair}>
+      {/* Flashed — uncaptured greyed, captured stays colored */}
+      <View style={s.row}>
+        <View style={s.markerPair}>
           <Image source={markerGrey} style={s.marker} resizeMode="contain" />
           <Image source={markerCap} style={s.marker} resizeMode="contain" />
         </View>
-        <Text style={[s.sub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subFlashed')}</Text>
+        <View style={s.textBlock}>
+          <Text style={[s.rowLabel, { color: theme.text }]}>{t('invaders.greyFlashed')}</Text>
+          <Text style={[s.rowSub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subFlashed')}</Text>
+        </View>
       </View>
 
-      <View style={[s.vDivider, { backgroundColor: theme.border }]} />
+      <View style={[s.hDivider, { backgroundColor: theme.border }]} />
 
       {/* Off — nothing greyed */}
-      <View style={s.col}>
-        <Text style={[s.colLabel, { color: theme.textMuted }]}>{t('invaders.greyOff')}</Text>
-        <View style={s.pair}>
+      <View style={s.row}>
+        <View style={s.markerPair}>
           <Image source={markerUncap} style={s.marker} resizeMode="contain" />
           <Image source={markerCap} style={s.marker} resizeMode="contain" />
         </View>
-        <Text style={[s.sub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subOff')}</Text>
+        <View style={s.textBlock}>
+          <Text style={[s.rowLabel, { color: theme.text }]}>{t('invaders.greyOff')}</Text>
+          <Text style={[s.rowSub, { color: theme.textMuted }]}>{t('tutorial.greyMode.subOff')}</Text>
+        </View>
       </View>
     </View>
   );
@@ -52,42 +58,43 @@ export function GreyModeIllustration() {
 
 const s = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     borderWidth: 1,
     borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.one,
     overflow: 'hidden',
   },
-  col: {
-    flex: 1,
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: 4,
-    gap: 4,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    gap: Spacing.two,
   },
-  colLabel: {
-    fontFamily: Fonts.sans,
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-  },
-  pair: {
+  markerPair: {
     flexDirection: 'row',
     gap: 4,
+    width: 64,
     alignItems: 'flex-end',
   },
   marker: {
     width: 28,
     height: 39,
   },
-  sub: {
-    fontFamily: Fonts.sans,
-    fontSize: 9,
-    textAlign: 'center',
-    lineHeight: 12,
+  textBlock: {
+    flex: 1,
+    gap: 2,
   },
-  vDivider: {
-    width: 1,
-    alignSelf: 'stretch',
+  rowLabel: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  rowSub: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.xs,
+    lineHeight: 14,
+  },
+  hDivider: {
+    height: 1,
   },
 });

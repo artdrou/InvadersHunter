@@ -390,6 +390,13 @@
       "subFlashed": "Cap. colore",
       "subOff": "Tout colore"
     },
+    "filters": {
+      "title": "Filtres",
+      "statusBody": "Affiche tous les invaders, seulement ceux que tu as deja flashes, ou seulement ceux que tu n'as pas encore captures.",
+      "condBody": "'Flashable' montre les invaders encore en etat d'etre flashes. 'Non flashable' montre uniquement ceux detruits ou invisibles.",
+      "pointsBody": "Restreint a un ou plusieurs niveaux de rarete. Selectionne plusieurs valeurs pour les combiner.",
+      "combineTip": "Les trois filtres se combinent. Exemple : Non flashe + Flashable + 50pts affiche uniquement les invaders 50pts que tu n'as pas captures et qui peuvent encore etre flashes."
+    },
     "routing": {
       "title": "Chasse",
       "tab1": "Vue d'ensemble",

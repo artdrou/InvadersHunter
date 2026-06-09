@@ -6,6 +6,9 @@ import { Fonts, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 const flashUncap = require('../../../../assets/images/marker-50pts-flash-uncaptured.png');
 const flashCap   = require('../../../../assets/images/marker-50pts-flash-captured.png');
 const rarity10   = require('../../../../assets/images/marker-10pts-rarity.png');
+const rarity20   = require('../../../../assets/images/marker-20pts-rarity.png');
+const rarity30   = require('../../../../assets/images/marker-30pts-rarity.png');
+const rarity40   = require('../../../../assets/images/marker-40pts-rarity.png');
 const rarity50   = require('../../../../assets/images/marker-50pts-rarity.png');
 const rarity100  = require('../../../../assets/images/marker-100pts-rarity.png');
 
@@ -15,38 +18,42 @@ export function ColorModeIllustration() {
 
   return (
     <View style={[s.container, { backgroundColor: theme.bg, borderColor: theme.border }]}>
-      <View style={s.half}>
-        <Text style={[s.modeLabel, { color: theme.accent }]}>Flash</Text>
-        <View style={s.markerRow}>
-          <View style={s.markerCol}>
-            <Image source={flashUncap} style={s.marker} resizeMode="contain" />
-            <Text style={[s.caption, { color: theme.textMuted }]}>{t('tutorial.colorMode.labelUnflashed')}</Text>
-          </View>
-          <View style={s.markerCol}>
-            <Image source={flashCap} style={s.marker} resizeMode="contain" />
-            <Text style={[s.caption, { color: theme.textMuted }]}>{t('tutorial.colorMode.labelFlashed')}</Text>
-          </View>
-        </View>
+      <Text style={[s.modeLabel, { color: theme.accent }]}>Flash</Text>
+      <View style={s.markerRow}>
+        <Image source={flashUncap} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>{t('tutorial.colorMode.labelUnflashed')}</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={flashCap} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>{t('tutorial.colorMode.labelFlashed')}</Text>
       </View>
 
-      <View style={[s.vDivider, { backgroundColor: theme.border }]} />
+      <View style={[s.hDivider, { backgroundColor: theme.border }]} />
 
-      <View style={s.half}>
-        <Text style={[s.modeLabel, { color: theme.accent }]}>{t('invaders.colorRarity')}</Text>
-        <View style={s.markerRow}>
-          <View style={s.markerCol}>
-            <Image source={rarity10} style={s.markerSm} resizeMode="contain" />
-            <Text style={[s.caption, { color: theme.textMuted }]}>10</Text>
-          </View>
-          <View style={s.markerCol}>
-            <Image source={rarity50} style={s.markerSm} resizeMode="contain" />
-            <Text style={[s.caption, { color: theme.textMuted }]}>50</Text>
-          </View>
-          <View style={s.markerCol}>
-            <Image source={rarity100} style={s.markerSm} resizeMode="contain" />
-            <Text style={[s.caption, { color: theme.textMuted }]}>100</Text>
-          </View>
-        </View>
+      <Text style={[s.modeLabel, { color: theme.accent }]}>{t('invaders.colorRarity')}</Text>
+      <View style={s.markerRow}>
+        <Image source={rarity10} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>10 pts</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={rarity20} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>20 pts</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={rarity30} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>30 pts</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={rarity40} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>40 pts</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={rarity50} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>50 pts</Text>
+      </View>
+      <View style={s.markerRow}>
+        <Image source={rarity100} style={s.marker} resizeMode="contain" />
+        <Text style={[s.caption, { color: theme.text }]}>100 pts</Text>
       </View>
     </View>
   );
@@ -54,16 +61,11 @@ export function ColorModeIllustration() {
 
 const s = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     borderWidth: 1,
     borderRadius: BorderRadius.md,
-    overflow: 'hidden',
-  },
-  half: {
-    flex: 1,
-    alignItems: 'center',
     paddingVertical: Spacing.two,
-    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    gap: 6,
   },
   modeLabel: {
     fontFamily: Fonts.sans,
@@ -71,30 +73,23 @@ const s = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
+    marginTop: 2,
   },
   markerRow: {
     flexDirection: 'row',
-    gap: Spacing.two,
-    alignItems: 'flex-end',
-  },
-  markerCol: {
     alignItems: 'center',
-    gap: 3,
+    gap: Spacing.two,
   },
   marker: {
-    width: 36,
-    height: 50,
-  },
-  markerSm: {
     width: 28,
     height: 39,
   },
   caption: {
     fontFamily: Fonts.sans,
-    fontSize: FontSize.xs,
+    fontSize: FontSize.sm,
   },
-  vDivider: {
-    width: 1,
-    alignSelf: 'stretch',
+  hDivider: {
+    height: 1,
+    marginVertical: 4,
   },
 });
