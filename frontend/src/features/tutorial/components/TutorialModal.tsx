@@ -234,7 +234,7 @@ function makeStyles(t: ThemeTokens) {
     card: {
       width: '100%',
       maxWidth: 380,
-      maxHeight: MAX_CARD_HEIGHT,
+      height: MAX_CARD_HEIGHT,
       backgroundColor: t.bgElement,
       borderRadius: BorderRadius.lg,
       borderWidth: 1,
