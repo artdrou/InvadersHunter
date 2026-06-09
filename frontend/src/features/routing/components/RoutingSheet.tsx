@@ -16,6 +16,7 @@ import { useAddressSearch } from '../hooks/use-address-search'
 import { InfoButton, TutorialModal } from '@/features/tutorial'
 import type { TutorialPage } from '@/features/tutorial'
 import { RoutingPanelPreview } from './RoutingPanelPreview'
+import { InvaderTapIllustration } from './InvaderTapIllustration'
 
 export type RoutingPickerTarget = 'from' | 'to'
 
@@ -73,14 +74,12 @@ export function RoutingSheet({
       key: 'overview',
       tab: t('tutorial.routing.tab1'),
       items: [
-        { type: 'section', label: t('tutorial.routing.overviewOpenSection'),  body: t('tutorial.routing.overviewOpenBody') },
-        { type: 'section', label: t('tutorial.routing.overviewZonesSection'), body: t('tutorial.routing.overviewZonesBody') },
-        { type: 'section', label: t('tutorial.routing.overviewZone1Title'),   body: t('tutorial.routing.overviewZone1Body') },
-        { type: 'section', label: t('tutorial.routing.overviewZone2Title'),   body: t('tutorial.routing.overviewZone2Body') },
-        { type: 'section', label: t('tutorial.routing.overviewZone3Title'),   body: t('tutorial.routing.overviewZone3Body') },
-        { type: 'section', label: t('tutorial.routing.overviewZone4Title'),   body: t('tutorial.routing.overviewZone4Body') },
-        { type: 'section', label: t('tutorial.routing.overviewZone5Title'),   body: t('tutorial.routing.overviewZone5Body') },
+        { type: 'section', label: t('tutorial.routing.overviewOpenSection'), body: t('tutorial.routing.overviewOpenBody') },
         { type: 'node',    content: <RoutingPanelPreview /> },
+        { type: 'section', label: t('tutorial.routing.overviewZone2Title'), body: t('tutorial.routing.overviewZone2Body') },
+        { type: 'section', label: t('tutorial.routing.overviewZone3Title'), body: t('tutorial.routing.overviewZone3Body') },
+        { type: 'section', label: t('tutorial.routing.overviewZone4Title'), body: t('tutorial.routing.overviewZone4Body') },
+        { type: 'section', label: t('tutorial.routing.overviewZone5Title'), body: t('tutorial.routing.overviewZone5Body') },
       ],
     },
     {
@@ -103,7 +102,7 @@ export function RoutingSheet({
         { type: 'step',    title: t('tutorial.routing.detourStep1Title'), body: t('tutorial.routing.detourStep1Body') },
         { type: 'step',    title: t('tutorial.routing.detourStep2Title'), body: t('tutorial.routing.detourStep2Body') },
         { type: 'step',    title: t('tutorial.routing.detourStep3Title'), body: t('tutorial.routing.detourStep3Body') },
-        { type: 'node',    content: <RoutingPanelPreview highlight={[5]} /> },
+        { type: 'node',    content: <RoutingPanelPreview highlight={[5]} expanded /> },
       ],
     },
     {
@@ -114,7 +113,7 @@ export function RoutingSheet({
         { type: 'step',    title: t('tutorial.routing.invadersStep1Title'), body: t('tutorial.routing.invadersStep1Body') },
         { type: 'step',    title: t('tutorial.routing.invadersStep2Title'), body: t('tutorial.routing.invadersStep2Body') },
         { type: 'tip',     body: t('tutorial.routing.invadersTip') },
-        { type: 'node',    content: <RoutingPanelPreview highlight={[3]} /> },
+        { type: 'node',    content: <InvaderTapIllustration /> },
       ],
     },
   ], [t])

@@ -6,9 +6,10 @@ import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/t
 
 type Props = {
   highlight?: number[];
+  expanded?: boolean;
 };
 
-export function RoutingPanelPreview({ highlight }: Props) {
+export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
 
@@ -71,16 +72,55 @@ export function RoutingPanelPreview({ highlight }: Props) {
         {/* ⑤ Options row */}
         <View style={[s.optionsRow, { borderTopColor: theme.bgDivider, opacity: opOf(5) }]}>
           <Badge zone={5} />
-          <View style={[s.chip, { borderColor: theme.border }]}>
-            <Text style={[s.chipText, { color: theme.textMuted }]}>Loop</Text>
-          </View>
-          <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
-            <Text style={[s.chipText, { color: theme.bg }]}>Uncaptured</Text>
-          </View>
-          <View style={{ flex: 1 }} />
-          <Text style={[s.detourText, { color: theme.textMuted }]}>+15 min</Text>
-          <Ionicons name="chevron-down" size={12} color={theme.textMuted} />
+          {!expanded && (
+            <>
+              <View style={[s.chip, { borderColor: theme.border }]}>
+                <Text style={[s.chipText, { color: theme.textMuted }]}>Loop</Text>
+              </View>
+              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
+                <Text style={[s.chipText, { color: theme.bg }]}>Uncaptured</Text>
+              </View>
+              <View style={{ flex: 1 }} />
+              <Text style={[s.detourText, { color: theme.textMuted }]}>+15 min</Text>
+            </>
+          )}
+          <View style={{ flex: expanded ? 1 : 0 }} />
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={12} color={theme.textMuted} />
         </View>
+
+        {/* Expanded options panel */}
+        {expanded && (
+          <View style={[s.expandedPanel, { borderTopColor: theme.bgDivider, opacity: opOf(5) }]}>
+            {/* Filter chips */}
+            <View style={s.chipRow}>
+              <View style={[s.chip, { borderColor: theme.border }]}>
+                <Ionicons name="refresh-circle-outline" size={10} color={theme.textMuted} />
+                <Text style={[s.chipText, { color: theme.textMuted }]}>Loop</Text>
+              </View>
+              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
+                <Text style={[s.chipText, { color: theme.bg }]}>Uncaptured</Text>
+              </View>
+              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
+                <Text style={[s.chipText, { color: theme.bg }]}>Flashable</Text>
+              </View>
+            </View>
+            {/* Stepper */}
+            <View style={s.stepper}>
+              <View style={[s.stepBtn, { borderColor: theme.border }]}>
+                <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
+              </View>
+              <Text style={[s.stepValue, { color: theme.text }]}>+15 min</Text>
+              <View style={[s.stepBtn, { borderColor: theme.border }]}>
+                <Text style={[s.stepBtnText, { color: theme.text }]}>+</Text>
+              </View>
+            </View>
+            {/* Start button */}
+            <View style={[s.startBtn, { backgroundColor: theme.accent }]}>
+              <Ionicons name="flag" size={11} color={theme.bg} />
+              <Text style={[s.startBtnText, { color: theme.bg }]}>Start</Text>
+            </View>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -165,7 +205,21 @@ function makeStyles(t: ThemeTokens) {
       paddingTop: 7,
     },
 
+    expandedPanel: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      paddingTop: 7,
+      gap: 7,
+    },
+
+    chipRow: {
+      flexDirection: 'row',
+      gap: 5,
+      flexWrap: 'wrap',
+    },
     chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
       paddingHorizontal: 7,
       paddingVertical: 3,
       borderRadius: BorderRadius.sm,
@@ -174,6 +228,45 @@ function makeStyles(t: ThemeTokens) {
     chipText: {
       fontFamily: ButtonFont,
       fontSize: 8,
+    },
+
+    stepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
+    stepBtn: {
+      width: 24,
+      height: 24,
+      borderRadius: BorderRadius.sm,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stepBtnText: {
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.md,
+      lineHeight: 16,
+    },
+    stepValue: {
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.xs,
+      minWidth: 50,
+      textAlign: 'center',
+    },
+
+    startBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: BorderRadius.sm,
+    },
+    startBtnText: {
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.xs,
     },
 
     detourText: {

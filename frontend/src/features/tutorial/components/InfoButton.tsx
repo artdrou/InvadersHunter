@@ -1,6 +1,6 @@
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont } from '@/constants/theme';
+import { ButtonFont, ButtonFontSize } from '@/constants/theme';
 
 type Props = {
   onPress: () => void;
@@ -16,24 +16,33 @@ export function InfoButton({ onPress, size = 22, color }: Props) {
     <Pressable
       onPress={onPress}
       hitSlop={8}
-      style={({ pressed }) => [
-        styles.btn,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderColor: fg,
-          backgroundColor: theme.bgElement,
-        },
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.wrapper, pressed && styles.pressed]}
     >
-      <Text style={[styles.label, { color: fg, fontSize: Math.round(size * 0.52) }]}>i</Text>
+      <View
+        style={[
+          styles.btn,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderColor: fg,
+            backgroundColor: theme.bgElement,
+          },
+        ]}
+      >
+        <Text style={[styles.label, { color: fg, fontSize: Math.round(size * 0.52) }]}>i</Text>
+      </View>
+      <Text style={[styles.helpText, { color: fg }]}>help</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
   btn: {
     borderWidth: 1.5,
     alignItems: 'center',
@@ -43,6 +52,11 @@ const styles = StyleSheet.create({
     fontFamily: ButtonFont,
     lineHeight: undefined,
     includeFontPadding: false,
+  },
+  helpText: {
+    fontFamily: ButtonFont,
+    fontSize: ButtonFontSize.xs,
+    letterSpacing: 0.5,
   },
   pressed: { opacity: 0.5 },
 });

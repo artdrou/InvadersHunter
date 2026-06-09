@@ -137,39 +137,40 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
           } as any}
         />
 
-        {/* ── Animated shimmer ── */}
-        {routeGlowEnabled && <>
-          <LineLayer
-            id="ors-shimmer-halo"
-            style={{
-              lineGradient: gradHalo,
-              lineWidth: zoomWidth([[10, 20], [14, 34], [17, 48]]),
-              lineBlur: 10,
-              lineCap: 'round',
-              lineJoin: 'round',
-            } as any}
-          />
-          <LineLayer
-            id="ors-shimmer-mid"
-            style={{
-              lineGradient: gradMid,
-              lineWidth: zoomWidth([[10, 8], [14, 14], [17, 20]]),
-              lineBlur: 3,
-              lineCap: 'round',
-              lineJoin: 'round',
-            } as any}
-          />
-          <LineLayer
-            id="ors-shimmer-core"
-            style={{
-              lineGradient: gradCore,
-              lineWidth: zoomWidth([[10, 2], [14, 3.5], [17, 5]]),
-              lineBlur: 0.6,
-              lineCap: 'round',
-              lineJoin: 'round',
-            } as any}
-          />
-        </>}
+        {/* ── Animated shimmer — always mounted to avoid MapLibre layer-removal bugs ── */}
+        <LineLayer
+          id="ors-shimmer-halo"
+          style={{
+            lineGradient: gradHalo,
+            lineWidth: zoomWidth([[10, 20], [14, 34], [17, 48]]),
+            lineBlur: 10,
+            lineCap: 'round',
+            lineJoin: 'round',
+            lineOpacity: routeGlowEnabled ? 1 : 0,
+          } as any}
+        />
+        <LineLayer
+          id="ors-shimmer-mid"
+          style={{
+            lineGradient: gradMid,
+            lineWidth: zoomWidth([[10, 8], [14, 14], [17, 20]]),
+            lineBlur: 3,
+            lineCap: 'round',
+            lineJoin: 'round',
+            lineOpacity: routeGlowEnabled ? 1 : 0,
+          } as any}
+        />
+        <LineLayer
+          id="ors-shimmer-core"
+          style={{
+            lineGradient: gradCore,
+            lineWidth: zoomWidth([[10, 2], [14, 3.5], [17, 5]]),
+            lineBlur: 0.6,
+            lineCap: 'round',
+            lineJoin: 'round',
+            lineOpacity: routeGlowEnabled ? 1 : 0,
+          } as any}
+        />
       </ShapeSource>
 
       {/* ── Start / End pins — above path, below invader markers ── */}

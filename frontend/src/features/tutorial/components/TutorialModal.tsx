@@ -7,7 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { useTranslation } from 'react-i18next';
 import {
   type ThemeTokens,
-  ButtonFont, ButtonFontSize, BorderRadius, Spacing,
+  ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize, Fonts,
 } from '@/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,6 +45,9 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
   const [pageWidth, setPageWidth]   = useState(0);
   const scrollRef = useRef<ScrollView>(null);
 
+  // Title adapts to the current page
+  const currentTitle = pages[activePage]?.tab ?? title;
+
   function goToPage(idx: number) {
     setActivePage(idx);
     if (pageWidth > 0) {
@@ -70,49 +73,24 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <Pressable style={s.overlay} onPress={handleClose}>
-        {/* Stop press propagation on the card itself */}
-        <Pressable
-          style={s.card}
-          onPress={(e) => e.stopPropagation()}
-        >
-          {/* ── Header ── */}
+      <View style={s.overlay}>
+        {/* Backdrop — tap outside the card to close. Sits behind the card so it
+            never intercepts gestures (scroll/swipe) directed at the card. */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+
+        {/* Card — plain View so ScrollViews inside receive gestures directly */}
+        <View style={s.card}>
+
+          {/* ── Header — title changes per page ── */}
           <View style={[s.header, { borderBottomColor: theme.bgDivider }]}>
-            <Text style={s.titleText}>{title}</Text>
+            <Text style={s.titleText}>{currentTitle}</Text>
             <Pressable onPress={handleClose} hitSlop={10} style={({ pressed }) => pressed && s.pressed}>
               <Text style={s.closeBtn}>✕</Text>
             </Pressable>
           </View>
 
-          {/* ── Tab bar ── */}
-          {pages.length > 1 && (
-            <View style={[s.tabBar, { borderBottomColor: theme.bgDivider }]}>
-              {pages.map((page, idx) => {
-                const active = idx === activePage;
-                return (
-                  <Pressable
-                    key={page.key}
-                    style={({ pressed }) => [
-                      s.tab,
-                      active && { borderBottomColor: theme.accent },
-                      pressed && s.pressed,
-                    ]}
-                    onPress={() => goToPage(idx)}
-                  >
-                    <Text style={[s.tabText, { color: active ? theme.accent : theme.textMuted }]}>
-                      {page.tab}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
-
           {/* ── Pager ── */}
-          <View
-            style={s.pager}
-            onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
-          >
+          <View style={s.pager}>
             <ScrollView
               ref={scrollRef}
               horizontal
@@ -121,21 +99,26 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
               onMomentumScrollEnd={handleMomentumEnd}
               scrollEventThrottle={16}
               style={s.pagerScroll}
+              onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
             >
               {pages.map((page) => (
-                <View key={page.key} style={[s.page, { width: pageWidth || undefined }]}>
+                <View key={page.key} style={{ width: pageWidth || undefined, height: '100%' }}>
                   <ScrollView
-                    contentContainerStyle={s.pageContent}
+                    style={{ flex: 1, width: pageWidth || undefined }}
                     showsVerticalScrollIndicator={false}
+                    nestedScrollEnabled
                   >
-                    <PageItems items={page.items} s={s} theme={theme} />
+                    {/* Explicit View so text has a hard width boundary and wraps correctly */}
+                    <View style={[s.pageContent, pageWidth ? { width: pageWidth } : undefined]}>
+                      <PageItems items={page.items} s={s} theme={theme} />
+                    </View>
                   </ScrollView>
                 </View>
               ))}
             </ScrollView>
           </View>
 
-          {/* ── Footer ── */}
+          {/* ── Footer — dots above button ── */}
           <View style={[s.footer, { borderTopColor: theme.bgDivider }]}>
             {pages.length > 1 && (
               <View style={s.dots}>
@@ -155,8 +138,9 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
               <Text style={[s.gotItText, { color: theme.bg }]}>{t('tutorial.gotIt')}</Text>
             </Pressable>
           </View>
-        </Pressable>
-      </Pressable>
+
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -173,8 +157,8 @@ function PageItems({ items, s, theme }: { items: TutorialItem[]; s: ReturnType<t
           const num = stepCount;
           return (
             <View key={idx} style={s.stepRow}>
-              <View style={[s.stepBadge, { backgroundColor: theme.accent }]}>
-                <Text style={[s.stepNum, { color: theme.bg }]}>{num}</Text>
+              <View style={[s.stepBadge, { borderColor: theme.border }]}>
+                <Text style={[s.stepNum, { color: theme.textMuted }]}>{num}</Text>
               </View>
               <View style={s.stepBody}>
                 <Text style={[s.stepTitle, { color: theme.text }]}>{item.title}</Text>
@@ -185,7 +169,7 @@ function PageItems({ items, s, theme }: { items: TutorialItem[]; s: ReturnType<t
         }
 
         if (item.type === 'section') {
-          stepCount = 0; // reset step counter after each section header
+          stepCount = 0;
           return (
             <View key={idx} style={s.sectionBlock}>
               <Text style={[s.sectionLabel, { color: theme.accent }]}>{item.label}</Text>
@@ -206,7 +190,6 @@ function PageItems({ items, s, theme }: { items: TutorialItem[]; s: ReturnType<t
           return <View key={idx}>{item.content}</View>;
         }
 
-        // image placeholder
         return (
           <View key={idx} style={[s.imagePlaceholder, { backgroundColor: theme.bg, borderColor: theme.border }]}>
             <Text style={[s.imagePlaceholderText, { color: theme.textMuted }]}>{item.placeholder}</Text>
@@ -263,25 +246,6 @@ function makeStyles(t: ThemeTokens) {
       fontSize: ButtonFontSize.lg,
     },
 
-    // Tabs
-    tabBar: {
-      flexDirection: 'row',
-      borderBottomWidth: 1,
-    },
-    tab: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: Spacing.two,
-      borderBottomWidth: 2,
-      borderBottomColor: 'transparent',
-    },
-    tabText: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-
     // Pager
     pager: {
       flex: 1,
@@ -289,12 +253,10 @@ function makeStyles(t: ThemeTokens) {
     pagerScroll: {
       flex: 1,
     },
-    page: {
-      flex: 1,
-    },
     pageContent: {
       padding: Spacing.three,
-      gap: Spacing.three,
+      gap: Spacing.two,
+      paddingBottom: Spacing.four,
     },
 
     // Step
@@ -307,39 +269,43 @@ function makeStyles(t: ThemeTokens) {
       width: 24,
       height: 24,
       borderRadius: 12,
+      borderWidth: 1.5,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-      marginTop: 1,
+      marginTop: 2,
     },
     stepNum: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.xs,
+      fontWeight: '700',
     },
     stepBody: {
       flex: 1,
-      gap: 4,
+      gap: 3,
     },
     stepTitle: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.sm,
+      fontWeight: '600',
     },
 
-    // Section header
+    // Section — plain text, no box
     sectionBlock: {
-      gap: 6,
+      gap: 4,
     },
     sectionLabel: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
-      letterSpacing: 1,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.xs,
+      fontWeight: '700',
+      letterSpacing: 0.3,
       textTransform: 'uppercase',
     },
 
     // Shared body text
     itemBody: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.sm,
       lineHeight: 20,
     },
 
@@ -351,20 +317,19 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
     },
     tipBody: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.sm,
       lineHeight: 20,
       fontStyle: 'italic',
     },
 
-    // Footer
+    // Footer — column: dots on top, button full-width below
     footer: {
-      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
       borderTopWidth: 1,
+      gap: Spacing.two,
     },
     dots: {
       flexDirection: 'row',
@@ -377,10 +342,10 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: 4,
     },
     gotItBtn: {
-      paddingHorizontal: Spacing.four,
+      width: '100%',
+      alignItems: 'center',
       paddingVertical: 10,
       borderRadius: BorderRadius.sm,
-      marginLeft: 'auto',
     },
     gotItText: {
       fontFamily: ButtonFont,
@@ -397,8 +362,8 @@ function makeStyles(t: ThemeTokens) {
       justifyContent: 'center',
     },
     imagePlaceholderText: {
-      fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontFamily: Fonts.sans,
+      fontSize: FontSize.sm,
       textAlign: 'center',
       paddingHorizontal: Spacing.three,
     },
