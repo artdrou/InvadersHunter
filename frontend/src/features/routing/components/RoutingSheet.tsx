@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   View, Text, Pressable, TextInput,
   StyleSheet, ActivityIndicator,
@@ -13,6 +13,8 @@ import { isNonFlashable } from '@/features/invaders/types'
 import { useTranslation } from 'react-i18next'
 import type { RoutingParams, RouteResult } from '../types'
 import { useAddressSearch } from '../hooks/use-address-search'
+import { InfoButton, TutorialModal } from '@/features/tutorial'
+import type { TutorialPage } from '@/features/tutorial'
 
 export type RoutingPickerTarget = 'from' | 'to'
 
@@ -63,6 +65,52 @@ export function RoutingSheet({
   const [includeCaptures, setIncludeCaptures] = useState(false)
   const [flashableOnly, setFlashableOnly]     = useState(true)
   const [optionsOpen, setOptionsOpen]         = useState(false)
+  const [tutorialVisible, setTutorialVisible] = useState(false)
+
+  const tutorialPages = useMemo<TutorialPage[]>(() => [
+    {
+      key: 'overview',
+      tab: t('tutorial.routing.tab1'),
+      items: [
+        { type: 'section', label: t('tutorial.routing.overviewSection'), body: t('tutorial.routing.overviewBody') },
+        { type: 'image',   placeholder: t('tutorial.routing.overviewImage') },
+      ],
+    },
+    {
+      key: 'coords',
+      tab: t('tutorial.routing.tab2'),
+      items: [
+        { type: 'section', label: t('tutorial.routing.coordsSection'), body: t('tutorial.routing.coordsBody') },
+        { type: 'step',    title: t('tutorial.routing.coordStep1Title'), body: t('tutorial.routing.coordStep1Body') },
+        { type: 'step',    title: t('tutorial.routing.coordStep2Title'), body: t('tutorial.routing.coordStep2Body') },
+        { type: 'step',    title: t('tutorial.routing.coordStep3Title'), body: t('tutorial.routing.coordStep3Body') },
+        { type: 'step',    title: t('tutorial.routing.coordStep4Title'), body: t('tutorial.routing.coordStep4Body') },
+        { type: 'image',   placeholder: t('tutorial.routing.coordImage') },
+      ],
+    },
+    {
+      key: 'detour',
+      tab: t('tutorial.routing.tab3'),
+      items: [
+        { type: 'section', label: t('tutorial.routing.detourSection'), body: t('tutorial.routing.detourBody') },
+        { type: 'step',    title: t('tutorial.routing.detourStep1Title'), body: t('tutorial.routing.detourStep1Body') },
+        { type: 'step',    title: t('tutorial.routing.detourStep2Title'), body: t('tutorial.routing.detourStep2Body') },
+        { type: 'step',    title: t('tutorial.routing.detourStep3Title'), body: t('tutorial.routing.detourStep3Body') },
+        { type: 'image',   placeholder: t('tutorial.routing.detourImage') },
+      ],
+    },
+    {
+      key: 'invaders',
+      tab: t('tutorial.routing.tab4'),
+      items: [
+        { type: 'section', label: t('tutorial.routing.invadersSection'), body: t('tutorial.routing.invadersBody') },
+        { type: 'step',    title: t('tutorial.routing.invadersStep1Title'), body: t('tutorial.routing.invadersStep1Body') },
+        { type: 'step',    title: t('tutorial.routing.invadersStep2Title'), body: t('tutorial.routing.invadersStep2Body') },
+        { type: 'tip',     body: t('tutorial.routing.invadersTip') },
+        { type: 'image',   placeholder: t('tutorial.routing.invadersImage') },
+      ],
+    },
+  ], [t])
 
   const [searchTarget, setSearchTarget] = useState<RoutingPickerTarget | null>(null)
   const [searchQuery, setSearchQuery]   = useState('')
@@ -125,7 +173,8 @@ export function RoutingSheet({
         <View pointerEvents="auto">
           {/* Panel title */}
           <View style={[s.titleRow, { borderBottomColor: theme.bgDivider }]}>
-            <Text style={[s.titleText, { color: theme.text }]}>{t('routing.modeAB')}</Text>
+            <Text style={[s.titleText, { color: theme.accent }]}>{t('routing.modeAB')}</Text>
+            <InfoButton onPress={() => setTutorialVisible(true)} color={theme.accent} />
           </View>
 
           <View style={s.fields}>
@@ -326,6 +375,12 @@ export function RoutingSheet({
         </View>
       </View>
 
+      <TutorialModal
+        visible={tutorialVisible}
+        onClose={() => setTutorialVisible(false)}
+        title={t('tutorial.routing.title')}
+        pages={tutorialPages}
+      />
     </>
   )
 }
@@ -471,12 +526,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
 
     // Panel title
     titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: Spacing.three,
       paddingTop: Spacing.two,
       paddingBottom: Spacing.two,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    titleText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    titleText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl, letterSpacing: 1 },
 
     // Fields container
     fields: {

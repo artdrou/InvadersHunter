@@ -168,6 +168,12 @@
     "routeColor": "Route color",
     "resetAccent": "Reset"
   },
+  "appearance": {
+    "sectionTheme": "Theme",
+    "sectionHunt": "Hunt",
+    "routeGlow": "Route glow",
+    "routeGlowSubtitle": "Animated shimmer along the itinerary path"
+  },
   "themeNames": {
     "dark": "Dark",
     "light": "Light",
@@ -196,6 +202,7 @@
     "detourDirect": "Direct",
     "labelDuration": "Walk time",
     "labelType": "Type",
+    "loop": "Loop",
     "walkCircuit": "Loop",
     "walkFree": "One way",
     "noInvaderSelected": "No invader selected",
@@ -364,6 +371,47 @@
   },
   "dates": {
     "locale": "en-US"
+  },
+  "tutorial": {
+    "gotIt": "Got it",
+    "routing": {
+      "title": "Hunt",
+      "tab1": "Overview",
+      "tab2": "Start & End",
+      "tab3": "Detour",
+      "tab4": "Invaders",
+      "overviewSection": "Hunt mode",
+      "overviewBody": "Plan a walking route to visit uncaptured invaders. Set a start and destination, adjust your filters, and compute your path.",
+      "overviewImage": "Hunt panel overview",
+      "coordsSection": "Start & destination",
+      "coordsBody": "Set where your route begins and ends.",
+      "coordStep1Title": "Search an address",
+      "coordStep1Body": "Type in the search field to find any address or place.",
+      "coordStep2Title": "Pick on the map",
+      "coordStep2Body": "Tap the map icon to close the panel and drop a pin at any location.",
+      "coordStep3Title": "Use your location",
+      "coordStep3Body": "Tap the location icon to instantly set your current GPS position as the start.",
+      "coordStep4Title": "Loop mode",
+      "coordStep4Body": "Enable the Loop chip in options to replace the destination with a circuit — the route returns to your start.",
+      "coordImage": "Start and destination fields",
+      "detourSection": "Detour & filters",
+      "detourBody": "Control how far the route strays from the direct path, and which invaders are eligible.",
+      "detourStep1Title": "Adjust detour",
+      "detourStep1Body": "Use − / + to set the max detour time. 0 = direct route with no stops. More time = more invaders included.",
+      "detourStep2Title": "Uncaptured only",
+      "detourStep2Body": "When active, already flashed invaders are excluded from the route.",
+      "detourStep3Title": "Flashable only",
+      "detourStep3Body": "Excludes invaders in a degraded or destroyed state that cannot be flashed.",
+      "detourImage": "Detour and filter options",
+      "invadersSection": "Pick invaders on the map",
+      "invadersBody": "While the routing panel is open, tap any invader on the map to add it as a mandatory stop.",
+      "invadersStep1Title": "Tap to add",
+      "invadersStep1Body": "Selected invaders are highlighted on the map and shown in the panel.",
+      "invadersStep2Title": "Remove a stop",
+      "invadersStep2Body": "Tap the same invader again to deselect it, or use the × button in the panel to clear all mandatory stops.",
+      "invadersTip": "Mandatory stops are always included in the route, even outside the detour range.",
+      "invadersImage": "Invader selection on map"
+    }
   },
   "appUpdate": {
     "title": "Update available",

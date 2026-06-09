@@ -168,6 +168,12 @@
     "routeColor": "Couleur du tracé",
     "resetAccent": "Reinitialiser"
   },
+  "appearance": {
+    "sectionTheme": "Theme",
+    "sectionHunt": "Chasse",
+    "routeGlow": "Lueur de l'itineraire",
+    "routeGlowSubtitle": "Effet de lumiere anime sur le trace"
+  },
   "themeNames": {
     "dark": "Sombre",
     "light": "Clair",
@@ -196,6 +202,7 @@
     "detourDirect": "Direct",
     "labelDuration": "Temps de balade",
     "labelType": "Type",
+    "loop": "Boucle",
     "walkCircuit": "Circuit",
     "walkFree": "Libre",
     "noInvaderSelected": "Aucun invader sélectionné",
@@ -364,6 +371,47 @@
   },
   "dates": {
     "locale": "fr-FR"
+  },
+  "tutorial": {
+    "gotIt": "Compris",
+    "routing": {
+      "title": "Chasse",
+      "tab1": "Vue d'ensemble",
+      "tab2": "Depart & arrivee",
+      "tab3": "Detour",
+      "tab4": "Invaders",
+      "overviewSection": "Mode chasse",
+      "overviewBody": "Planifie un trajet a pied pour visiter les invaders non flashes. Definis un depart et une arrivee, ajuste les filtres, puis calcule ton parcours.",
+      "overviewImage": "Apercu du panneau",
+      "coordsSection": "Depart & arrivee",
+      "coordsBody": "Definis d'ou part ton trajet et ou il se termine.",
+      "coordStep1Title": "Rechercher une adresse",
+      "coordStep1Body": "Tape dans le champ de recherche pour trouver n'importe quelle adresse.",
+      "coordStep2Title": "Choisir sur la carte",
+      "coordStep2Body": "Appuie sur l'icone carte pour fermer le panneau et poser un repere a l'emplacement voulu.",
+      "coordStep3Title": "Utiliser ta position",
+      "coordStep3Body": "Appuie sur l'icone de localisation pour utiliser ta position GPS comme point de depart.",
+      "coordStep4Title": "Mode boucle",
+      "coordStep4Body": "Active le chip Boucle dans les options pour remplacer l'arrivee par un circuit — le trajet revient a ton point de depart.",
+      "coordImage": "Champs depart et arrivee",
+      "detourSection": "Detour & filtres",
+      "detourBody": "Controle combien le trajet peut s'ecarter du chemin direct, et quels invaders sont eligibles.",
+      "detourStep1Title": "Regler le detour",
+      "detourStep1Body": "Utilise − / + pour fixer le detour max. 0 = trajet direct sans arret. Plus de temps = plus d'invaders inclus.",
+      "detourStep2Title": "Non flashes uniquement",
+      "detourStep2Body": "Quand actif, les invaders deja flashes sont exclus du parcours.",
+      "detourStep3Title": "Flashables uniquement",
+      "detourStep3Body": "Exclut les invaders degrades ou detruits qui ne peuvent pas etre flashes.",
+      "detourImage": "Options detour et filtres",
+      "invadersSection": "Selectionner des invaders",
+      "invadersBody": "Avec le panneau ouvert, appuie sur n'importe quel invader sur la carte pour l'ajouter comme arret obligatoire.",
+      "invadersStep1Title": "Appuyer pour ajouter",
+      "invadersStep1Body": "Les invaders selectionnes sont mis en evidence sur la carte et affiches dans le panneau.",
+      "invadersStep2Title": "Retirer un arret",
+      "invadersStep2Body": "Rappuie sur le meme invader pour le deselectionner, ou utilise le × dans le panneau pour tout effacer.",
+      "invadersTip": "Les arrets obligatoires sont toujours inclus dans le trajet, meme hors de la plage de detour.",
+      "invadersImage": "Selection d'invaders sur la carte"
+    }
   },
   "appUpdate": {
     "title": "Mise a jour disponible",

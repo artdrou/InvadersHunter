@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { ShapeSource, LineLayer, CircleLayer, SymbolLayer, PointAnnotation, Callout } from '@maplibre/maplibre-react-native'
+import { ShapeSource, LineLayer, CircleLayer, SymbolLayer, PointAnnotation } from '@maplibre/maplibre-react-native'
 import { useTheme } from '@/contexts/theme-context'
 import { ButtonFont, ButtonFontSize } from '@/constants/theme'
+import { useAppearanceStore } from '@/features/settings'
 import type { RouteResult } from '../types'
+import type { InvaderWithState } from '@/features/invaders'
 
 function hexToRgba(hex: string, alpha: number): string {
   const clean = hex.replace('#', '')
@@ -74,10 +76,12 @@ type Props = {
   fromCoords?: [number, number] | null
   toCoords?: [number, number] | null
   fromIsUserLocation?: boolean
+  onInvaderPress?: (invader: InvaderWithState) => void
 }
 
-export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation }: Props) {
+export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, onInvaderPress }: Props) {
   const { theme } = useTheme()
+  const routeGlowEnabled = useAppearanceStore((s) => s.routeGlowEnabled)
   const color     = theme.routePath
   const coreColor = lightenColor(color, 0.70)
   const fade      = hexToRgba(color, 0)
@@ -95,13 +99,13 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation }: 
   const tRef = useRef(0)
 
   useEffect(() => {
-    if (!route) { tRef.current = 0; setShimmer(0); return }
+    if (!route || !routeGlowEnabled) { tRef.current = 0; setShimmer(0); return }
     const id = setInterval(() => {
       tRef.current = (tRef.current + SHIMMER_FPS_MS / SHIMMER_CYCLE_MS) % 1
       setShimmer(tRef.current)
     }, SHIMMER_FPS_MS)
     return () => clearInterval(id)
-  }, [!!route]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [!!route, routeGlowEnabled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Three gradient levels: outer halo (wide+heavy blur) · mid glow · bright core
   const gradHalo = buildShimmerGradient(shimmer, hexToRgba(color, 0.50), fade)
@@ -133,40 +137,39 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation }: 
           } as any}
         />
 
-        {/* ── Animated shimmer (always mounted; no-ops on empty source) ── */}
-        {/* Outer halo — wide, heavy blur, low opacity */}
-        <LineLayer
-          id="ors-shimmer-halo"
-          style={{
-            lineGradient: gradHalo,
-            lineWidth: zoomWidth([[10, 20], [14, 34], [17, 48]]),
-            lineBlur: 10,
-            lineCap: 'round',
-            lineJoin: 'round',
-          } as any}
-        />
-        {/* Mid glow — medium width, moderate blur */}
-        <LineLayer
-          id="ors-shimmer-mid"
-          style={{
-            lineGradient: gradMid,
-            lineWidth: zoomWidth([[10, 8], [14, 14], [17, 20]]),
-            lineBlur: 3,
-            lineCap: 'round',
-            lineJoin: 'round',
-          } as any}
-        />
-        {/* Core — narrow, barely blurred, pure white */}
-        <LineLayer
-          id="ors-shimmer-core"
-          style={{
-            lineGradient: gradCore,
-            lineWidth: zoomWidth([[10, 2], [14, 3.5], [17, 5]]),
-            lineBlur: 0.6,
-            lineCap: 'round',
-            lineJoin: 'round',
-          } as any}
-        />
+        {/* ── Animated shimmer ── */}
+        {routeGlowEnabled && <>
+          <LineLayer
+            id="ors-shimmer-halo"
+            style={{
+              lineGradient: gradHalo,
+              lineWidth: zoomWidth([[10, 20], [14, 34], [17, 48]]),
+              lineBlur: 10,
+              lineCap: 'round',
+              lineJoin: 'round',
+            } as any}
+          />
+          <LineLayer
+            id="ors-shimmer-mid"
+            style={{
+              lineGradient: gradMid,
+              lineWidth: zoomWidth([[10, 8], [14, 14], [17, 20]]),
+              lineBlur: 3,
+              lineCap: 'round',
+              lineJoin: 'round',
+            } as any}
+          />
+          <LineLayer
+            id="ors-shimmer-core"
+            style={{
+              lineGradient: gradCore,
+              lineWidth: zoomWidth([[10, 2], [14, 3.5], [17, 5]]),
+              lineBlur: 0.6,
+              lineCap: 'round',
+              lineJoin: 'round',
+            } as any}
+          />
+        </>}
       </ShapeSource>
 
       {/* ── Start / End pins — above path, below invader markers ── */}
@@ -219,12 +222,11 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation }: 
             key={`route-wp-${inv.id}`}
             id={`route-wp-${inv.id}`}
             coordinate={[inv.longitude, inv.latitude]}
-            title={inv.name}
+            onSelected={() => onInvaderPress?.(inv)}
           >
             <View style={[styles.badge, { backgroundColor: color, borderColor: theme.bg }]}>
               <Text style={[styles.badgeText, { color: theme.bg }]}>{index + 1}</Text>
             </View>
-            <Callout title={`${index + 1}. ${inv.name}`} />
           </PointAnnotation>
         )
       })}

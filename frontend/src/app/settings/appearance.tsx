@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal, TextInput } from 'react-native';
+import { View, Text, Pressable, Switch, StyleSheet, Modal, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
-import { SettingsShell, hapticTap } from '@/features/settings';
+import { SettingsShell, hapticTap, useAppearanceStore } from '@/features/settings';
 
 // 5x5 neon palette — rows follow the visible spectrum.
 const COLOR_SWATCH_ROWS: readonly (readonly string[])[] = [
@@ -126,11 +126,18 @@ export default function AppearanceScreen() {
   } = useTheme();
   const styles = makeStyles(theme);
 
-  const [accentPickerOpen, setAccentPickerOpen]     = useState(false);
-  const [routePickerOpen, setRoutePickerOpen]       = useState(false);
+  const routeGlowEnabled    = useAppearanceStore((s) => s.routeGlowEnabled);
+  const setRouteGlowEnabled = useAppearanceStore((s) => s.setRouteGlowEnabled);
+
+  const [accentPickerOpen, setAccentPickerOpen] = useState(false);
+  const [routePickerOpen, setRoutePickerOpen]   = useState(false);
 
   return (
     <SettingsShell title={t('settings.appearance')}>
+
+      {/* ── Theme ── */}
+      <Text style={styles.subcategoryLabel}>{t('appearance.sectionTheme')}</Text>
+
       {/* Theme selector */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>{t('profile.theme')}</Text>
@@ -202,6 +209,23 @@ export default function AppearanceScreen() {
         </View>
       </View>
 
+      {/* ── Hunt ── */}
+      <Text style={[styles.subcategoryLabel, styles.subcategoryLabelSpaced]}>{t('appearance.sectionHunt')}</Text>
+
+      {/* Route glow toggle */}
+      <View style={styles.toggleRow}>
+        <View style={styles.toggleLabel}>
+          <Text style={styles.toggleText}>{t('appearance.routeGlow')}</Text>
+          <Text style={styles.toggleSubtitle}>{t('appearance.routeGlowSubtitle')}</Text>
+        </View>
+        <Switch
+          value={routeGlowEnabled}
+          onValueChange={(v) => { hapticTap(); setRouteGlowEnabled(v); }}
+          trackColor={{ false: theme.border, true: theme.accent }}
+          thumbColor={theme.bgElement}
+        />
+      </View>
+
       {/* Accent color picker modal */}
       <ColorPickerModal
         visible={accentPickerOpen}
@@ -231,6 +255,14 @@ export default function AppearanceScreen() {
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
+    subcategoryLabel: {
+      color: t.accent,
+      fontFamily: ButtonFont,
+      fontSize: ButtonFontSize.md,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+    },
+    subcategoryLabelSpaced: { marginTop: Spacing.two },
     section:      { gap: Spacing.two },
     sectionLabel: {
       color: t.textMuted,
@@ -255,6 +287,21 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border,
     },
     resetBtnText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+
+    // Toggle row (matches haptics.tsx style)
+    toggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.three,
+      backgroundColor: t.bgElement,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.three,
+    },
+    toggleLabel:    { flex: 1, gap: 4 },
+    toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20 },
 
     // Modal
     modalOverlay: {

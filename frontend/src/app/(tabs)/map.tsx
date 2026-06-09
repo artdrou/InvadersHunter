@@ -247,7 +247,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={<RouteLayer route={route} fromCoords={routingFrom} toCoords={routingTo} fromIsUserLocation={routingFromLabel === t('routing.myLocation')} />}>
+      <WebMap ref={mapRef} invaders={filteredInvaders} onInvaderClick={handleInvaderClick} onLongPress={handleLongPress} isFollowing={isFollowing} onHeadingChange={useHeadingStore.getState().setHeading} greyMode={greyMode} colorMode={colorMode} highlightedIds={selectedInvaderIds} routeLayer={<RouteLayer route={route} fromCoords={routingFrom} toCoords={routingTo} fromIsUserLocation={routingFromLabel === t('routing.myLocation')} onInvaderPress={handleInvaderClick} />}>
       </WebMap>
 
       {!picking && !anyCreating && (

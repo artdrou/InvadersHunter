@@ -14,6 +14,7 @@ import {
   getCurrentVersion,
   isNewer,
 } from '@/features/app-update';
+import { useAppearanceStore } from '@/features/settings';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,7 +45,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
-      await useAppUpdateStore.getState().hydrate();
+      await Promise.all([
+        useAppUpdateStore.getState().hydrate(),
+        useAppearanceStore.getState().hydrate(),
+      ]);
       const manifest = await fetchVersionManifest();
       if (manifest && isNewer(manifest.latestVersion, getCurrentVersion())) {
         useAppUpdateStore.getState().setManifest(manifest);

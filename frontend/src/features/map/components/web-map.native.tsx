@@ -69,6 +69,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
+  const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
   const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
@@ -116,7 +117,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       setTimeout(() => cameraRef.current?.setCamera({}), 450);
     },
     getCenter: async () => {
-      const c = await mapViewRef.current?.getCenter();
+      const { width, height } = mapSizeRef.current;
+      const c = await mapViewRef.current?.getCoordinateFromView([width / 2, height / 2]);
       if (!c) return null;
       return [c[0], c[1]] as [number, number];
     },
@@ -135,6 +137,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       mapStyle={mapStyle}
       compassEnabled={false}
       attributionPosition={{ bottom: 8, left: 8 }}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        mapSizeRef.current = { width, height };
+      }}
       onLongPress={(e: any) => {
         const [lon, lat] = e.geometry.coordinates;
         onLongPress?.(lat, lon);

@@ -39,7 +39,8 @@ export default function AdminPickLocationScreen() {
   const setPickedCoords = useAdminPickerStore((s) => s.setPickedCoords);
 
   const [subs, setSubs] = useState<AdminSubmission[]>([]);
-  const mapViewRef = useRef<MapViewRef>(null);
+  const mapViewRef  = useRef<MapViewRef>(null);
+  const mapSizeRef  = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const cameraRef  = useRef<CameraRef>(null);
 
   useEffect(() => {
@@ -81,7 +82,8 @@ export default function AdminPickLocationScreen() {
   };
 
   async function handleValidate() {
-    const center = await mapViewRef.current?.getCenter();
+    const { width, height } = mapSizeRef.current;
+    const center = await mapViewRef.current?.getCoordinateFromView([width / 2, height / 2]);
     if (center) {
       setPickedCoords({ lon: center[0], lat: center[1] });
     }
@@ -101,6 +103,10 @@ export default function AdminPickLocationScreen() {
         style={styles.map}
         mapStyle={mapStyle}
         attributionPosition={{ bottom: 8, left: 8 }}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          mapSizeRef.current = { width, height };
+        }}
       >
         <Camera
           ref={cameraRef}
