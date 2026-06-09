@@ -78,7 +78,7 @@
     "statsTopCity": "Ville la plus avancee",
     "statsModificationsSent": "Modifs envoyees",
     "statsModificationsAccepted": "Modifs acceptees",
-    "statsNone": "—",
+    "statsNone": "-",
     "statsMemberSince": "Membre depuis",
     "roadmap": "Feuille de route",
     "roadmapSubtitle": "Fonctionnalites a venir",
@@ -284,7 +284,7 @@
     "camera": "Appareil photo",
     "gallery": "Galerie",
     "removePhoto": "Retirer",
-    "photoUploadFailed": "Échec de l'envoi de la photo — veuillez réessayer",
+    "photoUploadFailed": "Échec de l'envoi de la photo, veuillez réessayer",
     "submit": "Envoyer",
     "sendingShort": "Envoi…",
     "localiser": "Localiser"
@@ -374,6 +374,22 @@
   },
   "tutorial": {
     "gotIt": "Compris",
+    "colorMode": {
+      "title": "Mode couleur",
+      "flashBody": "La couleur du marqueur reflete ton statut flash. Les marqueurs rouges ne sont pas encore flashes, les captures ont une couleur differente.",
+      "rarityBody": "Chaque niveau de rarete (en points) a sa propre teinte, independamment du statut flash.",
+      "labelUnflashed": "Non flashe",
+      "labelFlashed": "Flashe"
+    },
+    "greyMode": {
+      "title": "Griser",
+      "allBody": "Tous les invaders detruits ou invisibles sont grises sur la carte, qu'ils soient captures ou non.",
+      "flashedBody": "Les invaders detruits que tu as deja captures gardent leur couleur. Seuls les non-captures sont grises.",
+      "offBody": "Rien n'est grise. Chaque marqueur s'affiche en couleur quelle que soit son etat.",
+      "subAll": "Tout grise",
+      "subFlashed": "Cap. colore",
+      "subOff": "Tout colore"
+    },
     "routing": {
       "title": "Chasse",
       "tab1": "Vue d'ensemble",
@@ -383,7 +399,7 @@
       "overviewOpenSection": "Ouvrir le panneau",
       "overviewOpenBody": "Appuie sur le bouton drapeau en bas a gauche de la carte pour ouvrir le panneau de routage.",
       "overviewZone2Title": "② Depart",
-      "overviewZone2Body": "Ton point de depart — recherche une adresse, choisis sur la carte ou utilise ta position.",
+      "overviewZone2Body": "Ton point de depart - recherche une adresse, choisis sur la carte ou utilise ta position.",
       "overviewZone3Title": "③ Arrets obligatoires",
       "overviewZone3Body": "Les invaders a inclure quoi qu'il arrive. Appuie dessus sur la carte quand le panneau est ouvert.",
       "overviewZone4Title": "④ Arrivee",
@@ -399,7 +415,7 @@
       "coordStep3Title": "Utiliser ta position",
       "coordStep3Body": "Appuie sur l'icone de localisation pour utiliser ta position GPS comme point de depart.",
       "coordStep4Title": "Mode boucle",
-      "coordStep4Body": "Active le chip Boucle dans les options pour remplacer l'arrivee par un circuit — le trajet revient a ton point de depart.",
+      "coordStep4Body": "Active le chip Boucle dans les options pour remplacer l'arrivee par un circuit, le trajet revient a ton point de depart.",
       "detourSection": "Detour & filtres",
       "detourBody": "Controle combien le trajet peut s'ecarter du chemin direct, et quels invaders sont eligibles.",
       "detourStep1Title": "Regler le detour",

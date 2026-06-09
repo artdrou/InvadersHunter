@@ -42,7 +42,7 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
   const s = makeStyles(theme);
 
   const [activePage, setActivePage] = useState(0);
-  const [pageWidth, setPageWidth]   = useState(0);
+  const [pageWidth, setPageWidth]   = useState(INITIAL_PAGE_WIDTH);
   const scrollRef = useRef<ScrollView>(null);
 
   // Title adapts to the current page
@@ -102,14 +102,14 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
               onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
             >
               {pages.map((page) => (
-                <View key={page.key} style={{ width: pageWidth || undefined, height: '100%' }}>
+                <View key={page.key} style={{ width: pageWidth, height: '100%' }}>
                   <ScrollView
-                    style={{ flex: 1, width: pageWidth || undefined }}
+                    style={{ flex: 1, width: pageWidth }}
                     showsVerticalScrollIndicator={false}
                     nestedScrollEnabled
                   >
                     {/* Explicit View so text has a hard width boundary and wraps correctly */}
-                    <View style={[s.pageContent, pageWidth ? { width: pageWidth } : undefined]}>
+                    <View style={[s.pageContent, { width: pageWidth }]}>
                       <PageItems items={page.items} s={s} theme={theme} />
                     </View>
                   </ScrollView>
@@ -202,8 +202,10 @@ function PageItems({ items, s, theme }: { items: TutorialItem[]; s: ReturnType<t
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const MAX_CARD_HEIGHT = Math.round(SCREEN_HEIGHT * 0.78);
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const MAX_CARD_HEIGHT  = Math.round(SCREEN_HEIGHT * 0.78);
+// Initial page width = card width on first render (overlay has Spacing.four padding each side, card maxWidth 380)
+const INITIAL_PAGE_WIDTH = Math.min(SCREEN_WIDTH - Spacing.four * 2, 380);
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({

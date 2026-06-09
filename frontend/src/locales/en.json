@@ -78,7 +78,7 @@
     "statsTopCity": "Top city",
     "statsModificationsSent": "Edits sent",
     "statsModificationsAccepted": "Edits accepted",
-    "statsNone": "—",
+    "statsNone": "-",
     "statsMemberSince": "Member since",
     "roadmap": "Roadmap",
     "roadmapSubtitle": "Upcoming features",
@@ -374,6 +374,22 @@
   },
   "tutorial": {
     "gotIt": "Got it",
+    "colorMode": {
+      "title": "Color mode",
+      "flashBody": "Marker color reflects your flash status. Red markers are not yet flashed, captured ones show in a different color.",
+      "rarityBody": "Each rarity tier (by points value) has its own distinct hue, regardless of flash status.",
+      "labelUnflashed": "Not flashed",
+      "labelFlashed": "Flashed"
+    },
+    "greyMode": {
+      "title": "Grey out",
+      "allBody": "All destroyed or not-visible invaders are greyed on the map, whether captured or not.",
+      "flashedBody": "Destroyed invaders you already captured keep their color. Only uncaptured ones are greyed.",
+      "offBody": "No greying. Every marker shows in full color regardless of its state.",
+      "subAll": "All dim",
+      "subFlashed": "Cap. colored",
+      "subOff": "All colored"
+    },
     "routing": {
       "title": "Hunt",
       "tab1": "Overview",
@@ -383,7 +399,7 @@
       "overviewOpenSection": "Opening the panel",
       "overviewOpenBody": "Tap the flag button at the bottom-left of the map to open the routing panel.",
       "overviewZone2Title": "② Start field",
-      "overviewZone2Body": "Your departure point — search an address, pick on the map, or use your location.",
+      "overviewZone2Body": "Your departure point - search an address, pick on the map, or use your location.",
       "overviewZone3Title": "③ Mandatory stops",
       "overviewZone3Body": "Invaders you want to force-include, regardless of detour. Tap them on the map while the panel is open.",
       "overviewZone4Title": "④ Destination field",
@@ -399,7 +415,7 @@
       "coordStep3Title": "Use your location",
       "coordStep3Body": "Tap the location icon to instantly set your current GPS position as the start.",
       "coordStep4Title": "Loop mode",
-      "coordStep4Body": "Enable the Loop chip in options to replace the destination with a circuit — the route returns to your start.",
+      "coordStep4Body": "Enable the Loop chip in options to replace the destination with a circuit, the route returns to your start.",
       "detourSection": "Detour & filters",
       "detourBody": "Control how far the route strays from the direct path, and which invaders are eligible.",
       "detourStep1Title": "Adjust detour",

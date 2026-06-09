@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,10 @@ import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
 import { PixelButton } from "@/components/ui/pixel-button";
+import { InfoButton, TutorialModal } from "@/features/tutorial";
+import type { TutorialPage } from "@/features/tutorial";
+import { ColorModeIllustration } from "./ColorModeIllustration";
+import { GreyModeIllustration } from "./GreyModeIllustration";
 
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";
@@ -77,6 +81,34 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
   ];
   const [filterOpen, setFilterOpen] = useState(false);
   const [greyOpen, setGreyOpen] = useState(false);
+  const [colorTutVisible, setColorTutVisible] = useState(false);
+  const [greyTutVisible, setGreyTutVisible] = useState(false);
+
+  const colorPages = useMemo<TutorialPage[]>(() => [
+    {
+      key: 'colorMode',
+      tab: t('tutorial.colorMode.title'),
+      items: [
+        { type: 'section', label: 'Flash', body: t('tutorial.colorMode.flashBody') },
+        { type: 'section', label: t('invaders.colorRarity'), body: t('tutorial.colorMode.rarityBody') },
+        { type: 'node', content: <ColorModeIllustration /> },
+      ],
+    },
+  ], [t]);
+
+  const greyPages = useMemo<TutorialPage[]>(() => [
+    {
+      key: 'greyMode',
+      tab: t('tutorial.greyMode.title'),
+      items: [
+        { type: 'section', label: t('invaders.greyAll'), body: t('tutorial.greyMode.allBody') },
+        { type: 'section', label: t('invaders.greyFlashed'), body: t('tutorial.greyMode.flashedBody') },
+        { type: 'section', label: t('invaders.greyOff'), body: t('tutorial.greyMode.offBody') },
+        { type: 'node', content: <GreyModeIllustration /> },
+      ],
+    },
+  ], [t]);
+
   const styles = makeStyles(theme);
   const filterActive = isFilterActive(value);
   // Default greyMode is "all" now — only flag accent when the user moved off the default.
@@ -101,10 +133,14 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
   }
 
   return (
+    <>
     <View style={styles.wrapper}>
       {greyOpen && (
         <View style={styles.panel}>
-          <Text style={styles.sectionLabel}>{t('invaders.colorMode')}</Text>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionLabelText}>{t('invaders.colorMode')}</Text>
+            <InfoButton size={14} onPress={() => setColorTutVisible(true)} color={theme.textMuted} />
+          </View>
           <View style={styles.optionGroup}>
             {COLOR_MODE_OPTIONS.map((o) => {
               const selected = colorMode === o.key;
@@ -121,7 +157,10 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
           </View>
 
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>{t('invaders.greyOut')}</Text>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionLabelText}>{t('invaders.greyOut')}</Text>
+            <InfoButton size={14} onPress={() => setGreyTutVisible(true)} color={theme.textMuted} />
+          </View>
           <View style={styles.optionGroup}>
             {(colorMode === "flash" ? GREY_OPTIONS_FLASH : GREY_OPTIONS_RARITY).map((o) => {
               const selected = greyMode === o.key;
@@ -215,6 +254,19 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
         <Ionicons name="options-outline" size={22} color={filterActive ? theme.accent : theme.textMuted} />
       </Pressable>
     </View>
+    <TutorialModal
+      visible={colorTutVisible}
+      onClose={() => setColorTutVisible(false)}
+      title={t('tutorial.colorMode.title')}
+      pages={colorPages}
+    />
+    <TutorialModal
+      visible={greyTutVisible}
+      onClose={() => setGreyTutVisible(false)}
+      title={t('tutorial.greyMode.title')}
+      pages={greyPages}
+    />
+    </>
   );
 }
 
@@ -245,6 +297,19 @@ function makeStyles(t: ThemeTokens) {
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
       paddingBottom: 4,
+    },
+    sectionRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      paddingHorizontal: Spacing.three,
+      paddingTop: 10,
+      paddingBottom: 4,
+      gap: 6,
+    },
+    sectionLabelText: {
+      color: t.textMuted,
+      fontSize: ButtonFontSize.md,
+      fontFamily: ButtonFont,
     },
     optionGroup: {},
     option: {
