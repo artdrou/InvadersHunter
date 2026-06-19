@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, Switch, StyleSheet, Modal, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, useAppearanceStore } from '@/features/settings';
 
 // 5x5 neon palette — rows follow the visible spectrum.
@@ -325,7 +325,7 @@ function makeStyles(t: ThemeTokens) {
       flex: 1, borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
       backgroundColor: t.bg, color: t.text,
       paddingVertical: 10, paddingHorizontal: Spacing.three,
-      fontSize: 16,
+      fontSize: FontSize.md,
     },
     modalActions:      { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.two },
     modalSecondaryBtn: {

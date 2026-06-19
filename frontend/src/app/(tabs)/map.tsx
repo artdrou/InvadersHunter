@@ -9,7 +9,7 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { Brand, BottomTabInset, AppFont } from "@/constants/theme";
+import { Brand, BottomTabInset, AppFont, FontSize } from "@/constants/theme";
 import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
@@ -525,12 +525,12 @@ const styles = StyleSheet.create({
   },
   routingLoaderText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: FontSize.sm,
     fontFamily: AppFont,
   },
   offlineText: {
     color: "#ffffff",
-    fontSize: 13,
+    fontSize: FontSize.sm,
   },
   toast: {
     position: "absolute",
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   toastText: {
     color: "#ffffff",
-    fontSize: 14,
+    fontSize: FontSize.sm,
     fontWeight: "600",
   },
   routingFAB: {
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pickerBtnText: {
-    fontSize: 14,
+    fontSize: FontSize.sm,
     fontWeight: "600",
   },
   createPopupWrapper: {
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   createPopupLabel: {
-    fontSize: 13,
+    fontSize: FontSize.sm,
     fontWeight: "600",
     marginBottom: 2,
   },
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   createPopupBtnText: {
-    fontSize: 12,
+    fontSize: FontSize.xs,
     fontWeight: "600",
   },
 });

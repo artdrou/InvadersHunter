@@ -144,7 +144,7 @@ function makeStyles(t: ThemeTokens) {
     },
     badgeNum: {
       fontFamily: ButtonFont,
-      fontSize: 9,
+      fontSize: ButtonFontSize.xxs,
       lineHeight: 12,
     },
 
@@ -171,7 +171,7 @@ function makeStyles(t: ThemeTokens) {
     },
     infoBtnText: {
       fontFamily: ButtonFont,
-      fontSize: 9,
+      fontSize: ButtonFontSize.xxs,
       lineHeight: 12,
     },
 
@@ -227,7 +227,7 @@ function makeStyles(t: ThemeTokens) {
     },
     chipText: {
       fontFamily: ButtonFont,
-      fontSize: 8,
+      fontSize: ButtonFontSize.xxs,
     },
 
     stepper: {

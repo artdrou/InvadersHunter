@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
 import { useAuthStore } from "@/features/auth";
+import { FontSize } from "@/constants/theme";
 
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -71,7 +72,7 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarLabelStyle: { fontFamily: appFont, fontSize: 10 },
+          tabBarLabelStyle: { fontFamily: appFont, fontSize: FontSize.xxs },
           tabBarActiveTintColor: theme.accent,
           tabBarInactiveTintColor: theme.textMuted,
           tabBarStyle: { backgroundColor: theme.bg, borderTopColor: theme.border },
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     color: "rgba(255,255,255,0.75)",
-    fontSize: 11,
+    fontSize: FontSize.xxs,
   },
   disconnectedBand: {
     position: "absolute",
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   },
   bandText: {
     color: "#ffffff",
-    fontSize: 12,
+    fontSize: FontSize.xs,
     fontWeight: "600",
   },
 });

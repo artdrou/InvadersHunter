@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/theme-context";
-import { Spacing } from "@/constants/theme";
+import { Spacing, FontSize } from "@/constants/theme";
 
 type Props = {
   city: string;
@@ -43,5 +43,5 @@ const styles = StyleSheet.create({
   },
   cityName: { flex: 1, letterSpacing: 1 },
   count: {},
-  chevron: { fontSize: 12, width: 14, textAlign: "center" },
+  chevron: { fontSize: FontSize.xs, width: 14, textAlign: "center" },
 });

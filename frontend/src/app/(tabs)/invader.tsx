@@ -13,7 +13,7 @@ import { applyMapFilter, useLocateStore } from "@/features/map";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
-import { Spacing } from "@/constants/theme";
+import { Spacing, FontSize } from "@/constants/theme";
 
 const GRID_GAP = 4;
 
@@ -254,6 +254,6 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: Spacing.six },
   gridRow: { flexDirection: "row" },
   emptyState: { flex: 1, justifyContent: "center", alignItems: "center", gap: 8 },
-  emptyText: { fontSize: 15 },
-  emptySubText: { fontSize: 12, opacity: 0.6 },
+  emptyText: { fontSize: FontSize.sm },
+  emptySubText: { fontSize: FontSize.xs, opacity: 0.6 },
 });

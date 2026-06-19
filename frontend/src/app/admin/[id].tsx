@@ -30,15 +30,15 @@ function Diff({ label, current, proposed }: { label: string; current?: string | 
   const changed = String(proposed) !== String(current ?? '');
   return (
     <View style={{ marginBottom: 6 }}>
-      <Text style={{ color: theme.textMuted, fontSize: 11, fontFamily: appFont }}>{label}</Text>
+      <Text style={{ color: theme.textMuted, fontSize: FontSize.xxs, fontFamily: appFont }}>{label}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
         {current !== undefined && current !== null && (
           <>
-            <Text style={{ color: theme.textMuted, fontSize: 13, fontFamily: appFont }}>{String(current)}</Text>
+            <Text style={{ color: theme.textMuted, fontSize: FontSize.sm, fontFamily: appFont }}>{String(current)}</Text>
             <Text style={{ color: theme.textMuted }}>→</Text>
           </>
         )}
-        <Text style={{ color: changed ? theme.accent : theme.text, fontSize: 13, fontFamily: appFont, fontWeight: changed ? '600' : '400' }}>
+        <Text style={{ color: changed ? theme.accent : theme.text, fontSize: FontSize.sm, fontFamily: appFont, fontWeight: changed ? '600' : '400' }}>
           {String(proposed)}
         </Text>
       </View>

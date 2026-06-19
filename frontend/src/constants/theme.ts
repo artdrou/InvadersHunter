@@ -146,6 +146,7 @@ export type ThemeName = keyof typeof themes;
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
 export const FontSize = {
+  xxs: 11,
   xs: 12,
   sm: 14,
   md: 16,
@@ -159,6 +160,7 @@ export const FontSize = {
  * below are calibrated for visual parity with the rest of the UI.
  *
  * Tier guide:
+ *  - xxs   9  tiny pixel-badge numbers (counts on routing badges)
  *  - xs   13  tiny badges (confidence indicators)
  *  - sm   18  small status badges
  *  - md   21  section labels, inline edit hints
@@ -167,6 +169,7 @@ export const FontSize = {
  *  - xxl  30  primary CTAs (login, sync, approve, etc.)
  */
 export const ButtonFontSize = {
+  xxs: 9,
   xs: 13,
   sm: 18,
   md: 21,

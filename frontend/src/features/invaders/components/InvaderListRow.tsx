@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/theme-context";
-import { Spacing } from "@/constants/theme";
+import { Spacing, FontSize } from "@/constants/theme";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -28,7 +28,7 @@ export function InvaderListRow({ invader, expanded, onPress }: Props) {
           </Text>
         )}
         {invader.isCaptured && (
-          <Text style={{ color: invader.isPending ? theme.textMuted : theme.success, fontFamily: appFont, fontSize: 13 }}>
+          <Text style={{ color: invader.isPending ? theme.textMuted : theme.success, fontFamily: appFont, fontSize: FontSize.sm }}>
             ✓
           </Text>
         )}
@@ -49,6 +49,6 @@ const styles = StyleSheet.create({
   },
   name: { flex: 1 },
   meta: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
-  points: { fontSize: 11 },
-  chevron: { fontSize: 10, width: 14, textAlign: "center" },
+  points: { fontSize: FontSize.xxs },
+  chevron: { fontSize: FontSize.xxs, width: 14, textAlign: "center" },
 });

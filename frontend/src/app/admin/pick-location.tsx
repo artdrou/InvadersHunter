@@ -6,7 +6,7 @@ import { MapView, Camera, ShapeSource, CircleLayer } from '@maplibre/maplibre-re
 import type { CameraRef, MapViewRef } from '@maplibre/maplibre-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { useEffect } from 'react';
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   legendRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
   legendDot:  { width: 12, height: 12, borderRadius: 6 },
-  legendText: { fontSize: 12 },
+  legendText: { fontSize: FontSize.xs },
   bar: {
     position: 'absolute', left: 16, right: 16,
     flexDirection: 'row', gap: 12, zIndex: 20,

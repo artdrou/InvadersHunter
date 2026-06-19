@@ -706,7 +706,7 @@ export function makeStyles(t: ThemeTokens) {
       paddingHorizontal: 3,
     },
     badgeText: {
-      fontSize: 9,
+      fontSize: ButtonFontSize.xxs,
       fontFamily: ButtonFont,
       lineHeight: 15,
     },

@@ -77,7 +77,7 @@ export default function ForgotPasswordScreen() {
 
       <View style={styles.form}>
         <Text style={[styles.subtitle, { textAlign: 'center' }]}>{t('auth.forgot.unavailable')}</Text>
-        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: 13 }]}>{t('auth.forgot.contactSupport')}</Text>
+        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: FontSize.sm }]}>{t('auth.forgot.contactSupport')}</Text>
       </View>
 
       {false && step === 'request' && (
