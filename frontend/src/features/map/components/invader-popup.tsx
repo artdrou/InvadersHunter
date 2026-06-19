@@ -310,7 +310,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     name: {
       color: t.accent,
-      fontSize: sz(FontSize.lg),
+      fontSize: sz(FontSize.xl),
       fontFamily: font,
       letterSpacing: 1,
       flexShrink: 1,
@@ -320,7 +320,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     closeText: {
       color: t.textMuted,
-      fontSize: FontSize.md,
+      fontSize: sz(FontSize.md),
       fontFamily: font,
     },
     divider: {
@@ -334,12 +334,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     label: {
       color: t.textMuted,
-      fontSize: sz(15),
+      fontSize: sz(FontSize.lg),
       fontFamily: font,
     },
     value: {
       color: t.text,
-      fontSize: sz(15),
+      fontSize: sz(FontSize.lg),
       fontFamily: font,
     },
     image: {
@@ -373,7 +373,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     flashBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: ButtonFontSize.xl,
       color: t.bg,
     },
     unflashBtnText: {
@@ -394,7 +394,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     modifyLinkText: {
       color: t.accent,
-      fontSize: ButtonFontSize.lg,
+      fontSize: ButtonFontSize.md,
       fontFamily: ButtonFont,
     },
     modifyLinkDisabledText: {
@@ -406,68 +406,10 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     fieldLabel: {
       color: t.textMuted,
-      fontSize: sz(12),
+      fontSize: sz(FontSize.xs),
       fontFamily: font,
       marginBottom: 4,
       marginTop: Spacing.two,
-    },
-    input: {
-      backgroundColor: t.bg,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      color: t.text,
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 8,
-      fontSize: sz(14),
-      fontFamily: font,
-    },
-    inputError: {
-      borderColor: t.danger,
-      backgroundColor: t.bgInputInvalid,
-    },
-    nameRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-      gap: 6,
-    },
-    nameCity: {
-      width: 58,
-      textTransform: "uppercase",
-    },
-    nameSep: {
-      color: t.textMuted,
-      fontSize: sz(18),
-      fontFamily: font,
-    },
-    nameNum: {
-      width: 90,
-    },
-    pillRow: {
-      flexDirection: "row",
-      gap: 4,
-    },
-    pill: {
-      flex: 1,
-      paddingVertical: 6,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      alignItems: "center",
-    },
-    pillSelected: {
-      backgroundColor: t.accent,
-      borderColor: t.accent,
-    },
-    pillText: {
-      color: t.textMuted,
-      fontSize: sz(13),
-      fontFamily: font,
-    },
-    pillTextSelected: {
-      color: t.bg,
-      fontFamily: font,
     },
     stateGrid: {
       gap: 5,
@@ -492,7 +434,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     stateOptionText: {
       color: t.textMuted,
-      fontSize: sz(13),
+      fontSize: sz(FontSize.sm),
       fontFamily: font,
     },
     stateOptionTextSelected: {
@@ -512,7 +454,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     positionValue: {
       color: t.text,
-      fontSize: sz(12),
+      fontSize: sz(FontSize.xs),
       fontFamily: font,
       flexShrink: 1,
     },
@@ -532,7 +474,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     offlineMsg: {
       color: t.danger,
-      fontSize: sz(12),
+      fontSize: sz(FontSize.xs),
       fontFamily: font,
       textAlign: "center",
     },
