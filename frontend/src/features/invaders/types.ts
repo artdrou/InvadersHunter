@@ -62,3 +62,13 @@ export type UserRequest = {
   proposed_name: string | null;
   updated_at: string | null;
 };
+
+export type Contributor = {
+  username: string;
+  at: string;
+};
+
+export type InvaderContributors = {
+  created_by: Contributor | null;
+  modified_by: Contributor[];
+};

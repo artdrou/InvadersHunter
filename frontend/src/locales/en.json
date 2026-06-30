@@ -319,6 +319,7 @@
     "filterCreate": "create",
     "typeCreate": "CREATE",
     "typeModify": "MODIFY",
+    "typeDelete": "DELETE",
     "byBary": "(barycenter)",
     "byAdmin": "(admin pick)",
     "reviewOnMap": "Review on map",
@@ -330,7 +331,13 @@
     "locationShort": "📍 location",
     "statusPending": "pending",
     "statusApproved": "approved",
-    "statusRejected": "rejected"
+    "statusRejected": "rejected",
+    "confidenceNA": "—",
+    "firstSubmission": "1st submission",
+    "viewSubmissions": "View {{count}} submissions",
+    "submissionDetailTitle": "Submission",
+    "submissionBy": "By {{username}}",
+    "noSubmissions": "No submissions"
   },
   "flashImport": {
     "title": "Import my flashes",

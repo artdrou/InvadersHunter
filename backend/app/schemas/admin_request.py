@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime, date
 
 
@@ -26,3 +26,13 @@ class AdminRequestOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ContributorOut(BaseModel):
+    username: str
+    at: datetime
+
+
+class InvaderContributorsOut(BaseModel):
+    created_by: Optional[ContributorOut] = None
+    modified_by: List[ContributorOut] = []

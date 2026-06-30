@@ -37,6 +37,43 @@ def list_submissions_with_username(
     )
 
 
+def get_invader_contributors(db: Session, invader_id: int) -> dict:
+    """Who discovered/modified this invader, based on approved AdminRequests.
+
+    For each approved AdminRequest targeting this invader (create or modify),
+    credit goes to whoever submitted the *first* UserRequest feeding it.
+    """
+    admin_reqs = (
+        db.query(AdminRequest)
+        .filter(AdminRequest.invader_id == invader_id, AdminRequest.status == "approved")
+        .order_by(AdminRequest.created_at.asc())
+        .all()
+    )
+
+    created_by: Optional[dict] = None
+    modified_by: List[dict] = []
+
+    for admin_req in admin_reqs:
+        first_submission = (
+            db.query(UserRequest, User.username)
+            .join(User, User.id == UserRequest.user_id)
+            .filter(UserRequest.admin_request_id == admin_req.id)
+            .order_by(UserRequest.created_at.asc())
+            .first()
+        )
+        if not first_submission:
+            continue
+        user_request, username = first_submission
+        entry = {"username": username, "at": user_request.created_at}
+
+        if admin_req.request_type == "create" and created_by is None:
+            created_by = entry
+        elif admin_req.request_type == "modify":
+            modified_by.append(entry)
+
+    return {"created_by": created_by, "modified_by": modified_by}
+
+
 def _submission_photo_urls(db: Session, admin_request_id: int) -> List[str]:
     return [
         url for (url,) in db.query(UserRequest.proposed_image_url)

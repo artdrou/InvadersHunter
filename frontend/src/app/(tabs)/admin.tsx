@@ -10,15 +10,14 @@ import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import type { AdminRequest } from '@/features/admin/types';
+import { useInvaderStore } from '@/features/invaders/store';
+import { resolveInvaderName } from '@/features/admin/utils';
+import { StatusBadge } from '@/features/admin/components/StatusBadge';
+import { TypeBadge } from '@/features/admin/components/TypeBadge';
+import { ConfidenceBadge } from '@/features/admin/components/ConfidenceBadge';
 
 type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
 type TypeFilter   = 'all' | 'modify' | 'create';
-
-function confidenceColor(score: number, theme: ThemeTokens): string {
-  if (score >= 75) return theme.success;
-  if (score >= 45) return '#f0a500';
-  return theme.danger;
-}
 
 function changeSummary(req: AdminRequest): string {
   const parts: string[] = [];
@@ -35,6 +34,7 @@ export default function AdminScreen() {
   const { theme, appFont, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, fontScale, insets.top);
+  const invaders = useInvaderStore((s) => s.invaders);
 
   const [requests, setRequests] = useState<AdminRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,27 +64,24 @@ export default function AdminScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   function renderItem({ item }: { item: AdminRequest }) {
-    const conf = item.confidence;
     return (
       <Pressable
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         onPress={() => router.push(`/admin/${item.id}`)}
       >
         <View style={styles.cardTop}>
-          <View style={[styles.typeBadge, item.request_type === 'create' ? styles.badgeCreate : styles.badgeModify]}>
-            <Text style={[styles.badgeText, { fontFamily: appFont }]}>
-              {item.request_type === 'create' ? t('admin.typeCreate') : t('admin.typeModify')}
-            </Text>
-          </View>
           <Text style={styles.invaderName} numberOfLines={1}>
-            {item.proposed_name ?? `#${item.invader_id}`}
+            {resolveInvaderName(item, invaders)}
           </Text>
-          <View style={styles.metaRight}>
-            <Text style={styles.voteText}>{t('admin.votesShort', { count: item.request_count })}</Text>
-            <View style={[styles.confBadge, { backgroundColor: confidenceColor(conf, theme) }]}>
-              <Text style={styles.confText}>{conf}%</Text>
-            </View>
+          <StatusBadge status={item.status} />
+        </View>
+        <View style={styles.cardMeta}>
+          <View style={styles.cardMetaLeft}>
+            <TypeBadge type={item.request_type} />
+            <Text style={styles.metaText}>{t('admin.votesShort', { count: item.request_count })}</Text>
+            <Text style={styles.metaText}>{new Date(item.created_at).toLocaleDateString()}</Text>
           </View>
+          <ConfidenceBadge requestCount={item.request_count} confidence={item.confidence} />
         </View>
         <Text style={styles.summary} numberOfLines={1}>{changeSummary(item)}</Text>
       </Pressable>
@@ -172,9 +169,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       borderColor: t.border,
       alignItems: 'center',
     },
-    filterChipActive: { borderColor: t.accent, backgroundColor: t.bgElement },
+    filterChipActive: { borderColor: t.accent, backgroundColor: t.accent },
     filterChipText: { color: t.textMuted, fontSize: ButtonFontSize.lg, fontFamily: ButtonFont },
-    filterChipTextActive: { color: t.accent },
+    filterChipTextActive: { color: t.bg },
     list: { padding: Spacing.three, gap: Spacing.two },
     card: {
       backgroundColor: t.bgElement,
@@ -182,34 +179,19 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       borderWidth: 1,
       borderColor: t.border,
       padding: Spacing.three,
-      gap: Spacing.one,
+      gap: Spacing.two,
     },
     cardPressed: { opacity: 0.7 },
     cardTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    typeBadge: {
-      borderRadius: 4,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-    },
-    badgeCreate: { backgroundColor: '#1a3a1a' },
-    badgeModify: { backgroundColor: '#1a1a3a' },
-    badgeText: { fontSize: sz(9), color: '#aaa', letterSpacing: 0.5 },
     invaderName: {
       flex: 1,
       color: t.text,
       fontSize: sz(FontSize.md),
       fontFamily: font,
     },
-    metaRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    voteText: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
-    confBadge: {
-      borderRadius: 4,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      minWidth: 38,
-      alignItems: 'center',
-    },
-    confText: { color: '#fff', fontSize: ButtonFontSize.xs, fontFamily: ButtonFont },
+    cardMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    cardMetaLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexShrink: 1 },
+    metaText: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
     summary: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
     empty: {
       color: t.textMuted,

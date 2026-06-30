@@ -319,6 +319,7 @@
     "filterCreate": "créer",
     "typeCreate": "CREATE",
     "typeModify": "MODIFY",
+    "typeDelete": "DELETE",
     "byBary": "(barycentre)",
     "byAdmin": "(choix admin)",
     "reviewOnMap": "Examiner sur la carte",
@@ -330,7 +331,13 @@
     "locationShort": "📍 emplacement",
     "statusPending": "en attente",
     "statusApproved": "approuvée",
-    "statusRejected": "rejetée"
+    "statusRejected": "rejetée",
+    "confidenceNA": "—",
+    "firstSubmission": "1ère soumission",
+    "viewSubmissions": "Voir les {{count}} soumissions",
+    "submissionDetailTitle": "Soumission",
+    "submissionBy": "Par {{username}}",
+    "noSubmissions": "Aucune soumission"
   },
   "flashImport": {
     "title": "Importer mes flashes",

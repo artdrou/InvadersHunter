@@ -1,6 +1,6 @@
 import { api, BASE_URL } from '@/services/api-client';
 import { useAuthStore } from '@/features/auth/store';
-import type { Invader, Capture, UserRequest } from '../types';
+import type { Invader, Capture, UserRequest, InvaderContributors } from '../types';
 
 /**
  * Fetch invaders from the server.
@@ -92,5 +92,11 @@ export async function cancelRequest(requestId: number): Promise<void> {
 export async function fetchUserRequests(updatedSince?: string): Promise<UserRequest[]> {
   const params = updatedSince ? { updated_since: updatedSince } : {};
   const res = await api.get('/requests/', { params });
+  return res.data;
+}
+
+/** Who discovered/modified this invader. Not wired into any screen yet. */
+export async function fetchInvaderContributors(invaderId: number): Promise<InvaderContributors> {
+  const res = await api.get(`/invaders/${invaderId}/contributors`);
   return res.data;
 }

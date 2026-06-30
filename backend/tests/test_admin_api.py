@@ -14,6 +14,7 @@ from app.models.space_invader import Invader
 from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.services.user_request_service import aggregate_request, compute_confidence
+from app.services import admin_request_service
 from tests.conftest import auth_headers
 
 
@@ -278,4 +279,67 @@ def test_get_invader_by_id_returns_correct_invader(db, client, invader):
 
 def test_get_invader_by_id_404_for_missing(db, client):
     res = client.get("/invaders/99999")
+    assert res.status_code == 404
+
+
+# ── GET /invaders/{id}/contributors ─────────────────────────────────────────
+
+def test_invader_contributors_tracks_creator_and_modifiers(db, client, users):
+    regular, admin = users
+    modifier = User(username="modifier", email="mod@test.com", hashed_password=hash_password("pw"))
+    db.add(modifier)
+    db.flush()
+
+    # Creator submits + admin approves a "create" request
+    create_req = UserRequest(
+        user_id=regular.id, invader_id=None, request_type="create", status="pending",
+        proposed_name="PA_99", normalized_name=normalize_name("PA_99"),
+        proposed_state="Good", proposed_latitude=48.85, proposed_longitude=2.35, proposed_points=10,
+    )
+    db.add(create_req)
+    db.flush()
+    aggregate_request(db, create_req)
+    db.commit()
+
+    create_ar = (
+        db.query(AdminRequest)
+        .filter(AdminRequest.normalized_name == normalize_name("PA_99"), AdminRequest.request_type == "create")
+        .one()
+    )
+    admin_request_service.approve(db, create_ar, admin)
+    db.commit()
+    db.expire_all()
+
+    invader_id = create_ar.invader_id
+    assert invader_id is not None
+
+    # A different user submits + admin approves a "modify" request on that invader
+    modify_req = UserRequest(
+        user_id=modifier.id, invader_id=invader_id, request_type="modify", status="pending",
+        proposed_name=None, normalized_name=None,
+        proposed_state="Degraded", proposed_latitude=48.851, proposed_longitude=2.351,
+    )
+    db.add(modify_req)
+    db.flush()
+    aggregate_request(db, modify_req)
+    db.commit()
+
+    modify_ar = (
+        db.query(AdminRequest)
+        .filter(AdminRequest.invader_id == invader_id, AdminRequest.request_type == "modify")
+        .one()
+    )
+    admin_request_service.approve(db, modify_ar, admin)
+    db.commit()
+
+    res = client.get(f"/invaders/{invader_id}/contributors")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["created_by"]["username"] == "u1"
+    assert len(data["modified_by"]) == 1
+    assert data["modified_by"][0]["username"] == "modifier"
+
+
+def test_invader_contributors_404_for_missing_invader(db, client):
+    res = client.get("/invaders/99999/contributors")
     assert res.status_code == 404

@@ -14,6 +14,11 @@ import {
 } from '@/features/admin/services/admin.api';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { useInvaderStore } from '@/features/invaders/store';
+import { resolveInvaderName } from '@/features/admin/utils';
+import { StatusBadge } from '@/features/admin/components/StatusBadge';
+import { TypeBadge } from '@/features/admin/components/TypeBadge';
+import { ConfidenceBadge } from '@/features/admin/components/ConfidenceBadge';
+import { Diff } from '@/features/admin/components/Diff';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
 
@@ -24,28 +29,6 @@ function yearOf(date?: string | null): number | null {
   return Number.isNaN(y) ? null : y;
 }
 
-function Diff({ label, current, proposed }: { label: string; current?: string | number | null; proposed?: string | number | null }) {
-  const { theme, appFont } = useTheme();
-  if (proposed === undefined || proposed === null) return null;
-  const changed = String(proposed) !== String(current ?? '');
-  return (
-    <View style={{ marginBottom: 6 }}>
-      <Text style={{ color: theme.textMuted, fontSize: FontSize.xxs, fontFamily: appFont }}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-        {current !== undefined && current !== null && (
-          <>
-            <Text style={{ color: theme.textMuted, fontSize: FontSize.sm, fontFamily: appFont }}>{String(current)}</Text>
-            <Text style={{ color: theme.textMuted }}>→</Text>
-          </>
-        )}
-        <Text style={{ color: changed ? theme.accent : theme.text, fontSize: FontSize.sm, fontFamily: appFont, fontWeight: changed ? '600' : '400' }}>
-          {String(proposed)}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 export default function AdminDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -53,6 +36,7 @@ export default function AdminDetailScreen() {
   const { theme, appFont, fontScale } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, fontScale, insets.bottom, insets.top);
+  const invaders = useInvaderStore((s) => s.invaders);
 
   const [req, setReq]         = useState<AdminRequest | null>(null);
   const [invader, setInvader] = useState<Invader | null>(null);
@@ -185,11 +169,9 @@ export default function AdminDetailScreen() {
           <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {req.proposed_name ?? t('admin.requestPrefix', { id: req.id })}
+          {resolveInvaderName(req, invaders)}
         </Text>
-        <View style={[styles.statusBadge, req.status === 'pending' ? styles.statusPending : req.status === 'approved' ? styles.statusApproved : styles.statusRejected]}>
-          <Text style={styles.statusText}>{t(`admin.status${req.status.charAt(0).toUpperCase()}${req.status.slice(1)}`)}</Text>
-        </View>
+        <StatusBadge status={req.status} />
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -198,7 +180,7 @@ export default function AdminDetailScreen() {
         <View style={styles.section}>
           <View style={styles.row}>
             <Text style={styles.metaLabel}>{t('admin.type')}</Text>
-            <Text style={styles.metaValue}>{req.request_type}</Text>
+            <TypeBadge type={req.request_type} />
           </View>
           <View style={styles.row}>
             <Text style={styles.metaLabel}>{t('admin.votes')}</Text>
@@ -206,9 +188,7 @@ export default function AdminDetailScreen() {
           </View>
           <View style={styles.row}>
             <Text style={styles.metaLabel}>{t('admin.confidence')}</Text>
-            <Text style={[styles.metaValue, { color: req.confidence >= 75 ? theme.success : req.confidence >= 45 ? '#f0a500' : theme.danger }]}>
-              {req.confidence}%
-            </Text>
+            <ConfidenceBadge requestCount={req.request_count} confidence={req.confidence} />
           </View>
         </View>
 
@@ -277,25 +257,15 @@ export default function AdminDetailScreen() {
           </View>
         )}
 
-        {/* Raw submissions */}
+        {/* Submissions */}
         {subs.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('admin.submissions', { count: subs.length })}</Text>
-            {subs.map((s) => (
-              <View key={s.id} style={styles.subCard}>
-                <View style={styles.row}>
-                  <Text style={styles.subUser}>{s.username ?? `#${s.user_id}`}</Text>
-                  <Text style={styles.subDate}>{new Date(s.created_at).toLocaleDateString()}</Text>
-                </View>
-                <View style={styles.row}>
-                  {s.proposed_state && <Text style={styles.subChip}>{s.proposed_state}</Text>}
-                  {s.proposed_latitude !== null && <Text style={styles.subChip}>{t('admin.locationShort')}</Text>}
-                  {s.proposed_points !== null && <Text style={styles.subChip}>{s.proposed_points} pts</Text>}
-                  {s.proposed_name && <Text style={styles.subChip}>{s.proposed_name}</Text>}
-                </View>
-              </View>
-            ))}
-          </View>
+          <Pressable
+            style={({ pressed }) => [styles.submissionsCta, pressed && styles.pressed]}
+            onPress={() => router.push(`/admin/${req.id}/submissions`)}
+          >
+            <Text style={styles.submissionsCtaText}>{t('admin.viewSubmissions', { count: subs.length })}</Text>
+            <Text style={styles.submissionsCtaArrow}>›</Text>
+          </Pressable>
         )}
 
       </ScrollView>
@@ -345,11 +315,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     backBtn:      { paddingRight: Spacing.two },
     backText:     { color: t.accent, fontSize: ButtonFontSize.xl, fontFamily: ButtonFont },
     headerTitle:  { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
-    statusBadge:  { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3 },
-    statusPending:  { backgroundColor: '#1a1a3a' },
-    statusApproved: { backgroundColor: '#1a3a1a' },
-    statusRejected: { backgroundColor: '#3a1a1a' },
-    statusText:   { color: '#aaa', fontSize: ButtonFontSize.sm, fontFamily: ButtonFont },
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three, paddingBottom: 120 + bottomInset },
     section: {
@@ -366,16 +331,13 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
       borderRadius: BorderRadius.sm, paddingVertical: 8, alignItems: 'center',
     },
     mapBtnText:   { color: t.accent, fontSize: ButtonFontSize.lg, fontFamily: ButtonFont },
-    subCard: {
-      borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
-      padding: Spacing.two, gap: 4,
+    submissionsCta: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
+      borderWidth: 1, borderColor: t.border, padding: Spacing.three,
     },
-    subChip: {
-      color: t.textMuted, fontSize: sz(12), fontFamily: font,
-      backgroundColor: t.bg, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
-    },
-    subUser:      { color: t.text, fontSize: sz(12), fontFamily: font, fontWeight: '600' },
-    subDate:      { color: t.textMuted, fontSize: sz(11), fontFamily: font },
+    submissionsCtaText: { color: t.text, fontSize: sz(FontSize.sm), fontFamily: font },
+    submissionsCtaArrow: { color: t.accent, fontSize: ButtonFontSize.xl, fontFamily: ButtonFont },
     photoStrip:   { gap: Spacing.two, paddingVertical: 4 },
     photoFrame: {
       borderWidth: 2, borderColor: 'transparent', borderRadius: BorderRadius.sm,

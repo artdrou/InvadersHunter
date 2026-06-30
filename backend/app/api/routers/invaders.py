@@ -4,8 +4,9 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.schemas.space_invader import InvaderCreate, InvaderOut, InvaderUpdate
+from app.schemas.admin_request import InvaderContributorsOut
 from app.dependencies import get_db
-from app.services import invader_service
+from app.services import invader_service, admin_request_service
 from app.services.invader_service import InvaderMissing
 
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
@@ -34,6 +35,15 @@ def get_invader(invader_id: int, db: Session = Depends(get_db)):
         return invader_service.get_by_id(db, invader_id)
     except InvaderMissing:
         raise HTTPException(status_code=404, detail="Invader not found")
+
+
+@router.get("/{invader_id}/contributors", response_model=InvaderContributorsOut)
+def get_invader_contributors(invader_id: int, db: Session = Depends(get_db)):
+    try:
+        invader_service.get_by_id(db, invader_id)
+    except InvaderMissing:
+        raise HTTPException(status_code=404, detail="Invader not found")
+    return admin_request_service.get_invader_contributors(db, invader_id)
 
 
 @router.post("/", response_model=InvaderOut)
