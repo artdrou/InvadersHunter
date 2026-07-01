@@ -2,11 +2,13 @@ import { ShapeSource, CircleLayer, SymbolLayer } from "@maplibre/maplibre-react-
 import type { CameraRef } from "@maplibre/maplibre-react-native";
 import type { RefObject } from "react";
 import type { InvaderWithState } from "@/features/invaders";
+import { useAppearanceStore } from "@/features/settings";
 import { MARKER_LAYER_STYLE, MARKER_LAYER_FILTER } from "./invader-markers";
 
-// Tune these to control clustering behaviour:
-const CLUSTER_RADIUS        = 50;  // px radius to merge nearby points into a cluster
-const CLUSTER_MAX_ZOOM      = 10;  // zoom level above which all markers appear individually
+// px radius to merge nearby points into a cluster. The clustering on/off toggle
+// and the zoom threshold (above which all markers appear individually) live in
+// the appearance settings store.
+const CLUSTER_RADIUS = 50;
 
 type Props = {
   geojson: GeoJSON.FeatureCollection;
@@ -16,6 +18,8 @@ type Props = {
 };
 
 export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPress }: Props) {
+  const clusteringEnabled = useAppearanceStore((s) => s.clusteringEnabled);
+  const clusterMaxZoom    = useAppearanceStore((s) => s.clusterMaxZoom);
   function handlePress(e: any) {
     const feature = e.features?.[0];
     if (!feature) return;
@@ -42,10 +46,10 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
       id="invaders"
       shape={geojson}
       onPress={handlePress}
-      key={`cluster-${CLUSTER_MAX_ZOOM}-${CLUSTER_RADIUS}`}
-      cluster
+      key={`cluster-${clusteringEnabled ? clusterMaxZoom : "off"}-${CLUSTER_RADIUS}`}
+      cluster={clusteringEnabled}
       clusterRadius={CLUSTER_RADIUS}
-      clusterMaxZoomLevel={CLUSTER_MAX_ZOOM}
+      clusterMaxZoomLevel={clusterMaxZoom}
       clusterProperties={{
         // True only if every point in the cluster has captured=1.
         // Used by the cluster bubble to flip from red to blue.

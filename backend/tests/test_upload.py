@@ -1,16 +1,15 @@
 """
 Tests for POST /upload/request-photo/{request_id} and the image-processing helper.
 
-The endpoint centre-crops to a square and downscales to at most 800x800; images
-below 100x100 (after crop) are rejected, smaller-than-target ones are kept at their
-native resolution (never upscaled). R2 is not configured in tests, so the success
-path is covered via the pure helper rather than the route.
+The endpoint centre-crops to a square and downscales to at most 800x800; smaller-than-target
+images are kept at their native resolution (never upscaled). R2 is not configured in tests,
+so the success path is covered via the pure helper rather than the route.
 """
 import io
 import pytest
 from PIL import Image
 
-from app.api.routers.upload import _crop_to_square_jpeg, _TARGET_PX, _MIN_PX, ImageTooSmall
+from app.api.routers.upload import _crop_to_square_jpeg, _TARGET_PX
 from app.models.user import User
 from app.models.user_request import UserRequest
 from app.core.security import hash_password
@@ -42,24 +41,6 @@ def pending_request(db, user):
     db.add(req)
     db.flush()
     return req
-
-
-def test_upload_rejects_image_below_minimum(client, user, pending_request):
-    """A 50x50 input crops below the 100x100 minimum — refuse it."""
-    tiny_jpeg = _make_jpeg(50, 50)
-    res = client.post(
-        f"/upload/request-photo/{pending_request.id}",
-        files={"file": ("photo.jpg", tiny_jpeg, "image/jpeg")},
-        headers=auth_headers(user),
-    )
-    assert res.status_code == 422
-    assert "too small" in res.json()["detail"].lower()
-
-
-def test_crop_rejects_when_one_dimension_below_minimum():
-    """Centre-crop side is min(w, h); a 1200x50 input crops to 50x50 — below minimum."""
-    with pytest.raises(ImageTooSmall):
-        _crop_to_square_jpeg(_make_jpeg(1200, 50))
 
 
 def _square_side(jpeg_bytes: bytes) -> int:

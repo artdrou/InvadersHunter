@@ -10,6 +10,7 @@ import {
   submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
   type ModifyRequestPayload, type CreateRequestPayload,
 } from '@/features/invaders/services/invaders.api';
+import type { UserRequest } from '@/features/invaders/types';
 
 export function isNetworkError(err: unknown): boolean {
   if (typeof err !== 'object' || err === null) return false;
@@ -57,13 +58,17 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
 
 // ── Offline-aware request submission ─────────────────────────────────────────
 
+/**
+ * Returns the created UserRequest when online, null when queued offline.
+ * Callers that need the request id (e.g. photo upload) must handle null.
+ */
 export async function submitModifyRequestOfflineAware(
   db: SQLiteDatabase,
   userId: number,
   payload: ModifyRequestPayload,
-): Promise<void> {
+): Promise<UserRequest | null> {
   try {
-    await apiSubmitModify(payload);
+    return await apiSubmitModify(payload);
   } catch (err) {
     if (isNetworkError(err)) {
       await insertPendingSync(db, {
@@ -73,9 +78,9 @@ export async function submitModifyRequestOfflineAware(
         user_id: userId,
         payload: JSON.stringify(payload),
       });
-    } else {
-      throw err;
+      return null;
     }
+    throw err;
   }
 }
 

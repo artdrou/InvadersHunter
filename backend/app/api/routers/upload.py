@@ -19,25 +19,17 @@ router = APIRouter(prefix="/upload", tags=["Upload"])
 
 _MAX_BYTES = 8 * 1024 * 1024   # 8 MB raw upload limit
 _TARGET_PX = 800               # max output square size in pixels (downscale target)
-_MIN_PX = 100                  # reject images whose cropped square is below this
-
-
-class ImageTooSmall(ValueError):
-    """Raised when the centre-cropped square would be smaller than _MIN_PX."""
 
 
 def _crop_to_square_jpeg(data: bytes, size: int = _TARGET_PX) -> bytes:
     """Centre-crop to a square, then downscale to at most size×size JPEG (quality 85).
     Images whose shortest side is already below `size` are kept at their native
-    cropped resolution — we never upscale, since that would only add blur.
-    Raises ImageTooSmall when the cropped square would be below _MIN_PX."""
+    cropped resolution — we never upscale, since that would only add blur."""
     img = Image.open(io.BytesIO(data))
     img = ImageOps.exif_transpose(img)  # honour EXIF orientation tag from phone cameras
     img = img.convert("RGB")
     w, h = img.size
     side = min(w, h)
-    if side < _MIN_PX:
-        raise ImageTooSmall(f"image is {w}x{h}, minimum required is {_MIN_PX}x{_MIN_PX} after centre crop")
     left = (w - side) // 2
     top  = (h - side) // 2
     img  = img.crop((left, top, left + side, top + side))
@@ -70,14 +62,8 @@ async def upload_request_photo(
     if len(raw) > _MAX_BYTES:
         raise HTTPException(status_code=413, detail="File too large (max 8 MB)")
 
-    content_type = (file.content_type or "").lower()
-    if not content_type.startswith("image/"):
-        raise HTTPException(status_code=415, detail="Only image files are accepted")
-
     try:
         jpeg_bytes = _crop_to_square_jpeg(raw)
-    except ImageTooSmall as e:
-        raise HTTPException(status_code=422, detail=f"Image too small: {e}")
     except Exception as e:
         log.error("upload: image processing failed: %s\n%s", e, traceback.format_exc())
         raise HTTPException(status_code=422, detail=f"Could not process image: {e}")

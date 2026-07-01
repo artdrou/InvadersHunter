@@ -38,8 +38,9 @@ export type ModifyRequestPayload = {
   proposed_state?: string | null;
 };
 
-export async function submitModifyRequest(payload: ModifyRequestPayload): Promise<void> {
-  await api.post('/requests/', { request_type: 'modify', ...payload });
+export async function submitModifyRequest(payload: ModifyRequestPayload): Promise<UserRequest> {
+  const res = await api.post('/requests/', { request_type: 'modify', ...payload });
+  return res.data;
 }
 
 export type CreateRequestPayload = {
@@ -60,7 +61,9 @@ export async function submitCreateRequest(payload: CreateRequestPayload): Promis
 
 export async function uploadRequestPhoto(requestId: number, uri: string): Promise<string> {
   const formData = new FormData();
-  formData.append('file', { uri, name: 'photo.jpg', type: 'image/jpeg' } as any);
+  const ext = uri.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const mimeType = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
+  formData.append('file', { uri, name: `photo.${ext}`, type: mimeType } as any);
 
   // Bypass axios — its fetch adapter doesn't preserve RN's { uri, name, type }
   // FormData entries. Native fetch handles them correctly via the RN polyfill,

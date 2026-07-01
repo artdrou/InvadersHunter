@@ -171,8 +171,13 @@
   "appearance": {
     "sectionTheme": "Theme",
     "sectionHunt": "Hunt",
+    "sectionMap": "Map",
     "routeGlow": "Route glow",
-    "routeGlowSubtitle": "Animated shimmer along the itinerary path"
+    "routeGlowSubtitle": "Animated shimmer along the itinerary path",
+    "clustering": "Clustering",
+    "clusteringSubtitle": "Group nearby invaders into bubbles",
+    "clusterZoom": "Clustering zoom",
+    "clusterZoomSubtitle": "Zoom level below which invaders group together"
   },
   "themeNames": {
     "dark": "Dark",

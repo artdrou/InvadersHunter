@@ -3,7 +3,7 @@ import { View, Text, Pressable, Switch, StyleSheet, Modal, TextInput } from 'rea
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize } from '@/constants/theme';
-import { SettingsShell, hapticTap, useAppearanceStore } from '@/features/settings';
+import { SettingsShell, hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX } from '@/features/settings';
 
 // 5x5 neon palette — rows follow the visible spectrum.
 const COLOR_SWATCH_ROWS: readonly (readonly string[])[] = [
@@ -129,6 +129,11 @@ export default function AppearanceScreen() {
   const routeGlowEnabled    = useAppearanceStore((s) => s.routeGlowEnabled);
   const setRouteGlowEnabled = useAppearanceStore((s) => s.setRouteGlowEnabled);
 
+  const clusteringEnabled    = useAppearanceStore((s) => s.clusteringEnabled);
+  const setClusteringEnabled = useAppearanceStore((s) => s.setClusteringEnabled);
+  const clusterMaxZoom       = useAppearanceStore((s) => s.clusterMaxZoom);
+  const setClusterMaxZoom    = useAppearanceStore((s) => s.setClusterMaxZoom);
+
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const [routePickerOpen, setRoutePickerOpen]   = useState(false);
 
@@ -226,6 +231,58 @@ export default function AppearanceScreen() {
         />
       </View>
 
+      {/* ── Map ── */}
+      <Text style={[styles.subcategoryLabel, styles.subcategoryLabelSpaced]}>{t('appearance.sectionMap')}</Text>
+
+      {/* Clustering toggle */}
+      <View style={styles.toggleRow}>
+        <View style={styles.toggleLabel}>
+          <Text style={styles.toggleText}>{t('appearance.clustering')}</Text>
+          <Text style={styles.toggleSubtitle}>{t('appearance.clusteringSubtitle')}</Text>
+        </View>
+        <Switch
+          value={clusteringEnabled}
+          onValueChange={(v) => { hapticTap(); setClusteringEnabled(v); }}
+          trackColor={{ false: theme.border, true: theme.accent }}
+          thumbColor={theme.bgElement}
+        />
+      </View>
+
+      {/* Clustering zoom threshold — only relevant while clustering is on */}
+      {clusteringEnabled && (
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleLabel}>
+            <Text style={styles.toggleText}>{t('appearance.clusterZoom')}</Text>
+            <Text style={styles.toggleSubtitle}>{t('appearance.clusterZoomSubtitle')}</Text>
+          </View>
+          <View style={styles.stepper}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.stepperBtn,
+                clusterMaxZoom <= CLUSTER_MAX_ZOOM_MIN && styles.stepperBtnDisabled,
+                pressed && styles.pressed,
+              ]}
+              disabled={clusterMaxZoom <= CLUSTER_MAX_ZOOM_MIN}
+              onPress={() => { hapticTap(); setClusterMaxZoom(clusterMaxZoom - 1); }}
+            >
+              <Text style={styles.stepperBtnText}>−</Text>
+            </Pressable>
+            <Text style={styles.stepperValue}>{clusterMaxZoom}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.stepperBtn,
+                clusterMaxZoom >= CLUSTER_MAX_ZOOM_MAX && styles.stepperBtnDisabled,
+                pressed && styles.pressed,
+              ]}
+              disabled={clusterMaxZoom >= CLUSTER_MAX_ZOOM_MAX}
+              onPress={() => { hapticTap(); setClusterMaxZoom(clusterMaxZoom + 1); }}
+            >
+              <Text style={styles.stepperBtnText}>+</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       {/* Accent color picker modal */}
       <ColorPickerModal
         visible={accentPickerOpen}
@@ -302,6 +359,20 @@ function makeStyles(t: ThemeTokens) {
     toggleLabel:    { flex: 1, gap: 4 },
     toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
     toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20 },
+
+    // Stepper (−/+ around a numeric value)
+    stepper:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+    stepperBtn: {
+      width: 40, height: 40, alignItems: 'center', justifyContent: 'center',
+      borderRadius: BorderRadius.sm, borderWidth: 1,
+      borderColor: t.border, backgroundColor: t.bg,
+    },
+    stepperBtnDisabled: { opacity: 0.35 },
+    stepperBtnText:     { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.xl, lineHeight: 24 },
+    stepperValue: {
+      minWidth: 28, textAlign: 'center',
+      color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg,
+    },
 
     // Modal
     modalOverlay: {

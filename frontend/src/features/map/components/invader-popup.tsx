@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, Linking } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, Linking, Alert, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { getDateLocale } from "@/services/i18n";
@@ -8,6 +9,8 @@ import { InvaderState } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
+import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
+import type { UserRequest } from "@/features/invaders/types";
 import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
@@ -21,7 +24,7 @@ type Props = {
   onPickLocation?: (invader: InvaderWithState) => void;
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
-  onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<void>;
+  onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<UserRequest | null>;
 };
 
 const STATE_OPTIONS = [
@@ -59,6 +62,13 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
+  // Cap the edit form to the available screen height minus the popup chrome
+  // (header, dividers, validate/cancel buttons, padding, arrow) so the last
+  // field — the photo picker — stays reachable. A fixed cap clipped it once the
+  // OS font-scale pushed the content past it, with no scroll cue to reveal it.
+  const { height: windowHeight } = useWindowDimensions();
+  const formMaxHeight = Math.max(220, windowHeight - 280);
+
   const [mode, setMode] = useState<"view" | "edit">(pendingCoords ? "edit" : "view");
   const [submitting, setSubmitting] = useState(false);
   const [alreadySent, setAlreadySent] = useState(false);
@@ -73,19 +83,53 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
   }, [invader.id, db]);
 
   const [invaderState, setInvaderState] = useState<string>(invader.state ?? "");
+  const [imageUri, setImageUri]         = useState<string | null>(null);
+  const [uploadError, setUploadError]   = useState(false);
 
-  const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords;
+  const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords && !imageUri;
+
+  async function pickImage(source: "camera" | "library") {
+    const opts: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ["images"],
+      quality: 1,
+      allowsEditing: true,
+      aspect: [1, 1],
+    };
+    const result = source === "camera"
+      ? await ImagePicker.launchCameraAsync(opts)
+      : await ImagePicker.launchImageLibraryAsync(opts);
+    if (!result.canceled) setImageUri(result.assets[0].uri);
+  }
+
+  function handleAddPhoto() {
+    Alert.alert(t('popup.addPhotoTitle'), undefined, [
+      { text: t('popup.camera'),  onPress: () => pickImage("camera") },
+      { text: t('popup.gallery'), onPress: () => pickImage("library") },
+      { text: t('common.cancel'), style: "cancel" },
+    ]);
+  }
 
   async function handleSend() {
     setSubmitting(true);
     setOfflineError(false);
+    setUploadError(false);
     try {
-      await onSubmitModifyRequest({
+      const req = await onSubmitModifyRequest({
         invader_id: invader.id,
         proposed_state: invaderState || undefined,
         proposed_latitude: pendingCoords?.lat,
         proposed_longitude: pendingCoords?.lon,
       });
+      if (req && imageUri) {
+        try {
+          await uploadRequestPhoto(req.id, imageUri);
+        } catch {
+          // Request submitted — just photo failed. Show error, let user close manually.
+          setSubmitting(false);
+          setUploadError(true);
+          return;
+        }
+      }
       onRequestSent?.();
       onClose();
     } catch (err) {
@@ -109,7 +153,11 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
 
           <View style={styles.divider} />
 
-          <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={[styles.form, { maxHeight: formMaxHeight }]}
+            contentContainerStyle={styles.formContent}
+            showsVerticalScrollIndicator
+          >
 
             <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
             <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
@@ -146,6 +194,26 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
               <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
             </Pressable>
 
+            <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
+            {imageUri ? (
+              <View style={styles.imagePreviewRow}>
+                <Image source={imageUri} style={styles.imageThumb} contentFit="cover" />
+                <Pressable
+                  onPress={() => setImageUri(null)}
+                  style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.btnPressed]}
+                >
+                  <Text style={styles.removePhotoBtnText}>{t('popup.removePhoto')}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.btnPressed]}
+                onPress={handleAddPhoto}
+              >
+                <Text style={styles.addPhotoBtnText}>{t('popup.addPhoto')}</Text>
+              </Pressable>
+            )}
+
           </ScrollView>
 
           <View style={styles.divider} />
@@ -167,6 +235,9 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
 
           {offlineError && (
             <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>
+          )}
+          {uploadError && (
+            <Text style={styles.offlineMsg}>{t('popup.photoUploadFailed')}</Text>
           )}
 
           <Pressable
@@ -402,7 +473,11 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.6,
     },
     form: {
-      maxHeight: 320,
+      // maxHeight is applied inline from the window height so the photo field
+      // never gets clipped out of reach on tall content / large font scales.
+    },
+    formContent: {
+      paddingBottom: Spacing.two,
     },
     fieldLabel: {
       color: t.textMuted,
@@ -477,6 +552,43 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(FontSize.xs),
       fontFamily: font,
       textAlign: "center",
+    },
+    imagePreviewRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: Spacing.two,
+    },
+    imageThumb: {
+      width: 64,
+      height: 64,
+      borderRadius: BorderRadius.sm,
+    },
+    removePhotoBtn: {
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 6,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+    },
+    removePhotoBtnText: {
+      color: t.textMuted,
+      fontSize: sz(FontSize.xs),
+      fontFamily: font,
+    },
+    addPhotoBtn: {
+      paddingVertical: 10,
+      paddingHorizontal: Spacing.two,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      alignItems: "center",
+      marginBottom: Spacing.two,
+    },
+    addPhotoBtnText: {
+      color: t.accent,
+      fontSize: sz(FontSize.xs),
+      fontFamily: font,
     },
     arrow: {
       alignSelf: "center",
