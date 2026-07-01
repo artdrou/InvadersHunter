@@ -1,204 +1,119 @@
-import { useCallback, useState } from 'react';
-import {
-  View, Text, FlatList, Pressable, StyleSheet,
-  ActivityIndicator, RefreshControl,
-} from 'react-native';
+import { Alert } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
-import { fetchAdminRequests } from '@/features/admin/services/admin.api';
-import type { AdminRequest } from '@/features/admin/types';
-import { useInvaderStore } from '@/features/invaders/store';
-import { resolveInvaderName } from '@/features/admin/utils';
-import { StatusBadge } from '@/features/admin/components/StatusBadge';
-import { TypeBadge } from '@/features/admin/components/TypeBadge';
-import { ConfidenceBadge } from '@/features/admin/components/ConfidenceBadge';
+import { type ThemeTokens, ButtonFontSize, Spacing } from '@/constants/theme';
+import { SettingsSection, SettingsRow } from '@/features/settings';
 
-type StatusFilter = 'pending' | 'approved' | 'rejected' | 'all';
-type TypeFilter   = 'all' | 'modify' | 'create';
-
-function changeSummary(req: AdminRequest): string {
-  const parts: string[] = [];
-  if (req.proposed_state)   parts.push(`state → ${req.proposed_state}`);
-  if (req.proposed_latitude !== null) parts.push('location');
-  if (req.proposed_name)    parts.push(`name → ${req.proposed_name}`);
-  if (req.proposed_points !== null) parts.push(`pts → ${req.proposed_points}`);
-  return parts.join(' · ') || '—';
-}
-
-export default function AdminScreen() {
+export default function AdminMenuScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, appFont, fontScale } = useTheme();
+  const { theme, appFont } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont, fontScale, insets.top);
-  const invaders = useInvaderStore((s) => s.invaders);
+  const styles = makeStyles(theme, appFont, insets.top);
 
-  const [requests, setRequests] = useState<AdminRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
-    try {
-      const params: Record<string, string> = {};
-      if (statusFilter !== 'all') params.status = statusFilter;
-      if (typeFilter !== 'all')   params.request_type = typeFilter;
-      const data = await fetchAdminRequests(params);
-      setRequests(data);
-    } catch (e) {
-      console.warn('[admin] fetch failed', e);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [statusFilter, typeFilter]);
-
-  // Refetch every time the screen gains focus — covers initial mount, filter
-  // changes (load identity flips), and returning from the detail screen after
-  // approve/reject so the list reflects the new status without manual pull-to-refresh.
-  useFocusEffect(useCallback(() => { load(); }, [load]));
-
-  function renderItem({ item }: { item: AdminRequest }) {
-    return (
-      <Pressable
-        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-        onPress={() => router.push(`/admin/${item.id}`)}
-      >
-        <View style={styles.cardTop}>
-          <Text style={styles.invaderName} numberOfLines={1}>
-            {resolveInvaderName(item, invaders)}
-          </Text>
-          <StatusBadge status={item.status} />
-        </View>
-        <View style={styles.cardMeta}>
-          <View style={styles.cardMetaLeft}>
-            <TypeBadge type={item.request_type} />
-            <Text style={styles.metaText}>{t('admin.votesShort', { count: item.request_count })}</Text>
-            <Text style={styles.metaText}>{new Date(item.created_at).toLocaleDateString()}</Text>
-          </View>
-          <ConfidenceBadge requestCount={item.request_count} confidence={item.confidence} />
-        </View>
-        <Text style={styles.summary} numberOfLines={1}>{changeSummary(item)}</Text>
-      </Pressable>
-    );
+  function soon() {
+    Alert.alert(t('settings.comingSoon'), t('settings.comingSoonBody'));
   }
-
-  const STATUS_TABS: StatusFilter[] = ['pending', 'all', 'approved', 'rejected'];
-  const TYPE_TABS: TypeFilter[]   = ['all', 'modify', 'create'];
 
   return (
     <View style={styles.container}>
-      {/* Status filter */}
-      <View style={[styles.filterRow, styles.filterRowFirst]}>
-        {STATUS_TABS.map((s) => (
-          <Pressable
-            key={s}
-            style={[styles.filterChip, statusFilter === s && styles.filterChipActive]}
-            onPress={() => setStatusFilter(s)}
-          >
-            <Text style={[styles.filterChipText, statusFilter === s && styles.filterChipTextActive]}>
-              {t(`admin.filter${s.charAt(0).toUpperCase()}${s.slice(1)}`)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <Text style={styles.title}>{t('tabs.admin')}</Text>
 
-      {/* Type filter */}
-      <View style={[styles.filterRow, { marginTop: 0 }]}>
-        {TYPE_TABS.map((typ) => (
-          <Pressable
-            key={typ}
-            style={[styles.filterChip, typeFilter === typ && styles.filterChipActive]}
-            onPress={() => setTypeFilter(typ)}
-          >
-            <Text style={[styles.filterChipText, typeFilter === typ && styles.filterChipTextActive]}>
-              {t(`admin.filter${typ.charAt(0).toUpperCase()}${typ.slice(1)}`)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
-      {loading ? (
-        <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => load(true)}
-              tintColor={theme.accent}
-            />
-          }
-          ListEmptyComponent={
-            <Text style={styles.empty}>{t('admin.noRequests')}</Text>
-          }
-        />
-      )}
+        <SettingsSection title={t('admin.sectionRequests')}>
+          <SettingsRow
+            icon="list-outline"
+            label={t('admin.browseRequests')}
+            subtitle={t('admin.browseRequestsSubtitle')}
+            onPress={() => router.push('/admin/requests')}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('admin.sectionInvaders')}>
+          <SettingsRow
+            icon="add-circle-outline"
+            label={t('admin.createInvader')}
+            subtitle={t('admin.createInvaderSubtitle')}
+            onPress={soon}
+          />
+          <SettingsRow
+            icon="create-outline"
+            label={t('admin.editInvader')}
+            subtitle={t('admin.editInvaderSubtitle')}
+            onPress={soon}
+          />
+          <SettingsRow
+            icon="git-merge-outline"
+            label={t('admin.mergeInvaders')}
+            subtitle={t('admin.mergeInvadersSubtitle')}
+            onPress={soon}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('admin.sectionUsers')}>
+          <SettingsRow
+            icon="person-outline"
+            label={t('admin.searchUser')}
+            subtitle={t('admin.searchUserSubtitle')}
+            onPress={soon}
+          />
+          <SettingsRow
+            icon="shield-outline"
+            label={t('admin.moderators')}
+            subtitle={t('admin.moderatorsSubtitle')}
+            onPress={soon}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('admin.sectionTools')}>
+          <SettingsRow
+            icon="bar-chart-outline"
+            label={t('admin.stats')}
+            subtitle={t('admin.statsSubtitle')}
+            onPress={soon}
+          />
+          <SettingsRow
+            icon="chatbubbles-outline"
+            label={t('admin.modoChat')}
+            subtitle={t('admin.modoChatSubtitle')}
+            onPress={soon}
+          />
+          <SettingsRow
+            icon="download-outline"
+            label={t('admin.exportData')}
+            subtitle={t('admin.exportDataSubtitle')}
+            onPress={soon}
+          />
+        </SettingsSection>
+
+      </ScrollView>
     </View>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: number = 0) {
-  const sz = (n: number) => Math.round(n * scale);
+function makeStyles(t: ThemeTokens, font: string, topInset: number) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.bg },
-    filterRow: {
-      flexDirection: 'row',
-      gap: Spacing.one,
-      paddingHorizontal: Spacing.three,
-      paddingTop: Spacing.three,
-      paddingBottom: Spacing.one,
-    },
-    filterRowFirst: {
-      paddingTop: topInset + Spacing.three,
-    },
-    filterChip: {
+    container: {
       flex: 1,
-      paddingVertical: 6,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      alignItems: 'center',
-    },
-    filterChipActive: { borderColor: t.accent, backgroundColor: t.accent },
-    filterChipText: { color: t.textMuted, fontSize: ButtonFontSize.lg, fontFamily: ButtonFont },
-    filterChipTextActive: { color: t.bg },
-    list: { padding: Spacing.three, gap: Spacing.two },
-    card: {
-      backgroundColor: t.bgElement,
-      borderRadius: BorderRadius.md,
-      borderWidth: 1,
-      borderColor: t.border,
-      padding: Spacing.three,
+      backgroundColor: t.bg,
+      paddingTop: topInset + Spacing.two,
+      paddingHorizontal: Spacing.four,
+      paddingBottom: Spacing.three,
       gap: Spacing.two,
     },
-    cardPressed: { opacity: 0.7 },
-    cardTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    invaderName: {
-      flex: 1,
-      color: t.text,
-      fontSize: sz(FontSize.md),
+    title: {
+      color: t.accent,
       fontFamily: font,
+      fontSize: ButtonFontSize.xl,
+      letterSpacing: 1,
     },
-    cardMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    cardMetaLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexShrink: 1 },
-    metaText: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
-    summary: { color: t.textMuted, fontSize: sz(12), fontFamily: font },
-    empty: {
-      color: t.textMuted,
-      textAlign: 'center',
-      marginTop: 60,
-      fontSize: sz(FontSize.md),
-      fontFamily: font,
+    body: {
+      gap: Spacing.two,
+      paddingBottom: Spacing.six,
     },
   });
 }
