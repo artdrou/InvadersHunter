@@ -28,6 +28,12 @@ class AdminRequest(Base):
     request_count = Column(Integer, nullable=False, default=0)
     confidence = Column(Integer, nullable=False, default=0)
 
+    # Who *proposed* this change — drives the News feed credit/badge.
+    # "community" (crowdsourced user) | "admin" (direct admin action) | "scraper" (invader-spotter.art)
+    source = Column(String, nullable=False, default="community")
+    # Who *validated* it (traceability only, never displayed in the app).
+    validated_by = Column(String, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     reviewed_at = Column(DateTime, nullable=True)

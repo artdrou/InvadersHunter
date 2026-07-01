@@ -23,6 +23,16 @@
     "profile": "Settings",
     "admin": "Admin"
   },
+  "news": {
+    "title": "News",
+    "empty": "No news yet.",
+    "more": "More",
+    "by": "by {{name}}",
+    "typeAdded": "New invader",
+    "typeUpdated": "Invader updated",
+    "typeAnnouncement": "Announcement",
+    "typeRelease": "Release"
+  },
   "settings": {
     "title": "Settings",
     "sectionAccount": "Account",

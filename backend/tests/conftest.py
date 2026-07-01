@@ -20,6 +20,7 @@ import app.models.user_request   # noqa: F401
 import app.models.admin_request  # noqa: F401
 import app.models.user_progress  # noqa: F401
 import app.models.refresh_token  # noqa: F401
+import app.models.announcement   # noqa: F401
 
 from sqlalchemy import text
 from app.main import app

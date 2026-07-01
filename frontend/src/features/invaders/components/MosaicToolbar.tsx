@@ -4,7 +4,7 @@ import {
   Animated, PanResponder, useWindowDimensions, StyleSheet,
   type LayoutChangeEvent, type GestureResponderEvent,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
@@ -54,6 +54,9 @@ type SubSheet = "sort" | "filter" | "group";
 type Props = {
   state: ToolbarState;
   onChange: (s: ToolbarState) => void;
+  /** Unread news count for the journal button badge. Button is hidden unless `onOpenNews` is set. */
+  newsUnreadCount?: number;
+  onOpenNews?: () => void;
 };
 
 // ── Label maps ─────────────────────────────────────────────────────────────
@@ -90,7 +93,7 @@ const SORT_KEYS: Record<SortOption, string> = {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function MosaicToolbar({ state, onChange }: Props) {
+export function MosaicToolbar({ state, onChange, newsUnreadCount = 0, onOpenNews }: Props) {
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
@@ -235,8 +238,11 @@ export function MosaicToolbar({ state, onChange }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg, borderBottomColor: theme.bgDivider }]}>
-      {/* Row 1: search + view toggle + controls badge */}
+      {/* Row 1: news + search + view toggle + controls badge */}
       <View style={styles.row1}>
+        {onOpenNews && (
+          <NewsIconBtn unread={newsUnreadCount} onPress={onOpenNews} theme={theme} styles={styles} />
+        )}
         <View style={[styles.searchWrap, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
           <Ionicons name="search-outline" size={14} color={theme.textMuted} />
           <TextInput
@@ -629,6 +635,26 @@ function BadgeIconBtn({ badgeCount, onPress, theme, styles }: { badgeCount: numb
       {badgeCount > 0 && (
         <View style={[styles.badge, { backgroundColor: theme.accent }]}>
           <Text style={[styles.badgeText, { color: theme.bg }]}>{badgeCount}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function NewsIconBtn({ unread, onPress, theme, styles }: { unread: number; onPress: () => void; theme: ThemeTokens; styles: ReturnType<typeof makeStyles> }) {
+  const [size, setSize] = useState(0);
+  const active = unread > 0;
+  function onLayout(e: LayoutChangeEvent) {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w !== size) setSize(w);
+  }
+  return (
+    <Pressable style={styles.iconBtn} onPress={onPress} onLayout={onLayout}>
+      {size > 0 && <PixelButton size={size} fill={theme.bgElement} stroke={active ? theme.accent : theme.border} />}
+      <MaterialCommunityIcons name="newspaper-variant-outline" size={Math.max(16, Math.round(size * 0.45))} color={active ? theme.accent : theme.textMuted} />
+      {unread > 0 && (
+        <View style={[styles.badge, { backgroundColor: theme.danger }]}>
+          <Text style={[styles.badgeText, { color: "#ffffff" }]}>{unread > 9 ? "9+" : unread}</Text>
         </View>
       )}
     </Pressable>

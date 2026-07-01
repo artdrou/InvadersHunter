@@ -23,6 +23,16 @@
     "profile": "Reglages",
     "admin": "Admin"
   },
+  "news": {
+    "title": "Actualites",
+    "empty": "Aucune actualite pour le moment.",
+    "more": "Plus",
+    "by": "par {{name}}",
+    "typeAdded": "Nouvel invader",
+    "typeUpdated": "Invader modifie",
+    "typeAnnouncement": "Annonce",
+    "typeRelease": "Mise a jour"
+  },
   "settings": {
     "title": "Reglages",
     "sectionAccount": "Compte",

@@ -78,6 +78,23 @@ MIGRATIONS = [
         ELSE proposed_state END,
         updated_at = NOW()
        WHERE proposed_state IN ('pristine','slightly degraded','degraded','badly degraded','destroyed','not visible')""",
+
+    # News feed — attribution of the *proposer* on admin requests (community | admin | scraper),
+    # plus the validator (traceability only, never displayed). Existing rows default to community.
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS source VARCHAR NOT NULL DEFAULT 'community'",
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS validated_by VARCHAR",
+    # Speeds up the reviewed_at-ordered News query
+    "CREATE INDEX IF NOT EXISTS idx_admin_requests_reviewed_at ON admin_requests (reviewed_at)",
+    # News feed — general announcements & releases (the ~10% non-invader part)
+    """CREATE TABLE IF NOT EXISTS announcements (
+        id         SERIAL PRIMARY KEY,
+        kind       VARCHAR NOT NULL DEFAULT 'announcement',
+        title      VARCHAR NOT NULL,
+        body       VARCHAR,
+        version    VARCHAR,
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements (created_at)",
 ]
 
 

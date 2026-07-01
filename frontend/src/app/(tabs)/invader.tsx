@@ -10,6 +10,7 @@ import {
 } from "@/features/invaders";
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
 import { applyMapFilter, useLocateStore } from "@/features/map";
+import { useNewsUnreadCount } from "@/features/news";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
@@ -42,6 +43,7 @@ export default function InvadersScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
+  const newsUnread = useNewsUnreadCount();
 
   // ── derived data ─────────────────────────────────────────────────────────
 
@@ -222,7 +224,12 @@ export default function InvadersScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.bg }]}>
-      <MosaicToolbar state={toolbar} onChange={setToolbar} />
+      <MosaicToolbar
+        state={toolbar}
+        onChange={setToolbar}
+        newsUnreadCount={newsUnread}
+        onOpenNews={() => router.push('/news')}
+      />
 
       {isOfflineEmpty ? (
         <View style={styles.emptyState}>

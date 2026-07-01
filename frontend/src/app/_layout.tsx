@@ -15,6 +15,7 @@ import {
   isNewer,
 } from '@/features/app-update';
 import { useAppearanceStore } from '@/features/settings';
+import { useNewsStore } from '@/features/news';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,6 +56,11 @@ export default function RootLayout() {
       }
     })();
   }, []);
+
+  // Keep the unread-news badge fresh once authenticated (feed is small, few/day).
+  useEffect(() => {
+    if (token) useNewsStore.getState().refreshRecent();
+  }, [token]);
 
   useEffect(() => {
     if (!hasHydrated) return;

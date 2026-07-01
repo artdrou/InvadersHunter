@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
+import { useNewsUnreadCount } from "@/features/news";
 import { useHeadingStore } from "@/features/map/store";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/web-map.native";
@@ -9,7 +13,7 @@ import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
-import { Brand, BottomTabInset, AppFont, FontSize } from "@/constants/theme";
+import { Brand, BottomTabInset, AppFont, FontSize, Spacing } from "@/constants/theme";
 import { hapticTap, hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { useRouting } from "@/features/routing/hooks/use-routing";
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
@@ -34,6 +38,9 @@ export default function MapScreen() {
   const [creatingPickLoc, setCreatingPickLoc] = useState<{ lat: number; lon: number } | null>(null);
   const user = useAuthStore((s) => s.user);
   const { theme } = useTheme();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const newsUnread = useNewsUnreadCount();
   const mapRef = useRef<WebMapHandle>(null);
 
   // ── Routing ───────────────────────────────────────────────────────────────
@@ -278,6 +285,20 @@ export default function MapScreen() {
           colorSouth={theme.text}
         />
       </View>
+
+      {/* News shortcut — top-right, routes to the shared /news screen */}
+      <TouchableOpacity
+        style={[styles.newsButton, { top: insets.top + Spacing.two, backgroundColor: theme.bgElement, borderColor: theme.border }]}
+        onPress={() => { hapticTap(); router.push('/news'); }}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="newspaper-variant-outline" size={24} color={theme.text} />
+        {newsUnread > 0 && (
+          <View style={[styles.newsBadge, { backgroundColor: theme.danger, borderColor: theme.bg }]}>
+            <Text style={styles.newsBadgeText}>{newsUnread > 9 ? '9+' : String(newsUnread)}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
@@ -570,6 +591,34 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     zIndex: 10,
+  },
+  newsButton: {
+    position: "absolute",
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  newsBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  newsBadgeText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "700",
   },
   pickerPinWrapper: {
     position: "absolute",
