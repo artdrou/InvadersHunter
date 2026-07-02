@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { PixelButton } from '@/components/ui/pixel-button'
+import { PixelButton } from '@/components/ui/PixelButton'
 import type { ThemeTokens } from '@/constants/theme'
 
 const SIZE = 54

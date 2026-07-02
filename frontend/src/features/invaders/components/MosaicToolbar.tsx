@@ -10,14 +10,14 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
 // Import directly from the source file (not the @/features/map barrel) to avoid a
-// require cycle: invaders/index → MosaicToolbar → map/index → invader-popup → invaders/index.
+// require cycle: invaders/index → MosaicToolbar → map/index → InvaderPopup → invaders/index.
 // Through the barrel, DEFAULT_FILTER resolved to undefined at module-load time in the
 // production bundle and crashed with "Cannot read property 'DEFAULT_FILTER' of undefined".
-import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/components/map-filter-bar";
-import { DEFAULT_FILTER, isFilterActive } from "@/features/map/components/map-filter-bar";
+import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/components/MapFilterBar";
+import { DEFAULT_FILTER, isFilterActive } from "@/features/map/components/MapFilterBar";
 import type { SortOption, SortDir, GroupMode } from "../utils/invader-list";
 import { SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR } from "../utils/invader-list";
-import { PixelButton } from "@/components/ui/pixel-button";
+import { PixelButton } from "@/components/ui/PixelButton";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

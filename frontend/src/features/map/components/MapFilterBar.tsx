@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
-import { PixelButton } from "@/components/ui/pixel-button";
+import { PixelButton } from "@/components/ui/PixelButton";
 import { InfoButton, TutorialModal } from "@/features/tutorial";
 import type { TutorialPage } from "@/features/tutorial";
 import { ColorModeIllustration } from "./ColorModeIllustration";

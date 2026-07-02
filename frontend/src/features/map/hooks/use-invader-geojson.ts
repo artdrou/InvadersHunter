@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
-import type { GreyMode, ColorMode } from "../components/map-filter-bar";
+import type { GreyMode, ColorMode } from "../components/MapFilterBar";
 import { isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 

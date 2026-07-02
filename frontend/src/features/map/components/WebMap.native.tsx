@@ -7,10 +7,10 @@ import type { InvaderWithState } from "@/features/invaders";
 import { useTheme } from "@/contexts/theme-context";
 import { useInvaderGeojson } from "../hooks/use-invader-geojson";
 import { useUserLocation } from "../hooks/use-user-location";
-import { InvaderClusterSource } from "./invader-cluster-source";
-import { UserLocationLayer } from "./user-location-layer";
+import { InvaderClusterSource } from "./InvaderClusterSource";
+import { UserLocationLayer } from "./UserLocationLayer";
 import { MARKER_IMAGES } from "./invader-markers";
-import { ISSMarker } from "@/features/iss/components/iss-marker";
+import { ISSMarker } from "@/features/iss/components/ISSMarker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import {
   DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
@@ -60,8 +60,8 @@ type Props = {
   isFollowing?: boolean;
   headingAlpha?: number;
   onHeadingChange?: (heading: number) => void;
-  greyMode?: import("./map-filter-bar").GreyMode;
-  colorMode?: import("./map-filter-bar").ColorMode;
+  greyMode?: import("./MapFilterBar").GreyMode;
+  colorMode?: import("./MapFilterBar").ColorMode;
   highlightedIds?: number[];
   /** Rendered before invader markers — use for route/path layers. */
   routeLayer?: ReactNode;

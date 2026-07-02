@@ -1,6 +1,6 @@
 import { ShapeSource, SymbolLayer } from '@maplibre/maplibre-react-native';
 import type { InvaderWithState } from '@/features/invaders';
-import type { ColorMode, GreyMode } from '@/features/map/components/map-filter-bar';
+import type { ColorMode, GreyMode } from '@/features/map/components/MapFilterBar';
 import { resolveIconKey } from '@/features/map/hooks/use-invader-geojson';
 import { useIssPosition } from '../hooks/use-iss-position';
 
