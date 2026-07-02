@@ -23,6 +23,10 @@ from ..core.db_utils import safe_commit
 
 AGGREGATION_THRESHOLD = 1  # minimum number of similar requests to trigger an AdminRequest
 
+# ── Confidence scoring tunables (see compute_confidence) ──────────────────────
+FULL_VOTE_COUNT = 5           # this many agreeing submissions = full vote weight
+LOCATION_TIGHTNESS_M = 300.0  # coord spread (m) at/under which location agreement scores full
+
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ def compute_confidence(siblings: list) -> int:
     if n == 0:
         return 0
 
-    vote_score = min(n / 5, 1.0)
+    vote_score = min(n / FULL_VOTE_COUNT, 1.0)
 
     states = [s.proposed_state for s in siblings if s.proposed_state]
     if states:
@@ -69,7 +73,7 @@ def compute_confidence(siblings: list) -> int:
     if len(coords) >= 2:
         center = _simple_centroid(coords)
         avg_dist = sum(haversine_m(lat, lon, center[0], center[1]) for lat, lon in coords) / len(coords)
-        location_score: float | None = max(0.0, 1.0 - avg_dist / 300.0)
+        location_score: float | None = max(0.0, 1.0 - avg_dist / LOCATION_TIGHTNESS_M)
     elif len(coords) == 1:
         location_score = 1.0
     else:

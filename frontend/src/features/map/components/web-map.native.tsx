@@ -12,6 +12,9 @@ import { UserLocationLayer } from "./user-location-layer";
 import { MARKER_IMAGES } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/iss-marker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
+import {
+  DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
+} from "../constants";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -30,12 +33,12 @@ const MAP_STYLES: Record<string, string> = {
 const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefObject<CameraRef | null> }) {
   useEffect(() => {
     cameraRef.current?.setCamera({
-      centerCoordinate: [2.3522, 48.8566],
-      zoomLevel: 12,
-      animationDuration: 0,
+      centerCoordinate: DEFAULT_CENTER,
+      zoomLevel: MapZoom.initial,
+      animationDuration: MapAnim.none,
     });
     // Release camera after initial set (same pattern as centerOn/centerOnUser)
-    const t = setTimeout(() => cameraRef.current?.setCamera({}), 100);
+    const t = setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.initialReleaseDelay);
     return () => clearTimeout(t);
   }, []);
 
@@ -85,14 +88,14 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     // Center immediately on enable
     if (userCoordsRef.current) {
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 300 });
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
     }
 
     const interval = setInterval(() => {
       if (!userCoordsRef.current) return;
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: 300 });
-    }, 300);
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
+    }, FOLLOW_INTERVAL_MS);
 
     return () => {
       clearInterval(interval);
@@ -105,16 +108,16 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       cameraRef.current?.setCamera({
         centerCoordinate: [lon, lat],
         ...(zoomLevel !== undefined && { zoomLevel }),
-        padding: { paddingTop: offsetY * 2.25, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
-        animationDuration: 350,
+        padding: { paddingTop: offsetY * CENTER_PADDING_FACTOR, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
+        animationDuration: MapAnim.recenter,
       });
-      setTimeout(() => cameraRef.current?.setCamera({}), 450);
+      setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);
     },
     centerOnUser: () => {
       if (!userCoordsRef.current) return;
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], zoomLevel: 15, animationDuration: 350 });
-      setTimeout(() => cameraRef.current?.setCamera({}), 450);
+      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], zoomLevel: MapZoom.user, animationDuration: MapAnim.recenter });
+      setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);
     },
     getCenter: async () => {
       const { width, height } = mapSizeRef.current;
@@ -123,8 +126,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       return [c[0], c[1]] as [number, number];
     },
     resetNorth: () => {
-      cameraRef.current?.setCamera({ heading: 0, animationDuration: 350 });
-      setTimeout(() => cameraRef.current?.setCamera({}), 450);
+      cameraRef.current?.setCamera({ heading: 0, animationDuration: MapAnim.recenter });
+      setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);
     },
     getUserCoords: () => userCoordsRef.current,
   }), []);

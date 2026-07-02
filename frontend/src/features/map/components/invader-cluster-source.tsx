@@ -3,12 +3,22 @@ import type { CameraRef } from "@maplibre/maplibre-react-native";
 import type { RefObject } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAppearanceStore } from "@/features/settings";
+import { White } from "@/constants/theme";
+import { MapZoom, MapAnim } from "../constants";
 import { MARKER_LAYER_STYLE, MARKER_LAYER_FILTER } from "./invader-markers";
 
 // px radius to merge nearby points into a cluster. The clustering on/off toggle
 // and the zoom threshold (above which all markers appear individually) live in
 // the appearance settings store.
 const CLUSTER_RADIUS = 50;
+
+// Cluster bubble paint colors (kept named, not inline — see CONVENTIONS.md).
+const ClusterColor = {
+  haloCaptured: "#002fa7",   // International Klein Blue (all points captured)
+  haloDefault: "#a300b3",    // purple-magenta bloom
+  bubbleCaptured: "#1cf0ff", // captured → blue (matches captured marker)
+  bubbleDefault: "#ff0062",  // otherwise → red-pink (matches uncaptured marker)
+} as const;
 
 type Props = {
   geojson: GeoJSON.FeatureCollection;
@@ -29,10 +39,10 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
       const [lon, lat] = feature.geometry.coordinates;
       cameraRef.current?.setCamera({
         centerCoordinate: [lon, lat],
-        zoomLevel: feature.properties.expansion_zoom ?? 14,
-        animationDuration: 400,
+        zoomLevel: feature.properties.expansion_zoom ?? MapZoom.clusterExpandFallback,
+        animationDuration: MapAnim.clusterExpand,
       });
-      setTimeout(() => cameraRef.current?.setCamera({}), 500);
+      setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);
       return;
     }
 
@@ -73,8 +83,8 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
           circleColor: [
             "case",
             ["get", "all_captured"],
-            "#002fa7",  // International Klein Blue
-            "#a300b3",  // purple-magenta
+            ClusterColor.haloCaptured,
+            ClusterColor.haloDefault,
           ],
           circleOpacity: 0.45,
           circleBlur: 0.6,
@@ -98,8 +108,8 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
           circleColor: [
             "case",
             ["get", "all_captured"],
-            "#1cf0ff",  // every point captured → blue (matches captured marker)
-            "#ff0062",  // otherwise → red-pink (matches uncaptured marker)
+            ClusterColor.bubbleCaptured,
+            ClusterColor.bubbleDefault,
           ],
           circleOpacity: 0.95,
         }}
@@ -112,7 +122,7 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
         style={{
           textField: "{point_count_abbreviated}",
           textSize: 13,
-          textColor: "#ffffff",
+          textColor: White,
           textFont: ["Noto Sans Bold"],
           textAllowOverlap: true,
         }}

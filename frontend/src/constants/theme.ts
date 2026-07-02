@@ -182,6 +182,7 @@ export const BorderRadius = {
   sm: 8,
   md: 12,
   lg: 14,
+  pill: 20,
 } as const;
 
 export const Spacing = {
@@ -193,6 +194,37 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
+
+// ─── Elevation & motion ───────────────────────────────────────────────────────
+// Stacking order for absolutely-positioned overlays. Higher = closer to the user.
+
+export const ZIndex = {
+  map: 5,        // map-level FABs (routing button)
+  control: 10,   // on-map controls (locate, compass, filter bar, popup, news)
+  picker: 15,    // location-picker pin (sits above controls, below its action bar)
+  overlay: 20,   // full-screen bars, banners, toasts
+} as const;
+
+/** Animation durations (ms), kept consistent across sheets/toasts. */
+export const Motion = {
+  sheetIn: 220,   // bottom-sheet / sub-sheet slide-in
+  sheetOut: 260,  // bottom-sheet slide-out
+  toastHold: 2000,// how long a toast stays fully visible before fading
+  toastFade: 600, // toast fade-out
+  reassert: 500,  // delay before re-asserting a camera move after a transition
+} as const;
+
+// ─── Overlay scrims & fixed colors ────────────────────────────────────────────
+// Theme-independent: scrims darken whatever is behind them in every theme.
+
+export const Overlay = {
+  scrimSoft: 'rgba(0,0,0,0.25)',  // sheet backdrop
+  scrim: 'rgba(0,0,0,0.65)',      // offline banner
+  scrimStrong: 'rgba(0,0,0,0.75)',// toast
+} as const;
+
+/** Pure white — text/icons sitting on a colored (accent/brand) surface. */
+export const White = '#ffffff';
 
 // ─── App fonts ────────────────────────────────────────────────────────────────
 
