@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { PixelButton } from "@/components/ui/pixel-button";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
 import { useNewsUnreadCount } from "@/features/news";
 import { useHeadingStore } from "@/features/map/store";
@@ -298,11 +299,12 @@ export default function MapScreen() {
 
       {/* News shortcut — top-right, routes to the shared /news screen */}
       <TouchableOpacity
-        style={[styles.newsButton, { top: insets.top + Spacing.two, backgroundColor: theme.bgElement, borderColor: theme.border }]}
+        style={[styles.newsButton, { top: insets.top + Spacing.two }]}
         onPress={() => { hapticTap(); router.push('/news'); }}
         activeOpacity={0.8}
       >
-        <MaterialCommunityIcons name="newspaper-variant-outline" size={24} color={theme.text} />
+        <PixelButton size={48} fill={theme.bgElement} stroke={newsUnread > 0 ? theme.accent : theme.border} />
+        <MaterialCommunityIcons name="newspaper-variant-outline" size={22} color={newsUnread > 0 ? theme.accent : theme.textMuted} />
         {newsUnread > 0 && (
           <View style={[styles.newsBadge, { backgroundColor: theme.danger, borderColor: theme.bg }]}>
             <Text style={styles.newsBadgeText}>{newsUnread > 9 ? '9+' : String(newsUnread)}</Text>
@@ -607,8 +609,6 @@ const styles = StyleSheet.create({
     right: 16,
     width: 48,
     height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,
