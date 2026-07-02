@@ -97,6 +97,7 @@ export default function MapScreen() {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingZoomRef = useRef<number | undefined>(undefined);
+  const locateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Memoised so the marker geojson (and the MapLibre marker layer) only rebuilds
   // when the data or filter actually changes — not on every unrelated re-render
@@ -135,11 +136,17 @@ export default function MapScreen() {
       // The camera move (via handlePopupHeight) fires during the tab/focus
       // transition and can be dropped or clobbered by the map's initial camera.
       // Re-assert it once the transition settles and the popup has laid out.
-      const t = setTimeout(() => centerOnInvader(inv, popupHeightRef.current || 0, 17), 500);
-      return () => clearTimeout(t);
+      // The timer lives in a ref rather than the effect cleanup: setPendingInvader(null)
+      // above re-runs this focus effect, and a cleanup-based timer would be cleared
+      // immediately — so the re-assert would never fire.
+      if (locateTimerRef.current) clearTimeout(locateTimerRef.current);
+      locateTimerRef.current = setTimeout(() => centerOnInvader(inv, popupHeightRef.current || 0, 17), 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingInvaderId, invadersWithState]),
   );
+
+  // Cancel any pending locate re-assert on unmount.
+  useEffect(() => () => { if (locateTimerRef.current) clearTimeout(locateTimerRef.current); }, []);
 
   function centerOnInvader(invader: InvaderWithState, height: number, zoomLevel?: number) {
     if (invader.latitude == null || invader.longitude == null) return;
