@@ -21,6 +21,24 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
   release: 'rocket-launch-outline',
 };
 
+// Same canonical-state → i18n keys used by InvaderInfoPanel.
+const STATE_KEYS: Record<string, string> = {
+  'Good': 'states.Good',
+  'Slightly degraded': 'states.SlightlyDegraded',
+  'Degraded': 'states.Degraded',
+  'Badly degraded': 'states.BadlyDegraded',
+  'Destroyed': 'states.Destroyed',
+  'Not visible': 'states.NotVisible',
+  'Unknown': 'states.Unknown',
+};
+
+const CHANGE_KEYS: Record<string, string> = {
+  location: 'news.changeLocation',
+  image: 'news.changeImage',
+  name: 'news.changeName',
+  description: 'news.changeDescription',
+};
+
 type Props = {
   item: NewsItem;
   onOpenInvader: (id: number) => void;
@@ -40,7 +58,17 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
   });
 
   const title = isInvader ? item.invader_name ?? '?' : item.title ?? '';
-  const subtitle = isInvader ? item.city ?? '' : item.body ?? '';
+
+  let subtitle = isInvader ? '' : item.body ?? '';
+  if (isInvader) {
+    const parts: string[] = [];
+    if (item.new_state) parts.push(t(STATE_KEYS[item.new_state] ?? item.new_state));
+    if (item.new_points != null) parts.push(`${item.new_points} pts`);
+    for (const c of item.changes ?? []) {
+      if (CHANGE_KEYS[c]) parts.push(t(CHANGE_KEYS[c]));
+    }
+    subtitle = parts.join('  ·  ');
+  }
 
   return (
     <Pressable

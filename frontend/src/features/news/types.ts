@@ -13,6 +13,9 @@ export type NewsItem = {
   invader_name?: string | null;
   city?: string | null;
   image_url?: string | null;
+  changes?: string[] | null; // name|state|location|points|image|description
+  new_state?: string | null;
+  new_points?: number | null;
 
   // Announcements / releases
   title?: string | null;

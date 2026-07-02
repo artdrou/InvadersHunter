@@ -68,6 +68,19 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
     items: List[NewsItemOut] = []
 
     for admin_req, invader in invader_q.order_by(AdminRequest.reviewed_at.desc()).limit(limit).all():
+        changes: List[str] = []
+        if admin_req.proposed_name is not None:
+            changes.append("name")
+        if admin_req.proposed_state is not None:
+            changes.append("state")
+        if admin_req.proposed_latitude is not None or admin_req.proposed_longitude is not None:
+            changes.append("location")
+        if admin_req.proposed_points is not None:
+            changes.append("points")
+        if admin_req.proposed_image_url is not None:
+            changes.append("image")
+        if admin_req.proposed_description is not None:
+            changes.append("description")
         items.append(NewsItemOut(
             type="invader_added" if admin_req.request_type == "create" else "invader_updated",
             date=admin_req.reviewed_at,
@@ -77,6 +90,9 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
             invader_name=(invader.name if invader else admin_req.proposed_name),
             city=(invader.city if invader else None),
             image_url=(invader.image_url if invader else admin_req.proposed_image_url),
+            changes=changes,
+            new_state=admin_req.proposed_state,
+            new_points=admin_req.proposed_points,
         ))
 
     for ann in ann_q.order_by(Announcement.created_at.desc()).limit(limit).all():

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar, applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon } from "@/features/map";
@@ -119,16 +119,26 @@ export default function MapScreen() {
     }
   }, [invadersWithState]);
 
-  useEffect(() => {
-    if (!pendingInvaderId) return;
-    if (invadersWithState.length === 0) return;
-    const inv = invadersWithState.find((i) => i.id === pendingInvaderId);
-    if (!inv) return;
-    setPendingInvader(null);
-    pendingZoomRef.current = 17;
-    selectInvader(inv);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingInvaderId, invaders]);
+  // Consume a pending deep-link only while THIS map is focused. A plain useEffect
+  // fires on the background map (still mounted under a pushed screen like /news),
+  // which would clear pendingInvaderId before the visible map ever sees it.
+  useFocusEffect(
+    useCallback(() => {
+      if (!pendingInvaderId) return;
+      if (invadersWithState.length === 0) return;
+      const inv = invadersWithState.find((i) => i.id === pendingInvaderId);
+      if (!inv) return;
+      setPendingInvader(null);
+      pendingZoomRef.current = 17;
+      selectInvader(inv);
+      // The camera move (via handlePopupHeight) fires during the tab/focus
+      // transition and can be dropped or clobbered by the map's initial camera.
+      // Re-assert it once the transition settles and the popup has laid out.
+      const t = setTimeout(() => centerOnInvader(inv, popupHeightRef.current || 0, 17), 500);
+      return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingInvaderId, invadersWithState]),
+  );
 
   function centerOnInvader(invader: InvaderWithState, height: number, zoomLevel?: number) {
     if (invader.latitude == null || invader.longitude == null) return;

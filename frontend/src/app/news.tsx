@@ -26,7 +26,10 @@ export default function NewsScreen() {
   const openInvader = useCallback(
     (id: number) => {
       setPendingInvader(id);
-      router.push('/(tabs)/map');
+      // `navigate` rewinds to the existing map tab (dismissing this screen) instead of
+      // pushing a duplicate tabs instance — so the mounted map consumes pendingInvaderId,
+      // opens the popup and re-centers. `push` here spawns a fresh map that sees no pending.
+      router.navigate('/(tabs)/map');
     },
     [setPendingInvader, router],
   );

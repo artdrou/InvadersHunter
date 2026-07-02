@@ -1,6 +1,10 @@
 name: OTA Update
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
     inputs:
       channel:
@@ -50,8 +54,11 @@ jobs:
 
       - name: EAS Update
         working-directory: frontend
-        run: eas update --platform android --channel ${{ inputs.channel }} --environment ${{ inputs.environment }} --message "${{ inputs.message }}" --non-interactive
         env:
+          CHANNEL: ${{ inputs.channel || 'preview' }}
+          ENVIRONMENT: ${{ inputs.environment || 'preview' }}
+          MESSAGE: ${{ inputs.message || github.event.head_commit.message }}
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
           EXPO_PUBLIC_PROTOMAPS_KEY: ${{ secrets.EXPO_PUBLIC_PROTOMAPS_KEY }}
           EXPO_PUBLIC_ORS_KEY: ${{ secrets.EXPO_PUBLIC_ORS_KEY }}
+        run: eas update --platform android --channel "$CHANNEL" --environment "$ENVIRONMENT" --message "$MESSAGE" --non-interactive

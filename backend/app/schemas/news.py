@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from datetime import datetime
 
 
@@ -23,6 +23,10 @@ class NewsItemOut(BaseModel):
     invader_name: Optional[str] = None
     city: Optional[str] = None
     image_url: Optional[str] = None
+    # What the approved request changed (for the feed subtitle)
+    changes: Optional[List[str]] = None   # subset of name|state|location|points|image|description
+    new_state: Optional[str] = None
+    new_points: Optional[int] = None
 
     # Announcements / releases
     title: Optional[str] = None

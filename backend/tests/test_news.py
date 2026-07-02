@@ -67,6 +67,8 @@ def test_approved_modify_appears_in_news_credited_to_community(db, client, users
     assert item["city"] == "Paris"
     assert item["source"] == "community"
     assert item["credit_label"] == "u1"
+    assert item["new_state"] == "Degraded"
+    assert set(item["changes"]) >= {"state", "location"}
 
 
 def test_scraper_source_credited_to_invader_spotter(db, client, invader):

@@ -31,7 +31,11 @@
     "typeAdded": "New invader",
     "typeUpdated": "Invader updated",
     "typeAnnouncement": "Announcement",
-    "typeRelease": "Release"
+    "typeRelease": "Release",
+    "changeLocation": "Location",
+    "changeImage": "Photo",
+    "changeName": "Name",
+    "changeDescription": "Description"
   },
   "settings": {
     "title": "Settings",
