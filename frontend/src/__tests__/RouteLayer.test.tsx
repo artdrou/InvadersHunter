@@ -14,7 +14,6 @@ jest.mock('@maplibre/maplibre-react-native', () => {
     CircleLayer:     (props: any) => <View testID="CircleLayer" {...props} />,
     SymbolLayer:     (props: any) => <View testID="SymbolLayer" {...props} />,
     PointAnnotation: ({ children, id }: any) => <View testID={`PointAnnotation-${id}`}>{children}</View>,
-    Callout:         ({ title }: any) => <Text testID="Callout">{title}</Text>,
   }
 })
 
@@ -105,12 +104,11 @@ describe('RouteLayer', () => {
     expect(queryByTestId(/PointAnnotation/)).toBeNull()
   })
 
-  it('callout title shows order number and invader name', () => {
+  it('waypoint badge shows the 1-based order number', () => {
     const invaders = [makeInvader(42)]
-    const { getAllByTestId } = render(
+    const { getByText } = render(
       <RouteLayer route={makeRoute(invaders)}  />
     )
-    const callouts = getAllByTestId('Callout')
-    expect(callouts[0].props.children).toBe('1. INV_42')
+    expect(getByText('1')).toBeTruthy()
   })
 })
