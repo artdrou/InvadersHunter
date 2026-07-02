@@ -9,14 +9,9 @@ import { useTheme } from '@/contexts/theme-context';
 import { ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
+import { MAP_STYLE_URLS } from '@/constants/config';
 
 import type { AdminSubmission } from '@/features/admin/types';
-
-const MAP_STYLES: Record<string, string> = {
-  dark:  'https://tiles.openfreemap.org/styles/dark',
-  light: 'https://tiles.openfreemap.org/styles/liberty',
-  blue:  'https://api.maptiler.com/maps/019d4e3d-65da-75e0-8ed5-e0c944618e3a/style.json?key=boZ0TjiM2vOJbp9YnFsp',
-};
 
 export default function AdminPickLocationScreen() {
   const router = useRouter();
@@ -94,7 +89,7 @@ export default function AdminPickLocationScreen() {
     router.back();
   }
 
-  const mapStyle = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
+  const mapStyle = MAP_STYLE_URLS[themeName] ?? MAP_STYLE_URLS.dark;
 
   return (
     <View style={styles.container}>

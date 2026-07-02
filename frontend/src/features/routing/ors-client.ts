@@ -1,10 +1,9 @@
 import type { FeatureCollection } from 'geojson'
 import type { TravelMode } from './types'
-
-const ORS_BASE = 'https://api.openrouteservice.org'
+import { ORS_BASE_URL, ORS_KEY } from '@/constants/config'
 
 function apiKey(): string {
-  return process.env.EXPO_PUBLIC_ORS_KEY ?? ''
+  return ORS_KEY
 }
 
 type FetchBody = Record<string, unknown>
@@ -18,7 +17,7 @@ class OrsRateLimitError extends Error {
 
 async function orsPost(path: string, body: FetchBody): Promise<unknown> {
   const attempt = async () => {
-    const res = await fetch(`${ORS_BASE}${path}`, {
+    const res = await fetch(`${ORS_BASE_URL}${path}`, {
       method: 'POST',
       headers: {
         Authorization: apiKey(),

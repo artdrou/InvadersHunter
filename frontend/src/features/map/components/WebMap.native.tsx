@@ -15,6 +15,7 @@ import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import {
   DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
 } from "../constants";
+import { MAP_STYLE_URLS } from "@/constants/config";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -23,12 +24,6 @@ Logger.setLogCallback((log) => {
   }
   return false;
 });
-
-const MAP_STYLES: Record<string, string> = {
-  dark:  "https://tiles.openfreemap.org/styles/dark",
-  light: "https://tiles.openfreemap.org/styles/liberty",
-  blue:  "https://api.maptiler.com/maps/019d4e3d-65da-75e0-8ed5-e0c944618e3a/style.json?key=boZ0TjiM2vOJbp9YnFsp",
-};
 
 const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefObject<CameraRef | null> }) {
   useEffect(() => {
@@ -74,7 +69,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const userCoordsRef = useRef<[number, number] | null>(null);
   const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
-  const mapStyle      = MAP_STYLES[themeName] ?? MAP_STYLES.dark;
+  const mapStyle      = MAP_STYLE_URLS[themeName] ?? MAP_STYLE_URLS.dark;
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);

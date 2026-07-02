@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { NOMINATIM_SEARCH_URL } from '@/constants/config'
 
 export type AddressResult = {
   label: string
@@ -21,7 +22,7 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
         const proximity = userLocation
           ? `&viewbox=${userLocation[0] - 0.15},${userLocation[1] - 0.15},${userLocation[0] + 0.15},${userLocation[1] + 0.15}&bounded=0`
           : ''
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
+        const url = `${NOMINATIM_SEARCH_URL}?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
         const res  = await fetch(url, { headers: { 'User-Agent': 'InvaderHunter/1.0' } })
         const data = await res.json() as { display_name: string; lon: string; lat: string }[]
         const mapped = data.map((item) => ({
