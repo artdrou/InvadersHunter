@@ -141,7 +141,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
       }
       onRequestSent();
       onClose();
-    } catch (err) {
+    } catch {
       setSubmitting(false);
       setUploadError(true);
     }

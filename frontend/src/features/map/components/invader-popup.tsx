@@ -132,7 +132,7 @@ export function InvaderPopup({ invader, pendingCoords, onClose, onFlash, onUnfla
       }
       onRequestSent?.();
       onClose();
-    } catch (err) {
+    } catch {
       // Only non-network errors reach here (offline is queued silently)
       setSubmitting(false);
       setOfflineError(true);

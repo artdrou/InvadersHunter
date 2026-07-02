@@ -9,6 +9,7 @@ export const InvaderState = {
   Unknown:          "Unknown",
 } as const;
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare -- intentional const+type companion (enum-like)
 export type InvaderState = typeof InvaderState[keyof typeof InvaderState];
 
 export const NON_FLASHABLE_STATES: InvaderState[] = [InvaderState.Destroyed, InvaderState.NotVisible];

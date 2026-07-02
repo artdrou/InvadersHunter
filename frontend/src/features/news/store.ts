@@ -21,7 +21,7 @@ type NewsState = {
 
 export const useNewsStore = create<NewsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       items: [],
       lastSeenAt: null,
       _hasHydrated: false,

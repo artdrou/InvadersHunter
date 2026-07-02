@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Text, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/theme-context";
 import { Spacing, FontSize } from "@/constants/theme";
 

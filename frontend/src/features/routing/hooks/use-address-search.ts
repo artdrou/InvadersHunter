@@ -23,7 +23,7 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
           : ''
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
         const res  = await fetch(url, { headers: { 'User-Agent': 'InvaderHunter/1.0' } })
-        const data = await res.json() as Array<{ display_name: string; lon: string; lat: string }>
+        const data = await res.json() as { display_name: string; lon: string; lat: string }[]
         const mapped = data.map((item) => ({
           label:  item.display_name,
           coords: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],

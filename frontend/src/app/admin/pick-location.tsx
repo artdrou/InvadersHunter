@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState , useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -9,7 +9,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
-import { useEffect } from 'react';
+
 import type { AdminSubmission } from '@/features/admin/types';
 
 const MAP_STYLES: Record<string, string> = {

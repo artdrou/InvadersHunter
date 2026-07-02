@@ -121,8 +121,8 @@ export default function AppearanceScreen() {
   const { t } = useTranslation();
   const {
     theme, themeName, setTheme,
-    accentOverride, setAccentOverride, defaultAccent,
-    routePathOverride, setRoutePathOverride, defaultRoutePath,
+    accentOverride, setAccentOverride,
+    routePathOverride, setRoutePathOverride,
   } = useTheme();
   const styles = makeStyles(theme);
 

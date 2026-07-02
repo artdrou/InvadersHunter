@@ -24,7 +24,6 @@ const EMPTY_GEOJSON: FeatureCollection = {
 }
 
 const DIRECTIONS_OK = { geojson: EMPTY_GEOJSON, durationSec: 600, distanceKm: 2.5 }
-const MATRIX_2x2   = { durations: [[0, 120], [130, 0]] }
 const MATRIX_4x4   = { durations: [[0, 60, 90, 120], [60, 0, 40, 90], [90, 40, 0, 60], [120, 90, 60, 0]] }
 
 const FROM: [number, number] = [2.33, 48.85]

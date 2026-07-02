@@ -1,3 +1,4 @@
+/* eslint-disable import/no-named-as-default-member -- i18n.use()/.changeLanguage()/.t() is idiomatic i18next */
 /**
  * i18n service — wires i18next with device-locale auto-detection and
  * AsyncStorage persistence of the user's manual override.

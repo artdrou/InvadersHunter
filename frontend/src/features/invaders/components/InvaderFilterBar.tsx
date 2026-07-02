@@ -11,7 +11,7 @@ type Props = {
 
 export function InvaderFilterBar({ filter, onChange }: Props) {
   const { t } = useTranslation();
-  const { theme, appFont, fontScale } = useTheme();
+  const { theme, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
 
   const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [

@@ -401,7 +401,7 @@ type CoordFieldProps = {
   isSearchOpen: boolean
   searchQuery: string
   searchLoading: boolean
-  searchResults: Array<{ label: string; coords: [number, number] }>
+  searchResults: { label: string; coords: [number, number] }[]
   onOpenSearch: () => void
   onPickOnMap: () => void
   onUseLocation?: () => void

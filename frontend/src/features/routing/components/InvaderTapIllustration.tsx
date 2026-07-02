@@ -1,5 +1,5 @@
 import { View, Image, Text, StyleSheet } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { Fonts, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 

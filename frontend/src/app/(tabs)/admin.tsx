@@ -1,5 +1,4 @@
-import { Alert } from 'react-native';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { Alert , ScrollView, View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';

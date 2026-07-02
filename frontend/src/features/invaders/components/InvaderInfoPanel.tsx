@@ -27,7 +27,7 @@ const STATE_KEYS: Record<string, string> = {
 
 export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
   const { t } = useTranslation();
-  const { theme, appFont, fontScale } = useTheme();
+  const { theme, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
 
