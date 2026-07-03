@@ -118,31 +118,10 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     yearInput: {
       width: 90,
     },
-    stateGrid: {
-      gap: 5,
-    },
-    stateRow: {
-      flexDirection: "row",
-      gap: 5,
-    },
-    stateOptionHalf: {
-      flex: 1,
-    },
-    stateOption: {
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 8,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-    },
+    // Shared by the points row to mark the selected point value.
     stateOptionSelected: {
       borderColor: t.accent,
       backgroundColor: t.bg,
-    },
-    stateOptionText: {
-      color: t.textMuted,
-      fontSize: sz(13),
-      fontFamily: font,
     },
     stateOptionTextSelected: {
       color: t.accent,
@@ -202,41 +181,6 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(12),
       fontFamily: font,
       textAlign: "center",
-    },
-    imagePreviewRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-    },
-    imageThumb: {
-      width: 64,
-      height: 64,
-      borderRadius: BorderRadius.sm,
-    },
-    removePhotoBtn: {
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 6,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-    },
-    removePhotoBtnText: {
-      color: t.textMuted,
-      fontSize: sz(12),
-      fontFamily: font,
-    },
-    addPhotoBtn: {
-      paddingVertical: 10,
-      paddingHorizontal: Spacing.two,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      alignItems: "center",
-    },
-    addPhotoBtnText: {
-      color: t.accent,
-      fontSize: sz(13),
-      fontFamily: font,
     },
   });
 }

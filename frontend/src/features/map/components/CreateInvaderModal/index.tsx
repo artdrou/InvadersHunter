@@ -10,8 +10,8 @@ import { useTheme } from "@/contexts/theme-context";
 import { makeStyles } from "./styles";
 import { cityNumberPadding, buildProposedName } from "./name";
 import { NameField } from "./NameField";
-import { StateGrid } from "./StateGrid";
-import { PhotoField } from "./PhotoField";
+import { StateGrid } from "@/features/invaders/components/StateGrid";
+import { PhotoField } from "@/features/invaders/components/PhotoField";
 
 const POINT_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 
@@ -134,7 +134,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         />
 
         <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
-        <StateGrid value={invaderState} onSelect={setInvaderState} styles={styles} />
+        <StateGrid value={invaderState} onSelect={(s) => setInvaderState(invaderState === s ? "" : s)} />
 
         <Text style={styles.fieldLabel}>{t('popup.position')}</Text>
         <Pressable
@@ -146,7 +146,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         </Pressable>
 
         <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
-        <PhotoField imageUri={imageUri} onChange={setImageUri} styles={styles} />
+        <PhotoField imageUri={imageUri} onChange={setImageUri} />
       </View>
 
       <View style={styles.divider} />

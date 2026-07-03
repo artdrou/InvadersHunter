@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, Alert, useWindowDimensions } from "react-native";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
+import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
-import { Spacing } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
-import { STATE_OPTIONS, STATE_KEYS } from "@/features/invaders/state-options";
+import { StateGrid } from "@/features/invaders/components/StateGrid";
+import { PhotoField } from "@/features/invaders/components/PhotoField";
 import type { PopupStyles } from "./styles";
 
 // Cap the scrollable form so its last field (the photo picker) stays reachable:
@@ -39,27 +37,6 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
   const [imageUri, setImageUri] = useState<string | null>(null);
 
   const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords && !imageUri;
-
-  async function pickImage(source: "camera" | "library") {
-    const opts: ImagePicker.ImagePickerOptions = {
-      mediaTypes: ["images"],
-      quality: 1,
-      allowsEditing: true,
-      aspect: [1, 1],
-    };
-    const result = source === "camera"
-      ? await ImagePicker.launchCameraAsync(opts)
-      : await ImagePicker.launchImageLibraryAsync(opts);
-    if (!result.canceled) setImageUri(result.assets[0].uri);
-  }
-
-  function handleAddPhoto() {
-    Alert.alert(t('popup.addPhotoTitle'), undefined, [
-      { text: t('popup.camera'),  onPress: () => pickImage("camera") },
-      { text: t('popup.gallery'), onPress: () => pickImage("library") },
-      { text: t('common.cancel'), style: "cancel" },
-    ]);
-  }
 
   async function handleSend() {
     setSubmitting(true);
@@ -109,26 +86,7 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
         showsVerticalScrollIndicator
       >
         <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
-        <View style={[styles.stateGrid, { marginBottom: Spacing.two }]}>
-          {[STATE_OPTIONS.slice(0, 2), STATE_OPTIONS.slice(2, 4), STATE_OPTIONS.slice(4, 6)].map((pair, ri) => (
-            <View key={ri} style={styles.stateRow}>
-              {pair.map((s) => {
-                const selected = invaderState === s;
-                return (
-                  <Pressable
-                    key={s}
-                    style={[styles.stateOption, styles.stateOptionHalf, selected && styles.stateOptionSelected]}
-                    onPress={() => setInvaderState(s)}
-                  >
-                    <Text style={[styles.stateOptionText, selected && styles.stateOptionTextSelected]}>
-                      {t(STATE_KEYS[s])}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))}
-        </View>
+        <StateGrid value={invaderState} onSelect={setInvaderState} />
 
         <Text style={styles.fieldLabel}>{t('popup.position')}</Text>
         <Pressable
@@ -144,24 +102,7 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
         </Pressable>
 
         <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
-        {imageUri ? (
-          <View style={styles.imagePreviewRow}>
-            <Image source={imageUri} style={styles.imageThumb} contentFit="cover" />
-            <Pressable
-              onPress={() => setImageUri(null)}
-              style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.btnPressed]}
-            >
-              <Text style={styles.removePhotoBtnText}>{t('popup.removePhoto')}</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            style={({ pressed }) => [styles.addPhotoBtn, pressed && styles.btnPressed]}
-            onPress={handleAddPhoto}
-          >
-            <Text style={styles.addPhotoBtnText}>{t('popup.addPhoto')}</Text>
-          </Pressable>
-        )}
+        <PhotoField imageUri={imageUri} onChange={setImageUri} />
       </ScrollView>
 
       <View style={styles.divider} />

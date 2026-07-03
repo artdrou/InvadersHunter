@@ -135,36 +135,6 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       marginBottom: 4,
       marginTop: Spacing.two,
     },
-    stateGrid: {
-      gap: 5,
-    },
-    stateRow: {
-      flexDirection: "row",
-      gap: 5,
-    },
-    stateOptionHalf: {
-      flex: 1,
-    },
-    stateOption: {
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 8,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-    },
-    stateOptionSelected: {
-      borderColor: t.accent,
-      backgroundColor: t.bg,
-    },
-    stateOptionText: {
-      color: t.textMuted,
-      fontSize: sz(FontSize.sm),
-      fontFamily: font,
-    },
-    stateOptionTextSelected: {
-      color: t.accent,
-      fontFamily: font,
-    },
     positionRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -201,43 +171,6 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(FontSize.xs),
       fontFamily: font,
       textAlign: "center",
-    },
-    imagePreviewRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      marginBottom: Spacing.two,
-    },
-    imageThumb: {
-      width: 64,
-      height: 64,
-      borderRadius: BorderRadius.sm,
-    },
-    removePhotoBtn: {
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 6,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-    },
-    removePhotoBtnText: {
-      color: t.textMuted,
-      fontSize: sz(FontSize.xs),
-      fontFamily: font,
-    },
-    addPhotoBtn: {
-      paddingVertical: 10,
-      paddingHorizontal: Spacing.two,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      alignItems: "center",
-      marginBottom: Spacing.two,
-    },
-    addPhotoBtnText: {
-      color: t.accent,
-      fontSize: sz(FontSize.xs),
-      fontFamily: font,
     },
     arrow: {
       alignSelf: "center",
