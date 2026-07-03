@@ -1,0 +1,15 @@
+# Normalize line endings: store LF in the repo, check out LF on every OS.
+# Stops the "LF will be replaced by CRLF" warnings on Windows.
+* text=auto eol=lf
+
+# Known binaries — never touch their bytes.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.ttf  binary
+*.otf  binary
+*.pbf  binary
+*.exe  binary
+*.apk  binary
