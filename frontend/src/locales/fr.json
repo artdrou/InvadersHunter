@@ -201,7 +201,9 @@
   },
   "themeNames": {
     "dark": "Sombre",
-    "light": "Clair"
+    "light": "Clair",
+    "amber": "Ambre",
+    "matrix": "Matrix"
   },
   "languageNames": {
     "fr": "Français",

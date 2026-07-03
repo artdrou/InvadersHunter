@@ -1,7 +1,7 @@
 import { MAP_THEMES, darkMapPalette } from './palettes';
 import { buildMapStyle } from './build-style';
 
-export { MAP_THEMES, darkMapPalette, lightMapPalette, type MapPalette } from './palettes';
+export { MAP_THEMES, darkMapPalette, lightMapPalette, amberMapPalette, matrixMapPalette, type MapPalette } from './palettes';
 export { buildMapStyle } from './build-style';
 
 export type ResolveOptions = {

@@ -109,14 +109,62 @@ export const lightTheme: ThemeTokens = {
   routePath: '#00aa66',
 };
 
+// Amber theme — warm light map (peach land, orange buildings, rose roads).
+export const amberTheme: ThemeTokens = {
+  bg: '#f2e3d3',
+  bgElement: '#fbf3ea',
+  bgDivider: '#e5cdb6',
+  bgInputValid: '#e6fff5',
+  bgInputInvalid: '#fff0f3',
+
+  text: '#5a3626',
+  textMuted: '#a97b5f',
+
+  border: '#d9b899',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: '#c05a72',
+  danger: Brand.pink,
+  success: Brand.cyan,
+  locationDot: '#c05a72',
+  routePath: '#2a8fa0',
+};
+
+// Matrix theme — near-black with phosphor-green, digital-rain vibe.
+export const matrixTheme: ThemeTokens = {
+  bg: '#050a05',
+  bgElement: '#0b160b',
+  bgDivider: '#162a16',
+  bgInputValid: '#0a2a1a',
+  bgInputInvalid: '#2a0a0a',
+
+  text: '#b8ffc4',
+  textMuted: '#4c8a5c',
+
+  border: '#1c5a30',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: '#39ff6a',
+  danger: Brand.pink,
+  success: '#39ff6a',
+  locationDot: '#39ff6a',
+  routePath: '#3effa0',
+};
+
 export const themes = {
   dark: darkTheme,
   light: lightTheme,
+  amber: amberTheme,
+  matrix: matrixTheme,
 } as const;
 
 export const themeLabels: Record<ThemeName, string> = {
   dark: 'Dark',
   light: 'Light',
+  amber: 'Amber',
+  matrix: 'Matrix',
 };
 
 export type ThemeName = keyof typeof themes;

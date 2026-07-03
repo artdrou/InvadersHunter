@@ -83,6 +83,42 @@ export const lightMapPalette: MapPalette = {
   poi:             '#666666',
 };
 
+/** Amber palette — warm light map: peach land, orange buildings, rose roads. */
+export const amberMapPalette: MapPalette = {
+  background:      '#f2e3d3',
+  water:           '#85acc9',
+  waterLabel:      '#3f6d8d',
+  greenery:        '#b8c56a',
+  landuse:         '#efc79a',
+  road:            '#b0667a',
+  roadCasing:      '#9a5468',
+  rail:            '#a86a7a',
+  building:        '#e6a05a',
+  buildingOutline: '#d38f48',
+  boundary:        '#a85c72',
+  label:           '#6b3a4a',
+  labelHalo:       '#f7ece1',
+  poi:             '#8a5a68',
+};
+
+/** Matrix palette — near-black with phosphor-green roads and labels. */
+export const matrixMapPalette: MapPalette = {
+  background:      '#050a05',
+  water:           '#0a1e14',
+  waterLabel:      '#39cc6a',
+  greenery:        '#0c2010',
+  landuse:         '#081208',
+  road:            '#1f7a3a',
+  roadCasing:      '#0d3d1e',
+  rail:            '#155c2e',
+  building:        '#0a180d',
+  buildingOutline: '#1c4d2a',
+  boundary:        '#2a7a42',
+  label:           '#4dff80',
+  labelHalo:       '#050a05',
+  poi:             '#33b85a',
+};
+
 /**
  * Map palettes keyed by app theme name. Each recolors the Liberty base into a
  * local, keyless style and supports the POI / Lite toggles.
@@ -90,4 +126,6 @@ export const lightMapPalette: MapPalette = {
 export const MAP_THEMES: Record<string, MapPalette> = {
   dark: darkMapPalette,
   light: lightMapPalette,
+  amber: amberMapPalette,
+  matrix: matrixMapPalette,
 };
