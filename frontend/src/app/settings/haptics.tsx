@@ -2,6 +2,7 @@ import { View, Text, Switch, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 import { useHapticsStore } from '@/features/settings/haptics-store';
@@ -9,7 +10,7 @@ import { useHapticsStore } from '@/features/settings/haptics-store';
 export default function HapticsScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   const enabled = useHapticsStore((s) => s.enabled);
   const setEnabled = useHapticsStore((s) => s.setEnabled);
 

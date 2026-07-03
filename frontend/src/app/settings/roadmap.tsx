@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
@@ -20,7 +21,7 @@ const ROADMAP_ITEMS: { key: string; icon: React.ComponentProps<typeof Ionicons>[
 export default function RoadmapScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
 
   return (
     <SettingsShell title={t('settings.roadmap')}>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, Switch, StyleSheet, Modal, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX } from '@/features/settings';
 
@@ -124,7 +125,7 @@ export default function AppearanceScreen() {
     accentOverride, setAccentOverride,
     routePathOverride, setRoutePathOverride,
   } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
 
   const routeGlowEnabled    = useAppearanceStore((s) => s.routeGlowEnabled);
   const setRouteGlowEnabled = useAppearanceStore((s) => s.setRouteGlowEnabled);

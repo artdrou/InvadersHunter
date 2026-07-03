@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
 import { isNonFlashable } from "@/features/invaders/types";
 import { PixelButton } from "@/components/ui/PixelButton";
@@ -121,7 +122,7 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
     },
   ], [t]);
 
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   const filterActive = isFilterActive(value);
   // Default greyMode is "all" now — only flag accent when the user moved off the default.
   const greyActive = greyMode !== "all";

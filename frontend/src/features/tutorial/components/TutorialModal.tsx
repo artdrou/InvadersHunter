@@ -4,6 +4,7 @@ import {
   StyleSheet, Dimensions,
 } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useTranslation } from 'react-i18next';
 import {
   type ThemeTokens,
@@ -39,7 +40,7 @@ type Props = {
 export function TutorialModal({ visible, onClose, title, pages }: Props) {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const s = makeStyles(theme);
+  const s = useThemedStyles(makeStyles);
 
   const [activePage, setActivePage] = useState(0);
   const [pageWidth, setPageWidth]   = useState(INITIAL_PAGE_WIDTH);

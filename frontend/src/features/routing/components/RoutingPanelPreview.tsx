@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import type { ThemeTokens } from '@/constants/theme';
 import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 
@@ -11,7 +12,7 @@ type Props = {
 
 export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   const { theme } = useTheme();
-  const s = makeStyles(theme);
+  const s = useThemedStyles(makeStyles);
 
   const opOf = (zone: number) =>
     !highlight || highlight.includes(zone) ? 1 : 0.2;

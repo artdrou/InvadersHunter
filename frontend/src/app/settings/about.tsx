@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Updates from 'expo-updates';
-import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from '@/features/app-update';
@@ -9,8 +9,7 @@ import { getDateLocale } from '@/services/i18n';
 
 export default function AboutScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
 
   const isOta = !Updates.isEmbeddedLaunch;
   const otaDate = Updates.createdAt

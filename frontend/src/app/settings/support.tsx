@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 
@@ -9,8 +9,7 @@ const DONATION_URL = 'https://ko-fi.com/drouuu';
 
 export default function SupportScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
 
   const openDonation = async () => {
     hapticTap();

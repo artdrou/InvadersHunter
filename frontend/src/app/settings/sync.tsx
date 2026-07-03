@@ -1,16 +1,15 @@
 import { Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useInvaderStore } from '@/features/invaders';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 
 export default function SyncScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const router = useRouter();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   const isSyncing   = useInvaderStore((s) => s.isSyncing);
   const requestSync = useInvaderStore((s) => s.requestSync);
 

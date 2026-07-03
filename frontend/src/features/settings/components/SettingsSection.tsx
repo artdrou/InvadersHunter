@@ -4,7 +4,7 @@
  */
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 
 type Props = {
@@ -13,8 +13,7 @@ type Props = {
 };
 
 export function SettingsSection({ title, children }: Props) {
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.label}>{title}</Text>

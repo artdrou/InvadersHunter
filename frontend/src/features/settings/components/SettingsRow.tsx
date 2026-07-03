@@ -8,6 +8,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, Spacing } from '@/constants/theme';
 import { tap } from '../haptics';
 
@@ -27,7 +28,7 @@ export function SettingsRow({
   label, subtitle, value, icon, onPress, destructive, hideChevron, rightAccessory,
 }: Props) {
   const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   const labelColor = destructive ? theme.danger : theme.text;
   const iconColor = destructive ? theme.danger : theme.accent;
 

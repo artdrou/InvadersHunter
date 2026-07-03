@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuthStore, logoutUser } from '@/features/auth';
-import { useTheme } from '@/contexts/theme-context';
+import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { useInvaderData, mapInvadersWithProgress, cityOf, isNonFlashable } from '@/features/invaders';
@@ -12,8 +12,7 @@ import { useInvaderData, mapInvadersWithProgress, cityOf, isNonFlashable } from 
 export default function ProfileInfoScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useThemedStyles(makeStyles);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const db = useSQLiteContext();
