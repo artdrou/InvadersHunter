@@ -1,9 +1,7 @@
-// Import directly from the source file (not the @/features/map barrel) to avoid a
-// require cycle: invaders/index → MosaicToolbar → map/index → InvaderPopup → invaders/index.
-// Through the barrel, DEFAULT_FILTER resolved to undefined at module-load time in the
-// production bundle and crashed with "Cannot read property 'DEFAULT_FILTER' of undefined".
-import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/components/MapFilterBar";
-import { DEFAULT_FILTER } from "@/features/map/components/MapFilterBar";
+// Filter model comes from the leaf module @/features/map/filter (not the map
+// barrel), so this cross-feature import can't form a require cycle.
+import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/filter";
+import { DEFAULT_FILTER } from "@/features/map/filter";
 import type { SortOption, SortDir, GroupMode } from "../../utils/invader-list";
 
 export type ToolbarState = {

@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
-import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/components/MapFilterBar";
+import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/filter";
 
 type Props = {
   filter: MapFilter;

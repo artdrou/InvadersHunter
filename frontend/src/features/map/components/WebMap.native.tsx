@@ -55,8 +55,8 @@ type Props = {
   isFollowing?: boolean;
   headingAlpha?: number;
   onHeadingChange?: (heading: number) => void;
-  greyMode?: import("./MapFilterBar").GreyMode;
-  colorMode?: import("./MapFilterBar").ColorMode;
+  greyMode?: import("../filter").GreyMode;
+  colorMode?: import("../filter").ColorMode;
   highlightedIds?: number[];
   /** Rendered before invader markers — use for route/path layers. */
   routeLayer?: ReactNode;

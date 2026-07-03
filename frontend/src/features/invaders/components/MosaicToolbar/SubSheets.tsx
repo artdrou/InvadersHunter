@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ThemeTokens } from "@/constants/theme";
-import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/components/MapFilterBar";
+import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/filter";
 import type { SortOption, SortDir, GroupMode } from "../../utils/invader-list";
 import type { ToolbarStyles } from "./styles";
 import { SORT_KEYS, POINTS_OPTIONS } from "./constants";

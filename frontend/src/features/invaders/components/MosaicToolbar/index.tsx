@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { Spacing, Motion } from "@/constants/theme";
-import { isFilterActive } from "@/features/map/components/MapFilterBar";
+import { isFilterActive } from "@/features/map/filter";
 import type { SortOption, GroupMode } from "../../utils/invader-list";
 import { SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR } from "../../utils/invader-list";
 import { toolbarStyles } from "./styles";
