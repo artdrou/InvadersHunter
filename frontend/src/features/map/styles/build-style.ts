@@ -18,6 +18,20 @@ type Style = { layers: StyleLayer[]; [k: string]: unknown };
 // airports…) — toggled together by the "map POIs" setting.
 const POI_SOURCE_LAYERS = new Set(['poi', 'aerodrome_label']);
 
+// Layers removed from the local styles for performance. This is a flat 2D
+// hunting map, so these are pure per-frame cost with no benefit here:
+//  - building-3d: 3D extrusion, the heaviest layer to re-render while panning
+//    (the flat `building` footprints stay);
+//  - natural_earth: shaded-relief raster we already hide — dropping it also
+//    stops the tile fetch/composite;
+//  - US road shields: never rendered in France, but still processed.
+const DROPPED_LAYERS = new Set([
+  'building-3d',
+  'natural_earth',
+  'highway-shield-us-interstate',
+  'road_shield_us',
+]);
+
 export type BuildOptions = {
   /** Show POI labels. When false, POI layers are hidden. Default true. */
   showPoi?: boolean;
@@ -30,11 +44,9 @@ export type BuildOptions = {
  * the matching palette entry; everything else (geometry, zoom stops, filters) is
  * left untouched, so the map keeps the exact same POIs and layout as the light theme.
  *
- * Two Liberty details that clash with a custom flat palette are normalized here:
- *  - `fill-pattern` (sprite hatch fills for wetland / pedestrian plazas) is
- *    dropped so those areas render as a solid palette color, not light B/W stripes;
- *  - the Natural Earth shaded-relief raster is hidden, so zooming out keeps the
- *    palette background instead of fading to a bright terrain image.
+ * `fill-pattern` (sprite hatch fills for wetland / pedestrian plazas) is dropped
+ * so those areas render as a solid palette color, not light B/W stripes.
+ * (The Natural Earth shaded-relief raster is removed wholesale in buildMapStyle.)
  */
 function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
   const id = layer.id;
@@ -49,10 +61,7 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
     if ('text-halo-color' in paint) paint['text-halo-color'] = p.labelHalo;
   };
 
-  if (layer.type === 'raster') {
-    // Natural Earth hillshade — hide it so low zoom stays on the palette background.
-    paint['raster-opacity'] = 0;
-  } else if (layer.type === 'background') {
+  if (layer.type === 'background') {
     paint['background-color'] = p.background;
   } else if (sl === 'water' || sl === 'waterway') {
     if (layer.type === 'fill') setFill(p.water);
@@ -105,12 +114,14 @@ export function buildMapStyle(palette: MapPalette, { showPoi = true }: BuildOpti
   const base = liberty as unknown as Style;
   return {
     ...base,
-    layers: base.layers.map((layer) => {
-      const recolored = recolorLayer(layer, palette);
-      if (!showPoi && POI_SOURCE_LAYERS.has(layer['source-layer'] ?? '')) {
-        return { ...recolored, layout: { ...(recolored.layout ?? {}), visibility: 'none' } };
-      }
-      return recolored;
-    }),
+    layers: base.layers
+      .filter((layer) => !DROPPED_LAYERS.has(layer.id))
+      .map((layer) => {
+        const recolored = recolorLayer(layer, palette);
+        if (!showPoi && POI_SOURCE_LAYERS.has(layer['source-layer'] ?? '')) {
+          return { ...recolored, layout: { ...(recolored.layout ?? {}), visibility: 'none' } };
+        }
+        return recolored;
+      }),
   };
 }
