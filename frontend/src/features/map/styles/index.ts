@@ -11,16 +11,18 @@ const styleCache = new Map<string, object>();
 /**
  * Resolve a theme name to a MapLibre style.
  * A theme with a palette in MAP_PALETTES gets a local, keyless recolored style
- * (Liberty base — see build-style.ts). Any other theme uses a hosted URL
- * (dark / light); unknown names fall back to dark.
+ * (Liberty base — see build-style.ts), with POI labels toggled by `showPoi`.
+ * Any other theme uses a hosted URL (dark / light); unknown names fall back to
+ * dark. `showPoi` only affects the local palette themes (hosted styles are fixed).
  */
-export function resolveMapStyle(themeName: string): string | object {
+export function resolveMapStyle(themeName: string, showPoi = true): string | object {
   const palette = MAP_PALETTES[themeName];
   if (palette) {
-    let style = styleCache.get(themeName);
+    const key = `${themeName}:poi=${showPoi ? 1 : 0}`;
+    let style = styleCache.get(key);
     if (!style) {
-      style = buildMapStyle(palette);
-      styleCache.set(themeName, style);
+      style = buildMapStyle(palette, { showPoi });
+      styleCache.set(key, style);
     }
     return style;
   }

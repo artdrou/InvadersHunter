@@ -191,7 +191,9 @@
     "clustering": "Regroupement",
     "clusteringSubtitle": "Regrouper les invaders proches en bulles",
     "clusterZoom": "Zoom de regroupement",
-    "clusterZoomSubtitle": "Niveau de zoom en dessous duquel les invaders se regroupent"
+    "clusterZoomSubtitle": "Niveau de zoom en dessous duquel les invaders se regroupent",
+    "mapPoi": "Points d'interet",
+    "mapPoiSubtitle": "Afficher commerces, stations et autres labels (theme bleu)"
   },
   "themeNames": {
     "dark": "Sombre",

@@ -134,6 +134,8 @@ export default function AppearanceScreen() {
   const setClusteringEnabled = useAppearanceStore((s) => s.setClusteringEnabled);
   const clusterMaxZoom       = useAppearanceStore((s) => s.clusterMaxZoom);
   const setClusterMaxZoom    = useAppearanceStore((s) => s.setClusterMaxZoom);
+  const mapPoiEnabled        = useAppearanceStore((s) => s.mapPoiEnabled);
+  const setMapPoiEnabled     = useAppearanceStore((s) => s.setMapPoiEnabled);
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const [routePickerOpen, setRoutePickerOpen]   = useState(false);
@@ -283,6 +285,20 @@ export default function AppearanceScreen() {
           </View>
         </View>
       )}
+
+      {/* Map POI labels toggle */}
+      <View style={styles.toggleRow}>
+        <View style={styles.toggleLabel}>
+          <Text style={styles.toggleText}>{t('appearance.mapPoi')}</Text>
+          <Text style={styles.toggleSubtitle}>{t('appearance.mapPoiSubtitle')}</Text>
+        </View>
+        <Switch
+          value={mapPoiEnabled}
+          onValueChange={(v) => { hapticTap(); setMapPoiEnabled(v); }}
+          trackColor={{ false: theme.border, true: theme.accent }}
+          thumbColor={theme.bgElement}
+        />
+      </View>
 
       {/* Accent color picker modal */}
       <ColorPickerModal

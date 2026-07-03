@@ -17,6 +17,7 @@ import {
   DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
 } from "../constants";
 import { resolveMapStyle } from "../styles";
+import { useAppearanceStore } from "@/features/settings";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -70,7 +71,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const userCoordsRef = useRef<[number, number] | null>(null);
   const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
-  const mapStyle      = resolveMapStyle(themeName);
+  const mapPoiEnabled = useAppearanceStore((s) => s.mapPoiEnabled);
+  const mapStyle      = resolveMapStyle(themeName, mapPoiEnabled);
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);

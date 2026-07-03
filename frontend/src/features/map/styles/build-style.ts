@@ -2,15 +2,26 @@ import liberty from './liberty-base.json';
 import { type MapPalette } from './palettes';
 
 // A MapLibre style layer, narrowed to the bits we touch. `paint` holds the
-// color properties; `source-layer` is the vector-tile category we group on.
+// color properties; `source-layer` is the vector-tile category we group on;
+// `layout` holds visibility.
 type StyleLayer = {
   id: string;
   type: string;
   'source-layer'?: string;
   paint?: Record<string, unknown>;
+  layout?: Record<string, unknown>;
   [k: string]: unknown;
 };
 type Style = { layers: StyleLayer[]; [k: string]: unknown };
+
+// Vector-tile categories that carry point-of-interest labels (shops, stations,
+// airports…) — toggled together by the "map POIs" setting.
+const POI_SOURCE_LAYERS = new Set(['poi', 'aerodrome_label']);
+
+export type BuildOptions = {
+  /** Show POI labels. When false, POI layers are hidden. Default true. */
+  showPoi?: boolean;
+};
 
 /**
  * Rewrites one Liberty layer's colors from the palette, chosen by the layer's
@@ -18,27 +29,37 @@ type Style = { layers: StyleLayer[]; [k: string]: unknown };
  * paint property (fill / line / background / extrusion / text + halo) is set to
  * the matching palette entry; everything else (geometry, zoom stops, filters) is
  * left untouched, so the map keeps the exact same POIs and layout as the light theme.
+ *
+ * Two Liberty details that clash with a custom flat palette are normalized here:
+ *  - `fill-pattern` (sprite hatch fills for wetland / pedestrian plazas) is
+ *    dropped so those areas render as a solid palette color, not light B/W stripes;
+ *  - the Natural Earth shaded-relief raster is hidden, so zooming out keeps the
+ *    palette background instead of fading to a bright terrain image.
  */
 function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
   const id = layer.id;
   const sl = layer['source-layer'];
   const paint: Record<string, unknown> = { ...(layer.paint ?? {}) };
 
-  const setFill = (c: string) => { paint['fill-color'] = c; };
+  // Solid fills only — drop any sprite hatch pattern so the flat color shows.
+  const setFill = (c: string) => { paint['fill-color'] = c; delete paint['fill-pattern']; };
   const setLine = (c: string) => { paint['line-color'] = c; };
   const setText = (c: string) => {
     paint['text-color'] = c;
     if ('text-halo-color' in paint) paint['text-halo-color'] = p.labelHalo;
   };
 
-  if (layer.type === 'background') {
+  if (layer.type === 'raster') {
+    // Natural Earth hillshade — hide it so low zoom stays on the palette background.
+    paint['raster-opacity'] = 0;
+  } else if (layer.type === 'background') {
     paint['background-color'] = p.background;
   } else if (sl === 'water' || sl === 'waterway') {
     if (layer.type === 'fill') setFill(p.water);
     else setLine(p.water);
   } else if (sl === 'water_name') {
     setText(p.waterLabel);
-  } else if (id === 'park' || id === 'landcover_wood' || id === 'landcover_grass') {
+  } else if (id === 'park' || id === 'landcover_wood' || id === 'landcover_grass' || id === 'landcover_wetland') {
     setFill(p.greenery);
     if ('fill-outline-color' in paint) paint['fill-outline-color'] = p.greenery;
   } else if (id === 'park_outline') {
@@ -51,6 +72,9 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
       if (/rail/.test(id)) setLine(p.rail);
       else if (/_casing/.test(id)) setLine(p.roadCasing);
       else setLine(p.road);
+    } else if (layer.type === 'fill') {
+      // Pedestrian plazas etc. — a patterned surface in Liberty.
+      setFill(p.road);
     }
   } else if (sl === 'transportation_name') {
     setText(p.label);
@@ -77,10 +101,16 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
  * The Liberty base style recolored from a palette — a keyless, fully local map
  * style (no MapTiler key, same OpenFreeMap tiles/POIs as the light theme).
  */
-export function buildMapStyle(palette: MapPalette): object {
+export function buildMapStyle(palette: MapPalette, { showPoi = true }: BuildOptions = {}): object {
   const base = liberty as unknown as Style;
   return {
     ...base,
-    layers: base.layers.map((layer) => recolorLayer(layer, palette)),
+    layers: base.layers.map((layer) => {
+      const recolored = recolorLayer(layer, palette);
+      if (!showPoi && POI_SOURCE_LAYERS.has(layer['source-layer'] ?? '')) {
+        return { ...recolored, layout: { ...(recolored.layout ?? {}), visibility: 'none' } };
+      }
+      return recolored;
+    }),
   };
 }
