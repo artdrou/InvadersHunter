@@ -1,14 +1,18 @@
 /**
- * Map color palette for the "blue" theme.
+ * Map color palettes — the color system for locally-built map themes.
  *
- * The blue map is the OpenFreeMap **Liberty** base style (see liberty-base.json —
+ * Each themed map is the OpenFreeMap **Liberty** base style (liberty-base.json —
  * the same vector tiles, POIs and labels the light theme uses) recolored, one
- * layer-group at a time, from the values below. This is the single file to edit:
- * change any color, reload the app, and every matching map layer updates. See
- * build-style.ts for exactly which map layers each group controls.
+ * layer-group at a time, from a `MapPalette`. See build-style.ts for exactly
+ * which map layers each field controls.
  *
- * Defaults are tuned to sit under the dark-navy UI theme (blueTheme in
- * constants/theme.ts: bg #0a0f1e, cyan accent).
+ * To add a new map theme (e.g. "red"):
+ *   1. add a `redMapPalette` below (copy one and retune the colors),
+ *   2. register it in `MAP_PALETTES` under the theme's name,
+ *   3. make sure that name exists as a `ThemeName` in constants/theme.ts.
+ * `resolveMapStyle()` then builds and caches its style automatically — no other
+ * wiring needed. Themes without a palette here fall back to a hosted URL
+ * (see MAP_STYLE_URLS in constants/config.ts), as `dark` and `light` do.
  */
 export type MapPalette = {
   /** Map base / empty land behind everything. */
@@ -41,7 +45,8 @@ export type MapPalette = {
   poi: string;
 };
 
-export const MAP_PALETTE: MapPalette = {
+/** Dark-navy palette for the blue theme (matches blueTheme in constants/theme.ts). */
+export const blueMapPalette: MapPalette = {
   background:      '#0b1120',
   water:           '#103050',
   waterLabel:      '#5fa8d8',
@@ -56,4 +61,12 @@ export const MAP_PALETTE: MapPalette = {
   label:           '#cdd9f0',
   labelHalo:       '#0a0f1e',
   poi:             '#8fa6cc',
+};
+
+/**
+ * Map palettes keyed by app theme name. A theme listed here gets a local,
+ * keyless recolored style; anything else uses a hosted URL (dark / light).
+ */
+export const MAP_PALETTES: Record<string, MapPalette> = {
+  blue: blueMapPalette,
 };

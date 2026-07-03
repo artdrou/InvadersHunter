@@ -1,5 +1,5 @@
 import liberty from './liberty-base.json';
-import { MAP_PALETTE, type MapPalette } from './palette';
+import { type MapPalette } from './palettes';
 
 // A MapLibre style layer, narrowed to the bits we touch. `paint` holds the
 // color properties; `source-layer` is the vector-tile category we group on.
@@ -77,13 +77,10 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
  * The Liberty base style recolored from a palette — a keyless, fully local map
  * style (no MapTiler key, same OpenFreeMap tiles/POIs as the light theme).
  */
-export function buildMapStyle(palette: MapPalette = MAP_PALETTE): object {
+export function buildMapStyle(palette: MapPalette): object {
   const base = liberty as unknown as Style;
   return {
     ...base,
     layers: base.layers.map((layer) => recolorLayer(layer, palette)),
   };
 }
-
-/** Prebuilt blue map style from the default palette. */
-export const BLUE_MAP_STYLE = buildMapStyle();
