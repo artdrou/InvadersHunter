@@ -329,7 +329,6 @@ export default function MapScreen() {
       {/* ── Routing sheet ── */}
       {routing.sheetOpen && (
         <RoutingSheet
-          onClose={() => routing.setSheetOpen(false)}
           fromCoords={routing.from}
           fromLabel={routing.fromLabel}
           toCoords={routing.to}
