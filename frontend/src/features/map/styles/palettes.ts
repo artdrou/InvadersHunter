@@ -101,22 +101,22 @@ export const amberMapPalette: MapPalette = {
   poi:             '#8a5a68',
 };
 
-/** Matrix palette — near-black with phosphor-green roads and labels. */
+/** Matrix palette — near-black with desaturated green roads and labels. */
 export const matrixMapPalette: MapPalette = {
   background:      '#050a05',
-  water:           '#0a1e14',
-  waterLabel:      '#39cc6a',
-  greenery:        '#0c2010',
-  landuse:         '#081208',
-  road:            '#1f7a3a',
-  roadCasing:      '#0d3d1e',
-  rail:            '#155c2e',
-  building:        '#0a180d',
-  buildingOutline: '#1c4d2a',
-  boundary:        '#2a7a42',
-  label:           '#4dff80',
+  water:           '#0d1c16',
+  waterLabel:      '#4e8266',
+  greenery:        '#0f1e14',
+  landuse:         '#0a120c',
+  road:            '#3d6b4c',
+  roadCasing:      '#1c3325',
+  rail:            '#2f4a39',
+  building:        '#0d1a10',
+  buildingOutline: '#26392c',
+  boundary:        '#3c5e48',
+  label:           '#7ba889',
   labelHalo:       '#050a05',
-  poi:             '#33b85a',
+  poi:             '#4f7d61',
 };
 
 /**

@@ -131,7 +131,7 @@ export const amberTheme: ThemeTokens = {
   routePath: '#2a8fa0',
 };
 
-// Matrix theme — near-black with phosphor-green, digital-rain vibe.
+// Matrix theme — near-black with desaturated green, raw terminal vibe.
 export const matrixTheme: ThemeTokens = {
   bg: '#050a05',
   bgElement: '#0b160b',
@@ -139,18 +139,18 @@ export const matrixTheme: ThemeTokens = {
   bgInputValid: '#0a2a1a',
   bgInputInvalid: '#2a0a0a',
 
-  text: '#b8ffc4',
-  textMuted: '#4c8a5c',
+  text: '#a7c4ae',
+  textMuted: '#5f7a66',
 
-  border: '#1c5a30',
+  border: '#2c4a35',
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: '#39ff6a',
+  accent: '#5aa06e',
   danger: Brand.pink,
-  success: '#39ff6a',
-  locationDot: '#39ff6a',
-  routePath: '#3effa0',
+  success: '#5aa06e',
+  locationDot: '#5aa06e',
+  routePath: '#5fb083',
 };
 
 export const themes = {
