@@ -10,7 +10,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
-import { MAP_STYLE_URLS } from '@/constants/config';
+import { resolveMapStyle } from '@/features/map/styles';
 
 import type { AdminSubmission } from '@/features/admin/types';
 
@@ -90,7 +90,7 @@ export default function AdminPickLocationScreen() {
     router.back();
   }
 
-  const mapStyle = MAP_STYLE_URLS[themeName] ?? MAP_STYLE_URLS.dark;
+  const mapStyle = resolveMapStyle(themeName);
 
   return (
     <View style={styles.container}>

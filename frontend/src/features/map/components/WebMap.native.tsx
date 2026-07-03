@@ -16,7 +16,7 @@ import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import {
   DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
 } from "../constants";
-import { MAP_STYLE_URLS } from "@/constants/config";
+import { resolveMapStyle } from "../styles";
 
 // Suppress noisy "Canceled" warnings from MapLibre
 Logger.setLogCallback((log) => {
@@ -70,7 +70,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const userCoordsRef = useRef<[number, number] | null>(null);
   const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
-  const mapStyle      = MAP_STYLE_URLS[themeName] ?? MAP_STYLE_URLS.dark;
+  const mapStyle      = resolveMapStyle(themeName);
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);
@@ -132,7 +132,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   return (
     <MapView
       ref={mapViewRef}
-      key={mapStyle}
+      key={themeName}
       style={styles.map}
       mapStyle={mapStyle}
       compassEnabled={false}

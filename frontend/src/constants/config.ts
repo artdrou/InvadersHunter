@@ -2,13 +2,14 @@
 // Environment-specific values come from EXPO_PUBLIC_* vars (see .env.example);
 // no secret is hardcoded here.
 
-const MAPTILER_KEY = process.env.EXPO_PUBLIC_MAPTILER_KEY ?? '';
-
-/** MapLibre style URLs keyed by theme name. The `blue` style needs a MapTiler key. */
+/**
+ * Hosted MapLibre style URLs, keyed by theme name. Both are keyless OpenFreeMap
+ * endpoints. The `blue` theme is a local, keyless style object built from the
+ * Liberty base (see features/map/styles) — resolve styles via `resolveMapStyle`.
+ */
 export const MAP_STYLE_URLS: Record<string, string> = {
   dark: 'https://tiles.openfreemap.org/styles/dark',
   light: 'https://tiles.openfreemap.org/styles/liberty',
-  blue: `https://api.maptiler.com/maps/019d4e3d-65da-75e0-8ed5-e0c944618e3a/style.json?key=${MAPTILER_KEY}`,
 };
 
 /** OpenRouteService (directions / distance matrix). */
