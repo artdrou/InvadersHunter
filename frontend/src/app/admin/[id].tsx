@@ -18,6 +18,7 @@ import { resolveInvaderName } from '@/features/admin/utils';
 import { StatusBadge } from '@/features/admin/components/StatusBadge';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { ConfidenceBadge } from '@/features/admin/components/ConfidenceBadge';
+import { logger } from '@/services/logger';
 import { Diff } from '@/features/admin/components/Diff';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
@@ -78,7 +79,7 @@ export default function AdminDetailScreen() {
           setInvader(inv);
         }
       } catch (e) {
-        console.warn('[admin detail] load error', e);
+        logger.warn('[admin detail] load error', e);
       } finally {
         setLoading(false);
       }

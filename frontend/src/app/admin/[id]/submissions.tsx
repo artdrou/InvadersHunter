@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
+import { logger } from '@/services/logger';
 import type { AdminSubmission } from '@/features/admin/types';
 
 export default function AdminSubmissionsScreen() {
@@ -27,7 +28,7 @@ export default function AdminSubmissionsScreen() {
       try {
         setSubs(await fetchAdminSubmissions(Number(id)));
       } catch (e) {
-        console.warn('[admin submissions] load error', e);
+        logger.warn('[admin submissions] load error', e);
       } finally {
         setLoading(false);
       }

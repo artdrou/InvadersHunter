@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
 import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initDb } from '@/services/db';
 import { initI18n } from '@/services/i18n';
 import {
@@ -75,11 +76,13 @@ export default function RootLayout() {
   if (!fontsLoaded || !i18nReady) return null;
 
   return (
-    <SQLiteProvider databaseName="invaders.db" onInit={initDb}>
-      <ThemeProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-        <UpdateAvailableModal />
-      </ThemeProvider>
-    </SQLiteProvider>
+    <ErrorBoundary>
+      <SQLiteProvider databaseName="invaders.db" onInit={initDb}>
+        <ThemeProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+          <UpdateAvailableModal />
+        </ThemeProvider>
+      </SQLiteProvider>
+    </ErrorBoundary>
   );
 }

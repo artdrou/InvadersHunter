@@ -8,6 +8,7 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFo
 import { fetchAdminSubmissions, fetchInvader } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { Diff } from '@/features/admin/components/Diff';
+import { logger } from '@/services/logger';
 import type { AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
 
@@ -42,7 +43,7 @@ export default function AdminSubmissionDetailScreen() {
           setInvader(await fetchInvader(found.invader_id));
         }
       } catch (e) {
-        console.warn('[admin submission detail] load error', e);
+        logger.warn('[admin submission detail] load error', e);
       } finally {
         setLoading(false);
       }

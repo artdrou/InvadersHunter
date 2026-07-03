@@ -13,6 +13,7 @@ import {
   ButtonFont, ButtonFontSize, Brand,
 } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
+import { logger } from '@/services/logger';
 import type { AdminRequest } from '@/features/admin/types';
 import { useInvaderStore } from '@/features/invaders/store';
 import { resolveInvaderName } from '@/features/admin/utils';
@@ -68,7 +69,7 @@ export default function RequestsScreen() {
       const data = await fetchAdminRequests(params);
       setRequests(data);
     } catch (e) {
-      console.warn('[requests] fetch failed', e);
+      logger.warn('[requests] fetch failed', e);
     } finally {
       setLoading(false);
       setRefreshing(false);

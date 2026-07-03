@@ -9,6 +9,7 @@ import {
 } from '@/services/db';
 import { syncAll, isNetworkError, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '@/services/sync';
 import { useConnectivityStore } from '@/services/connectivity';
+import { logger } from '@/services/logger';
 import { useNetworkConnectivity } from '@/hooks/use-network-connectivity';
 import { flashInvader as apiFlash, unflashInvader as apiUnflash, type ModifyRequestPayload, type CreateRequestPayload } from '../services/invaders.api';
 import { useInvaderStore } from '../store';
@@ -74,7 +75,7 @@ export function useInvaderData() {
       setOnline(true);
     } catch (err) {
       await loadFromDb(userId).catch(() => {});
-      console.warn('[sync] failed:', err);
+      logger.warn('[sync] failed:', err);
       if (isNetworkError(err)) {
         setSyncError('network');
         setOnline(false);
