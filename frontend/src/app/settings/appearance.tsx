@@ -136,6 +136,8 @@ export default function AppearanceScreen() {
   const setClusterMaxZoom    = useAppearanceStore((s) => s.setClusterMaxZoom);
   const mapPoiEnabled        = useAppearanceStore((s) => s.mapPoiEnabled);
   const setMapPoiEnabled     = useAppearanceStore((s) => s.setMapPoiEnabled);
+  const mapLiteEnabled       = useAppearanceStore((s) => s.mapLiteEnabled);
+  const setMapLiteEnabled    = useAppearanceStore((s) => s.setMapLiteEnabled);
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const [routePickerOpen, setRoutePickerOpen]   = useState(false);
@@ -295,6 +297,20 @@ export default function AppearanceScreen() {
         <Switch
           value={mapPoiEnabled}
           onValueChange={(v) => { hapticTap(); setMapPoiEnabled(v); }}
+          trackColor={{ false: theme.border, true: theme.accent }}
+          thumbColor={theme.bgElement}
+        />
+      </View>
+
+      {/* Lite map toggle — leaner layers for smoother panning on low-end devices */}
+      <View style={styles.toggleRow}>
+        <View style={styles.toggleLabel}>
+          <Text style={styles.toggleText}>{t('appearance.mapLite')}</Text>
+          <Text style={styles.toggleSubtitle}>{t('appearance.mapLiteSubtitle')}</Text>
+        </View>
+        <Switch
+          value={mapLiteEnabled}
+          onValueChange={(v) => { hapticTap(); setMapLiteEnabled(v); }}
           trackColor={{ false: theme.border, true: theme.accent }}
           thumbColor={theme.bgElement}
         />

@@ -193,7 +193,9 @@
     "clusterZoom": "Clustering zoom",
     "clusterZoomSubtitle": "Zoom level below which invaders group together",
     "mapPoi": "Points of interest",
-    "mapPoiSubtitle": "Show shops, stations and other map labels (blue theme)"
+    "mapPoiSubtitle": "Show shops, stations and other map labels (blue theme)",
+    "mapLite": "Lite map",
+    "mapLiteSubtitle": "Fewer map details for smoother panning on older devices (blue theme)"
   },
   "themeNames": {
     "dark": "Dark",

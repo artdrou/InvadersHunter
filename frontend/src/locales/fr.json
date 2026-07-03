@@ -193,7 +193,9 @@
     "clusterZoom": "Zoom de regroupement",
     "clusterZoomSubtitle": "Niveau de zoom en dessous duquel les invaders se regroupent",
     "mapPoi": "Points d'interet",
-    "mapPoiSubtitle": "Afficher commerces, stations et autres labels (theme bleu)"
+    "mapPoiSubtitle": "Afficher commerces, stations et autres labels (theme bleu)",
+    "mapLite": "Carte allegee",
+    "mapLiteSubtitle": "Moins de details pour une navigation plus fluide sur appareils anciens (theme bleu)"
   },
   "themeNames": {
     "dark": "Sombre",

@@ -71,8 +71,9 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const userCoordsRef = useRef<[number, number] | null>(null);
   const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
-  const mapPoiEnabled = useAppearanceStore((s) => s.mapPoiEnabled);
-  const mapStyle      = resolveMapStyle(themeName, mapPoiEnabled);
+  const mapPoiEnabled  = useAppearanceStore((s) => s.mapPoiEnabled);
+  const mapLiteEnabled = useAppearanceStore((s) => s.mapLiteEnabled);
+  const mapStyle       = resolveMapStyle(themeName, { showPoi: mapPoiEnabled, lite: mapLiteEnabled });
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);

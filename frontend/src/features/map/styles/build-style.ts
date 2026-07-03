@@ -35,7 +35,28 @@ const DROPPED_LAYERS = new Set([
 export type BuildOptions = {
   /** Show POI labels. When false, POI layers are hidden. Default true. */
   showPoi?: boolean;
+  /** Lean layer set for low-end devices — see isLiteDropped. Default false. */
+  lite?: boolean;
 };
+
+/**
+ * Extra layers dropped in "lite" mode for smoother panning on low-end devices:
+ * road casings (the outlines around roads), rail-tie hatching, one-way arrows,
+ * road number shields, and minor name labels. Road *surfaces* are kept, so the
+ * network stays continuous (no gaps at bridges/tunnels) — only the fine detail
+ * and extra per-frame label/collision work go.
+ */
+function isLiteDropped(id: string): boolean {
+  return /_casing$/.test(id)
+    || /_hatching$/.test(id)
+    || id.startsWith('road_one_way_arrow')
+    || id.startsWith('highway-shield')
+    || id === 'highway-name-path'
+    || id === 'highway-name-minor'
+    || id === 'waterway_line_label'
+    || id === 'water_name_line_label'
+    || id === 'label_village';
+}
 
 /**
  * Rewrites one Liberty layer's colors from the palette, chosen by the layer's
@@ -110,12 +131,13 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
  * The Liberty base style recolored from a palette — a keyless, fully local map
  * style (no MapTiler key, same OpenFreeMap tiles/POIs as the light theme).
  */
-export function buildMapStyle(palette: MapPalette, { showPoi = true }: BuildOptions = {}): object {
+export function buildMapStyle(palette: MapPalette, { showPoi = true, lite = false }: BuildOptions = {}): object {
   const base = liberty as unknown as Style;
   return {
     ...base,
     layers: base.layers
       .filter((layer) => !DROPPED_LAYERS.has(layer.id))
+      .filter((layer) => !lite || !isLiteDropped(layer.id))
       .map((layer) => {
         const recolored = recolorLayer(layer, palette);
         if (!showPoi && POI_SOURCE_LAYERS.has(layer['source-layer'] ?? '')) {
