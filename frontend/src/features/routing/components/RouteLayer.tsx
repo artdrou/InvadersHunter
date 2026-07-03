@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { ShapeSource, LineLayer, CircleLayer, SymbolLayer, PointAnnotation } from '@maplibre/maplibre-react-native'
+import type { Expression } from '@maplibre/maplibre-react-native'
 import { useTheme } from '@/contexts/theme-context'
 import { ButtonFont, ButtonFontSize } from '@/constants/theme'
 import { useAppearanceStore } from '@/features/settings'
@@ -29,13 +30,13 @@ function lightenColor(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
-function zoomWidth(breakpoints: [number, number][]): unknown[] {
-  return ['interpolate', ['linear'], ['zoom'], ...breakpoints.flatMap(([z, w]) => [z, w])]
+function zoomWidth(breakpoints: [number, number][]): Expression {
+  return ['interpolate', ['linear'], ['zoom'], ...breakpoints.flatMap(([z, w]) => [z, w])] as Expression
 }
 
 // Builds a lineGradient expression for a traveling shimmer point.
 // Long fade-in behind the peak, short fade-out ahead — gives a directional feel.
-function buildShimmerGradient(p: number, peak: string, fade: string): unknown[] {
+function buildShimmerGradient(p: number, peak: string, fade: string): Expression {
   const W_BACK  = 0.14   // long trailing wake
   const W_FRONT = 0.06   // short leading edge
   const EPS     = 0.004  // minimum gap between stops
@@ -52,7 +53,7 @@ function buildShimmerGradient(p: number, peak: string, fade: string): unknown[] 
       out.push(raw[i], raw[i + 1])
     }
   }
-  return ['interpolate', ['linear'], ['line-progress'], ...out]
+  return ['interpolate', ['linear'], ['line-progress'], ...out] as Expression
 }
 
 const EMPTY_COLLECTION: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
@@ -125,7 +126,7 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             lineOpacity: 0.95,
             lineCap: 'round',
             lineJoin: 'round',
-          } as any}
+          }}
         />
         <LineLayer
           id="ors-route-core"
@@ -134,7 +135,7 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             lineWidth: zoomWidth([[10, 1.5], [14, 4], [17, 7]]),
             lineCap: 'round',
             lineJoin: 'round',
-          } as any}
+          }}
         />
 
         {/* ── Animated shimmer — always mounted to avoid MapLibre layer-removal bugs ── */}
@@ -147,7 +148,7 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             lineCap: 'round',
             lineJoin: 'round',
             lineOpacity: routeGlowEnabled ? 1 : 0,
-          } as any}
+          }}
         />
         <LineLayer
           id="ors-shimmer-mid"
@@ -158,7 +159,7 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             lineCap: 'round',
             lineJoin: 'round',
             lineOpacity: routeGlowEnabled ? 1 : 0,
-          } as any}
+          }}
         />
         <LineLayer
           id="ors-shimmer-core"
@@ -169,7 +170,7 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             lineCap: 'round',
             lineJoin: 'round',
             lineOpacity: routeGlowEnabled ? 1 : 0,
-          } as any}
+          }}
         />
       </ShapeSource>
 
@@ -182,16 +183,16 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             circleColor: theme.accent,
             circleStrokeWidth: 2,
             circleStrokeColor: theme.bg,
-          } as any}
+          }}
         />
         <SymbolLayer
           id="ors-pin-start-label"
           style={{
-            textField: ['get', 'label'],
+            textField: ['get', 'label'] as Expression,
             textSize: 12,
             textColor: theme.bg,
             textAnchor: 'center',
-          } as any}
+          }}
         />
       </ShapeSource>
 
@@ -203,16 +204,16 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             circleColor: theme.danger,
             circleStrokeWidth: 2,
             circleStrokeColor: theme.bg,
-          } as any}
+          }}
         />
         <SymbolLayer
           id="ors-pin-end-label"
           style={{
-            textField: ['get', 'label'],
+            textField: ['get', 'label'] as Expression,
             textSize: 12,
             textColor: theme.bg,
             textAnchor: 'center',
-          } as any}
+          }}
         />
       </ShapeSource>
 

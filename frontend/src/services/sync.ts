@@ -14,8 +14,7 @@ import type { UserRequest } from '@/features/invaders/types';
 
 export function isNetworkError(err: unknown): boolean {
   if (typeof err !== 'object' || err === null) return false;
-  const code = (err as any).code;
-  const message = (err as any).message ?? '';
+  const { code, message } = err as { code?: string; message?: string };
   return (
     code === 'ERR_NETWORK' ||
     code === 'ECONNABORTED' ||

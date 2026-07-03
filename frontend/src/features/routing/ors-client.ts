@@ -55,11 +55,11 @@ export async function fetchDirections(
   const data = (await orsPost(`/v2/directions/${profile}/geojson`, {
     coordinates,
     units: 'km',
-  })) as any
+  })) as FeatureCollection
 
-  const summary = data.features[0].properties.summary
+  const summary = data.features[0].properties?.summary as { duration: number; distance: number }
   return {
-    geojson: data as FeatureCollection,
+    geojson: data,
     durationSec: summary.duration,
     distanceKm: summary.distance,
   }
@@ -79,6 +79,6 @@ export async function fetchMatrix(
   if (sources !== undefined) body.sources = sources
   if (destinations !== undefined) body.destinations = destinations
 
-  const data = (await orsPost(`/v2/matrix/${profile}`, body)) as any
+  const data = (await orsPost(`/v2/matrix/${profile}`, body)) as { durations: number[][] }
   return { durations: data.durations }
 }

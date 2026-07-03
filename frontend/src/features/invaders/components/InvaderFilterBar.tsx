@@ -11,8 +11,7 @@ type Props = {
 
 export function InvaderFilterBar({ filter, onChange }: Props) {
   const { t } = useTranslation();
-  const { theme, fontScale } = useTheme();
-  const sz = (n: number) => Math.round(n * fontScale);
+  const { theme } = useTheme();
 
   const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
     { key: "all",       label: t('invaders.statusAll') },
@@ -31,13 +30,11 @@ export function InvaderFilterBar({ filter, onChange }: Props) {
         options={STATUS_OPTIONS}
         selected={filter.status}
         onSelect={(key) => onChange({ ...filter, status: key as FlashStatusFilter })}
-        sz={sz}
       />
       <PillRow
         options={CONDITION_OPTIONS}
         selected={filter.flashable}
         onSelect={(key) => onChange({ ...filter, flashable: key as FlashableFilter })}
-        sz={sz}
       />
     </View>
   );
@@ -45,13 +42,12 @@ export function InvaderFilterBar({ filter, onChange }: Props) {
 
 // ─── internal helper ─────────────────────────────────────────────────────────
 
-function PillRow({ options, selected, onSelect, sz }: {
+function PillRow({ options, selected, onSelect }: {
   options: { key: string; label: string }[];
   selected: string;
   onSelect: (key: string) => void;
-  sz: (n: number) => number;
 }) {
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   return (
     <View style={styles.row}>
       {options.map((o) => {

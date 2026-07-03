@@ -22,16 +22,17 @@ export default function ProfileInfoScreen() {
   // per mount; the table is rebuilt on every delta sync so it stays current.
   const [editsSent, setEditsSent] = useState(0);
   const [editsAccepted, setEditsAccepted] = useState(0);
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) return;
+    if (userId == null) return;
     db.getAllAsync<{ status: string }>(
       'SELECT status FROM user_requests WHERE user_id = ?',
-      [user.id],
+      [userId],
     ).then((rows) => {
       setEditsSent(rows.length);
       setEditsAccepted(rows.filter((r) => r.status === 'approved').length);
     }).catch(() => {});
-  }, [user?.id, db]);
+  }, [userId, db]);
 
   const stats = useMemo(() => {
     const withState = mapInvadersWithProgress(invaders, progress);

@@ -7,7 +7,7 @@ import type { FeatureCollection } from 'geojson'
 
 // MapLibre uses native modules — stub them all as plain Views
 jest.mock('@maplibre/maplibre-react-native', () => {
-  const { View, Text } = require('react-native')
+  const { View } = require('react-native')
   return {
     ShapeSource:     ({ children }: any) => <View testID="ShapeSource">{children}</View>,
     LineLayer:       (props: any) => <View testID="LineLayer" {...props} />,

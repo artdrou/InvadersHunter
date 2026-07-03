@@ -3,6 +3,7 @@ import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, registerUser } from '@/features/auth';
+import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
@@ -27,9 +28,8 @@ export default function RegisterScreen() {
     try {
       const { accessToken, refreshToken } = await registerUser(username, email, password);
       login(accessToken, refreshToken);
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail;
-      setError(typeof detail === 'string' ? detail : t('auth.register.failed'));
+    } catch (err) {
+      setError(apiErrorDetail(err) ?? t('auth.register.failed'));
     } finally {
       setLoading(false);
     }

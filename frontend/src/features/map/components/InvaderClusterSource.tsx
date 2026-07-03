@@ -1,5 +1,5 @@
 import { ShapeSource, CircleLayer, SymbolLayer } from "@maplibre/maplibre-react-native";
-import type { CameraRef } from "@maplibre/maplibre-react-native";
+import type { CameraRef, OnPressEvent } from "@maplibre/maplibre-react-native";
 import type { RefObject } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAppearanceStore } from "@/features/settings";
@@ -30,16 +30,16 @@ type Props = {
 export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPress }: Props) {
   const clusteringEnabled = useAppearanceStore((s) => s.clusteringEnabled);
   const clusterMaxZoom    = useAppearanceStore((s) => s.clusterMaxZoom);
-  function handlePress(e: any) {
+  function handlePress(e: OnPressEvent) {
     const feature = e.features?.[0];
     if (!feature) return;
 
     // Cluster tap → zoom in to expand it
-    if (feature.properties?.cluster) {
+    if (feature.properties?.cluster && feature.geometry.type === "Point") {
       const [lon, lat] = feature.geometry.coordinates;
       cameraRef.current?.setCamera({
         centerCoordinate: [lon, lat],
-        zoomLevel: feature.properties.expansion_zoom ?? MapZoom.clusterExpandFallback,
+        zoomLevel: feature.properties?.expansion_zoom ?? MapZoom.clusterExpandFallback,
         animationDuration: MapAnim.clusterExpand,
       });
       setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);

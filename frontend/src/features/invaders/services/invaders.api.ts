@@ -63,7 +63,8 @@ export async function uploadRequestPhoto(requestId: number, uri: string): Promis
   const formData = new FormData();
   const ext = uri.split('.').pop()?.toLowerCase() ?? 'jpg';
   const mimeType = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
-  formData.append('file', { uri, name: `photo.${ext}`, type: mimeType } as any);
+  // RN's FormData accepts a { uri, name, type } file object that the DOM Blob typing doesn't model.
+  formData.append('file', { uri, name: `photo.${ext}`, type: mimeType } as unknown as Blob);
 
   // Bypass axios — its fetch adapter doesn't preserve RN's { uri, name, type }
   // FormData entries. Native fetch handles them correctly via the RN polyfill,

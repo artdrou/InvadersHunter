@@ -38,6 +38,8 @@ import marker40ptsHighlight  from '../../../../assets/images/marker-40pts-highli
 import marker50ptsHighlight  from '../../../../assets/images/marker-50pts-highlight.png';
 import marker100ptsHighlight from '../../../../assets/images/marker-100pts-highlight.png';
 
+import type { SymbolLayerStyle, Expression } from '@maplibre/maplibre-react-native';
+
 export const MARKER_IMAGES = {
   'marker-10pts-rarity':           marker10ptsRarity,
   'marker-10pts-flash-captured':   marker10ptsFlashCaptured,
@@ -77,16 +79,16 @@ export const MARKER_IMAGES = {
   'marker-100pts-highlight': marker100ptsHighlight,
 };
 
-export const MARKER_LAYER_STYLE = {
-  iconImage: ["get", "iconKey"],
-  iconSize: ["get", "iconSize"],
+export const MARKER_LAYER_STYLE: SymbolLayerStyle = {
+  iconImage: ["get", "iconKey"] as Expression,
+  iconSize: ["get", "iconSize"] as Expression,
   iconOpacity: ["case",
     ["==", ["get", "pending"], 1], 0.45,
     ["==", ["get", "grey"], 1],    0.8,
     1.0,
-  ],
+  ] as Expression,
   iconAllowOverlap: true,
   iconIgnorePlacement: true,
-} as any;
+};
 
 export const MARKER_LAYER_FILTER = ["!", ["has", "point_count"]] as const;

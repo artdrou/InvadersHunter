@@ -71,7 +71,7 @@ export default function RootLayout() {
     } else if (token && inPublicScreen) {
       router.replace('/(tabs)/map');
     }
-  }, [token, segments, hasHydrated]);
+  }, [token, segments, hasHydrated, router]);
 
   if (!fontsLoaded || !i18nReady) return null;
 

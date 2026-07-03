@@ -14,6 +14,7 @@ import {
 } from '@/features/admin/services/admin.api';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { useInvaderStore } from '@/features/invaders/store';
+import { apiErrorDetail } from '@/services/api-client';
 import { resolveInvaderName } from '@/features/admin/utils';
 import { StatusBadge } from '@/features/admin/components/StatusBadge';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
@@ -91,7 +92,7 @@ export default function AdminDetailScreen() {
     return () => {
       if (!pickedConsumedRef.current) setPickedCoords(null);
     };
-  }, []);
+  }, [setPickedCoords]);
 
   async function handleApprove() {
     if (!req) return;
@@ -105,8 +106,8 @@ export default function AdminDetailScreen() {
       pickedConsumedRef.current = true;
       requestSync();
       router.back();
-    } catch (e: any) {
-      Alert.alert(t('admin.errorTitle'), e?.response?.data?.detail ?? t('admin.failedApprove'));
+    } catch (e) {
+      Alert.alert(t('admin.errorTitle'), apiErrorDetail(e) ?? t('admin.failedApprove'));
     } finally {
       setActing(false);
     }
@@ -122,8 +123,8 @@ export default function AdminDetailScreen() {
           try {
             await rejectAdminRequest(req.id);
             router.back();
-          } catch (e: any) {
-            Alert.alert(t('admin.errorTitle'), e?.response?.data?.detail ?? t('admin.failedReject'));
+          } catch (e) {
+            Alert.alert(t('admin.errorTitle'), apiErrorDetail(e) ?? t('admin.failedReject'));
           } finally {
             setActing(false);
           }

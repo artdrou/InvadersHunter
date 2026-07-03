@@ -1,5 +1,6 @@
 import { useRef, useState , useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapView, Camera, ShapeSource, CircleLayer } from '@maplibre/maplibre-react-native';
@@ -98,10 +99,11 @@ export default function AdminPickLocationScreen() {
         style={styles.map}
         mapStyle={mapStyle}
         attributionPosition={{ bottom: 8, left: 8 }}
-        {...{ onLayout: (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
+        // MapView forwards onLayout to its wrapping RN View but doesn't type it.
+        {...({ onLayout: (e: LayoutChangeEvent) => {
           const { width, height } = e.nativeEvent.layout;
           mapSizeRef.current = { width, height };
-        } } as any}
+        } } as { onLayout?: (e: LayoutChangeEvent) => void })}
       >
         <Camera
           ref={cameraRef}

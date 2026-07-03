@@ -3,6 +3,7 @@ import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
+import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 
@@ -62,9 +63,8 @@ export default function ForgotPasswordScreen() {
     try {
       await resetPassword(email, code, newPassword);
       router.replace('/login');
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail;
-      setError(typeof detail === 'string' ? detail : t('auth.forgot.invalidCode'));
+    } catch (err) {
+      setError(apiErrorDetail(err) ?? t('auth.forgot.invalidCode'));
       setStep('verify');
     } finally {
       setLoading(false);

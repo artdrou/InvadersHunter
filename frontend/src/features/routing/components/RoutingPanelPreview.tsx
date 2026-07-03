@@ -1,8 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
-import { useThemedStyles } from '@/hooks/use-themed-styles';
-import type { ThemeTokens } from '@/constants/theme';
 import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
 
 type Props = {
@@ -12,7 +10,7 @@ type Props = {
 
 export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   const { theme } = useTheme();
-  const s = useThemedStyles(makeStyles);
+  const s = styles;
 
   const opOf = (zone: number) =>
     !highlight || highlight.includes(zone) ? 1 : 0.2;
@@ -127,8 +125,7 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   );
 }
 
-function makeStyles(t: ThemeTokens) {
-  return StyleSheet.create({
+const styles = StyleSheet.create({
     panel: {
       borderRadius: BorderRadius.md,
       borderWidth: 1,
@@ -274,5 +271,4 @@ function makeStyles(t: ThemeTokens) {
       fontFamily: ButtonFont,
       fontSize: ButtonFontSize.xs,
     },
-  });
-}
+});

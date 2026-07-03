@@ -11,6 +11,11 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
   const [loading, setLoading]   = useState(false)
   const debounceRef             = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Depend on the primitive lon/lat, not the array identity, so the callback is
+  // only rebuilt when the coordinates actually change.
+  const userLon = userLocation?.[0]
+  const userLat = userLocation?.[1]
+
   const search = useCallback((text: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (text.trim().length < 3) { setResults([]); return }
@@ -19,8 +24,8 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
       setLoading(true)
       try {
         // Bias results toward user's location using a viewbox (±0.15° ≈ 15 km)
-        const proximity = userLocation
-          ? `&viewbox=${userLocation[0] - 0.15},${userLocation[1] - 0.15},${userLocation[0] + 0.15},${userLocation[1] + 0.15}&bounded=0`
+        const proximity = userLon != null && userLat != null
+          ? `&viewbox=${userLon - 0.15},${userLat - 0.15},${userLon + 0.15},${userLat + 0.15}&bounded=0`
           : ''
         const url = `${NOMINATIM_SEARCH_URL}?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
         const res  = await fetch(url, { headers: { 'User-Agent': 'InvaderHunter/1.0' } })
@@ -29,11 +34,10 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
           label:  item.display_name,
           coords: [parseFloat(item.lon), parseFloat(item.lat)] as [number, number],
         }))
-        if (userLocation) {
-          const [ulon, ulat] = userLocation
+        if (userLon != null && userLat != null) {
           mapped.sort((a, b) => {
-            const da = (a.coords[1] - ulat) ** 2 + (a.coords[0] - ulon) ** 2
-            const db = (b.coords[1] - ulat) ** 2 + (b.coords[0] - ulon) ** 2
+            const da = (a.coords[1] - userLat) ** 2 + (a.coords[0] - userLon) ** 2
+            const db = (b.coords[1] - userLat) ** 2 + (b.coords[0] - userLon) ** 2
             return da - db
           })
         }
@@ -44,7 +48,7 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
         setLoading(false)
       }
     }, 400)
-  }, [userLocation?.[0], userLocation?.[1]])
+  }, [userLon, userLat])
 
   const clear = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)

@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, AppFont } from '@/constants/theme';
 import { importFlashes, SCRIPT_DOWNLOAD_URL, type FlashImportResponse } from '@/features/flash-import';
+import { apiErrorDetail } from '@/services/api-client';
 import { useInvaderStore } from '@/features/invaders';
 
 export default function FlashImportScreen() {
@@ -68,8 +69,8 @@ export default function FlashImportScreen() {
       const res = await importFlashes(names);
       setResult(res);
       requestSync();
-    } catch (e: any) {
-      Alert.alert(t('common.error'), e?.response?.data?.detail ?? e?.message ?? t('flashImport.importImpossible'));
+    } catch (e) {
+      Alert.alert(t('common.error'), apiErrorDetail(e) ?? t('flashImport.importImpossible'));
     } finally {
       setSubmitting(false);
     }

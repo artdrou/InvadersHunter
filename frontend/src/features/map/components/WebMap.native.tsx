@@ -1,6 +1,7 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle, memo } from "react";
 import type { ReactNode, RefObject } from "react";
 import { StyleSheet } from "react-native";
+import type { LayoutChangeEvent } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef, MapViewRef } from "@maplibre/maplibre-react-native";
 import type { InvaderWithState } from "@/features/invaders";
@@ -35,7 +36,7 @@ const StableCamera = memo(function StableCamera({ cameraRef }: { cameraRef: RefO
     // Release camera after initial set (same pattern as centerOn/centerOnUser)
     const t = setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.initialReleaseDelay);
     return () => clearTimeout(t);
-  }, []);
+  }, [cameraRef]);
 
   return <Camera ref={cameraRef} />;
 });
@@ -79,22 +80,23 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   // Follow mode: update camera every 300ms toward user position
   useEffect(() => {
     if (!isFollowing) return;
+    const camera = cameraRef.current;
 
     // Center immediately on enable
     if (userCoordsRef.current) {
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
+      camera?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
     }
 
     const interval = setInterval(() => {
       if (!userCoordsRef.current) return;
       const [lon, lat] = userCoordsRef.current;
-      cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
+      camera?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
     }, FOLLOW_INTERVAL_MS);
 
     return () => {
       clearInterval(interval);
-      cameraRef.current?.setCamera({});
+      camera?.setCamera({});
     };
   }, [isFollowing]);
 
@@ -135,12 +137,14 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       mapStyle={mapStyle}
       compassEnabled={false}
       attributionPosition={{ bottom: 8, left: 8 }}
-      {...{ onLayout: (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
+      // MapView forwards onLayout to its wrapping RN View but doesn't type it.
+      {...({ onLayout: (e: LayoutChangeEvent) => {
         const { width, height } = e.nativeEvent.layout;
         mapSizeRef.current = { width, height };
-      } } as any}
-      onLongPress={(e: any) => {
-        const [lon, lat] = e.geometry.coordinates;
+      } } as { onLayout?: (e: LayoutChangeEvent) => void })}
+      onLongPress={(feature) => {
+        if (feature.geometry.type !== "Point") return;
+        const [lon, lat] = feature.geometry.coordinates;
         onLongPress?.(lat, lon);
       }}
       onRegionIsChanging={(e) => onHeadingChange?.(e.properties.heading)}

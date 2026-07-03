@@ -3,6 +3,7 @@ import {
   View, Text, Pressable, ScrollView, Modal,
   StyleSheet, Dimensions,
 } from 'react-native';
+import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useTranslation } from 'react-i18next';
@@ -56,7 +57,7 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
     }
   }
 
-  function handleMomentumEnd(e: any) {
+  function handleMomentumEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
     if (pageWidth <= 0) return;
     const page = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
     if (page !== activePage) setActivePage(page);
