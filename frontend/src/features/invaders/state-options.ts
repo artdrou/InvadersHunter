@@ -1,6 +1,9 @@
-import { InvaderState } from "@/features/invaders";
+import { InvaderState } from "./types";
 
-/** Condition options offered in the edit form, in display order. */
+// Shared condition options + their i18n keys, used by the invader edit and
+// create forms. Single source of truth so a state change touches one place.
+
+/** Condition options in display order. */
 export const STATE_OPTIONS = [
   InvaderState.Good,
   InvaderState.SlightlyDegraded,

@@ -8,7 +8,7 @@ import type { InvaderWithState } from "@/features/invaders";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
-import { STATE_OPTIONS, STATE_KEYS } from "./constants";
+import { STATE_OPTIONS, STATE_KEYS } from "@/features/invaders/state-options";
 import type { PopupStyles } from "./styles";
 
 // Cap the scrollable form so its last field (the photo picker) stays reachable:

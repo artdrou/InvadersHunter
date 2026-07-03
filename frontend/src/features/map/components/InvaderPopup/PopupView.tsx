@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { ThemeTokens } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
-import { STATE_KEYS } from "./constants";
+import { STATE_KEYS } from "@/features/invaders/state-options";
 import { formatDate } from "./format";
 import type { PopupStyles } from "./styles";
 
