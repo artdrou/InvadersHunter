@@ -195,7 +195,9 @@
     "mapPoi": "Points d'interet",
     "mapPoiSubtitle": "Afficher commerces, stations et autres labels",
     "mapLite": "Carte allegee",
-    "mapLiteSubtitle": "Moins de details pour une navigation plus fluide sur appareils anciens"
+    "mapLiteSubtitle": "Moins de details pour une navigation plus fluide sur appareils anciens",
+    "map3d": "Batiments 3D",
+    "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)"
   },
   "themeNames": {
     "dark": "Sombre",

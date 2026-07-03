@@ -6,6 +6,7 @@ const CLUSTERING_KEY       = 'app-clustering-enabled';
 const CLUSTER_MAX_ZOOM_KEY = 'app-cluster-max-zoom';
 const MAP_POI_KEY          = 'app-map-poi-enabled';
 const MAP_LITE_KEY         = 'app-map-lite-enabled';
+const MAP_3D_KEY           = 'app-map-3d-enabled';
 
 // Clustering threshold bounds. Points cluster at zoom <= clusterMaxZoom and
 // split into individual markers above it. Keep in sync with the stepper range
@@ -31,6 +32,10 @@ type AppearanceState = {
   // Lean map layer set for smoother panning on low-end devices (local themes).
   mapLiteEnabled: boolean;
   setMapLiteEnabled: (v: boolean) => void;
+
+  // 3D building extrusions — heavier to render, so off by default; ignored in Lite.
+  map3dBuildingsEnabled: boolean;
+  setMap3dBuildingsEnabled: (v: boolean) => void;
 
   hydrate: () => Promise<void>;
 };
@@ -77,21 +82,30 @@ export const useAppearanceStore = create<AppearanceState>((set) => ({
     AsyncStorage.setItem(MAP_LITE_KEY, v ? '1' : '0').catch(() => {});
   },
 
+  map3dBuildingsEnabled: false,
+
+  setMap3dBuildingsEnabled: (v) => {
+    set({ map3dBuildingsEnabled: v });
+    AsyncStorage.setItem(MAP_3D_KEY, v ? '1' : '0').catch(() => {});
+  },
+
   hydrate: async () => {
     try {
-      const [glow, clustering, maxZoom, poi, lite] = await Promise.all([
+      const [glow, clustering, maxZoom, poi, lite, buildings3d] = await Promise.all([
         AsyncStorage.getItem(ROUTE_GLOW_KEY),
         AsyncStorage.getItem(CLUSTERING_KEY),
         AsyncStorage.getItem(CLUSTER_MAX_ZOOM_KEY),
         AsyncStorage.getItem(MAP_POI_KEY),
         AsyncStorage.getItem(MAP_LITE_KEY),
+        AsyncStorage.getItem(MAP_3D_KEY),
       ]);
       const patch: Partial<AppearanceState> = {};
-      if (glow !== null)       patch.routeGlowEnabled  = glow === '1';
-      if (clustering !== null) patch.clusteringEnabled = clustering === '1';
-      if (maxZoom !== null)     patch.clusterMaxZoom    = clampZoom(Number(maxZoom));
-      if (poi !== null)        patch.mapPoiEnabled     = poi === '1';
-      if (lite !== null)       patch.mapLiteEnabled    = lite === '1';
+      if (glow !== null)         patch.routeGlowEnabled       = glow === '1';
+      if (clustering !== null)   patch.clusteringEnabled      = clustering === '1';
+      if (maxZoom !== null)       patch.clusterMaxZoom         = clampZoom(Number(maxZoom));
+      if (poi !== null)          patch.mapPoiEnabled          = poi === '1';
+      if (lite !== null)         patch.mapLiteEnabled         = lite === '1';
+      if (buildings3d !== null)  patch.map3dBuildingsEnabled  = buildings3d === '1';
       if (Object.keys(patch).length) set(patch);
     } catch {}
   },

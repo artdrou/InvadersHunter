@@ -195,7 +195,9 @@
     "mapPoi": "Points of interest",
     "mapPoiSubtitle": "Show shops, stations and other map labels",
     "mapLite": "Lite map",
-    "mapLiteSubtitle": "Fewer map details for smoother panning on older devices"
+    "mapLiteSubtitle": "Fewer map details for smoother panning on older devices",
+    "map3d": "3D buildings",
+    "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)"
   },
   "themeNames": {
     "dark": "Dark",

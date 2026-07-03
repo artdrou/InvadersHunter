@@ -9,6 +9,8 @@ export type ResolveOptions = {
   showPoi?: boolean;
   /** Use the lean layer set for low-end devices. Default false. */
   lite?: boolean;
+  /** Show 3D building extrusions (heavier; ignored in Lite). Default false. */
+  show3d?: boolean;
 };
 
 // Built styles are cached per theme + option combination, then reused.
@@ -22,11 +24,11 @@ const styleCache = new Map<string, object>();
  */
 export function resolveMapStyle(themeName: string, options: ResolveOptions = {}): object {
   const palette = themeName in MAP_THEMES ? MAP_THEMES[themeName] : darkMapPalette;
-  const { showPoi = true, lite = false } = options;
-  const key = `${themeName}:poi=${showPoi ? 1 : 0}:lite=${lite ? 1 : 0}`;
+  const { showPoi = true, lite = false, show3d = false } = options;
+  const key = `${themeName}:poi=${showPoi ? 1 : 0}:lite=${lite ? 1 : 0}:3d=${show3d ? 1 : 0}`;
   let style = styleCache.get(key);
   if (!style) {
-    style = buildMapStyle(palette, { showPoi, lite });
+    style = buildMapStyle(palette, { showPoi, lite, show3d });
     styleCache.set(key, style);
   }
   return style;

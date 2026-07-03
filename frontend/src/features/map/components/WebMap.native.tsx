@@ -71,10 +71,15 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const userCoordsRef = useRef<[number, number] | null>(null);
   const mapSizeRef    = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const { themeName } = useTheme();
-  const mapPoiEnabled  = useAppearanceStore((s) => s.mapPoiEnabled);
-  const mapLiteEnabled = useAppearanceStore((s) => s.mapLiteEnabled);
-  // Lite is a minimal map — POIs are always off there, regardless of the toggle.
-  const mapStyle       = resolveMapStyle(themeName, { showPoi: mapLiteEnabled ? false : mapPoiEnabled, lite: mapLiteEnabled });
+  const mapPoiEnabled   = useAppearanceStore((s) => s.mapPoiEnabled);
+  const mapLiteEnabled  = useAppearanceStore((s) => s.mapLiteEnabled);
+  const map3dBuildings  = useAppearanceStore((s) => s.map3dBuildingsEnabled);
+  // Lite is a minimal map — POIs and 3D buildings are always off there.
+  const mapStyle = resolveMapStyle(themeName, {
+    showPoi: mapLiteEnabled ? false : mapPoiEnabled,
+    lite: mapLiteEnabled,
+    show3d: mapLiteEnabled ? false : map3dBuildings,
+  });
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);

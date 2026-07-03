@@ -138,6 +138,8 @@ export default function AppearanceScreen() {
   const setMapPoiEnabled     = useAppearanceStore((s) => s.setMapPoiEnabled);
   const mapLiteEnabled       = useAppearanceStore((s) => s.mapLiteEnabled);
   const setMapLiteEnabled    = useAppearanceStore((s) => s.setMapLiteEnabled);
+  const map3dBuildings       = useAppearanceStore((s) => s.map3dBuildingsEnabled);
+  const setMap3dBuildings    = useAppearanceStore((s) => s.setMap3dBuildingsEnabled);
 
   const [accentPickerOpen, setAccentPickerOpen] = useState(false);
   const [routePickerOpen, setRoutePickerOpen]   = useState(false);
@@ -302,7 +304,7 @@ export default function AppearanceScreen() {
         />
       </View>
 
-      {/* Map POI labels toggle — irrelevant in Lite mode, so hidden there */}
+      {/* POI + 3D toggles — irrelevant in Lite mode, so hidden there */}
       {!mapLiteEnabled && (
         <View style={styles.toggleRow}>
           <View style={styles.toggleLabel}>
@@ -312,6 +314,21 @@ export default function AppearanceScreen() {
           <Switch
             value={mapPoiEnabled}
             onValueChange={(v) => { hapticTap(); setMapPoiEnabled(v); }}
+            trackColor={{ false: theme.border, true: theme.accent }}
+            thumbColor={theme.bgElement}
+          />
+        </View>
+      )}
+
+      {!mapLiteEnabled && (
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleLabel}>
+            <Text style={styles.toggleText}>{t('appearance.map3d')}</Text>
+            <Text style={styles.toggleSubtitle}>{t('appearance.map3dSubtitle')}</Text>
+          </View>
+          <Switch
+            value={map3dBuildings}
+            onValueChange={(v) => { hapticTap(); setMap3dBuildings(v); }}
             trackColor={{ false: theme.border, true: theme.accent }}
             thumbColor={theme.bgElement}
           />

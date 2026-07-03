@@ -18,15 +18,13 @@ type Style = { layers: StyleLayer[]; [k: string]: unknown };
 // airports…) — toggled together by the "map POIs" setting.
 const POI_SOURCE_LAYERS = new Set(['poi', 'aerodrome_label']);
 
-// Layers removed from the local styles for performance. This is a flat 2D
-// hunting map, so these are pure per-frame cost with no benefit here:
-//  - building-3d: 3D extrusion, the heaviest layer to re-render while panning
-//    (the flat `building` footprints stay);
-//  - natural_earth: shaded-relief raster we already hide — dropping it also
-//    stops the tile fetch/composite;
+// Layers always removed from the local styles — pure cost with no benefit on a
+// flat 2D hunting map in France:
+//  - natural_earth: shaded-relief raster we hide anyway — dropping it also stops
+//    the tile fetch/composite;
 //  - US road shields: never rendered in France, but still processed.
+// (building-3d is handled separately — it's opt-in via the `show3d` option.)
 const DROPPED_LAYERS = new Set([
-  'building-3d',
   'natural_earth',
   'highway-shield-us-interstate',
   'road_shield_us',
@@ -37,6 +35,8 @@ export type BuildOptions = {
   showPoi?: boolean;
   /** Lean layer set for low-end devices — see isLiteDropped. Default false. */
   lite?: boolean;
+  /** Show 3D building extrusions (heavier). Ignored in Lite. Default false. */
+  show3d?: boolean;
 };
 
 /**
@@ -156,14 +156,17 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
  */
 /**
  * Build a local map style from the Liberty base, recolored group by group from
- * `palette`. Options trim POIs and switch to the lean Lite layer set.
+ * `palette`. Options trim POIs, switch to the lean Lite layer set, and toggle
+ * 3D building extrusions (which never render in Lite).
  */
-export function buildMapStyle(palette: MapPalette, { showPoi = true, lite = false }: BuildOptions = {}): object {
+export function buildMapStyle(palette: MapPalette, { showPoi = true, lite = false, show3d = false }: BuildOptions = {}): object {
   const base = liberty as unknown as Style;
+  const with3d = show3d && !lite;
   return {
     ...base,
     layers: base.layers
       .filter((layer) => !DROPPED_LAYERS.has(layer.id))
+      .filter((layer) => with3d || layer.id !== 'building-3d')
       .filter((layer) => !lite || !isLiteDropped(layer.id))
       .map((layer) => {
         const styled = recolorLayer(layer, palette);
