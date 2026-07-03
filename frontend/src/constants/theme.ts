@@ -66,24 +66,25 @@ export type ThemeTokens = {
 
 // ─── Built-in themes ──────────────────────────────────────────────────────────
 
+// Dark theme — deep navy blue (formerly the "blue" theme; now the default dark).
 export const darkTheme: ThemeTokens = {
-  bg: '#000000',
-  bgElement: '#111111',
-  bgDivider: '#222222',
+  bg: '#0a0f1e',
+  bgElement: '#111827',
+  bgDivider: '#1e2a3a',
   bgInputValid: '#0a2a1a',
   bgInputInvalid: '#2a0a0a',
 
-  text: '#ffffff',
-  textMuted: '#666666',
+  text: '#e8f0fe',
+  textMuted: '#5b7a9d',
 
-  border: '#333333',
+  border: '#1e3a5f',
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.yellow,
+  accent: Brand.cyan,
   danger: Brand.pink,
   success: Brand.cyan,
-  locationDot: Brand.yellow,
+  locationDot: Brand.cyan,
   routePath: '#3effa0',
 };
 
@@ -108,37 +109,14 @@ export const lightTheme: ThemeTokens = {
   routePath: '#00aa66',
 };
 
-export const blueTheme: ThemeTokens = {
-  bg: '#0a0f1e',
-  bgElement: '#111827',
-  bgDivider: '#1e2a3a',
-  bgInputValid: '#0a2a1a',
-  bgInputInvalid: '#2a0a0a',
-
-  text: '#e8f0fe',
-  textMuted: '#5b7a9d',
-
-  border: '#1e3a5f',
-  borderInputValid: Brand.cyan,
-  borderInputInvalid: Brand.pink,
-
-  accent: Brand.cyan,
-  danger: Brand.pink,
-  success: Brand.cyan,
-  locationDot: Brand.cyan,
-  routePath: '#3effa0',
-};
-
 export const themes = {
   dark: darkTheme,
   light: lightTheme,
-  blue: blueTheme,
 } as const;
 
 export const themeLabels: Record<ThemeName, string> = {
   dark: 'Dark',
   light: 'Light',
-  blue: 'Blue',
 };
 
 export type ThemeName = keyof typeof themes;

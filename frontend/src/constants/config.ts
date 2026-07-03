@@ -1,16 +1,9 @@
 // Central registry of external service endpoints and their keys.
 // Environment-specific values come from EXPO_PUBLIC_* vars (see .env.example);
 // no secret is hardcoded here.
-
-/**
- * Hosted MapLibre style URLs, keyed by theme name. Both are keyless OpenFreeMap
- * endpoints. The `blue` theme is a local, keyless style object built from the
- * Liberty base (see features/map/styles) — resolve styles via `resolveMapStyle`.
- */
-export const MAP_STYLE_URLS: Record<string, string> = {
-  dark: 'https://tiles.openfreemap.org/styles/dark',
-  light: 'https://tiles.openfreemap.org/styles/liberty',
-};
+//
+// Map styles are built locally from a bundled OpenFreeMap Liberty base — see
+// features/map/styles (resolveMapStyle / MAP_THEMES). No hosted style URLs.
 
 /** OpenRouteService (directions / distance matrix). */
 export const ORS_BASE_URL = 'https://api.openrouteservice.org';

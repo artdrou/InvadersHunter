@@ -1,18 +1,16 @@
 /**
  * Map color palettes — the color system for locally-built map themes.
  *
- * Each themed map is the OpenFreeMap **Liberty** base style (liberty-base.json —
- * the same vector tiles, POIs and labels the light theme uses) recolored, one
- * layer-group at a time, from a `MapPalette`. See build-style.ts for exactly
- * which map layers each field controls.
+ * Every map theme is the OpenFreeMap **Liberty** base style (liberty-base.json —
+ * one bundled set of vector tiles, POIs and labels) recolored from a `MapPalette`,
+ * one layer-group at a time, and supports the POI / Lite layer toggles. See
+ * build-style.ts for what each palette field controls and what Lite trims.
  *
  * To add a new map theme (e.g. "red"):
  *   1. add a `redMapPalette` below (copy one and retune the colors),
- *   2. register it in `MAP_PALETTES` under the theme's name,
+ *   2. register it in `MAP_THEMES` under the theme's name,
  *   3. make sure that name exists as a `ThemeName` in constants/theme.ts.
- * `resolveMapStyle()` then builds and caches its style automatically — no other
- * wiring needed. Themes without a palette here fall back to a hosted URL
- * (see MAP_STYLE_URLS in constants/config.ts), as `dark` and `light` do.
+ * `resolveMapStyle()` then builds and caches its style automatically.
  */
 export type MapPalette = {
   /** Map base / empty land behind everything. */
@@ -45,8 +43,8 @@ export type MapPalette = {
   poi: string;
 };
 
-/** Dark-navy palette for the blue theme (matches blueTheme in constants/theme.ts). */
-export const blueMapPalette: MapPalette = {
+/** Dark-navy palette for the dark theme (matches darkTheme in constants/theme.ts). */
+export const darkMapPalette: MapPalette = {
   background:      '#0b1120',
   water:           '#103050',
   waterLabel:      '#5fa8d8',
@@ -64,9 +62,32 @@ export const blueMapPalette: MapPalette = {
 };
 
 /**
- * Map palettes keyed by app theme name. A theme listed here gets a local,
- * keyless recolored style; anything else uses a hosted URL (dark / light).
+ * Light palette — Liberty's own light colors, lifted into the palette system so
+ * the light theme is customizable too. Flattened by design (one color per group,
+ * e.g. all roads share `road`), so it reads close to Liberty rather than pixel-identical.
  */
-export const MAP_PALETTES: Record<string, MapPalette> = {
-  blue: blueMapPalette,
+export const lightMapPalette: MapPalette = {
+  background:      '#f8f4f0',
+  water:           '#a0c8f0',
+  waterLabel:      '#4a6a9a',
+  greenery:        '#d6e8c4',
+  landuse:         '#ece3d5',
+  road:            '#ffffff',
+  roadCasing:      '#d4cdbf',
+  rail:            '#c0c0c0',
+  building:        '#e2ded7',
+  buildingOutline: '#d0c9bd',
+  boundary:        '#9aa0aa',
+  label:           '#333333',
+  labelHalo:       '#ffffff',
+  poi:             '#666666',
+};
+
+/**
+ * Map palettes keyed by app theme name. Each recolors the Liberty base into a
+ * local, keyless style and supports the POI / Lite toggles.
+ */
+export const MAP_THEMES: Record<string, MapPalette> = {
+  dark: darkMapPalette,
+  light: lightMapPalette,
 };

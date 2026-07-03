@@ -288,20 +288,6 @@ export default function AppearanceScreen() {
         </View>
       )}
 
-      {/* Map POI labels toggle */}
-      <View style={styles.toggleRow}>
-        <View style={styles.toggleLabel}>
-          <Text style={styles.toggleText}>{t('appearance.mapPoi')}</Text>
-          <Text style={styles.toggleSubtitle}>{t('appearance.mapPoiSubtitle')}</Text>
-        </View>
-        <Switch
-          value={mapPoiEnabled}
-          onValueChange={(v) => { hapticTap(); setMapPoiEnabled(v); }}
-          trackColor={{ false: theme.border, true: theme.accent }}
-          thumbColor={theme.bgElement}
-        />
-      </View>
-
       {/* Lite map toggle — leaner layers for smoother panning on low-end devices */}
       <View style={styles.toggleRow}>
         <View style={styles.toggleLabel}>
@@ -315,6 +301,22 @@ export default function AppearanceScreen() {
           thumbColor={theme.bgElement}
         />
       </View>
+
+      {/* Map POI labels toggle — irrelevant in Lite mode, so hidden there */}
+      {!mapLiteEnabled && (
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleLabel}>
+            <Text style={styles.toggleText}>{t('appearance.mapPoi')}</Text>
+            <Text style={styles.toggleSubtitle}>{t('appearance.mapPoiSubtitle')}</Text>
+          </View>
+          <Switch
+            value={mapPoiEnabled}
+            onValueChange={(v) => { hapticTap(); setMapPoiEnabled(v); }}
+            trackColor={{ false: theme.border, true: theme.accent }}
+            thumbColor={theme.bgElement}
+          />
+        </View>
+      )}
 
       {/* Accent color picker modal */}
       <ColorPickerModal

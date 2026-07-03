@@ -73,7 +73,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const { themeName } = useTheme();
   const mapPoiEnabled  = useAppearanceStore((s) => s.mapPoiEnabled);
   const mapLiteEnabled = useAppearanceStore((s) => s.mapLiteEnabled);
-  const mapStyle       = resolveMapStyle(themeName, { showPoi: mapPoiEnabled, lite: mapLiteEnabled });
+  // Lite is a minimal map — POIs are always off there, regardless of the toggle.
+  const mapStyle       = resolveMapStyle(themeName, { showPoi: mapLiteEnabled ? false : mapPoiEnabled, lite: mapLiteEnabled });
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);

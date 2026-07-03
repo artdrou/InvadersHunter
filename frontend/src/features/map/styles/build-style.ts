@@ -40,22 +40,45 @@ export type BuildOptions = {
 };
 
 /**
- * Extra layers dropped in "lite" mode for smoother panning on low-end devices:
- * road casings (the outlines around roads), rail-tie hatching, one-way arrows,
- * road number shields, and minor name labels. Road *surfaces* are kept, so the
- * network stays continuous (no gaps at bridges/tunnels) — only the fine detail
- * and extra per-frame label/collision work go.
+ * Layers dropped in "lite" mode — a stripped-down map for smoother panning on
+ * low-end devices. Keeps: major + minor road surfaces, buildings, water,
+ * parks/greenery, boundaries, and city/town + region/country + major road-name
+ * labels. Drops everything else:
+ *  - road detail: casings (outlines), rail, service/track roads, footpaths,
+ *    one-way arrows, road shields, pedestrian-plaza fill;
+ *  - area tints: land-use zones (residential/school/…), ice/sand, aeroways;
+ *  - minor lines/labels: side waterways, water names, village/neighbourhood
+ *    names, minor & path road names.
+ * (POI labels are handled separately by the POI toggle.)
  */
 function isLiteDropped(id: string): boolean {
-  return /_casing$/.test(id)
-    || /_hatching$/.test(id)
-    || id.startsWith('road_one_way_arrow')
-    || id.startsWith('highway-shield')
-    || id === 'highway-name-path'
-    || id === 'highway-name-minor'
-    || id === 'waterway_line_label'
-    || id === 'water_name_line_label'
-    || id === 'label_village';
+  return (
+    // road outlines, rail, fine road classes, markings
+    /_casing$/.test(id) ||
+    /rail/.test(id) ||
+    /service_track/.test(id) ||
+    /path_pedestrian/.test(id) ||
+    /one_way_arrow/.test(id) ||
+    /shield/.test(id) ||
+    id === 'road_area_pattern' ||
+    // airport surfaces
+    id.startsWith('aeroway') ||
+    // area tints kept out (parks & greenery stay)
+    id.startsWith('landuse_') ||
+    id === 'landcover_ice' ||
+    id === 'landcover_sand' ||
+    // side waterways (main rivers + water fill stay)
+    id === 'waterway_tunnel' ||
+    id === 'waterway_other' ||
+    // minor labels
+    id === 'waterway_line_label' ||
+    id === 'water_name_point_label' ||
+    id === 'water_name_line_label' ||
+    id === 'label_village' ||
+    id === 'label_other' ||
+    id === 'highway-name-path' ||
+    id === 'highway-name-minor'
+  );
 }
 
 /**
@@ -131,6 +154,10 @@ function recolorLayer(layer: StyleLayer, p: MapPalette): StyleLayer {
  * The Liberty base style recolored from a palette — a keyless, fully local map
  * style (no MapTiler key, same OpenFreeMap tiles/POIs as the light theme).
  */
+/**
+ * Build a local map style from the Liberty base, recolored group by group from
+ * `palette`. Options trim POIs and switch to the lean Lite layer set.
+ */
 export function buildMapStyle(palette: MapPalette, { showPoi = true, lite = false }: BuildOptions = {}): object {
   const base = liberty as unknown as Style;
   return {
@@ -139,11 +166,11 @@ export function buildMapStyle(palette: MapPalette, { showPoi = true, lite = fals
       .filter((layer) => !DROPPED_LAYERS.has(layer.id))
       .filter((layer) => !lite || !isLiteDropped(layer.id))
       .map((layer) => {
-        const recolored = recolorLayer(layer, palette);
+        const styled = recolorLayer(layer, palette);
         if (!showPoi && POI_SOURCE_LAYERS.has(layer['source-layer'] ?? '')) {
-          return { ...recolored, layout: { ...(recolored.layout ?? {}), visibility: 'none' } };
+          return { ...styled, layout: { ...(styled.layout ?? {}), visibility: 'none' } };
         }
-        return recolored;
+        return styled;
       }),
   };
 }

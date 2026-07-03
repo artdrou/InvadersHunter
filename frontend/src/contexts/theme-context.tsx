@@ -5,7 +5,7 @@ import { themes, type ThemeName, type ThemeTokens, AppFont, AppFontScale } from 
 const THEME_KEY       = 'app-theme';
 const ACCENT_KEY      = 'app-accent-override';
 const ROUTE_PATH_KEY  = 'app-route-path-override';
-const FALLBACK_THEME: ThemeName = 'blue';
+const FALLBACK_THEME: ThemeName = 'dark';
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
