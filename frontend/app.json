@@ -2,7 +2,7 @@
   "expo": {
     "name": "Invader Hunter",
     "slug": "frontend",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/InvaderHunterIcon.png",
     "scheme": "frontend",
@@ -17,7 +17,8 @@
         "backgroundColor": "#E6F4FE"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.invaderhunter.app"
+      "package": "com.invaderhunter.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
