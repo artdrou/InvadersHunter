@@ -101,8 +101,10 @@ def _send_expo_push(db: Session, tokens: List[str], title: str, body: str, data:
             res = requests.post(EXPO_PUSH_URL, json=messages, timeout=10)
             res.raise_for_status()
             tickets = res.json().get("data", [])
+            ok_count = 0
             for token, ticket in zip(chunk, tickets):
                 if ticket.get("status") != "error":
+                    ok_count += 1
                     continue
                 error = ticket.get("details", {}).get("error")
                 if error == "DeviceNotRegistered":
@@ -114,6 +116,10 @@ def _send_expo_push(db: Session, tokens: List[str], title: str, body: str, data:
                         "notifications: Expo push ticket error for %s: %s (%s)",
                         token, error, ticket.get("message"),
                     )
+            log.info(
+                "notifications: Expo accepted %d/%d ticket(s) in this chunk",
+                ok_count, len(chunk),
+            )
         except Exception as e:
             log.warning("notifications: Expo push send failed for a chunk: %s", e)
 
@@ -135,12 +141,19 @@ def notify_invader_event(
     try:
         settings = get_global_settings(db)
         if not settings.enabled:
+            log.info("notifications: skipped for invader_id=%s — globally disabled", invader_id)
             return
         if event_type == "invader_added" and not settings.notify_on_create:
+            log.info("notifications: skipped invader_added for invader_id=%s — notify_on_create disabled", invader_id)
             return
         if event_type == "invader_updated" and not settings.notify_on_update:
+            log.info("notifications: skipped invader_updated for invader_id=%s — notify_on_update disabled", invader_id)
             return
         tokens = _recipient_tokens(db)
+        if not tokens:
+            log.info("notifications: skipped for invader_id=%s — no registered push tokens", invader_id)
+            return
+        log.info("notifications: sending invader_id=%s to %d device(s)", invader_id, len(tokens))
         _send_expo_push(db, tokens, title, body, {"screen": "/news", "invader_id": invader_id})
     except Exception as e:
         log.warning("notifications: notify_invader_event failed: %s", e)
