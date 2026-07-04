@@ -29,7 +29,7 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.two,
       alignItems: 'center',
     },
-    placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
-    placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20, textAlign: 'center' },
+    placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20, textAlign: 'center' },
   });
 }

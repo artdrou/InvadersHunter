@@ -61,7 +61,7 @@ function makeStyles(t: ThemeTokens, font: string) {
     title: {
       color: t.accent,
       fontFamily: font,
-      fontSize: FontSize.xxl,
+      fontSize: FontSize.xl,
       letterSpacing: 1,
     },
     body: {

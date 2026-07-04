@@ -216,8 +216,8 @@ export const Spacing = {
 // Stacking order for absolutely-positioned overlays. Higher = closer to the user.
 
 export const ZIndex = {
-  map: 5,        // map-level FABs (routing button)
-  control: 10,   // on-map controls (locate, compass, filter bar, popup, news)
+  map: 5,        // map-level FABs (routing, locate, compass, news) — sit below panels
+  control: 10,   // on-map controls that must cover the FABs (filter bar, popup)
   picker: 15,    // location-picker pin (sits above controls, below its action bar)
   overlay: 20,   // full-screen bars, banners, toasts
 } as const;

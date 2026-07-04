@@ -45,7 +45,7 @@ function makeStyles(t: ThemeTokens) {
       backgroundColor: t.accent,
       alignItems: 'center',
     },
-    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
     notice: {
       color: t.danger,

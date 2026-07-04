@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     right: Spacing.three,
     width: 48,
     height: 48,
-    zIndex: ZIndex.control,
+    zIndex: ZIndex.map,
   },
   compassButton: {
     position: "absolute",
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     right: Spacing.three,
     width: 48,
     height: 48,
-    zIndex: ZIndex.control,
+    zIndex: ZIndex.map,
   },
   newsButton: {
     position: "absolute",
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: ZIndex.control,
+    zIndex: ZIndex.map,
   },
   newsBadge: {
     position: "absolute",

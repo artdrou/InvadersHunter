@@ -55,7 +55,7 @@ function makeStyles(t: ThemeTokens) {
     optionText: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: FontSize.lg,
+      fontSize: FontSize.md,
     },
     pressed: { opacity: 0.6 },
   });

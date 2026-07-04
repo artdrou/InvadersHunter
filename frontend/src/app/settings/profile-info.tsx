@@ -209,7 +209,7 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
       marginTop: Spacing.three,
     },
-    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
   });
 }

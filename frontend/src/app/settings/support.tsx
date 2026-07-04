@@ -54,7 +54,7 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
       marginTop: Spacing.two,
     },
-    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
   });
 }

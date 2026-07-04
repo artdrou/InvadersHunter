@@ -51,7 +51,7 @@ function makeStyles(t: ThemeTokens) {
       padding: Spacing.three,
     },
     labelWrap: { flex: 1, gap: 4 },
-    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
-    subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20 },
+    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
   });
 }

@@ -87,7 +87,7 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
       alignItems: 'center',
     },
-    btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
     creditsBlock: { gap: Spacing.two, paddingTop: Spacing.three },
     creditsTitle: {

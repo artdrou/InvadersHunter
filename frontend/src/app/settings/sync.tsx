@@ -46,7 +46,7 @@ function makeStyles(t: ThemeTokens) {
     btnText: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: FontSize.lg,
+      fontSize: FontSize.md,
     },
     pressed: { opacity: 0.6 },
   });

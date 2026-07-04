@@ -409,8 +409,8 @@ function makeStyles(t: ThemeTokens) {
       padding: Spacing.three,
     },
     toggleLabel:    { flex: 1, gap: 4 },
-    toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
-    toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20 },
+    toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
 
     // Stepper (−/+ around a numeric value)
     stepper:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
