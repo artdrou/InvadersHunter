@@ -81,7 +81,7 @@ export const darkTheme: ThemeTokens = {
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.cyan,
+  accent: '#ccff00',
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: Brand.cyan,
