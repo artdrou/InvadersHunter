@@ -179,18 +179,18 @@ export type ThemeName = keyof typeof themes;
  * Tier guide:
  *  - xxs  11  tiny badges / counts (confidence indicators, pixel-badge numbers)
  *  - xs   13  small badges, meta text (dates, credits)
- *  - sm   16  secondary text, subtitles, list items
- *  - md   18  body text, section labels, row labels
- *  - lg   22  toggles, prominent row labels, filter chips
+ *  - sm   14  secondary text, subtitles, list items
+ *  - md   16  body text, section labels, row labels
+ *  - lg   20  toggles, prominent row labels, filter chips
  *  - xl   27  titles, headers, modal titles
  *  - xxl  30  primary CTAs (login, sync, approve, etc.)
  */
 export const FontSize = {
   xxs: 11,
   xs: 13,
-  sm: 16,
-  md: 18,
-  lg: 22,
+  sm: 14,
+  md: 16,
+  lg: 20,
   xl: 27,
   xxl: 30,
 } as const;
