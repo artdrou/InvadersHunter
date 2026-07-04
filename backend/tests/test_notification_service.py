@@ -125,3 +125,22 @@ def test_send_expo_push_prunes_dead_tokens(db, user_with_token, monkeypatch):
     notification_service._send_expo_push(db, [token_str], "Titre", "Corps", {})
 
     assert db.query(PushToken).filter(PushToken.token == token_str).first() is None
+
+
+def test_send_expo_push_logs_other_errors_without_pruning(db, user_with_token, monkeypatch, caplog):
+    """A ticket error that isn't DeviceNotRegistered (e.g. missing FCM/APNs
+    credentials) must be logged, not silently dropped, and must not prune the
+    token — the device is still valid, delivery just failed this time."""
+    _, token = user_with_token
+    monkeypatch.setattr(
+        notification_service.requests, "post",
+        lambda url, json, timeout: FakeResponse(
+            [{"status": "error", "details": {"error": "MessageTooBig"}, "message": "boom"}]
+        ),
+    )
+
+    with caplog.at_level("WARNING", logger="notifications"):
+        notification_service._send_expo_push(db, [token.token], "Titre", "Corps", {})
+
+    assert db.query(PushToken).filter(PushToken.token == token.token).first() is not None
+    assert any("MessageTooBig" in r.message for r in caplog.records)

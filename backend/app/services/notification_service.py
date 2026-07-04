@@ -102,8 +102,18 @@ def _send_expo_push(db: Session, tokens: List[str], title: str, body: str, data:
             res.raise_for_status()
             tickets = res.json().get("data", [])
             for token, ticket in zip(chunk, tickets):
-                if ticket.get("status") == "error" and ticket.get("details", {}).get("error") == "DeviceNotRegistered":
+                if ticket.get("status") != "error":
+                    continue
+                error = ticket.get("details", {}).get("error")
+                if error == "DeviceNotRegistered":
                     dead_tokens.append(token)
+                else:
+                    # Surface anything else (e.g. missing FCM/APNs credentials,
+                    # rate limits) — these were previously dropped silently.
+                    log.warning(
+                        "notifications: Expo push ticket error for %s: %s (%s)",
+                        token, error, ticket.get("message"),
+                    )
         except Exception as e:
             log.warning("notifications: Expo push send failed for a chunk: %s", e)
 
