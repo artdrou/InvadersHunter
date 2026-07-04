@@ -100,7 +100,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     const interval = setInterval(() => {
       if (!userCoordsRef.current) return;
       const [lon, lat] = userCoordsRef.current;
-      camera?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow });
+      // linearTo: default "easeTo" decelerates to a stop every tick, which reads as a
+      // stutter once the user is actually moving. Constant-velocity interpolation lets
+      // consecutive 300ms steps blend into one continuous pan instead.
+      camera?.setCamera({ centerCoordinate: [lon, lat], animationDuration: MapAnim.follow, animationMode: "linearTo" });
     }, FOLLOW_INTERVAL_MS);
 
     return () => {
