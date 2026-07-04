@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
 export default function SecurityScreen() {
@@ -29,7 +29,7 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.two,
       alignItems: 'center',
     },
-    placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
-    placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20, textAlign: 'center' },
+    placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20, textAlign: 'center' },
   });
 }

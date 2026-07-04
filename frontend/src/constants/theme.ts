@@ -171,35 +171,26 @@ export type ThemeName = keyof typeof themes;
 
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
-export const FontSize = {
-  xxs: 11,
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 20,
-  xl: 28,
-} as const;
-
 /**
- * Sizes for ButtonFont (pixel font). These render larger nominal-pt values
- * because pixel fonts have smaller x-height than system fonts; the tiers
- * below are calibrated for visual parity with the rest of the UI.
+ * Single type scale, shared by every screen and font (both AppFont and
+ * ButtonFont render as FreePixel, so there's no reason for their nominal
+ * sizes to diverge).
  *
  * Tier guide:
- *  - xxs   9  tiny pixel-badge numbers (counts on routing badges)
- *  - xs   13  tiny badges (confidence indicators)
- *  - sm   18  small status badges
- *  - md   21  section labels, inline edit hints
- *  - lg   24  filter chips, filter options, small secondaries
- *  - xl   27  cancel / theme picker / modal secondaries
+ *  - xxs  11  tiny badges / counts (confidence indicators, pixel-badge numbers)
+ *  - xs   13  small badges, meta text (dates, credits)
+ *  - sm   16  secondary text, subtitles, list items
+ *  - md   18  body text, section labels, row labels
+ *  - lg   22  toggles, prominent row labels, filter chips
+ *  - xl   27  titles, headers, modal titles
  *  - xxl  30  primary CTAs (login, sync, approve, etc.)
  */
-export const ButtonFontSize = {
-  xxs: 9,
+export const FontSize = {
+  xxs: 11,
   xs: 13,
-  sm: 18,
-  md: 21,
-  lg: 24,
+  sm: 16,
+  md: 18,
+  lg: 22,
   xl: 27,
   xxl: 30,
 } as const;

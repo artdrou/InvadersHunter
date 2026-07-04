@@ -8,10 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import {
-  type ThemeTokens, FontSize, BorderRadius, Spacing,
-  ButtonFont, ButtonFontSize, Brand,
-} from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, Brand } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import { logger } from '@/services/logger';
 import type { AdminRequest } from '@/features/admin/types';
@@ -220,7 +217,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingVertical: Spacing.two,
     },
     backBtn: { paddingRight: Spacing.two },
-    backText: { color: t.accent, fontSize: ButtonFontSize.xl, fontFamily: ButtonFont },
+    backText: { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
     filterBtn: { position: 'relative', padding: 4 },
     filterDot: {
       position: 'absolute',
@@ -250,7 +247,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     segmentedTabActive: { backgroundColor: t.text },
     segmentedText: {
       color: t.textMuted,
-      fontSize: sz(ButtonFontSize.xs),
+      fontSize: sz(FontSize.xs),
       fontFamily: ButtonFont,
     },
     segmentedTextActive: { color: t.bg },
@@ -273,7 +270,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     typeChipText: {
       color: t.textMuted,
-      fontSize: sz(ButtonFontSize.xs),
+      fontSize: sz(FontSize.xs),
       fontFamily: ButtonFont,
     },
 

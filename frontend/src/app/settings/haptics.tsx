@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 import { useHapticsStore } from '@/features/settings/haptics-store';
 
@@ -51,7 +51,7 @@ function makeStyles(t: ThemeTokens) {
       padding: Spacing.three,
     },
     labelWrap: { flex: 1, gap: 4 },
-    label: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
-    subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20 },
+    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20 },
   });
 }

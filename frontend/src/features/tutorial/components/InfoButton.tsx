@@ -1,6 +1,6 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { ButtonFont, FontSize } from '@/constants/theme';
 
 type Props = {
   onPress: () => void;
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontFamily: ButtonFont,
-    fontSize: ButtonFontSize.xs,
+    fontSize: FontSize.xs,
     letterSpacing: 0.5,
   },
   pressed: { opacity: 0.5 },

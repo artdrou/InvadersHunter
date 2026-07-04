@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { BorderRadius, ButtonFont, ButtonFontSize, Spacing, Overlay } from "@/constants/theme";
+import { BorderRadius, ButtonFont, Spacing, Overlay, FontSize } from "@/constants/theme";
 
 // Layout is theme-independent (colors are applied inline via `theme.*` in each
 // component), so the sheet can be built once at module load and shared.
@@ -47,7 +47,7 @@ export const toolbarStyles = StyleSheet.create({
       paddingHorizontal: 3,
     },
     badgeText: {
-      fontSize: ButtonFontSize.xxs,
+      fontSize: FontSize.xxs,
       fontFamily: ButtonFont,
       lineHeight: 15,
     },
@@ -65,7 +65,7 @@ export const toolbarStyles = StyleSheet.create({
       borderRadius: BorderRadius.sm,
     },
     chipText: {
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       fontFamily: ButtonFont,
     },
     // Slider
@@ -130,7 +130,7 @@ export const toolbarStyles = StyleSheet.create({
     sheetTitle: {
       flex: 1,
       textAlign: "center",
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
       fontFamily: ButtonFont,
     },
     panelArea: {
@@ -165,11 +165,11 @@ export const toolbarStyles = StyleSheet.create({
       maxWidth: "50%",
     },
     menuLabel: {
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
       fontFamily: ButtonFont,
     },
     menuValue: {
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
       flexShrink: 1,
     },
@@ -184,7 +184,7 @@ export const toolbarStyles = StyleSheet.create({
       flex: 1,
     },
     columnLabel: {
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
       fontFamily: ButtonFont,
       letterSpacing: 0.5,
       textTransform: "uppercase",
@@ -202,7 +202,7 @@ export const toolbarStyles = StyleSheet.create({
     },
     optionPressed: { opacity: 0.7 },
     optionText: {
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
       fontFamily: ButtonFont,
     },
     sortOptionRow: {
@@ -211,7 +211,7 @@ export const toolbarStyles = StyleSheet.create({
       justifyContent: "space-between",
     },
     sectionLabel: {
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,

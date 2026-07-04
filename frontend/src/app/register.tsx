@@ -6,7 +6,7 @@ import { useAuthStore, registerUser } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
@@ -139,7 +139,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     buttonText: {
       color: t.bg,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
     },
     loginLink: {
       alignItems: 'center',

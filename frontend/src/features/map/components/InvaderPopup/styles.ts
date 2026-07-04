@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 /** Fixed popup card width (px). */
 export const POPUP_WIDTH = 300;
@@ -93,7 +93,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     flashBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
       color: t.bg,
     },
     unflashBtnText: {
@@ -114,7 +114,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     modifyLinkText: {
       color: t.accent,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
     },
     modifyLinkDisabledText: {
@@ -154,7 +154,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     positionEdit: {
       color: t.accent,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
     },
     cancelBtn: {
@@ -163,7 +163,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     cancelBtnText: {
       color: t.textMuted,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
       fontFamily: ButtonFont,
     },
     offlineMsg: {

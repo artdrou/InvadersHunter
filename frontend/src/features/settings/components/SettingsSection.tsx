@@ -5,7 +5,7 @@
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 
 type Props = {
   title: string;
@@ -28,7 +28,7 @@ function makeStyles(t: ThemeTokens) {
     label: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       letterSpacing: 1,
       textTransform: 'uppercase',
       paddingHorizontal: Spacing.two,

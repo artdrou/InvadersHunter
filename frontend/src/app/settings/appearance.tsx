@@ -3,7 +3,7 @@ import { View, Text, Pressable, Switch, StyleSheet, Modal, TextInput } from 'rea
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { themes, type ThemeName, type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { themes, type ThemeName, type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX } from '@/features/settings';
 
 // 5x5 neon palette — rows follow the visible spectrum.
@@ -367,7 +367,7 @@ function makeStyles(t: ThemeTokens) {
     subcategoryLabel: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       letterSpacing: 2,
       textTransform: 'uppercase',
     },
@@ -376,7 +376,7 @@ function makeStyles(t: ThemeTokens) {
     sectionLabel: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
       letterSpacing: 1,
       textTransform: 'uppercase',
     },
@@ -387,7 +387,7 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm, borderWidth: 1,
       borderColor: t.border, backgroundColor: t.bgElement,
     },
-    optionText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+    optionText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed:    { opacity: 0.6 },
     swatchRow2: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
     accentSwatch: { width: 44, height: 44, borderRadius: BorderRadius.sm, borderWidth: 2 },
@@ -395,7 +395,7 @@ function makeStyles(t: ThemeTokens) {
       paddingVertical: 8, paddingHorizontal: Spacing.three,
       borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border,
     },
-    resetBtnText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+    resetBtnText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
 
     // Toggle row (matches haptics.tsx style)
     toggleRow: {
@@ -409,8 +409,8 @@ function makeStyles(t: ThemeTokens) {
       padding: Spacing.three,
     },
     toggleLabel:    { flex: 1, gap: 4 },
-    toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
-    toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 20 },
+    toggleText:     { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    toggleSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 20 },
 
     // Stepper (−/+ around a numeric value)
     stepper:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
@@ -420,10 +420,10 @@ function makeStyles(t: ThemeTokens) {
       borderColor: t.border, backgroundColor: t.bg,
     },
     stepperBtnDisabled: { opacity: 0.35 },
-    stepperBtnText:     { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.xl, lineHeight: 24 },
+    stepperBtnText:     { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.xl, lineHeight: 24 },
     stepperValue: {
       minWidth: 28, textAlign: 'center',
-      color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg,
+      color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg,
     },
 
     // Modal
@@ -437,7 +437,7 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.lg, borderWidth: 1, borderColor: t.border,
       padding: Spacing.four, gap: Spacing.three,
     },
-    modalTitle:  { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl, letterSpacing: 1 },
+    modalTitle:  { fontFamily: ButtonFont, fontSize: FontSize.xl, letterSpacing: 1 },
     swatchGrid:  { gap: Spacing.one },
     swatchRow:   { flexDirection: 'row', gap: Spacing.one },
     swatch:      { flex: 1, aspectRatio: 1, borderRadius: BorderRadius.sm, borderWidth: 2 },
@@ -455,8 +455,8 @@ function makeStyles(t: ThemeTokens) {
       flex: 1, paddingVertical: 12, alignItems: 'center',
       borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border,
     },
-    modalSecondaryText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+    modalSecondaryText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
     modalPrimaryBtn:    { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: BorderRadius.sm },
-    modalPrimaryText:   { color: t.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+    modalPrimaryText:   { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
   });
 }

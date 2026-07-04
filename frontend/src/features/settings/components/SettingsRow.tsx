@@ -9,7 +9,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, Spacing, FontSize } from '@/constants/theme';
 import { tap } from '../haptics';
 
 type Props = {
@@ -68,17 +68,17 @@ function makeStyles(t: ThemeTokens) {
     labelWrap: { flex: 1, gap: 2 },
     label: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
     },
     subtitle: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
     },
     value: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
     },
   });
 }

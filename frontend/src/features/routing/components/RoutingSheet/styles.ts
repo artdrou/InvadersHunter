@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import type { ThemeTokens } from '@/constants/theme'
-import { BorderRadius, Spacing, ButtonFont, ButtonFontSize, FontSize } from '@/constants/theme'
+import { BorderRadius, Spacing, ButtonFont, FontSize } from '@/constants/theme';
 
 /** Shared stylesheet for the RoutingSheet and its sub-parts. */
 export function makeStyles(t: ThemeTokens, font: string, scale: number) {
@@ -31,7 +31,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingBottom: Spacing.two,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    titleText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl, letterSpacing: 1 },
+    titleText: { fontFamily: ButtonFont, fontSize: FontSize.xl, letterSpacing: 1 },
 
     // Fields container
     fields: {
@@ -69,7 +69,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingHorizontal: Spacing.two + 2, paddingVertical: 6,
       borderRadius: BorderRadius.sm,
     },
-    actionBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xs },
+    actionBtnText: { fontFamily: ButtonFont, fontSize: FontSize.xs },
 
     // Collapsible options
     optionsPanel: {
@@ -87,12 +87,12 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       borderRadius: BorderRadius.sm, borderWidth: 1,
     },
     chipActive: { backgroundColor: t.accent, borderColor: t.accent },
-    chipText:   { fontFamily: ButtonFont, fontSize: ButtonFontSize.xs },
+    chipText:   { fontFamily: ButtonFont, fontSize: FontSize.xs },
 
     // Stepper
     stepper:     { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
     stepBtn:     { width: 32, height: 32, borderRadius: BorderRadius.sm, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    stepBtnText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.xl },
+    stepBtnText: { fontFamily: ButtonFont, fontSize: FontSize.xl },
     stepValue:   { fontFamily: font, fontSize: sz(FontSize.md), minWidth: 72, textAlign: 'center' },
 
     // Mandatory stops row

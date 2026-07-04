@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   newsBadgeText: {
     color: White,
-    fontSize: 10,
+    fontSize: FontSize.xxs,
     fontWeight: "700",
   },
 });

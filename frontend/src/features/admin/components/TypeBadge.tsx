@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { BorderRadius, Brand, ButtonFont, ButtonFontSize, Spacing } from '@/constants/theme';
+import { BorderRadius, Brand, ButtonFont, Spacing, FontSize } from '@/constants/theme';
 
 export type AdminRequestType = 'create' | 'modify' | 'delete';
 
@@ -47,7 +47,7 @@ function makeStyles(color: string) {
     },
     text: {
       color,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       fontFamily: ButtonFont,
       letterSpacing: 0.5,
     },

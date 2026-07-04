@@ -7,10 +7,7 @@ import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useTranslation } from 'react-i18next';
-import {
-  type ThemeTokens,
-  ButtonFont, ButtonFontSize, BorderRadius, Spacing, FontSize, Fonts,
-} from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize, Fonts } from '@/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -240,14 +237,14 @@ function makeStyles(t: ThemeTokens) {
     },
     titleText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
       color: t.accent,
       letterSpacing: 1,
     },
     closeBtn: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
     },
 
     // Pager
@@ -353,7 +350,7 @@ function makeStyles(t: ThemeTokens) {
     },
     gotItText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
     },
 
     // Image placeholder

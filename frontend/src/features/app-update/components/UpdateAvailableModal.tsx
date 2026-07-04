@@ -1,7 +1,7 @@
 import { Modal, View, Text, Pressable, StyleSheet, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAppUpdateStore } from '../store';
 import { resolveApkUrl, getCurrentVersion } from '../services/app-update.api';
 
@@ -98,7 +98,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     primaryBtnText: {
       color: t.bg,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
     },
     secondaryBtn: {
       paddingVertical: 10,
@@ -107,7 +107,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     secondaryBtnText: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
     },
     pressed: { opacity: 0.7 },
   });

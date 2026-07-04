@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, FontSize } from '@/constants/theme';
 
 function confidenceColor(score: number, theme: ThemeTokens): string {
   if (score >= 75) return theme.success;
@@ -36,7 +36,7 @@ function makeStyles(color: string) {
     },
     text: {
       color: '#fff',
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       fontFamily: ButtonFont,
     },
   });

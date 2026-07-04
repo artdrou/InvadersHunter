@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { SUPPORTED_LANGUAGES, setLanguage, type LanguageCode } from '@/services/i18n';
 
@@ -55,7 +55,7 @@ function makeStyles(t: ThemeTokens) {
     optionText: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
     },
     pressed: { opacity: 0.6 },
   });

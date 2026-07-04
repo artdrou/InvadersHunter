@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { ShapeSource, LineLayer, CircleLayer, SymbolLayer, PointAnnotation } from '@maplibre/maplibre-react-native'
 import type { Expression } from '@maplibre/maplibre-react-native'
 import { useTheme } from '@/contexts/theme-context'
-import { ButtonFont, ButtonFontSize } from '@/constants/theme'
+import { ButtonFont, FontSize } from '@/constants/theme';
 import { useAppearanceStore } from '@/features/settings'
 import type { RouteResult } from '../types'
 import type { InvaderWithState } from '@/features/invaders'
@@ -247,6 +247,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: ButtonFont,
-    fontSize: ButtonFontSize.xs,
+    fontSize: FontSize.xs,
   },
 })

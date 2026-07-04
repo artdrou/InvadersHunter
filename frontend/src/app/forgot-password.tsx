@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
 type Step = 'request' | 'verify' | 'new-password';
 
@@ -241,7 +241,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     buttonText: {
       color: t.bg,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
     },
     backLink: {
       marginTop: Spacing.five,

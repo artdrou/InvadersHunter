@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuthStore, logoutUser } from '@/features/auth';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { useInvaderData, mapInvadersWithProgress, cityOf, isNonFlashable } from '@/features/invaders';
 
@@ -165,7 +165,7 @@ function makeStyles(t: ThemeTokens) {
     },
     section: { gap: Spacing.two },
     sectionLabel: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm,
+      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm,
       letterSpacing: 1, textTransform: 'uppercase',
     },
     grid: {
@@ -187,17 +187,17 @@ function makeStyles(t: ThemeTokens) {
     cellValue: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
     },
     cellSub: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
     },
     cellLabel: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       marginTop: Spacing.one,
       letterSpacing: 0.5,
     },
@@ -209,7 +209,7 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
       marginTop: Spacing.three,
     },
-    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.lg },
     pressed: { opacity: 0.6 },
   });
 }

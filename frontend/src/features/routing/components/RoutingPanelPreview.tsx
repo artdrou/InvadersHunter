@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
-import { BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { BorderRadius, Spacing, ButtonFont, FontSize } from '@/constants/theme';
 
 type Props = {
   highlight?: number[];
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     },
     badgeNum: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxs,
+      fontSize: FontSize.xxs,
       lineHeight: 12,
     },
 
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     },
     titleText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       letterSpacing: 1,
     },
     infoBtn: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     },
     infoBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxs,
+      fontSize: FontSize.xxs,
       lineHeight: 12,
     },
 
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     },
     fieldText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       flex: 1,
     },
 
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     },
     chipText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxs,
+      fontSize: FontSize.xxs,
     },
 
     stepper: {
@@ -243,12 +243,12 @@ const styles = StyleSheet.create({
     },
     stepBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       lineHeight: 16,
     },
     stepValue: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       minWidth: 50,
       textAlign: 'center',
     },
@@ -264,11 +264,11 @@ const styles = StyleSheet.create({
     },
     startBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
     },
 
     detourText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
     },
 });

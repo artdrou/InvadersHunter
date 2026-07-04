@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
 
 // Items to show on the roadmap screen. Each `key` must match a sub-entry under
@@ -47,7 +47,7 @@ function makeStyles(t: ThemeTokens) {
     intro: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
       lineHeight: 22,
     },
     list: { gap: Spacing.two },
@@ -63,13 +63,13 @@ function makeStyles(t: ThemeTokens) {
     cardTitle: {
       color: t.text,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       flexShrink: 1,
     },
     cardBody: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.sm,
+      fontSize: FontSize.sm,
       lineHeight: 20,
     },
   });

@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Updates from 'expo-updates';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from '@/features/app-update';
 import { getDateLocale } from '@/services/i18n';
@@ -78,8 +78,8 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.two,
     },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    infoLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
-    infoValue: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
+    infoLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
+    infoValue: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
     btn: {
       paddingVertical: 12,
       borderWidth: 1,
@@ -87,13 +87,13 @@ function makeStyles(t: ThemeTokens) {
       borderRadius: BorderRadius.sm,
       alignItems: 'center',
     },
-    btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.lg },
     pressed: { opacity: 0.6 },
     creditsBlock: { gap: Spacing.two, paddingTop: Spacing.three },
     creditsTitle: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm,
+      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm,
       letterSpacing: 1, textTransform: 'uppercase',
     },
-    creditsBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: ButtonFontSize.sm, lineHeight: 22 },
+    creditsBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 22 },
   });
 }

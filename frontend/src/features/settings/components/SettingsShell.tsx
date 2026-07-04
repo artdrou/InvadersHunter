@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 
 type Props = {
   title: string;
@@ -56,12 +56,12 @@ function makeStyles(t: ThemeTokens, font: string) {
     backText: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
     },
     title: {
       color: t.accent,
       fontFamily: font,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
       letterSpacing: 1,
     },
     body: {
@@ -79,4 +79,4 @@ function makeStyles(t: ThemeTokens, font: string) {
 
 // Re-export tokens commonly used inside sub-screens so they don't have to
 // re-import them all individually.
-export { BorderRadius, Spacing, ButtonFont, ButtonFontSize };
+export { BorderRadius, Spacing, ButtonFont, FontSize };

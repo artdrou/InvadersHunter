@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, ButtonFontSize, Spacing } from '@/constants/theme';
+import { type ThemeTokens, Spacing, FontSize } from '@/constants/theme';
 import { SettingsSection, SettingsRow } from '@/features/settings';
 
 export default function AdminMenuScreen() {
@@ -107,7 +107,7 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
     title: {
       color: t.accent,
       fontFamily: font,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
       letterSpacing: 1,
     },
     body: {

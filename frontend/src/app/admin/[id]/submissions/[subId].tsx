@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { fetchAdminSubmissions, fetchInvader } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { Diff } from '@/features/admin/components/Diff';
@@ -123,7 +123,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       borderBottomWidth: 1, borderBottomColor: t.border,
     },
     backBtn:      { paddingRight: Spacing.two },
-    backText:     { color: t.accent, fontSize: ButtonFontSize.xl, fontFamily: ButtonFont },
+    backText:     { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
     headerTitle:  { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three },
@@ -131,7 +131,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
       borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
     },
-    sectionTitle: { color: t.textMuted, fontSize: ButtonFontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+    sectionTitle: { color: t.textMuted, fontSize: FontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
     row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     metaLabel:    { color: t.textMuted, fontSize: sz(13), fontFamily: font },
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from "@/constants/theme";
+import { type ThemeTokens, BorderRadius, ButtonFont, Spacing, FontSize } from "@/constants/theme";
 import { PixelButton } from "@/components/ui/PixelButton";
 import { InfoButton, TutorialModal } from "@/features/tutorial";
 import type { TutorialPage } from "@/features/tutorial";
@@ -275,7 +275,7 @@ function makeStyles(t: ThemeTokens) {
     },
     sectionLabel: {
       color: t.textMuted,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
@@ -291,7 +291,7 @@ function makeStyles(t: ThemeTokens) {
     },
     sectionLabelText: {
       color: t.textMuted,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
     },
     optionGroup: {},
@@ -307,7 +307,7 @@ function makeStyles(t: ThemeTokens) {
     },
     optionText: {
       color: t.text,
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
       fontFamily: ButtonFont,
     },
     optionTextSelected: {

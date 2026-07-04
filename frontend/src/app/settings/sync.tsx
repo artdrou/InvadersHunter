@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useInvaderStore } from '@/features/invaders';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 
 export default function SyncScreen() {
@@ -46,7 +46,7 @@ function makeStyles(t: ThemeTokens) {
     btnText: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.lg,
+      fontSize: FontSize.lg,
     },
     pressed: { opacity: 0.6 },
   });

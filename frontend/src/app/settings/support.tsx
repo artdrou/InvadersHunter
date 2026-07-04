@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontSize, BorderRadius, Spacing } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 
 // TODO: replace REPLACE_ME with the real Ko-fi handle once the account is created.
@@ -46,7 +46,7 @@ function makeStyles(t: ThemeTokens) {
       padding: Spacing.four,
       gap: Spacing.three,
     },
-    body: { color: t.text, fontFamily: ButtonFont, fontSize: ButtonFontSize.md, lineHeight: 22 },
+    body: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md, lineHeight: 22 },
     btn: {
       paddingVertical: 12,
       borderRadius: BorderRadius.sm,
@@ -54,7 +54,7 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
       marginTop: Spacing.two,
     },
-    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: ButtonFontSize.lg },
+    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.lg },
     pressed: { opacity: 0.6 },
   });
 }

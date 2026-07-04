@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontSize } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
 
 /** Fixed create-modal card width (px). */
 export const CARD_WIDTH = 300;
@@ -145,7 +145,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     positionEdit: {
       color: t.accent,
-      fontSize: ButtonFontSize.md,
+      fontSize: FontSize.md,
       fontFamily: ButtonFont,
     },
     submitBtn: {
@@ -164,7 +164,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     submitBtnText: {
       fontFamily: ButtonFont,
-      fontSize: ButtonFontSize.xxl,
+      fontSize: FontSize.xxl,
       color: t.bg,
     },
     cancelBtn: {
@@ -173,7 +173,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     cancelBtnText: {
       color: t.textMuted,
-      fontSize: ButtonFontSize.xl,
+      fontSize: FontSize.xl,
       fontFamily: ButtonFont,
     },
     offlineMsg: {

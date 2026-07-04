@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, BorderRadius, ButtonFont, ButtonFontSize, Spacing } from '@/constants/theme';
+import { type ThemeTokens, BorderRadius, ButtonFont, Spacing, FontSize } from '@/constants/theme';
 
 export type AdminRequestStatus = 'pending' | 'approved' | 'rejected';
 
@@ -39,7 +39,7 @@ function makeStyles(color: string) {
     },
     text: {
       color,
-      fontSize: ButtonFontSize.xs,
+      fontSize: FontSize.xs,
       fontFamily: ButtonFont,
       letterSpacing: 0.5,
     },

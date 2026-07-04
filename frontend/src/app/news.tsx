@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { Spacing, FontSize, ButtonFont, ButtonFontSize, BorderRadius } from '@/constants/theme';
+import { Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useNewsData, useNewsStore, NewsListItem, newsItemKey } from '@/features/news';
 import { useLocateStore } from '@/features/map';
 
@@ -93,8 +93,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
-  backText: { fontFamily: ButtonFont, fontSize: ButtonFontSize.md },
-  title: { fontSize: ButtonFontSize.xxl, letterSpacing: 1 },
+  backText: { fontFamily: ButtonFont, fontSize: FontSize.md },
+  title: { fontSize: FontSize.xxl, letterSpacing: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four },
   emptyContainer: { flexGrow: 1 },
   emptyText: { fontSize: FontSize.sm, textAlign: 'center' },
@@ -107,6 +107,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     alignItems: 'center',
   },
-  moreText: { fontSize: ButtonFontSize.lg },
+  moreText: { fontSize: FontSize.lg },
   pressed: { opacity: 0.6 },
 });
