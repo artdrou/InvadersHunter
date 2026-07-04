@@ -109,6 +109,12 @@ def approve(
     final_lon       = override_longitude  if override_longitude  is not None else admin_req.proposed_longitude
     final_image_url = override_image_url  if override_image_url  is not None else admin_req.proposed_image_url
 
+    # Captured before any mutation below, so the notification can call out the
+    # specific transition (degraded, destroyed, hidden, reactivated, moved).
+    previous_state: Optional[str] = None
+    previous_lat: Optional[float] = None
+    previous_lon: Optional[float] = None
+
     if admin_req.request_type == "create":
         invader = Invader(
             name=admin_req.proposed_name,
@@ -128,6 +134,9 @@ def approve(
         invader = db.query(Invader).filter(Invader.id == admin_req.invader_id).first()
         if not invader:
             raise TargetInvaderMissing()
+        previous_state = invader.state
+        previous_lat = invader.latitude
+        previous_lon = invader.longitude
         if admin_req.proposed_name is not None:
             invader.name = admin_req.proposed_name
         if admin_req.proposed_description is not None:
@@ -158,7 +167,12 @@ def approve(
     safe_commit(db)
 
     event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
-    title, body = news_service.notification_text(admin_req, invader)
+    title, body = news_service.notification_text(
+        admin_req, invader,
+        previous_state=previous_state,
+        previous_latitude=previous_lat,
+        previous_longitude=previous_lon,
+    )
     notification_service.notify_invader_event(db, event_type, title, body, admin_req.invader_id)
 
     _prune_photos(submission_urls, keep_url=final_image_url)
