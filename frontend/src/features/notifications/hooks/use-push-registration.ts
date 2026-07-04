@@ -18,6 +18,14 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/** Logs to the console (visible via `adb logcat` on a release build) and
+ * stores the outcome so it can also be read from the Notifications settings
+ * screen — registration runs headless on app start, with no other UI. */
+function logRegistrationOutcome(message: string | null) {
+  if (message) console.warn('[push-registration]', message);
+  useNotificationsStore.getState().setLastRegistrationError(message);
+}
+
 /**
  * Requests notification permission, registers this device's Expo push token
  * with the backend, and navigates to the News feed when the user taps a
@@ -29,7 +37,11 @@ export function usePushRegistration(enabled: boolean) {
   const registeredRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || registeredRef.current || !Device.isDevice) return;
+    if (!enabled || registeredRef.current) return;
+    if (!Device.isDevice) {
+      logRegistrationOutcome('skipped: not a physical device (simulator/emulator)');
+      return;
+    }
     registeredRef.current = true;
 
     (async () => {
@@ -39,14 +51,21 @@ export function usePushRegistration(enabled: boolean) {
         if (status !== 'granted') {
           ({ status } = await Notifications.requestPermissionsAsync());
         }
-        if (status !== 'granted') return;
+        if (status !== 'granted') {
+          logRegistrationOutcome(`skipped: permission not granted (status=${status})`);
+          return;
+        }
 
         const projectId = Constants.expoConfig?.extra?.eas?.projectId;
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         await registerPushToken(token, Platform.OS);
         useNotificationsStore.getState().setCurrentToken(token);
-      } catch {
-        // Best-effort: no push this session, nothing else depends on it.
+        logRegistrationOutcome(null); // clear any stale error from a previous failed attempt
+      } catch (err) {
+        // Best-effort: no push this session, nothing else depends on it —
+        // but surface *why* so it's diagnosable without adb.
+        const message = err instanceof Error ? err.message : String(err);
+        logRegistrationOutcome(message);
         registeredRef.current = false;
       }
     })();

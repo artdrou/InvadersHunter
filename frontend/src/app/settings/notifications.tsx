@@ -5,7 +5,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
-import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from '@/features/notifications';
+import { fetchMyNotificationPrefs, updateMyNotificationPrefs, useNotificationsStore } from '@/features/notifications';
 
 export default function NotificationsScreen() {
   const { t } = useTranslation();
@@ -14,6 +14,7 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
+  const registrationError = useNotificationsStore((s) => s.lastRegistrationError);
 
   useEffect(() => {
     fetchMyNotificationPrefs()
@@ -54,6 +55,13 @@ export default function NotificationsScreen() {
           />
         )}
       </View>
+
+      {registrationError && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorLabel}>{t('settings.notificationsRegistrationError')}</Text>
+          <Text style={styles.errorMessage}>{registrationError}</Text>
+        </View>
+      )}
     </SettingsShell>
   );
 }
@@ -73,5 +81,14 @@ function makeStyles(t: ThemeTokens) {
     labelWrap: { flex: 1, gap: 4 },
     label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
     subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
+    errorBox: {
+      borderWidth: 1,
+      borderColor: t.danger,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.three,
+      gap: 4,
+    },
+    errorLabel: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.xs, letterSpacing: 0.5, textTransform: 'uppercase' },
+    errorMessage: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 18 },
   });
 }

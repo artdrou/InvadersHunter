@@ -58,6 +58,7 @@
     "notificationsSubtitle": "Alertes de nouveaux invaders",
     "notificationsEnabled": "Activer les notifications",
     "notificationsBody": "Recevoir une notification quand un invader est ajoute ou modifie.",
+    "notificationsRegistrationError": "Echec de l'enregistrement",
     "sync": "Synchronisation",
     "syncSubtitle": "Donnees et flashes",
     "about": "A propos",
