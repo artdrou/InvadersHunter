@@ -108,6 +108,19 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
     return items[:limit]
 
 
+def notification_text(admin_req: AdminRequest, invader: Optional[Invader]) -> tuple[str, str]:
+    """(title, body) for the push notification tied to a just-approved invader
+    event — the same event that will show up in the News feed."""
+    name = invader.name if invader else admin_req.proposed_name
+    if admin_req.request_type == "create":
+        title = "Nouvel Invader"
+        body = f"{name} a ete ajoute a la carte." if name else "Un nouvel invader a ete ajoute a la carte."
+    else:
+        title = "Invader mis a jour"
+        body = f"{name} a ete mis a jour." if name else "Un invader a ete mis a jour."
+    return title, body
+
+
 def create_announcement(db: Session, data: AnnouncementCreate) -> Announcement:
     ann = Announcement(kind=data.kind, title=data.title, body=data.body, version=data.version)
     db.add(ann)

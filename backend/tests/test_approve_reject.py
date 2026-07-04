@@ -16,6 +16,7 @@ from app.models.admin_request import AdminRequest
 from app.core.security import hash_password
 from app.core.name_utils import normalize_name
 from app.services.user_request_service import aggregate_request
+from app.services import admin_request_service
 from tests.conftest import auth_headers
 
 
@@ -156,3 +157,65 @@ def test_approve_create_request_adds_new_invader(db, client, users):
     assert new_inv.latitude == pytest.approx(40.71)
     assert new_inv.points == 100
     assert new_inv.proposed_description if hasattr(new_inv, "proposed_description") else True
+
+
+# ── push notification hook ────────────────────────────────────────────────────
+
+def test_approve_create_triggers_invader_added_notification(db, client, users, monkeypatch):
+    regular, admin = users
+    calls = []
+    monkeypatch.setattr(
+        admin_request_service.notification_service, "notify_invader_event",
+        lambda db, event_type, title, body, invader_id: calls.append((event_type, invader_id)),
+    )
+
+    req = UserRequest(
+        user_id=regular.id, invader_id=None, request_type="create", status="pending",
+        proposed_name="NY_42", normalized_name=normalize_name("NY_42"),
+        proposed_latitude=40.71, proposed_longitude=-74.00, proposed_points=100, proposed_state="Good",
+    )
+    db.add(req)
+    db.flush()
+    aggregate_request(db, req)
+    db.commit()
+    ar = db.query(AdminRequest).one()
+
+    res = client.post(f"/admin-requests/{ar.id}/approve", headers=auth_headers(admin))
+    assert res.status_code == 200
+
+    assert len(calls) == 1
+    event_type, invader_id = calls[0]
+    assert event_type == "invader_added"
+    assert invader_id is not None
+
+
+def test_approve_modify_triggers_invader_updated_notification(db, client, users, invader, monkeypatch):
+    regular, admin = users
+    calls = []
+    monkeypatch.setattr(
+        admin_request_service.notification_service, "notify_invader_event",
+        lambda db, event_type, title, body, invader_id: calls.append((event_type, invader_id)),
+    )
+
+    _, ar = submit_unnamed_modify(db, regular.id, invader.id)
+    res = client.post(f"/admin-requests/{ar.id}/approve", headers=auth_headers(admin))
+    assert res.status_code == 200
+
+    assert len(calls) == 1
+    event_type, invader_id = calls[0]
+    assert event_type == "invader_updated"
+    assert invader_id == invader.id
+
+
+def test_reject_does_not_trigger_notification(db, client, users, invader, monkeypatch):
+    regular, admin = users
+    calls = []
+    monkeypatch.setattr(
+        admin_request_service.notification_service, "notify_invader_event",
+        lambda *a, **k: calls.append(1),
+    )
+
+    _, ar = submit_unnamed_modify(db, regular.id, invader.id)
+    res = client.post(f"/admin-requests/{ar.id}/reject", headers=auth_headers(admin))
+    assert res.status_code == 200
+    assert calls == []

@@ -14,7 +14,6 @@ const ROADMAP_ITEMS: { key: string; icon: React.ComponentProps<typeof Ionicons>[
   { key: 'friends',         icon: 'people-outline' },
   { key: 'commentWall',     icon: 'chatbubbles-outline' },
   { key: 'customInvaders',  icon: 'add-circle-outline' },
-  { key: 'notifications',   icon: 'notifications-outline' },
   { key: 'radarMode',       icon: 'radio-outline' },
 ];
 

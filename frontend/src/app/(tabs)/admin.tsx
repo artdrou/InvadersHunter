@@ -70,6 +70,12 @@ export default function AdminMenuScreen() {
 
         <SettingsSection title={t('admin.sectionTools')}>
           <SettingsRow
+            icon="notifications-outline"
+            label={t('admin.notificationSettings')}
+            subtitle={t('admin.notificationSettingsSubtitle')}
+            onPress={() => router.push('/admin/notifications')}
+          />
+          <SettingsRow
             icon="bar-chart-outline"
             label={t('admin.stats')}
             subtitle={t('admin.statsSubtitle')}

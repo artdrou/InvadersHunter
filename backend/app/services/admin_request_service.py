@@ -15,6 +15,7 @@ from ..models.space_invader import Invader
 from ..models.user import User
 from ..core.db_utils import safe_commit
 from ..core import r2
+from . import news_service, notification_service
 
 
 class AdminRequestNotPending(Exception):
@@ -155,6 +156,11 @@ def approve(
     admin_req.reviewed_at = datetime.utcnow()
 
     safe_commit(db)
+
+    event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
+    title, body = news_service.notification_text(admin_req, invader)
+    notification_service.notify_invader_event(db, event_type, title, body, admin_req.invader_id)
+
     _prune_photos(submission_urls, keep_url=final_image_url)
     return admin_req
 

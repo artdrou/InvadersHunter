@@ -57,6 +57,12 @@ export default function SettingsLanding() {
           label={t('settings.haptics')}
           onPress={() => router.push('/settings/haptics')}
         />
+        <SettingsRow
+          icon="notifications-outline"
+          label={t('settings.notifications')}
+          subtitle={t('settings.notificationsSubtitle')}
+          onPress={() => router.push('/settings/notifications')}
+        />
       </SettingsSection>
 
       <SettingsSection title={t('settings.sectionData')}>

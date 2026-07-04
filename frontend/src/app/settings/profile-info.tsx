@@ -8,6 +8,7 @@ import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { useInvaderData, mapInvadersWithProgress, cityOf, isNonFlashable } from '@/features/invaders';
+import { unregisterPushToken, useNotificationsStore } from '@/features/notifications';
 
 export default function ProfileInfoScreen() {
   const router = useRouter();
@@ -77,6 +78,11 @@ export default function ProfileInfoScreen() {
 
   async function handleLogout() {
     hapticTap();
+    const pushToken = useNotificationsStore.getState().currentToken;
+    if (pushToken) {
+      try { await unregisterPushToken(pushToken); } catch {}
+      useNotificationsStore.getState().setCurrentToken(null);
+    }
     const refreshToken = useAuthStore.getState().refreshToken;
     if (refreshToken) {
       try { await logoutUser(refreshToken); } catch {}

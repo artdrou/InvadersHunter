@@ -47,7 +47,14 @@
       "expo-secure-store",
       "expo-sharing",
       "expo-tracking-transparency",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/InvaderHunterIcon.png",
+          "color": "#208AEF"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

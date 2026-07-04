@@ -17,6 +17,7 @@ import {
 } from '@/features/app-update';
 import { useAppearanceStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
+import { usePushRegistration } from '@/features/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,6 +63,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (token) useNewsStore.getState().refreshRecent();
   }, [token]);
+
+  usePushRegistration(!!token);
 
   useEffect(() => {
     if (!hasHydrated) return;

@@ -95,6 +95,30 @@ MIGRATIONS = [
         created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
     )""",
     "CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements (created_at)",
+
+    # Push notifications — per-user opt-out
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE",
+    # Push notifications — registered Expo push tokens (one row per device)
+    """CREATE TABLE IF NOT EXISTS push_tokens (
+        id         SERIAL PRIMARY KEY,
+        user_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        token      VARCHAR NOT NULL UNIQUE,
+        platform   VARCHAR,
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_push_tokens_user_id ON push_tokens (user_id)",
+    # Push notifications — admin-controlled global switches (singleton row id=1)
+    """CREATE TABLE IF NOT EXISTS notification_settings (
+        id                SERIAL PRIMARY KEY,
+        enabled           BOOLEAN NOT NULL DEFAULT TRUE,
+        notify_on_create  BOOLEAN NOT NULL DEFAULT TRUE,
+        notify_on_update  BOOLEAN NOT NULL DEFAULT TRUE,
+        updated_at        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_by        INTEGER REFERENCES users (id)
+    )""",
+    "INSERT INTO notification_settings (id, enabled, notify_on_create, notify_on_update) "
+    "SELECT 1, TRUE, TRUE, TRUE WHERE NOT EXISTS (SELECT 1 FROM notification_settings WHERE id = 1)",
 ]
 
 

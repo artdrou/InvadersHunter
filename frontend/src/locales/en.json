@@ -54,6 +54,10 @@
     "appearance": "Appearance",
     "appearanceSubtitle": "Theme and color",
     "language": "Language",
+    "notifications": "Notifications",
+    "notificationsSubtitle": "New invader alerts",
+    "notificationsEnabled": "Enable notifications",
+    "notificationsBody": "Get notified when an invader is added or updated.",
     "sync": "Sync",
     "syncSubtitle": "Data and flashes",
     "about": "About",
@@ -117,10 +121,6 @@
       "customInvaders": {
         "title": "Custom invaders",
         "body": "Add your own invaders to your map."
-      },
-      "notifications": {
-        "title": "Notifications",
-        "body": "Real-time alerts."
       },
       "radarMode": {
         "title": "Radar mode",
@@ -380,6 +380,14 @@
     "moderators": "Moderators",
     "moderatorsSubtitle": "Manage roles and assigned cities",
     "sectionTools": "TOOLS",
+    "notificationSettings": "Notifications",
+    "notificationSettingsSubtitle": "Enable/disable push alerts",
+    "notificationsGlobalEnabled": "Notifications enabled",
+    "notificationsGlobalEnabledSubtitle": "Global kill switch: disables every push notification",
+    "notificationsOnCreate": "New invaders",
+    "notificationsOnCreateSubtitle": "Notify on every new invader added",
+    "notificationsOnUpdate": "Updated invaders",
+    "notificationsOnUpdateSubtitle": "Notify on every invader update",
     "stats": "Statistics",
     "statsSubtitle": "Activity, processing time, acceptance rate",
     "modoChat": "Mod chat",
