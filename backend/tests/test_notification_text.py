@@ -1,11 +1,12 @@
 """
-Tests for news_service.notification_text — the specific transition wording
-(degraded, destroyed, hidden, reactivated, moved) used in push notifications.
-Pure function: builds AdminRequest/Invader instances in memory, no DB needed.
+Tests for news_service.notification_texts — the specific transition wording
+(degraded, destroyed, hidden, reactivated, moved), in every supported app
+language. Pure function: builds AdminRequest/Invader instances in memory, no
+DB needed.
 """
 from app.models.admin_request import AdminRequest
 from app.models.space_invader import Invader
-from app.services.news_service import notification_text
+from app.services.news_service import notification_texts
 
 
 def _invader(**overrides) -> Invader:
@@ -22,68 +23,75 @@ def _modify_request(**overrides) -> AdminRequest:
 
 def test_create_event():
     req = AdminRequest(request_type="create", proposed_name="NY_42")
-    title, body = notification_text(req, _invader(name="NY_42"))
-    assert title == "Nouvel Invader"
-    assert body == "NY_42 a ete ajoute a la carte."
+    texts = notification_texts(req, _invader(name="NY_42"))
+    assert texts["fr"] == ("Nouvel Invader", "NY_42 a ete ajoute a la carte.")
+    assert texts["en"] == ("New Invader", "NY_42 was added to the map.")
+
+
+def test_create_event_without_name_uses_language_specific_fallback():
+    req = AdminRequest(request_type="create", proposed_name=None)
+    texts = notification_texts(req, None)
+    assert texts["fr"] == ("Nouvel Invader", "Un nouvel invader a ete ajoute a la carte.")
+    assert texts["en"] == ("New Invader", "A new invader was added to the map.")
 
 
 def test_degradation_from_good():
     req = _modify_request()
     invader = _invader(state="Degraded")
-    title, body = notification_text(req, invader, previous_state="Good")
-    assert title == "Invader degrade"
-    assert body == "PA_10 s'est degrade."
+    texts = notification_texts(req, invader, previous_state="Good")
+    assert texts["fr"] == ("Invader degrade", "PA_10 s'est degrade.")
+    assert texts["en"] == ("Invader degraded", "PA_10 has degraded.")
 
 
 def test_destruction_from_good():
     req = _modify_request()
     invader = _invader(state="Destroyed")
-    title, body = notification_text(req, invader, previous_state="Good")
-    assert title == "Invader detruit"
-    assert body == "PA_10 a ete detruit."
+    texts = notification_texts(req, invader, previous_state="Good")
+    assert texts["fr"] == ("Invader detruit", "PA_10 a ete detruit.")
+    assert texts["en"] == ("Invader destroyed", "PA_10 has been destroyed.")
 
 
 def test_destruction_from_degraded():
     req = _modify_request()
     invader = _invader(state="Destroyed")
-    title, body = notification_text(req, invader, previous_state="Badly degraded")
-    assert title == "Invader detruit"
+    texts = notification_texts(req, invader, previous_state="Badly degraded")
+    assert texts["fr"][0] == "Invader detruit"
 
 
 def test_hiding_from_any_state():
     req = _modify_request()
     invader = _invader(state="Not visible")
-    title, body = notification_text(req, invader, previous_state="Slightly degraded")
-    assert title == "Invader invisible"
-    assert body == "PA_10 n'est plus visible."
+    texts = notification_texts(req, invader, previous_state="Slightly degraded")
+    assert texts["fr"] == ("Invader invisible", "PA_10 n'est plus visible.")
+    assert texts["en"] == ("Invader hidden", "PA_10 is no longer visible.")
 
 
 def test_reactivated_from_destroyed_to_good():
     req = _modify_request()
     invader = _invader(state="Good")
-    title, body = notification_text(req, invader, previous_state="Destroyed")
-    assert title == "Invader reactive"
-    assert body == "PA_10 a ete reactive."
+    texts = notification_texts(req, invader, previous_state="Destroyed")
+    assert texts["fr"] == ("Invader reactive", "PA_10 a ete reactive.")
+    assert texts["en"] == ("Invader reactivated", "PA_10 has been reactivated.")
 
 
 def test_moved_only():
     req = _modify_request()
     invader = _invader(state="Good", latitude=40.71, longitude=-74.00)
-    title, body = notification_text(
+    texts = notification_texts(
         req, invader, previous_state="Good", previous_latitude=48.8566, previous_longitude=2.3522,
     )
-    assert title == "Invader deplace"
-    assert body == "PA_10 a change d'emplacement."
+    assert texts["fr"] == ("Invader deplace", "PA_10 a change d'emplacement.")
+    assert texts["en"] == ("Invader moved", "PA_10's location has changed.")
 
 
 def test_generic_update_for_unrelated_change():
     req = _modify_request()
     invader = _invader(state="Good")  # same state, same coords
-    title, body = notification_text(
+    texts = notification_texts(
         req, invader, previous_state="Good", previous_latitude=48.8566, previous_longitude=2.3522,
     )
-    assert title == "Invader mis a jour"
-    assert body == "PA_10 a ete mis a jour."
+    assert texts["fr"] == ("Invader mis a jour", "PA_10 a ete mis a jour.")
+    assert texts["en"] == ("Invader updated", "PA_10 has been updated.")
 
 
 def test_reappearing_from_hidden_falls_back_to_generic():
@@ -91,8 +99,8 @@ def test_reappearing_from_hidden_falls_back_to_generic():
     to the generic message rather than crashing or misreporting."""
     req = _modify_request()
     invader = _invader(state="Good")
-    title, _ = notification_text(req, invader, previous_state="Not visible")
-    assert title == "Invader mis a jour"
+    texts = notification_texts(req, invader, previous_state="Not visible")
+    assert texts["fr"][0] == "Invader mis a jour"
 
 
 def test_destruction_takes_priority_over_move():
@@ -100,16 +108,16 @@ def test_destruction_takes_priority_over_move():
     newsworthy transition (destruction) wins over the location change."""
     req = _modify_request()
     invader = _invader(state="Destroyed", latitude=40.71, longitude=-74.00)
-    title, _ = notification_text(
+    texts = notification_texts(
         req, invader, previous_state="Good", previous_latitude=48.8566, previous_longitude=2.3522,
     )
-    assert title == "Invader detruit"
+    assert texts["fr"][0] == "Invader detruit"
 
 
 def test_tiny_float_drift_is_not_a_move():
     req = _modify_request()
     invader = _invader(state="Good", latitude=48.85660000001, longitude=2.3522)
-    title, _ = notification_text(
+    texts = notification_texts(
         req, invader, previous_state="Good", previous_latitude=48.8566, previous_longitude=2.3522,
     )
-    assert title == "Invader mis a jour"
+    assert texts["fr"][0] == "Invader mis a jour"

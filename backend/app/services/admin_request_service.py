@@ -167,13 +167,13 @@ def approve(
     safe_commit(db)
 
     event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
-    title, body = news_service.notification_text(
+    texts = news_service.notification_texts(
         admin_req, invader,
         previous_state=previous_state,
         previous_latitude=previous_lat,
         previous_longitude=previous_lon,
     )
-    notification_service.notify_invader_event(db, event_type, title, body, admin_req.invader_id)
+    notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
 
     _prune_photos(submission_urls, keep_url=final_image_url)
     return admin_req
