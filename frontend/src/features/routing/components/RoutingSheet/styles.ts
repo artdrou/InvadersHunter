@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import type { ThemeTokens } from '@/constants/theme'
-import { BorderRadius, Spacing, ButtonFont, FontSize } from '@/constants/theme';
+import { BorderRadius, Spacing, ButtonFont, FontSize, ZIndex } from '@/constants/theme';
 
 /** Shared stylesheet for the RoutingSheet and its sub-parts. */
 export function makeStyles(t: ThemeTokens, font: string, scale: number) {
@@ -11,6 +11,9 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       position: 'absolute',
       left: 8,
       right: 8,
+      // Sit above the map FABs (news/locate/compass at ZIndex.map) so the open
+      // Hunt panel hides them instead of letting the news button bleed on top.
+      zIndex: ZIndex.control,
       borderRadius: BorderRadius.md,
       borderWidth: 1,
       overflow: 'visible',
