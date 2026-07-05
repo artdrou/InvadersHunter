@@ -25,29 +25,9 @@ export const SHAPE_SVG: Record<TierPts, string> = {
   <rect x="30" y="80" width="10" height="10" fill="#808080"/>
   <rect x="40" y="80" width="10" height="10" fill="#808080"/>
   <rect x="60" y="80" width="10" height="10" fill="#808080"/>
-  <rect x="70" y="80" width="10" height="10" fill="#808080"/>
   <rect x="80" y="80" width="10" height="10" fill="#808080"/>
   <rect x="100" y="80" width="10" height="10" fill="#808080"/>
   <rect x="110" y="80" width="10" height="10" fill="#808080"/>
-  <rect x="30" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="40" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="50" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="60" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="70" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="80" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="90" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="100" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="110" y="90" width="10" height="10" fill="#808080"/>
-  <rect x="30" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="50" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="60" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="70" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="90" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="110" y="100" width="10" height="10" fill="#808080"/>
-  <rect x="20" y="110" width="10" height="10" fill="#808080"/>
-  <rect x="30" y="110" width="10" height="10" fill="#808080"/>
-  <rect x="100" y="110" width="10" height="10" fill="#808080"/>
-  <rect x="110" y="110" width="10" height="10" fill="#808080"/>
 </svg>`,
   20: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150" shape-rendering="crispEdges">
   <rect x="50" y="50" width="10" height="10" fill="#808080"/>
