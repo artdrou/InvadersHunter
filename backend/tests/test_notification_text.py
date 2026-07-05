@@ -94,13 +94,13 @@ def test_generic_update_for_unrelated_change():
     assert texts["en"] == ("Invader updated", "PA_10 has been updated.")
 
 
-def test_reappearing_from_hidden_falls_back_to_generic():
-    """Not visible -> Good isn't in the requested transition list; falls back
-    to the generic message rather than crashing or misreporting."""
+def test_reappearing_from_hidden_counts_as_reactivated():
+    """Not visible -> Good is treated the same as Destroyed -> Good: the
+    invader is visible/flashable again either way."""
     req = _modify_request()
     invader = _invader(state="Good")
     texts = notification_texts(req, invader, previous_state="Not visible")
-    assert texts["fr"][0] == "Invader mis a jour"
+    assert texts["fr"][0] == "Invader reactive"
 
 
 def test_destruction_takes_priority_over_move():
