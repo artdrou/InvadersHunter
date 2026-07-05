@@ -15,7 +15,7 @@ import {
   getCurrentVersion,
   isNewer,
 } from '@/features/app-update';
-import { useAppearanceStore } from '@/features/settings';
+import { useAppearanceStore, useMarkerCustomizationStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
 import { usePushRegistration, syncNotificationLanguage } from '@/features/notifications';
 
@@ -51,6 +51,7 @@ export default function RootLayout() {
       await Promise.all([
         useAppUpdateStore.getState().hydrate(),
         useAppearanceStore.getState().hydrate(),
+        useMarkerCustomizationStore.getState().hydrate(),
       ]);
       const manifest = await fetchVersionManifest();
       if (manifest && isNewer(manifest.latestVersion, getCurrentVersion())) {

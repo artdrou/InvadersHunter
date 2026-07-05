@@ -5,7 +5,7 @@ import type { InvaderWithState } from "@/features/invaders";
 import { useAppearanceStore } from "@/features/settings";
 import { White } from "@/constants/theme";
 import { MapZoom, MapAnim } from "../constants";
-import { MARKER_LAYER_STYLE, MARKER_LAYER_FILTER } from "./invader-markers";
+import { useMarkerLayerStyle, MARKER_LAYER_FILTER } from "./invader-markers";
 
 // px radius to merge nearby points into a cluster. The clustering on/off toggle
 // and the zoom threshold (above which all markers appear individually) live in
@@ -30,6 +30,7 @@ type Props = {
 export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPress }: Props) {
   const clusteringEnabled = useAppearanceStore((s) => s.clusteringEnabled);
   const clusterMaxZoom    = useAppearanceStore((s) => s.clusterMaxZoom);
+  const markerLayerStyle  = useMarkerLayerStyle();
   function handlePress(e: OnPressEvent) {
     const feature = e.features?.[0];
     if (!feature) return;
@@ -131,7 +132,7 @@ export function InvaderClusterSource({ geojson, invaders, cameraRef, onInvaderPr
       <SymbolLayer
         id="invader-markers"
         filter={MARKER_LAYER_FILTER}
-        style={MARKER_LAYER_STYLE}
+        style={markerLayerStyle}
       />
     </ShapeSource>
   );

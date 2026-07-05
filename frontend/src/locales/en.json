@@ -53,6 +53,8 @@
     "securitySubtitle": "Email, password",
     "appearance": "Appearance",
     "appearanceSubtitle": "Theme and color",
+    "markerCustomization": "Markers",
+    "markerCustomizationSubtitle": "Shapes, colors and glow for invaders",
     "language": "Language",
     "notifications": "Notifications",
     "notificationsSubtitle": "New invader alerts",
@@ -199,6 +201,26 @@
     "mapLiteSubtitle": "Fewer map details for smoother panning on older devices",
     "map3d": "3D buildings",
     "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)"
+  },
+  "markerCustomization": {
+    "title": "Marker customization",
+    "sectionPreview": "Preview",
+    "sectionShapes": "Shapes",
+    "sectionShapesSubtitle": "Choose which silhouette represents each point value",
+    "sectionColors": "Colors",
+    "sectionOpacity": "Opacity",
+    "opacity": "Marker opacity",
+    "opacitySubtitle": "Transparency of invaders on the map",
+    "iconColor": "Icon color",
+    "glowColor": "Glow color",
+    "reset": "Reset",
+    "validate": "Apply",
+    "state": {
+      "flashCaptured": "Flashed",
+      "flashUncaptured": "Not flashed",
+      "highlight": "Highlighted",
+      "grey": "Greyed out"
+    }
   },
   "themeNames": {
     "dark": "Dark",
