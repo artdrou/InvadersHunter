@@ -159,7 +159,8 @@ export default function MarkerCustomizationScreen() {
       {/* ── Actions ── */}
       <View style={styles.actionsRow}>
         <Pressable
-          style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.secondaryBtn, (pressed || isGenerating) && styles.pressed]}
+          disabled={isGenerating}
           onPress={() => { hapticTap(); reset().catch(() => {}); }}
         >
           <Text style={styles.secondaryBtnText}>{t('markerCustomization.reset')}</Text>

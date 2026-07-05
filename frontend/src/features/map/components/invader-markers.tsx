@@ -95,6 +95,16 @@ export function useMarkerImages(): Record<string, ImageSourcePropType | number> 
   }, [customIconUris]);
 }
 
+// MapLibre's native <Images> only ever registers a given key once and
+// ignores later value updates for it (confirmed in both the Android and iOS
+// implementations of @maplibre/maplibre-react-native) — so after a
+// re-customization the merged map from useMarkerImages() above is useless to
+// an already-mounted map unless the whole component remounts. WebMap.native.tsx
+// keys <Images> on this value to force that remount whenever it changes.
+export function useMarkerImagesVersion(): number {
+  return useMarkerCustomizationStore((s) => s.generationVersion);
+}
+
 export function useMarkerLayerStyle(): SymbolLayerStyle {
   const opacity = useMarkerCustomizationStore((s) => s.opacity);
   return useMemo(() => ({

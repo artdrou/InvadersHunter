@@ -57,12 +57,37 @@ function fitCenteredRect(bbox: { width: number; height: number }, boxPx: number,
   return Skia.XYWHRect((canvasSize - w) / 2, (canvasSize - h) / 2, w, h);
 }
 
-// Rasterize the tinted SVG large, trim transparent padding, then re-center
-// the trimmed content into a fixed fraction of the final canvas — this
-// normalizes visible icon size across shapes with different amounts of
-// empty space, matching dev/markers/build.mjs's NORMALIZE_ICON_SIZE step.
-function rasterizeIcon(svg: string, size: number): SkImage {
-  const dom = Skia.SVG.MakeFromString(svg);
+// tintSvg only ever rewrites `fill` colors — it never touches which pixels
+// are opaque — so the trimmed bounding box is a pure function of (shapeId,
+// size), independent of the tint color. Caching it here means the 5 states
+// sharing a tier's shape only pay for one full pixel scan instead of 5.
+const bboxCache = new Map<string, { x: number; y: number; width: number; height: number }>();
+
+function shapeBBox(shapeId: TierPts, size: number): { x: number; y: number; width: number; height: number } {
+  const cacheKey = `${shapeId}:${size}`;
+  const cached = bboxCache.get(cacheKey);
+  if (cached) return cached;
+
+  const largeSize = size * 2;
+  const dom = Skia.SVG.MakeFromString(SHAPE_SVG[shapeId]);
+  if (!dom) throw new Error('Failed to parse marker SVG');
+  const surface = Skia.Surface.Make(largeSize, largeSize);
+  if (!surface) throw new Error('Failed to allocate Skia surface');
+  const canvas = surface.getCanvas();
+  canvas.clear(Skia.Color(TRANSPARENT));
+  canvas.drawSvg(dom, largeSize, largeSize);
+  const bbox = alphaBBox(surface.makeImageSnapshot()) ?? { x: 0, y: 0, width: largeSize, height: largeSize };
+  bboxCache.set(cacheKey, bbox);
+  return bbox;
+}
+
+// Rasterize the tinted SVG large, trim transparent padding (using the
+// shape's cached bbox), then re-center the trimmed content into a fixed
+// fraction of the final canvas — this normalizes visible icon size across
+// shapes with different amounts of empty space, matching dev/markers/
+// build.mjs's NORMALIZE_ICON_SIZE step.
+function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkImage {
+  const dom = Skia.SVG.MakeFromString(tintedSvg);
   if (!dom) throw new Error('Failed to parse marker SVG');
 
   const largeSize = size * 2;
@@ -73,7 +98,7 @@ function rasterizeIcon(svg: string, size: number): SkImage {
   largeCanvas.drawSvg(dom, largeSize, largeSize);
   const largeImage = largeSurface.makeImageSnapshot();
 
-  const bbox = alphaBBox(largeImage) ?? { x: 0, y: 0, width: largeSize, height: largeSize };
+  const bbox = shapeBBox(shapeId, size);
   const iconBoxPx = size * ICON_FRACTION;
   const dstRect = fitCenteredRect(bbox, iconBoxPx, size);
 
@@ -110,7 +135,7 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number): S
 // directly (no file I/O) — `size` defaults to the final on-map asset size.
 export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE): string {
   const tinted = tintSvg(SHAPE_SVG[shapeId], iconHex);
-  const icon = rasterizeIcon(tinted, size);
+  const icon = rasterizeIcon(shapeId, tinted, size);
   const final = glowHex ? compositeWithGlow(icon, glowHex, size) : icon;
   const base64 = final.encodeToBase64(ImageFormat.PNG);
   if (!base64) throw new Error('Failed to encode marker PNG');
@@ -134,27 +159,46 @@ export type GeneratedMarkerSet = Record<string, string>; // iconKey -> file:// u
 
 const MARKERS_ROOT = new FileSystem.Directory(FileSystem.Paths.document, 'markers');
 
+// Yields to the JS thread so a long synchronous Skia batch doesn't fully
+// freeze the UI (e.g. lets the "generating" spinner actually paint).
+function yieldToUi(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 // Regenerates all 30 marker PNGs from the user's prefs and writes them to a
-// fresh, timestamped subfolder (old generations are wiped first) so image
-// caches keyed by URI never serve stale bytes after a re-customization.
+// fresh, timestamped subfolder. Older generations are only pruned *after*
+// the new one fully succeeds, so a failure partway through (e.g. a Skia
+// allocation failure) never leaves the app pointing at deleted files.
 export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, colors: MarkerColorPrefs): Promise<GeneratedMarkerSet> {
-  if (MARKERS_ROOT.exists) MARKERS_ROOT.delete();
+  if (!MARKERS_ROOT.exists) MARKERS_ROOT.create({ intermediates: true });
   const dir = new FileSystem.Directory(MARKERS_ROOT, `v${Date.now()}`);
   dir.create({ intermediates: true });
 
-  const result: GeneratedMarkerSet = {};
-  for (const tier of TIER_VALUES) {
-    const shapeId = shapeForTier[tier] ?? tier;
-    for (const state of STATE_KEYS) {
-      const { icon, glow } = paletteFor(state, tier, colors);
-      const base64 = renderMarkerBase64(shapeId, icon, glow);
-      const name = outputName(tier, state);
-      const file = new FileSystem.File(dir, `${name}.png`);
-      file.write(base64, { encoding: 'base64' });
-      result[name] = file.uri;
+  try {
+    const result: GeneratedMarkerSet = {};
+    for (const tier of TIER_VALUES) {
+      const shapeId = shapeForTier[tier] ?? tier;
+      for (const state of STATE_KEYS) {
+        const { icon, glow } = paletteFor(state, tier, colors);
+        const base64 = renderMarkerBase64(shapeId, icon, glow);
+        const name = outputName(tier, state);
+        const file = new FileSystem.File(dir, `${name}.png`);
+        file.write(base64, { encoding: 'base64' });
+        result[name] = file.uri;
+      }
+      await yieldToUi();
     }
+
+    // Success — safe to prune every other generation now. Compared by name
+    // (not uri) since directory URIs may differ in trailing-slash formatting.
+    for (const entry of MARKERS_ROOT.list()) {
+      if (entry.name !== dir.name) entry.delete();
+    }
+    return result;
+  } catch (err) {
+    dir.delete();
+    throw err;
   }
-  return result;
 }
 
 export async function clearMarkerSet(): Promise<void> {
