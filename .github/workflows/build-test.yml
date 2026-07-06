@@ -1,0 +1,95 @@
+name: Build test APK
+
+# Simple, no-release build to try a dev or staging APK BEFORE cutting the real
+# production release with "Build & Release APK" (release.yml).
+#
+# Unlike release.yml this workflow:
+#   - does NOT bump the marketing version (app.json) or version.json
+#   - does NOT create a GitHub release
+#   - just builds an internal-distribution APK and prints its install URL
+#
+# The profile drives everything else via eas.json (backend URL, package, icon,
+# OTA channel). Pick the branch to build with the "Use workflow from" selector
+# (e.g. your feature branch for development, main for staging/preview).
+#
+# Note: appVersionSource=remote + autoIncrement still bumps the internal Android
+# versionCode remotely — that's expected and does NOT change the 0.1.0 version.
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile to test'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - development  # -> dev backend, ...app.dev, red "DEV" icon
+          - preview      # -> staging backend, ...app.stag, blue "STAG" icon
+
+concurrency:
+  group: build-test-${{ github.ref }}-${{ inputs.profile }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ inputs.profile }} APK
+    runs-on: ubuntu-latest
+    # Only needed to read the env-agnostic map/routing keys; the per-profile
+    # backend URL comes from eas.json, so any env that holds the keys works.
+    environment: invader-hunter-staging
+    steps:
+      - uses: actions/checkout@v4 # builds the ref this workflow was dispatched from
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_ACCESS_TOKEN_GITHUB }}
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build APK on EAS
+        id: build
+        working-directory: frontend
+        # EXPO_PUBLIC_API_URL is intentionally NOT passed here — eas.json owns it
+        # per profile, which keeps dev/staging URLs unambiguous.
+        env:
+          EXPO_PUBLIC_PROTOMAPS_KEY: ${{ secrets.EXPO_PUBLIC_PROTOMAPS_KEY }}
+          EXPO_PUBLIC_ORS_KEY: ${{ secrets.EXPO_PUBLIC_ORS_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Building profile: ${{ inputs.profile }}"
+          BUILD_JSON=$(eas build --platform android --profile "${{ inputs.profile }}" \
+            --non-interactive --json --wait)
+          # --json returns a single object or an array depending on CLI version.
+          APK_URL=$(echo "$BUILD_JSON" | jq -r '
+            (if type=="array" then .[0] else . end)
+            | .artifacts.applicationArchiveUrl // .artifacts.buildUrl // empty')
+          if [ -z "$APK_URL" ] || [ "$APK_URL" = "null" ]; then
+            echo "::error::Could not extract APK URL from EAS build output"
+            echo "$BUILD_JSON"
+            exit 1
+          fi
+          echo "apk_url=$APK_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Test build \`${{ inputs.profile }}\` :package:"
+            echo ""
+            echo "- APK: ${{ steps.build.outputs.apk_url }}"
+            echo "- No version bump, no GitHub release, no manifest change."
+            echo "- Install it side-by-side (its own package) and iterate with \`eas update\`."
+          } >> "$GITHUB_STEP_SUMMARY"
