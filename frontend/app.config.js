@@ -16,6 +16,11 @@ const variants = {
     androidPackage: 'com.invaderhunter.app.dev',
     icon: './assets/images/InvaderHunterIcon-dev.png',
   },
+  staging: {
+    name: 'InvaderHunter Stag',
+    androidPackage: 'com.invaderhunter.app.stag',
+    icon: './assets/images/InvaderHunterIcon-stag.png',
+  },
 };
 
 module.exports = ({ config }) => {

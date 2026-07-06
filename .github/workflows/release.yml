@@ -69,6 +69,17 @@ jobs:
         working-directory: frontend
         run: npm ci --legacy-peer-deps
 
+      - name: Set app version in app.json
+        # Build the APK with the release version baked in, so the installed app
+        # reports it via Constants.expoConfig.version. Without this the app keeps
+        # its old version while the manifest advances → a perpetual "update available".
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          jq --arg v "$VERSION" '.expo.version=$v' app.json > app.json.tmp
+          mv app.json.tmp app.json
+          echo "app.json expo.version -> $VERSION"
+
       - name: Build APK on EAS
         id: build
         working-directory: frontend
@@ -102,8 +113,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${VERSION}_${PROFILE}"
+          # Full GitHub release only for production builds from 1.0.0 onward;
+          # 0.x production builds are still betas → marked as prereleases.
           PRERELEASE_FLAG="--prerelease"
-          if [ "$PROFILE" = "production" ]; then PRERELEASE_FLAG=""; fi
+          MAJOR="${VERSION%%.*}"
+          if [ "$PROFILE" = "production" ] && [ "${MAJOR:-0}" -ge 1 ]; then
+            PRERELEASE_FLAG=""
+          fi
           # Recreate the tag's release if re-running the same version.
           gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" InvadersHunter-latest.apk \
@@ -130,9 +146,9 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/static/apk/version.json
+          git add backend/static/apk/version.json frontend/app.json
           if git diff --cached --quiet; then
-            echo "version.json unchanged, nothing to commit."
+            echo "version.json / app.json unchanged, nothing to commit."
           else
             git commit -m "chore(release): APK ${VERSION} (${PROFILE})"
             git push origin HEAD:main

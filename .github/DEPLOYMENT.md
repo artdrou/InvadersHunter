@@ -22,6 +22,9 @@ feature/*  ──PR──▶  main  ──PR──▶  prod
 ### Development flow
 
 1. Build a feature on a `feature/*` branch (development app → dev backend + `dev` DB).
+   The `development` build is a **standalone** internal APK (not a dev client) on the
+   `development` OTA channel — iterate fast with `eas update --channel development`
+   instead of a full native rebuild (rebuild only when native deps or the version change).
 2. **PR → `main`.** CI must pass. Merging → **Railway auto-deploys the staging backend**
    (its GitHub source branch is `main`), and `ota-update.yml` OTA-updates the `preview`
    channel. Testers exercise the **preview** app.
