@@ -1,0 +1,4 @@
+# Test-only dependencies. Kept out of requirements.txt so they never ship in the
+# Docker image. Install in CI with:  pip install -r requirements.txt -r requirements-dev.txt
+pytest>=8.0
+httpx>=0.27        # required by FastAPI's starlette TestClient (tests/conftest.py)

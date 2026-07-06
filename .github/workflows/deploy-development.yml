@@ -1,0 +1,59 @@
+name: Deploy development (backend)
+
+# The development backend is a shared sandbox (Neon `dev` branch). It is deployed
+# on-demand: pick the branch/ref you're working on and push it to the dev env.
+#
+# Auth: RAILWAY_TOKEN_DEV = Railway project token scoped to the `development` environment.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (branch or SHA) to deploy to the dev backend'
+        required: true
+        default: 'main'
+        type: string
+
+concurrency:
+  group: deploy-development
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Railway up (development)
+    runs-on: ubuntu-latest
+    environment: invader-hunter-development
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Guard on token
+        id: guard
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_DEV }}
+        run: |
+          if [ -z "${RAILWAY_TOKEN}" ]; then
+            echo "::warning::RAILWAY_TOKEN_DEV not set — skipping deploy."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: steps.guard.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        if: steps.guard.outputs.skip == 'false'
+        run: npm i -g @railway/cli
+
+      - name: Deploy
+        if: steps.guard.outputs.skip == 'false'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_DEV }}
+        run: railway up --service invader-hunter --ci
