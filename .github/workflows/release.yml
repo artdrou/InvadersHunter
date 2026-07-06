@@ -1,0 +1,148 @@
+name: Build & Release APK
+
+# Manual, one-click Android release:
+#   1. EAS builds the APK on Expo's servers (credentials managed remotely).
+#   2. The artifact is downloaded and attached to a GitHub Release.
+#   3. backend/static/apk/version.json is bumped and committed to main, which is what
+#      the in-app updater and the /apk/download redirect read.
+#
+# Run from the Actions tab: "Build & Release APK" -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number, e.g. 1.0.4 (no leading v)'
+        required: true
+        type: string
+      profile:
+        description: 'EAS build profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - development  # -> dev backend       (invader-hunter-development)
+          - preview      # -> staging backend   (invader-hunter-staging)
+          - production   # -> production backend (invader-hunter-production)
+      notes:
+        description: 'Release notes (shown in the in-app update popup)'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # create releases + push the version.json bump
+
+jobs:
+  release:
+    name: Build APK and publish release
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.profile == 'production' && 'invader-hunter-production' || 'invader-hunter-staging' }}
+    env:
+      REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+      PROFILE: ${{ inputs.profile }}
+      NOTES: ${{ inputs.notes }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_ACCESS_TOKEN_GITHUB }}
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build APK on EAS
+        id: build
+        working-directory: frontend
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_PROTOMAPS_KEY: ${{ secrets.EXPO_PUBLIC_PROTOMAPS_KEY }}
+          EXPO_PUBLIC_ORS_KEY: ${{ secrets.EXPO_PUBLIC_ORS_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Building profile: $PROFILE"
+          BUILD_JSON=$(eas build --platform android --profile "$PROFILE" \
+            --non-interactive --json --wait)
+          # --json can return either a single object or an array depending on CLI version.
+          APK_URL=$(echo "$BUILD_JSON" | jq -r '
+            (if type=="array" then .[0] else . end)
+            | .artifacts.applicationArchiveUrl // .artifacts.buildUrl // empty')
+          if [ -z "$APK_URL" ] || [ "$APK_URL" = "null" ]; then
+            echo "::error::Could not extract APK URL from EAS build output"
+            echo "$BUILD_JSON"
+            exit 1
+          fi
+          echo "apk_url=$APK_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Download APK
+        run: curl -fL -o InvadersHunter-latest.apk "${{ steps.build.outputs.apk_url }}"
+
+      - name: Create GitHub Release
+        id: gh_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}_${PROFILE}"
+          PRERELEASE_FLAG="--prerelease"
+          if [ "$PROFILE" = "production" ]; then PRERELEASE_FLAG=""; fi
+          # Recreate the tag's release if re-running the same version.
+          gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" InvadersHunter-latest.apk \
+            --repo "$REPO" \
+            --title "$TAG" \
+            --notes "${NOTES:-Release $TAG}" \
+            $PRERELEASE_FLAG
+          echo "asset_url=https://github.com/${REPO}/releases/download/${TAG}/InvadersHunter-latest.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version.json
+        run: |
+          set -euo pipefail
+          MANIFEST=backend/static/apk/version.json
+          jq --arg v "$VERSION" \
+             --arg u "${{ steps.gh_release.outputs.asset_url }}" \
+             --arg n "${NOTES:-}" \
+             '.latestVersion=$v | .url=$u | (if $n=="" then . else .notes=$n end)' \
+             "$MANIFEST" > "$MANIFEST.tmp"
+          mv "$MANIFEST.tmp" "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: Commit version.json to main
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/static/apk/version.json
+          if git diff --cached --quiet; then
+            echo "version.json unchanged, nothing to commit."
+          else
+            git commit -m "chore(release): APK ${VERSION} (${PROFILE})"
+            git push origin HEAD:main
+          fi
+
+      - name: Summary
+        run: |
+          {
+            echo "## Released \`v${VERSION}_${PROFILE}\` :rocket:"
+            echo ""
+            echo "- Asset: ${{ steps.gh_release.outputs.asset_url }}"
+            echo "- version.json bumped on \`main\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,81 +1,94 @@
-# InvadersHunter Backend
+# InvadersHunter — Backend
 
-## Neon cloud database setup
+FastAPI REST API backed by a PostgreSQL database hosted on Neon. Deployed automatically to Railway on every push to main.
 
-This project uses SQLAlchemy and expects `DATABASE_URL` to be set in env.
+---
 
-### 1) Create Neon project + database
+## Stack
 
-1. Sign in to neon.tech.
-2. Create project and branch (`main`/`dev`).
-3. Go to **Connection strings** and copy your Postgres URL.
+- Python 3.11
+- FastAPI
+- SQLAlchemy 2
+- Neon (PostgreSQL)
+- Uvicorn
+- JWT authentication (access token + refresh token)
+- fastapi-mail for transactional emails
 
-Example: `postgresql://<user>:<password>@<host>:5432/neondb?sslmode=require`
+---
 
-### 2) Add Neon URL to secret manager (recommended)
+## Local setup
 
-You should avoid storing the connection string in plaintext in the repo. Use your cloud provider or CI secret store:
+### 1. Create a virtual environment
 
-- GitHub Actions: `Settings > Secrets and variables > Actions > New repository secret`
-  - Key: `DATABASE_URL`
-  - Value: your Neon URL
-
-- GitLab CI: `Settings > CI/CD > Variables`.
-- Azure Key Vault / AWS Secrets Manager / GCP Secret Manager: store secret there and inject at runtime.
-
-### 3) Local development with `.env` file
-
-Create `.env` at `backend/` (ignored by default best practice):
-
-```ini
-DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<dbname>?sslmode=require
+```bash
+cd backend
+python -m venv venv
+venv/Scripts/activate        # Windows
+# or
+source venv/bin/activate     # macOS / Linux
 ```
 
-Then run:
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
-python -m app.create_tables
-uvicorn app.main:app --reload
 ```
 
-### 4) Read-only in code (auto loaded)
+### 3. Set environment variables
 
-`app/database.py` now checks for missing value and raises early:
+Create a `.env` file in the `backend/` folder:
 
-- `load_dotenv()` reads `.env`
-- `DATABASE_URL = os.getenv("DATABASE_URL")`
-- raise `RuntimeError` if missing
-
-### 5) CI example
-
-Use this sample workflow for GitHub Actions in `.github/workflows/ci.yml`:
-
-```yaml
-name: CI
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install deps
-        run: pip install -r requirements.txt
-      - name: Set DB URL
-        run: echo "DATABASE_URL=$DATABASE_URL" > .env
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - name: Create tables
-        run: python -m app.create_tables
-      - name: Run tests
-        run: pytest
+```ini
+DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<dbname>?sslmode=require
+SECRET_KEY=your-secret-key
 ```
 
-## Troubleshooting
+Get your `DATABASE_URL` from [neon.tech](https://neon.tech) after creating a project.
 
-- If `DATABASE_URL is not set` error appears, confirm secret exists and environment loads before process start.
-- If connection fails, verify URL, user creds, and that Neon compute is running.
+### 4. Start the server
+
+```bash
+venv/Scripts/python.exe -m uvicorn app.main:app --reload
+```
+
+The API will be available at `http://localhost:8000`.
+Interactive docs: `http://localhost:8000/docs`
+
+Database migrations run automatically at startup.
+
+---
+
+## Run tests
+
+```bash
+venv/Scripts/python.exe -m pytest tests/ -v
+```
+
+Tests use an in-memory SQLite database — no external database needed.
+
+---
+
+## API overview
+
+| Method | Path | Description |
+|---|---|---|
+| GET | /invaders/ | List all invaders (delta sync supported) |
+| GET | /invaders/{id} | Single invader detail |
+| POST | /user-requests/ | Submit a location or state update |
+| GET | /user-requests/ | List the current user's requests |
+| GET | /admin-requests/ | List pending admin requests (admin only) |
+| POST | /admin-requests/{id}/approve | Approve a request (admin only) |
+| POST | /admin-requests/{id}/reject | Reject a request (admin only) |
+| POST | /auth/login | Get access + refresh tokens |
+| POST | /auth/refresh | Refresh access token |
+| POST | /users/register | Create an account |
+| POST | /user-progress/flash | Flash an invader |
+| POST | /user-progress/unflash | Unflash an invader |
+
+---
+
+## Deployment
+
+The backend is deployed on Railway. Every push to the main branch triggers an automatic redeploy.
+
+Environment variables (`DATABASE_URL`, `SECRET_KEY`) are configured in the Railway project settings.

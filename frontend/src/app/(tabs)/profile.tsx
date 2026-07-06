@@ -1,132 +1,138 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+/**
+ * Settings landing screen (mounted as the "Profile" tab — name kept for route
+ * stability; the user-facing label is "Reglages"/"Settings" via t('tabs.profile')).
+ *
+ * Categorized list of sub-screens. Each row navigates to `src/app/settings/<id>.tsx`.
+ * Logout stays directly on this screen (action, not a sub-screen).
+ */
+import { View, Text, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useAuthStore, logoutUser } from "@/features/auth";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, type ThemeName, themes, themeLabels, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { type ThemeTokens, Spacing, FontSize } from "@/constants/theme";
+import { SettingsSection, SettingsRow } from "@/features/settings";
 
-export default function ProfileScreen() {
-  const logout = useAuthStore((s) => s.logout);
+export default function SettingsLanding() {
   const router = useRouter();
-  const { theme, themeName, setTheme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
-
-  async function handleLogout() {
-    const refreshToken = useAuthStore.getState().refreshToken;
-    if (refreshToken) {
-      try { await logoutUser(refreshToken); } catch {}
-    }
-    logout();
-    router.replace('/login');
-  }
+  const { t } = useTranslation();
+  const { theme, appFont } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = makeStyles(theme, appFont, insets.top);
 
   return (
     <View style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Theme</Text>
-        <View style={styles.themeRow}>
-          {(Object.keys(themes) as ThemeName[]).map((name) => {
-            const isActive = name === themeName;
-            return (
-              <Pressable
-                key={name}
-                style={({ pressed }) => [
-                  styles.themeOption,
-                  isActive && styles.themeOptionActive,
-                  pressed && styles.themeOptionPressed,
-                ]}
-                onPress={() => setTheme(name)}>
-                <Text style={[styles.themeOptionText, isActive && styles.themeOptionTextActive]}>
-                  {themeLabels[name]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+      <Text style={styles.title}>{t('settings.title')}</Text>
+
+      <View style={styles.body}>
+      <SettingsSection title={t('settings.sectionAccount')}>
+        <SettingsRow
+          icon="person-outline"
+          label={t('settings.profileInfo')}
+          subtitle={t('settings.profileInfoSubtitle')}
+          onPress={() => router.push('/settings/profile-info')}
+        />
+        <SettingsRow
+          icon="lock-closed-outline"
+          label={t('settings.security')}
+          subtitle={t('settings.securitySubtitle')}
+          onPress={() => router.push('/settings/security')}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sectionPersonalization')}>
+        <SettingsRow
+          icon="color-palette-outline"
+          label={t('settings.appearance')}
+          subtitle={t('settings.appearanceSubtitle')}
+          onPress={() => router.push('/settings/appearance')}
+        />
+        <SettingsRow
+          icon="shapes-outline"
+          label={t('settings.markerCustomization')}
+          subtitle={t('settings.markerCustomizationSubtitle')}
+          onPress={() => router.push('/settings/marker-customization')}
+        />
+        <SettingsRow
+          icon="language-outline"
+          label={t('settings.language')}
+          onPress={() => router.push('/settings/language')}
+        />
+        <SettingsRow
+          icon="pulse-outline"
+          label={t('settings.haptics')}
+          onPress={() => router.push('/settings/haptics')}
+        />
+        <SettingsRow
+          icon="notifications-outline"
+          label={t('settings.notifications')}
+          subtitle={t('settings.notificationsSubtitle')}
+          onPress={() => router.push('/settings/notifications')}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sectionData')}>
+        <SettingsRow
+          icon="sync-outline"
+          label={t('settings.sync')}
+          subtitle={t('settings.syncSubtitle')}
+          onPress={() => router.push('/settings/sync')}
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sectionAbout')}>
+        <SettingsRow
+          icon="information-circle-outline"
+          label={t('settings.about')}
+          subtitle={t('settings.aboutSubtitle')}
+          onPress={() => router.push('/settings/about')}
+        />
+        <SettingsRow
+          icon="mail-outline"
+          label={t('settings.contact')}
+          subtitle={t('settings.contactSubtitle')}
+          onPress={() => router.push('/settings/contact')}
+        />
+        <SettingsRow
+          icon="cafe-outline"
+          label={t('settings.support')}
+          subtitle={t('settings.supportSubtitle')}
+          onPress={() => router.push('/settings/support')}
+        />
+        <SettingsRow
+          icon="rocket-outline"
+          label={t('settings.roadmap')}
+          subtitle={t('settings.roadmapSubtitle')}
+          onPress={() => router.push('/settings/roadmap')}
+        />
+      </SettingsSection>
       </View>
 
-      <View style={styles.divider} />
-
-      <Pressable
-        style={({ pressed }) => [styles.logoutButton, pressed && styles.buttonPressed]}
-        onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Disconnect</Text>
-      </Pressable>
     </View>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number) {
-  const sz = (n: number) => Math.round(n * scale);
+function makeStyles(t: ThemeTokens, font: string, topInset: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: t.bg,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: Spacing.four,
-      padding: Spacing.five,
-    },
-    section: {
-      width: '100%',
-      maxWidth: 360,
+      paddingTop: topInset + Spacing.two,
+      paddingHorizontal: Spacing.four,
+      paddingBottom: Spacing.three,
       gap: Spacing.two,
     },
-    sectionLabel: {
-      color: t.textMuted,
-      fontSize: sz(FontSize.sm),
-      fontFamily: font,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-    themeRow: {
-      flexDirection: 'row',
-      gap: Spacing.two,
-    },
-    themeOption: {
+    body: {
+      // Everything below the title, centered vertically in the remaining space.
       flex: 1,
-      paddingVertical: 10,
-      alignItems: 'center',
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      backgroundColor: t.bgElement,
+      justifyContent: 'center',
+      gap: Spacing.two,
     },
-    themeOptionActive: {
-      borderColor: t.accent,
-      backgroundColor: t.bgElement,
-    },
-    themeOptionPressed: {
-      opacity: 0.7,
-    },
-    themeOptionText: {
-      color: t.textMuted,
-      fontSize: FontSize.sm,
-      fontFamily: ButtonFont,
-    },
-    themeOptionTextActive: {
+    title: {
       color: t.accent,
-      fontFamily: ButtonFont,
-    },
-    divider: {
-      width: '100%',
-      maxWidth: 360,
-      height: 1,
-      backgroundColor: t.bgDivider,
-    },
-    logoutButton: {
-      borderWidth: 1,
-      borderColor: t.danger,
-      borderRadius: BorderRadius.sm,
-      paddingVertical: 12,
-      paddingHorizontal: Spacing.five,
-    },
-    buttonPressed: {
-      opacity: 0.7,
-    },
-    logoutButtonText: {
-      color: t.danger,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.md,
+      fontFamily: font,
+      fontSize: FontSize.xl,
+      letterSpacing: 1,
     },
   });
 }

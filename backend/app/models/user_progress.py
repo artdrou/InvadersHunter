@@ -9,6 +9,7 @@ class UserProgress(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     invader_id = Column(Integer, ForeignKey("invaders.id"), nullable=False)
     found_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     __table_args__ = (
         UniqueConstraint("user_id", "invader_id", name="uq_user_invader"),

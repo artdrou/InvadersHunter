@@ -57,30 +57,35 @@ export type ThemeTokens = {
   borderInputInvalid: string;
 
   // Semantic role colors (can be overridden per theme)
-  accent: string;     // primary action color
-  danger: string;     // error / destructive
-  success: string;    // captured / success state
+  accent: string;      // primary action color
+  danger: string;      // error / destructive
+  success: string;     // captured / success state
+  locationDot: string; // GPS position marker & cone
+  routePath: string;   // navigation route line color
 };
 
 // ─── Built-in themes ──────────────────────────────────────────────────────────
 
+// Dark theme — deep navy blue (formerly the "blue" theme; now the default dark).
 export const darkTheme: ThemeTokens = {
-  bg: '#000000',
-  bgElement: '#111111',
-  bgDivider: '#222222',
+  bg: '#0a0f1e',
+  bgElement: '#111827',
+  bgDivider: '#1e2a3a',
   bgInputValid: '#0a2a1a',
   bgInputInvalid: '#2a0a0a',
 
-  text: '#ffffff',
-  textMuted: '#666666',
+  text: '#e8f0fe',
+  textMuted: '#5b7a9d',
 
-  border: '#333333',
+  border: '#1e3a5f',
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.yellow,
+  accent: '#ccff00',
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: Brand.cyan,
+  routePath: '#3effa0',
 };
 
 export const lightTheme: ThemeTokens = {
@@ -97,57 +102,104 @@ export const lightTheme: ThemeTokens = {
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.yellow,
+  accent: '#002FA7',
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: '#4a90e2',
+  routePath: '#00aa66',
 };
 
-export const blueTheme: ThemeTokens = {
-  bg: '#0a0f1e',
-  bgElement: '#111827',
-  bgDivider: '#1e2a3a',
-  bgInputValid: '#0a2a1a',
-  bgInputInvalid: '#2a0a0a',
+// Amber theme — warm light map (peach land, orange buildings, rose roads).
+export const amberTheme: ThemeTokens = {
+  bg: '#f2e3d3',
+  bgElement: '#fbf3ea',
+  bgDivider: '#e5cdb6',
+  bgInputValid: '#e6fff5',
+  bgInputInvalid: '#fff0f3',
 
-  text: '#e8f0fe',
-  textMuted: '#5b7a9d',
+  text: '#5a3626',
+  textMuted: '#a97b5f',
 
-  border: '#1e3a5f',
+  border: '#d9b899',
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: Brand.cyan,
+  accent: '#c05a72',
   danger: Brand.pink,
   success: Brand.cyan,
+  locationDot: '#c05a72',
+  routePath: '#2a8fa0',
+};
+
+// Matrix theme — near-black with desaturated green, raw terminal vibe.
+export const matrixTheme: ThemeTokens = {
+  bg: '#050a05',
+  bgElement: '#0b160b',
+  bgDivider: '#162a16',
+  bgInputValid: '#0a2a1a',
+  bgInputInvalid: '#2a0a0a',
+
+  text: '#a7c4ae',
+  textMuted: '#5f7a66',
+
+  border: '#2c4a35',
+  borderInputValid: Brand.cyan,
+  borderInputInvalid: Brand.pink,
+
+  accent: '#5aa06e',
+  danger: Brand.pink,
+  success: '#5aa06e',
+  locationDot: '#5aa06e',
+  routePath: '#5fb083',
 };
 
 export const themes = {
   dark: darkTheme,
   light: lightTheme,
-  blue: blueTheme,
+  amber: amberTheme,
+  matrix: matrixTheme,
 } as const;
 
 export const themeLabels: Record<ThemeName, string> = {
   dark: 'Dark',
   light: 'Light',
-  blue: 'Blue',
+  amber: 'Amber',
+  matrix: 'Matrix',
 };
 
 export type ThemeName = keyof typeof themes;
 
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
+/**
+ * Single type scale, shared by every screen and font (both AppFont and
+ * ButtonFont render as FreePixel, so there's no reason for their nominal
+ * sizes to diverge).
+ *
+ * Tier guide:
+ *  - xxs  11  tiny badges / counts (confidence indicators, pixel-badge numbers)
+ *  - xs   13  small badges, meta text (dates, credits)
+ *  - sm   14  secondary text, subtitles, list items
+ *  - md   16  body text, section labels, row labels
+ *  - lg   20  toggles, prominent row labels, filter chips
+ *  - xl   27  titles, headers, modal titles
+ *  - xxl  30  primary CTAs (login, sync, approve, etc.)
+ */
 export const FontSize = {
+  xxs: 11,
+  xs: 13,
   sm: 14,
   md: 16,
   lg: 20,
-  xl: 28,
+  xl: 27,
+  xxl: 30,
 } as const;
 
 export const BorderRadius = {
   sm: 8,
   md: 12,
   lg: 14,
+  pill: 20,
 } as const;
 
 export const Spacing = {
@@ -160,14 +212,45 @@ export const Spacing = {
   six: 64,
 } as const;
 
+// ─── Elevation & motion ───────────────────────────────────────────────────────
+// Stacking order for absolutely-positioned overlays. Higher = closer to the user.
+
+export const ZIndex = {
+  map: 5,        // map-level FABs (routing, locate, compass, news) — sit below panels
+  control: 10,   // on-map controls that must cover the FABs (filter bar, popup)
+  picker: 15,    // location-picker pin (sits above controls, below its action bar)
+  overlay: 20,   // full-screen bars, banners, toasts
+} as const;
+
+/** Animation durations (ms), kept consistent across sheets/toasts. */
+export const Motion = {
+  sheetIn: 220,   // bottom-sheet / sub-sheet slide-in
+  sheetOut: 260,  // bottom-sheet slide-out
+  toastHold: 2000,// how long a toast stays fully visible before fading
+  toastFade: 600, // toast fade-out
+  reassert: 500,  // delay before re-asserting a camera move after a transition
+} as const;
+
+// ─── Overlay scrims & fixed colors ────────────────────────────────────────────
+// Theme-independent: scrims darken whatever is behind them in every theme.
+
+export const Overlay = {
+  scrimSoft: 'rgba(0,0,0,0.25)',  // sheet backdrop
+  scrim: 'rgba(0,0,0,0.65)',      // offline banner
+  scrimStrong: 'rgba(0,0,0,0.75)',// toast
+} as const;
+
+/** Pure white — text/icons sitting on a colored (accent/brand) surface. */
+export const White = '#ffffff';
+
 // ─── App fonts ────────────────────────────────────────────────────────────────
 
 /** Main text font (labels, values, titles). */
-export const AppFont = 'Pixelmix';
+export const AppFont = 'FreePixel';
 export const AppFontScale = 0.9;
 
 /** Font for interactive controls (buttons, pills, selectors). */
-export const ButtonFont = 'Dogica';
+export const ButtonFont = 'FreePixel';
 
 /** Used exclusively for the app title on the login screen. */
 export const TitleFont = 'Pixelmania';

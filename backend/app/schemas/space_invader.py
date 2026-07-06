@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 class InvaderBase(BaseModel):
     name: str
@@ -40,6 +40,7 @@ class InvaderOut(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     date_pose: Optional[date] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True  # remplace orm_mode en Pydantic V2

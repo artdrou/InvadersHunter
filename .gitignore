@@ -1,4 +1,9 @@
 # ========================
+# Claude
+# ========================
+CLAUDE.md
+
+# ========================
 # Fichiers système
 # ========================
 .DS_Store
@@ -55,7 +60,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# package-lock.json must be committed: EAS Build reads it to detect npm and run
+# a frozen install. Without it, EAS falls back to yarn and the build fails.
 yarn.lock
 
 # Build frontend
@@ -72,9 +78,15 @@ yarn.lock
 *.sublime-workspace
 
 .claude/
+CLAUDE.md
 
 # ========================
 # Autres fichiers temporaires
 # ========================
 *.swp
 *.tmp
+
+# ========================
+# APK builds — too large for git, hosted on GitHub Releases
+# ========================
+backend/static/apk/*.apk

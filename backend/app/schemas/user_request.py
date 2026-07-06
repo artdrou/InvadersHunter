@@ -1,23 +1,26 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, date
 from ..core.name_utils import normalize_name, validate_name_format
 
 
 class UserRequestCreate(BaseModel):
     request_type: Literal["create", "modify"]
     invader_id: Optional[int] = None  # required for "modify"
-    proposed_name: str
+    proposed_name: Optional[str] = None  # required for "create"; optional for "modify"
     proposed_description: Optional[str] = None
     proposed_latitude: Optional[float] = None
     proposed_longitude: Optional[float] = None
     proposed_points: Optional[int] = None
     proposed_state: Optional[str] = None
     proposed_image_url: Optional[str] = None
+    proposed_date_pose: Optional[date] = None
 
     @field_validator("proposed_name")
     @classmethod
-    def name_must_be_valid(cls, v: str) -> str:
+    def name_must_be_valid(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
         normalized = normalize_name(v)
         if not validate_name_format(normalized):
             raise ValueError(
@@ -26,16 +29,11 @@ class UserRequestCreate(BaseModel):
             )
         return v
 
-    @field_validator("invader_id")
-    @classmethod
-    def check_invader_id(cls, v, info):
-        # invader_id is validated in the route against request_type
-        return v
-
 
 class UserRequestOut(BaseModel):
     id: int
     user_id: int
+    username: Optional[str] = None
     invader_id: Optional[int]
     request_type: str
     status: str
@@ -47,8 +45,10 @@ class UserRequestOut(BaseModel):
     proposed_points: Optional[int]
     proposed_state: Optional[str]
     proposed_image_url: Optional[str]
+    proposed_date_pose: Optional[date]
     admin_request_id: Optional[int]
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

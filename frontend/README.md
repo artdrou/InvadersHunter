@@ -1,56 +1,120 @@
-# Welcome to your Expo app 👋
+# InvadersHunter — Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native app built with Expo. Uses MapLibre for the map, Zustand for state management, and expo-sqlite for local offline storage.
 
-## Get started
+---
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
-   ```
+- Expo (React Native)
+- Expo Router (file-based navigation)
+- MapLibre GL (map rendering)
+- Zustand (global state)
+- expo-sqlite (local database)
+- Axios (API client)
+- i18next + react-i18next + expo-localization (FR / EN translations, device-language auto-detect)
 
-2. Start the app
+### Native modules preinstalled for upcoming features
 
-   ```bash
-   npx expo start
-   ```
+Bundled in the APK so future JS-only changes ship over EAS Update without a rebuild:
 
-In the output, you'll find options to open the app in a
+| Module | Used for |
+|---|---|
+| `expo-haptics` | Vibration feedback on flash success, emblem unlocks, button taps |
+| `react-native-webview` | In-popup web pages (e.g. invader-spotter detail links) |
+| `expo-notifications` | Local + push notifications (nearby invader, reward unlock) |
+| `expo-secure-store` | Encrypted storage for auth refresh tokens |
+| `expo-blur` | Frosted-glass overlays for modals and gamification UI |
+| `expo-sharing` | Share achievements / flashed-invader cards |
+| `expo-clipboard` | Copy invader names / share links |
+| `expo-tracking-transparency` | iOS App Store requirement if analytics ever added |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Local development setup
 
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install dependencies
 
 ```bash
-npm run reset-project
+cd frontend
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Set environment variables
 
-### Other setup steps
+Create a `.env` file in the `frontend/` folder:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```ini
+EXPO_PUBLIC_API_URL=https://invader-hunter-development.up.railway.app
+```
 
-## Learn more
+For local backend development, replace the URL with `http://localhost:8000`.
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Start the dev server
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start
+```
 
-## Join the community
+Scan the QR code with the Expo Go app on your phone, or press `w` to open in the browser.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Run tests
+
+```bash
+npm test
+```
+
+Tests cover pure utility functions. No native module mocks needed.
+
+---
+
+## Build an APK
+
+Requires an Expo account and EAS CLI (`npm install -g eas-cli`).
+
+```bash
+eas build --profile preview --platform android
+```
+
+---
+
+## Push an OTA update
+
+Use this to ship a JavaScript-only update without releasing a new APK:
+
+```bash
+eas update --channel preview --message "describe your change"
+```
+
+---
+
+## App structure
+
+```
+src/
+  app/
+    (tabs)/
+      map.tsx         Main map screen
+      invader.tsx     Invader list
+      profile.tsx     User profile
+      admin.tsx       Admin request list (admin only)
+    admin/
+      [id].tsx        Admin request detail
+      pick-location   Map for choosing a corrected position
+    login.tsx
+    register.tsx
+  features/
+    invaders/         Types, store, API service
+    admin/            Types, store, API service
+    auth/             Zustand store (token + user, persisted)
+    map/              Map component, popup, filter bar
+  services/
+    api-client.ts     Axios instance
+    db.ts             expo-sqlite helpers
+    sync.ts           Delta sync + offline queue flush
+    connectivity.ts   Online/offline detection
+  constants/
+    theme.ts          Design tokens (colors, spacing, fonts)
+```

@@ -1,3 +1,15 @@
-export type { Invader, Capture, InvaderWithState } from './types';
+export { InvaderState, NON_FLASHABLE_STATES, isNonFlashable } from './types';
+export type { Invader, Capture, InvaderWithState, UserRequest } from './types';
+export { useInvaderData } from './hooks/use-invader-data';
+export { useInvaderStore } from './store';
 export { mapInvadersWithProgress } from './mapper';
 export { fetchInvaders, fetchProgress, flashInvader, unflashInvader } from './services/invaders.api';
+export { cityOf, numOf, buildGroups, formatDate, SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR } from './utils/invader-list';
+export type { SortOption, GroupMode, SortDir } from './utils/invader-list';
+export { InvaderInfoPanel } from './components/InvaderInfoPanel';
+export { CityHeader } from './components/CityHeader';
+export { InvaderListRow } from './components/InvaderListRow';
+export { InvaderGridCell } from './components/InvaderGridCell';
+export { MosaicToolbar, DEFAULT_TOOLBAR_STATE } from './components/MosaicToolbar';
+export type { ToolbarState } from './components/MosaicToolbar';
+export { InvaderFilterBar } from './components/InvaderFilterBar';

@@ -1,24 +1,24 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "Invader Hunter",
     "slug": "frontend",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/InvaderHunterIcon.png",
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "icon": "./assets/images/InvaderHunterIcon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/InvaderHunterIcon.png",
+        "backgroundColor": "#E6F4FE"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.invaderhunter.app"
+      "package": "com.invaderhunter.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -36,7 +36,26 @@
           }
         }
       ],
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Invader Hunter to access your photos.",
+          "cameraPermission": "Allow Invader Hunter to take photos of invaders."
+        }
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-tracking-transparency",
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/InvaderHunterIcon.png",
+          "color": "#208AEF"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -47,6 +66,12 @@
       "eas": {
         "projectId": "08070d4b-8954-4319-b63f-4995780b93be"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/08070d4b-8954-4319-b63f-4995780b93be"
     }
   }
 }

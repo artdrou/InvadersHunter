@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey
 from datetime import datetime
 from ..database import Base
 
@@ -23,9 +23,18 @@ class AdminRequest(Base):
     proposed_points = Column(Integer, nullable=True)
     proposed_state = Column(String, nullable=True)
     proposed_image_url = Column(String, nullable=True)
+    proposed_date_pose = Column(Date, nullable=True)  # year of installation (stored as YYYY-01-01)
 
     request_count = Column(Integer, nullable=False, default=0)
+    confidence = Column(Integer, nullable=False, default=0)
+
+    # Who *proposed* this change — drives the News feed credit/badge.
+    # "community" (crowdsourced user) | "admin" (direct admin action) | "scraper" (invader-spotter.art)
+    source = Column(String, nullable=False, default="community")
+    # Who *validated* it (traceability only, never displayed in the app).
+    validated_by = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     reviewed_at = Column(DateTime, nullable=True)
     reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)

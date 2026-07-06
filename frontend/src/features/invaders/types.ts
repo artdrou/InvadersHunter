@@ -1,14 +1,40 @@
 
+export const InvaderState = {
+  Good:             "Good",
+  SlightlyDegraded: "Slightly degraded",
+  Degraded:         "Degraded",
+  BadlyDegraded:    "Badly degraded",
+  Destroyed:        "Destroyed",
+  NotVisible:       "Not visible",
+  Unknown:          "Unknown",
+} as const;
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare -- intentional const+type companion (enum-like)
+export type InvaderState = typeof InvaderState[keyof typeof InvaderState];
+
+export const NON_FLASHABLE_STATES: InvaderState[] = [InvaderState.Destroyed, InvaderState.NotVisible];
+
+/** Tolerant check: matches both new ("Destroyed") and legacy lowercase ("destroyed")
+ *  values, since clients hold a local SQLite cache that may not have delta-synced yet. */
+export function isNonFlashable(state: string | null | undefined): boolean {
+  if (!state) return false;
+  const s = state.toLowerCase();
+  return NON_FLASHABLE_STATES.some((v) => v.toLowerCase() === s);
+}
+
 export type Invader = {
   id: number;
   description: string;
   name: string;
-  state: string | null;
-  latitude: number;
-  longitude: number;
+  city?: string | null;
+  number?: number | null;
+  state: InvaderState | null;
+  latitude: number | null;
+  longitude: number | null;
   points: number | null;
   date_pose: string | null;
   image_url: string | null;
+  updated_at?: string | null;
 };
 
 export type Capture = {
@@ -16,10 +42,34 @@ export type Capture = {
   invader_id: number;
   user_id: number;
   found_at: string;
+  updated_at?: string | null;
+  /** 1 = written offline, waiting to sync; 0 = confirmed by server */
+  is_pending?: number;
 };
 
 export type InvaderWithState = Invader & {
   isCaptured: boolean;
+  isPending: boolean;
   capturedAt?: string;
   progressId?: number;
+};
+
+export type UserRequest = {
+  id: number;
+  user_id: number;
+  invader_id: number | null;
+  request_type: string;
+  status: string;
+  proposed_name: string | null;
+  updated_at: string | null;
+};
+
+export type Contributor = {
+  username: string;
+  at: string;
+};
+
+export type InvaderContributors = {
+  created_by: Contributor | null;
+  modified_by: Contributor[];
 };

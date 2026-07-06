@@ -11,8 +11,12 @@ Column flags (all included by default, use --skip-* to exclude):
     --skip-longitude    Do not import the longitude column
 
 Conflict behaviour (what to do when an invader with the same name already exists):
-    --on-conflict skip      Leave the existing row untouched  (default)
-    --on-conflict overwrite Update the existing row with CSV values
+    --on-conflict fill      Only set fields that are currently null in the DB  (default)
+    --on-conflict skip      Leave the existing row untouched
+    --on-conflict overwrite Update all fields with CSV values
+
+Reset (explicit opt-in only — nothing is ever deleted without this flag):
+    --reset                 Delete ALL invaders and dependent rows before importing
 
 Example:
     # Dry-run preview (no DB writes):
@@ -43,36 +47,50 @@ UPDATABLE_COLUMNS = ["points", "state", "latitude", "longitude", "city", "number
 
 # Valid state values — must match the frontend STATE_OPTIONS list
 VALID_STATES = {
-    "pristine",
-    "slightly degraded",
-    "degraded",
-    "badly degraded",
-    "destroyed",
-    "not visible",
+    "Good",
+    "Slightly degraded",
+    "Degraded",
+    "Badly degraded",
+    "Destroyed",
+    "Not visible",
+    "Unknown",
 }
 
 # Maps CSV French values to canonical English states.
 # Prefix matches are used for entries like "Détruit !Instagram: ..." and "OKInstagram: ..."
 STATE_MAP = [
-    ("OK",              "pristine"),
-    ("Un peu dégradé",  "slightly degraded"),
-    ("Dégradé",         "degraded"),
-    ("Très dégradé",    "badly degraded"),
-    ("Détruit !",       "destroyed"),
-    ("Non visible",     "not visible"),
-    ("Inconnu",         None),   # no equivalent — will be stored as None
+    ("OK",              "Good"),
+    ("Un peu dégradé",  "Slightly degraded"),
+    ("Dégradé",         "Degraded"),
+    ("Très dégradé",    "Badly degraded"),
+    ("Détruit !",       "Destroyed"),
+    ("Détruit",         "Destroyed"),
+    ("Non visible",     "Not visible"),
+    ("Inconnu",         "Unknown"),
 ]
+
+# Legacy lowercase values that were stored in the DB before the rename — map to new canonical
+LEGACY_LOWERCASE_MAP = {
+    "pristine": "Good",
+    "slightly degraded": "Slightly degraded",
+    "degraded": "Degraded",
+    "badly degraded": "Badly degraded",
+    "destroyed": "Destroyed",
+    "not visible": "Not visible",
+}
 
 
 def normalize_state(raw: str) -> str | None:
-    """Convert a CSV state value to a canonical frontend state, or None if unknown."""
+    """Convert any state value (French CSV / legacy lowercase / already-canonical)
+    to the canonical capitalized state, or None if unknown."""
     raw = raw.strip()
+    if raw in VALID_STATES:
+        return raw
+    if raw.lower() in LEGACY_LOWERCASE_MAP:
+        return LEGACY_LOWERCASE_MAP[raw.lower()]
     for prefix, canonical in STATE_MAP:
         if raw.startswith(prefix):
             return canonical
-    # Already a valid canonical value (e.g. re-running after partial migration)
-    if raw.lower() in VALID_STATES:
-        return raw.lower()
     return None
 
 
@@ -95,10 +113,16 @@ def parse_args():
     parser.add_argument("csv_path", help="Path to the invaders CSV file")
     parser.add_argument(
         "--on-conflict",
-        choices=["skip", "overwrite"],
-        default="skip",
+        choices=["skip", "overwrite", "fill"],
+        default="fill",
         dest="on_conflict",
-        help="What to do when an invader with the same name already exists (default: skip)",
+        help="What to do when an invader with the same name already exists: "
+             "skip=leave untouched, overwrite=replace all fields, fill=only set fields that are currently null (default: fill)",
+    )
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Delete ALL existing invaders (and dependent rows) before importing. Must be explicit.",
     )
     parser.add_argument(
         "--dry-run",
@@ -176,22 +200,18 @@ def main():
 
     db = SessionLocal()
     try:
-        counts = {
-            "user_progress":  db.query(UserProgress).count(),
-            "admin_requests": db.query(AdminRequest).count(),
-            "user_requests":  db.query(UserRequest).count(),
-            "invaders":       db.query(Invader).count(),
-        }
-        if not args.dry_run:
-            db.query(UserProgress).delete()
-            db.query(UserRequest).delete()
-            db.query(AdminRequest).delete()
-            db.query(Invader).delete()
-            for table, n in counts.items():
-                print(f"  DELETED {n} {table} row(s)")
-        else:
-            for table, n in counts.items():
-                print(f"  DRY RUN: would delete {n} {table} row(s)")
+        invader_count = db.query(Invader).count()
+        print(f"Invaders in DB: {invader_count}")
+
+        if args.reset:
+            if not args.dry_run:
+                db.query(UserProgress).delete()
+                db.query(UserRequest).delete()
+                db.query(AdminRequest).delete()
+                db.query(Invader).delete()
+                print(f"  DELETED all existing rows (--reset)")
+            else:
+                print(f"  DRY RUN: would delete all existing rows")
         print()
 
         inserted = 0
@@ -225,6 +245,20 @@ def main():
                             setattr(existing, field, value)
                 if changed_fields:
                     print(f"  UPDATE {name}: {', '.join(changed_fields)}")
+                    updated += 1
+                else:
+                    print(f"  UNCHANGED {name}")
+                    skipped += 1
+
+            elif args.on_conflict == "fill":
+                filled_fields = []
+                for field, value in field_data.items():
+                    if getattr(existing, field) is None and value is not None:
+                        filled_fields.append(f"{field}: null → {value!r}")
+                        if not args.dry_run:
+                            setattr(existing, field, value)
+                if filled_fields:
+                    print(f"  FILL {name}: {', '.join(filled_fields)}")
                     updated += 1
                 else:
                     print(f"  UNCHANGED {name}")

@@ -1,8 +1,7 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useAuthStore } from '@/features/auth/store';
 
-export const BASE_URL = 'http://192.168.1.63:8000';
-// export const BASE_URL = 'http://127.0.0.1:8000'; // web / local
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL!;
 
 export const api = axios.create({ baseURL: BASE_URL });
 
@@ -13,7 +12,7 @@ api.interceptors.request.use((config) => {
 });
 
 let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
+let refreshQueue: ((token: string) => void)[] = [];
 
 api.interceptors.response.use(
   (response) => response,
@@ -64,3 +63,17 @@ api.interceptors.response.use(
     }
   }
 );
+
+/**
+ * Best-effort extraction of the backend's error `detail` from a thrown value.
+ * Our FastAPI endpoints reject with `{ detail: string }`, which axios nests at
+ * `error.response.data.detail`. Returns undefined when absent so callers can
+ * supply their own localized fallback. Keeps `catch` blocks off `any`.
+ */
+export function apiErrorDetail(err: unknown): string | undefined {
+  if (isAxiosError(err)) {
+    const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
+    if (typeof detail === 'string') return detail;
+  }
+  return undefined;
+}

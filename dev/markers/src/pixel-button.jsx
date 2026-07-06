@@ -1,0 +1,133 @@
+// Pixel Editor export — 12x12
+// Colors: #0a1a3a, #1a56c4
+
+export default function PixelIcon({ scale = 14 }) {
+  return (
+    <svg
+      width={12*scale} height={12*scale}
+      viewBox="0 0 120 120"
+      style={{ imageRendering: "pixelated" }}
+    >
+      <rect x={30} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={40} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={50} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={60} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={70} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={80} y={0} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={20} y={10} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={30} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={10} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={10} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={20} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={20} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={20} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={20} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={30} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={30} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={30} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={40} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={40} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={40} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={50} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={50} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={50} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={60} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={60} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={60} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={70} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={70} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={70} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={0} y={80} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={20} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={80} width={10} height={10} fill="#1a56c4"/>
+      <rect x={110} y={80} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={10} y={90} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={20} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={30} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={90} width={10} height={10} fill="#1a56c4"/>
+      <rect x={100} y={90} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={20} y={100} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={30} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={40} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={50} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={60} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={70} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={80} y={100} width={10} height={10} fill="#1a56c4"/>
+      <rect x={90} y={100} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={30} y={110} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={40} y={110} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={50} y={110} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={60} y={110} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={70} y={110} width={10} height={10} fill="#0a1a3a"/>
+      <rect x={80} y={110} width={10} height={10} fill="#0a1a3a"/>
+    </svg>
+  );
+}

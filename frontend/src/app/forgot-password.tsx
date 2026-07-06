@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
+import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
@@ -9,6 +11,7 @@ type Step = 'request' | 'verify' | 'new-password';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -29,7 +32,7 @@ export default function ForgotPasswordScreen() {
       await forgotPassword(username, email);
       setStep('verify');
     } catch {
-      setError('Something went wrong, please try again');
+      setError(t('auth.forgot.somethingWrong'));
     } finally {
       setLoading(false);
     }
@@ -43,7 +46,7 @@ export default function ForgotPasswordScreen() {
       await verifyResetCode(email, code);
       setStep('new-password');
     } catch {
-      setError('Invalid or expired code');
+      setError(t('auth.forgot.invalidCode'));
     } finally {
       setLoading(false);
     }
@@ -52,7 +55,7 @@ export default function ForgotPasswordScreen() {
   async function handleReset() {
     if (!newPassword) return;
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.forgot.passwordsDoNotMatch'));
       return;
     }
     setLoading(true);
@@ -60,9 +63,8 @@ export default function ForgotPasswordScreen() {
     try {
       await resetPassword(email, code, newPassword);
       router.replace('/login');
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail;
-      setError(typeof detail === 'string' ? detail : 'Invalid or expired code');
+    } catch (err) {
+      setError(apiErrorDetail(err) ?? t('auth.forgot.invalidCode'));
       setStep('verify');
     } finally {
       setLoading(false);
@@ -71,14 +73,19 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Invaders Hunter</Text>
+      <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
 
-      {step === 'request' && (
+      <View style={styles.form}>
+        <Text style={[styles.subtitle, { textAlign: 'center' }]}>{t('auth.forgot.unavailable')}</Text>
+        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: FontSize.sm }]}>{t('auth.forgot.contactSupport')}</Text>
+      </View>
+
+      {false && step === 'request' && (
         <View style={styles.form}>
-          <Text style={styles.subtitle}>Reset your password</Text>
+          <Text style={styles.subtitle}>{t('auth.forgot.resetTitle')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Username"
+            placeholder={t('auth.username')}
             placeholderTextColor={theme.textMuted}
             autoCapitalize="none"
             value={username}
@@ -86,7 +93,7 @@ export default function ForgotPasswordScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={t('auth.email')}
             placeholderTextColor={theme.textMuted}
             autoCapitalize="none"
             keyboardType="email-address"
@@ -98,17 +105,17 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleRequest}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Send code</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.sendCode')}</Text>}
           </Pressable>
         </View>
       )}
 
-      {step === 'verify' && (
+      {false && step === 'verify' && (
         <View style={styles.form}>
-          <Text style={styles.subtitle}>Enter the code sent to your email</Text>
+          <Text style={styles.subtitle}>{t('auth.forgot.codePrompt')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="6-digit code"
+            placeholder={t('auth.forgot.sixDigit')}
             placeholderTextColor={theme.textMuted}
             keyboardType="numeric"
             maxLength={6}
@@ -120,17 +127,17 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleVerify}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Verify</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.verify')}</Text>}
           </Pressable>
         </View>
       )}
 
-      {step === 'new-password' && (
+      {false && step === 'new-password' && (
         <View style={styles.form}>
-          <Text style={styles.subtitle}>Choose a new password</Text>
+          <Text style={styles.subtitle}>{t('auth.forgot.newPasswordTitle')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="New password"
+            placeholder={t('auth.forgot.newPassword')}
             placeholderTextColor={theme.textMuted}
             secureTextEntry
             value={newPassword}
@@ -145,7 +152,7 @@ export default function ForgotPasswordScreen() {
                   : styles.inputInvalid
               ),
             ]}
-            placeholder="Confirm password"
+            placeholder={t('auth.forgot.confirmPassword')}
             placeholderTextColor={theme.textMuted}
             secureTextEntry
             value={confirmPassword}
@@ -156,13 +163,13 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleReset}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>Update password</Text>}
+            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.updatePassword')}</Text>}
           </Pressable>
         </View>
       )}
 
       <Pressable onPress={() => router.back()} style={styles.backLink}>
-        <Text style={styles.backText}>Back to login</Text>
+        <Text style={styles.backText}>{t('auth.forgot.backToLogin')}</Text>
       </Pressable>
     </View>
   );
@@ -234,7 +241,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     buttonText: {
       color: t.bg,
       fontFamily: ButtonFont,
-      fontSize: FontSize.md,
+      fontSize: FontSize.xxl,
     },
     backLink: {
       marginTop: Spacing.five,
