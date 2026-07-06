@@ -21,14 +21,13 @@ feature/*  ──PR──▶  main  ──PR──▶  prod
 
 ### Development flow
 
-1. Build a feature on a `feature/*` branch. The **development** app build points at the
-   dev backend + `dev` DB. Deploy that branch to the dev backend on demand via the
-   **Deploy development** workflow (`workflow_dispatch`, pick the ref).
-2. **PR → `main`.** CI must pass. Merging deploys the **staging** backend and (frontend
-   changes) OTA-updates the `preview` channel. Testers exercise the **preview** app.
-3. When staging is solid, **PR `main` → `prod`.** The `production` GitHub environment
-   requires an approval; merging deploys the **production** backend. Ship the
-   **production** app build to testers.
+1. Build a feature on a `feature/*` branch (development app → dev backend + `dev` DB).
+2. **PR → `main`.** CI must pass. Merging → **Railway auto-deploys the staging backend**
+   (its GitHub source branch is `main`), and `ota-update.yml` OTA-updates the `preview`
+   channel. Testers exercise the **preview** app.
+3. When staging is solid, **PR `main` → `prod`** (gated by branch protection review).
+   Merging → **Railway auto-deploys the production backend** (source branch `prod`).
+   Ship the **production** app build to testers.
 
 ## Workflows
 
@@ -36,10 +35,11 @@ feature/*  ──PR──▶  main  ──PR──▶  prod
 |------|---------|--------------|
 | `ci.yml` | PR/push to `main` & `prod` | Backend `pytest` + frontend `jest`. Required check. |
 | `release.yml` | Manual | EAS-builds the APK for a chosen profile → GitHub Release → bumps `version.json` on `main`. |
-| `deploy-development.yml` | Manual (pick ref) | `railway up` to the **development** env. |
-| `deploy-staging.yml` | Push to `main` (`backend/**`) | `railway up` to the **staging** env. |
-| `deploy-production.yml` | Push to `prod` (`backend/**`) | `railway up` to the **production** env (gated by env reviewer). |
 | `ota-update.yml` | Push to `main` (`frontend/**`) | EAS Update to the `preview` channel. |
+
+**Backend deploys are NOT done in GitHub Actions** — Railway's native GitHub integration
+deploys each environment from its source branch (`development` ← a dev branch, `staging`
+← `main`, `production` ← `prod`).
 
 ## Secrets
 
@@ -47,13 +47,10 @@ feature/*  ──PR──▶  main  ──PR──▶  prod
 |--------|---------|-------|
 | `EXPO_ACCESS_TOKEN_GITHUB` | release, ota | Expo access token. |
 | `EXPO_PUBLIC_API_URL` / `EXPO_PUBLIC_PROTOMAPS_KEY` / `EXPO_PUBLIC_ORS_KEY` | release, ota | Bundled into the JS build. |
-| `RAILWAY_TOKEN_DEV` | deploy-development | Railway project token scoped to the `development` env. |
-| `RAILWAY_TOKEN_STAGING` | deploy-staging | …scoped to the `staging` env. |
-| `RAILWAY_TOKEN_PROD` | deploy-production | …scoped to the `production` env. |
 | `GITHUB_TOKEN` | release | Automatic. |
 
-Each deploy workflow **skips cleanly** if its token is unset, so you can land these files
-before the envs exist.
+No `RAILWAY_TOKEN_*` needed — Railway deploys via its own GitHub integration, not Actions.
+If you already created them as environment secrets, they're now unused and can be deleted.
 
 ## Databases (Neon) — done
 
@@ -75,15 +72,14 @@ fights the pooler endpoint.)
 ## One-time setup checklist
 
 **Railway** (three envs exist: `development` / `staging` / `production`):
-- [ ] **CRITICAL — give each env its OWN `DATABASE_URL`** (they were copied from one env, so all three currently point at the same DB). Set `development` → Neon `dev`, `staging` → Neon `staging`, `production` → Neon `production`. Use the **direct** (non-`-pooler`) string with `channel_binding=require`.
-- [ ] Domains: `invader-hunter-development` / `-staging` / `-production`.
-- [x] Env-scoped **project token** per env → `RAILWAY_TOKEN_DEV/STAGING/PROD` (set as GitHub *environment* secrets).
-- [ ] Later: separate `SECRET_KEY` per env (token isolation) and a separate **R2 bucket for production** (so dev/staging don't write into prod images). Sharing the rest (MAIL_*, BREVO) is fine for now.
-- [ ] Disable Railway's native GitHub auto-deploy on any env these workflows own (avoid double deploys).
+- [x] Each env has its OWN `DATABASE_URL` (development → Neon `dev`, staging → Neon `staging`, production → Neon `production`; direct string, `channel_binding=require`).
+- [x] Each env has its OWN R2 config (dev/staging → `invaderhunter-pictures-nonprod` with a scoped token; production → `invaderhunter-pictures`).
+- [ ] **Configure the GitHub integration per env** — this is what deploys the backend now: set each environment's service source branch → `production` ← `prod`, `staging` ← `main`, `development` ← your dev branch (or deploy it manually).
+- [ ] Later: separate `SECRET_KEY` per env (token isolation). Sharing the rest (MAIL_*, BREVO) is fine for now.
 
-**GitHub** (environments named `invader-hunter-development` / `-staging` / `-production` — the workflows' `environment:` values match these exactly):
-- [x] Environments created; `RAILWAY_TOKEN_*` set as environment secrets.
-- [ ] Add a **required reviewer** on `invader-hunter-production`.
+**GitHub** (environments named `invader-hunter-development` / `-staging` / `-production`, used by `release.yml` to gate production APK builds):
+- [x] Environments created.
+- [x] Required reviewer on `invader-hunter-production`.
 - [ ] Branch protection on `main` and `prod`: require PR + the `Backend tests (pytest)` and `Frontend tests (jest)` checks (do this after the first CI run so the check names are selectable).
 
 > The repo-level `DATABASE_URL` secret is **not used** by any workflow (CI runs on in-memory SQLite; the backend reads `DATABASE_URL` from Railway, not GitHub). Safe to leave or delete.
