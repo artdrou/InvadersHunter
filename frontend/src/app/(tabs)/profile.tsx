@@ -48,6 +48,12 @@ export default function SettingsLanding() {
           onPress={() => router.push('/settings/appearance')}
         />
         <SettingsRow
+          icon="shapes-outline"
+          label={t('settings.markerCustomization')}
+          subtitle={t('settings.markerCustomizationSubtitle')}
+          onPress={() => router.push('/settings/marker-customization')}
+        />
+        <SettingsRow
           icon="language-outline"
           label={t('settings.language')}
           onPress={() => router.push('/settings/language')}

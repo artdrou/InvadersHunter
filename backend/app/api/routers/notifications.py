@@ -36,7 +36,10 @@ def unregister_push_token(
 
 @router.get("/me", response_model=UserNotificationPrefsOut)
 def get_my_notification_prefs(current_user=Depends(get_current_user)):
-    return UserNotificationPrefsOut(notifications_enabled=current_user.notifications_enabled)
+    return UserNotificationPrefsOut(
+        notifications_enabled=current_user.notifications_enabled,
+        language=current_user.language,
+    )
 
 
 @router.patch("/me", response_model=UserNotificationPrefsOut)
@@ -45,8 +48,8 @@ def update_my_notification_prefs(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    user = notification_service.update_user_prefs(db, current_user, body.notifications_enabled)
-    return UserNotificationPrefsOut(notifications_enabled=user.notifications_enabled)
+    user = notification_service.update_user_prefs(db, current_user, body.model_dump())
+    return UserNotificationPrefsOut(notifications_enabled=user.notifications_enabled, language=user.language)
 
 
 @router.get("/settings", response_model=NotificationSettingsOut)

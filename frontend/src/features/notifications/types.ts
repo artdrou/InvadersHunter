@@ -1,5 +1,8 @@
+import type { LanguageCode } from '@/services/i18n';
+
 export type NotificationPrefs = {
   notifications_enabled: boolean;
+  language: LanguageCode;
 };
 
 export type GlobalNotificationSettings = {

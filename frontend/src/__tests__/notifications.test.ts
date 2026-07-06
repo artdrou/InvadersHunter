@@ -19,6 +19,7 @@ import {
   unregisterPushToken,
   fetchMyNotificationPrefs,
   updateMyNotificationPrefs,
+  syncNotificationLanguage,
   fetchGlobalNotificationSettings,
   updateGlobalNotificationSettings,
 } from '../features/notifications/services/notifications.api';
@@ -73,19 +74,28 @@ describe('unregisterPushToken', () => {
 
 describe('fetchMyNotificationPrefs', () => {
   it('returns the parsed prefs', async () => {
-    mockGet.mockResolvedValue({ data: { notifications_enabled: false } });
+    mockGet.mockResolvedValue({ data: { notifications_enabled: false, language: 'fr' } });
     const prefs = await fetchMyNotificationPrefs();
     expect(mockGet).toHaveBeenCalledWith('/notifications/me');
-    expect(prefs).toEqual({ notifications_enabled: false });
+    expect(prefs).toEqual({ notifications_enabled: false, language: 'fr' });
   });
 });
 
 describe('updateMyNotificationPrefs', () => {
   it('patches the enabled flag', async () => {
-    mockPatch.mockResolvedValue({ data: { notifications_enabled: true } });
+    mockPatch.mockResolvedValue({ data: { notifications_enabled: true, language: 'fr' } });
     const prefs = await updateMyNotificationPrefs(true);
     expect(mockPatch).toHaveBeenCalledWith('/notifications/me', { notifications_enabled: true });
-    expect(prefs).toEqual({ notifications_enabled: true });
+    expect(prefs).toEqual({ notifications_enabled: true, language: 'fr' });
+  });
+});
+
+describe('syncNotificationLanguage', () => {
+  it('patches the language field', async () => {
+    mockPatch.mockResolvedValue({ data: { notifications_enabled: true, language: 'en' } });
+    const prefs = await syncNotificationLanguage('en');
+    expect(mockPatch).toHaveBeenCalledWith('/notifications/me', { language: 'en' });
+    expect(prefs).toEqual({ notifications_enabled: true, language: 'en' });
   });
 });
 

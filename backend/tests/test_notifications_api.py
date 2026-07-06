@@ -83,17 +83,33 @@ def test_get_my_notification_prefs_defaults_enabled(client, users):
     regular, _ = users
     res = client.get("/notifications/me", headers=auth_headers(regular))
     assert res.status_code == 200
-    assert res.json() == {"notifications_enabled": True}
+    assert res.json() == {"notifications_enabled": True, "language": "fr"}
 
 
 def test_update_my_notification_prefs(db, client, users):
     regular, _ = users
     res = client.patch("/notifications/me", json={"notifications_enabled": False}, headers=auth_headers(regular))
     assert res.status_code == 200
-    assert res.json() == {"notifications_enabled": False}
+    assert res.json() == {"notifications_enabled": False, "language": "fr"}
 
     db.expire_all()
     assert db.query(User).filter(User.id == regular.id).one().notifications_enabled is False
+
+
+def test_update_my_language(db, client, users):
+    regular, _ = users
+    res = client.patch("/notifications/me", json={"language": "en"}, headers=auth_headers(regular))
+    assert res.status_code == 200
+    assert res.json() == {"notifications_enabled": True, "language": "en"}
+
+    db.expire_all()
+    assert db.query(User).filter(User.id == regular.id).one().language == "en"
+
+
+def test_update_my_language_rejects_unsupported_code(client, users):
+    regular, _ = users
+    res = client.patch("/notifications/me", json={"language": "de"}, headers=auth_headers(regular))
+    assert res.status_code == 422
 
 
 # ── global admin settings ─────────────────────────────────────────────────────

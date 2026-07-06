@@ -39,8 +39,11 @@ import marker50ptsHighlight  from '../../../../assets/images/marker-50pts-highli
 import marker100ptsHighlight from '../../../../assets/images/marker-100pts-highlight.png';
 
 import type { SymbolLayerStyle, Expression } from '@maplibre/maplibre-react-native';
+import type { ImageSourcePropType } from 'react-native';
+import { useMemo } from 'react';
+import { useMarkerCustomizationStore } from '@/features/settings';
 
-export const MARKER_IMAGES = {
+export const BUNDLED_MARKER_IMAGES = {
   'marker-10pts-rarity':           marker10ptsRarity,
   'marker-10pts-flash-captured':   marker10ptsFlashCaptured,
   'marker-10pts-flash-uncaptured': marker10ptsFlashUncaptured,
@@ -79,16 +82,46 @@ export const MARKER_IMAGES = {
   'marker-100pts-highlight': marker100ptsHighlight,
 };
 
-export const MARKER_LAYER_STYLE: SymbolLayerStyle = {
-  iconImage: ["get", "iconKey"] as Expression,
-  iconSize: ["get", "iconSize"] as Expression,
-  iconOpacity: ["case",
-    ["==", ["get", "pending"], 1], 0.45,
-    ["==", ["get", "grey"], 1],    0.8,
-    1.0,
-  ] as Expression,
-  iconAllowOverlap: true,
-  iconIgnorePlacement: true,
-};
+// Merges the bundled default sprites with any user-generated marker PNGs
+// (@/features/settings/marker-customization-store) — custom entries override
+// bundled ones key-for-key, so uncustomized states keep shipping visuals.
+export function useMarkerImages(): Record<string, ImageSourcePropType | number> {
+  const customIconUris = useMarkerCustomizationStore((s) => s.customIconUris);
+  return useMemo(() => {
+    if (!customIconUris) return BUNDLED_MARKER_IMAGES;
+    const merged: Record<string, ImageSourcePropType | number> = { ...BUNDLED_MARKER_IMAGES };
+    for (const [key, uri] of Object.entries(customIconUris)) merged[key] = { uri };
+    return merged;
+  }, [customIconUris]);
+}
+
+// MapLibre's native <Images> only ever registers a given key once and
+// ignores later value updates for it (confirmed in both the Android and iOS
+// implementations of @maplibre/maplibre-react-native) — so after a
+// re-customization the merged map from useMarkerImages() above is useless to
+// an already-mounted map unless the whole component remounts. WebMap.native.tsx
+// keys <Images> on this value to force that remount whenever it changes.
+export function useMarkerImagesVersion(): number {
+  return useMarkerCustomizationStore((s) => s.generationVersion);
+}
+
+export function useMarkerLayerStyle(): SymbolLayerStyle {
+  const opacity = useMarkerCustomizationStore((s) => s.opacity);
+  return useMemo(() => ({
+    iconImage: ["get", "iconKey"] as Expression,
+    iconSize: ["get", "iconSize"] as Expression,
+    // The user's opacity setting scales *every* marker, including the dimmed
+    // pending/grey ones, so "Marker opacity" affects the whole map (grey mode
+    // included). At the default opacity of 1 this is identical to the old fixed
+    // 0.45 / 0.8 / 1.0 values.
+    iconOpacity: ["case",
+      ["==", ["get", "pending"], 1], 0.45 * opacity,
+      ["==", ["get", "grey"], 1],    0.8 * opacity,
+      opacity,
+    ] as Expression,
+    iconAllowOverlap: true,
+    iconIgnorePlacement: true,
+  }), [opacity]);
+}
 
 export const MARKER_LAYER_FILTER = ["!", ["has", "point_count"]] as const;

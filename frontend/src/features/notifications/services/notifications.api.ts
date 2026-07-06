@@ -1,4 +1,5 @@
 import { api } from '@/services/api-client';
+import type { LanguageCode } from '@/services/i18n';
 import type { NotificationPrefs, GlobalNotificationSettings } from '../types';
 
 export async function registerPushToken(token: string, platform: string): Promise<void> {
@@ -16,6 +17,14 @@ export async function fetchMyNotificationPrefs(): Promise<NotificationPrefs> {
 
 export async function updateMyNotificationPrefs(enabled: boolean): Promise<NotificationPrefs> {
   const res = await api.patch('/notifications/me', { notifications_enabled: enabled });
+  return res.data;
+}
+
+/** Best-effort sync of the app's current language so push notification text
+ * matches it — called automatically on login and on every language change,
+ * not surfaced as a separate user-facing setting. */
+export async function syncNotificationLanguage(language: LanguageCode): Promise<NotificationPrefs> {
+  const res = await api.patch('/notifications/me', { language });
   return res.data;
 }
 

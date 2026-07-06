@@ -4,6 +4,7 @@ export {
   unregisterPushToken,
   fetchMyNotificationPrefs,
   updateMyNotificationPrefs,
+  syncNotificationLanguage,
   fetchGlobalNotificationSettings,
   updateGlobalNotificationSettings,
 } from './services/notifications.api';

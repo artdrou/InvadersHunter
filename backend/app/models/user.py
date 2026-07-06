@@ -14,3 +14,4 @@ class User(Base):
     reset_code = Column(String, nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
     notifications_enabled = Column(Boolean, nullable=False, default=True)
+    language = Column(String, nullable=False, default="fr")  # "fr" | "en" — drives push notification text

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initDb } from '@/services/db';
-import { initI18n } from '@/services/i18n';
+import i18n, { initI18n, type LanguageCode } from '@/services/i18n';
 import {
   UpdateAvailableModal,
   useAppUpdateStore,
@@ -15,9 +15,9 @@ import {
   getCurrentVersion,
   isNewer,
 } from '@/features/app-update';
-import { useAppearanceStore } from '@/features/settings';
+import { useAppearanceStore, useMarkerCustomizationStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
-import { usePushRegistration } from '@/features/notifications';
+import { usePushRegistration, syncNotificationLanguage } from '@/features/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,6 +51,7 @@ export default function RootLayout() {
       await Promise.all([
         useAppUpdateStore.getState().hydrate(),
         useAppearanceStore.getState().hydrate(),
+        useMarkerCustomizationStore.getState().hydrate(),
       ]);
       const manifest = await fetchVersionManifest();
       if (manifest && isNewer(manifest.latestVersion, getCurrentVersion())) {
@@ -65,6 +66,18 @@ export default function RootLayout() {
   }, [token]);
 
   usePushRegistration(!!token);
+
+  // Keep the backend's copy of the user's language in sync so push
+  // notification text matches the app's language, not a separate setting.
+  useEffect(() => {
+    if (!token) return;
+    syncNotificationLanguage(i18n.language as LanguageCode).catch(() => {});
+    const onLanguageChanged = (lng: string) => {
+      syncNotificationLanguage(lng as LanguageCode).catch(() => {});
+    };
+    i18n.on('languageChanged', onLanguageChanged);
+    return () => { i18n.off('languageChanged', onLanguageChanged); };
+  }, [token]);
 
   useEffect(() => {
     if (!hasHydrated) return;

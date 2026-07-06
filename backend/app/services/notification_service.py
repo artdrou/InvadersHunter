@@ -69,8 +69,10 @@ def update_global_settings(db: Session, admin_user: User, fields: dict) -> Notif
     return settings
 
 
-def update_user_prefs(db: Session, user: User, notifications_enabled: bool) -> User:
-    user.notifications_enabled = notifications_enabled
+def update_user_prefs(db: Session, user: User, fields: dict) -> User:
+    for key, value in fields.items():
+        if value is not None:
+            setattr(user, key, value)
     safe_commit(db)
     db.refresh(user)
     return user
@@ -78,31 +80,32 @@ def update_user_prefs(db: Session, user: User, notifications_enabled: bool) -> U
 
 # ── sending ───────────────────────────────────────────────────────────────────
 
-def _recipient_tokens(db: Session) -> List[str]:
-    rows = (
-        db.query(PushToken.token)
+def _recipient_tokens_with_language(db: Session) -> List[Tuple[str, str]]:
+    """(token, language) for every device whose owner hasn't opted out."""
+    return (
+        db.query(PushToken.token, User.language)
         .join(User, User.id == PushToken.user_id)
         .filter(User.notifications_enabled.is_(True))
         .all()
     )
-    return [t for (t,) in rows]
 
 
-def _send_expo_push(db: Session, tokens: List[str], title: str, body: str, data: Optional[dict]) -> None:
+def _send_expo_push(db: Session, messages: List[dict]) -> None:
     """Best-effort delivery via Expo's push API, chunked to its 100-message limit.
+    Each message already carries its own (per-recipient-language) title/body.
     Prunes tokens Expo reports as dead (app uninstalled) so we stop paying for them."""
-    if not tokens:
+    if not messages:
         return
     dead_tokens: List[str] = []
-    for i in range(0, len(tokens), EXPO_CHUNK_SIZE):
-        chunk = tokens[i:i + EXPO_CHUNK_SIZE]
-        messages = [{"to": t, "title": title, "body": body, "data": data or {}} for t in chunk]
+    for i in range(0, len(messages), EXPO_CHUNK_SIZE):
+        chunk = messages[i:i + EXPO_CHUNK_SIZE]
         try:
-            res = requests.post(EXPO_PUSH_URL, json=messages, timeout=10)
+            res = requests.post(EXPO_PUSH_URL, json=chunk, timeout=10)
             res.raise_for_status()
             tickets = res.json().get("data", [])
             ok_count = 0
-            for token, ticket in zip(chunk, tickets):
+            for message, ticket in zip(chunk, tickets):
+                token = message["to"]
                 if ticket.get("status") != "error":
                     ok_count += 1
                     continue
@@ -131,13 +134,14 @@ def _send_expo_push(db: Session, tokens: List[str], title: str, body: str, data:
 def notify_invader_event(
     db: Session,
     event_type: str,
-    title: str,
-    body: str,
+    texts: dict,
     invader_id: Optional[int],
 ) -> None:
     """Send a push notification for an invader_added/invader_updated news event,
-    gated by the admin-controlled global switches. Never raises: a notification
-    failure must not roll back the approval it's attached to."""
+    gated by the admin-controlled global switches. `texts` maps language code
+    to (title, body) — see news_service.notification_texts — so each device
+    gets the notification in its owner's language. Never raises: a
+    notification failure must not roll back the approval it's attached to."""
     try:
         settings = get_global_settings(db)
         if not settings.enabled:
@@ -149,11 +153,21 @@ def notify_invader_event(
         if event_type == "invader_updated" and not settings.notify_on_update:
             log.info("notifications: skipped invader_updated for invader_id=%s — notify_on_update disabled", invader_id)
             return
-        tokens = _recipient_tokens(db)
-        if not tokens:
+        recipients = _recipient_tokens_with_language(db)
+        if not recipients:
             log.info("notifications: skipped for invader_id=%s — no registered push tokens", invader_id)
             return
-        log.info("notifications: sending invader_id=%s to %d device(s)", invader_id, len(tokens))
-        _send_expo_push(db, tokens, title, body, {"screen": "/news", "invader_id": invader_id})
+        fallback_lang = next(iter(texts))
+        messages = [
+            {
+                "to": token,
+                "title": texts.get(language, texts[fallback_lang])[0],
+                "body": texts.get(language, texts[fallback_lang])[1],
+                "data": {"screen": "/news", "invader_id": invader_id},
+            }
+            for token, language in recipients
+        ]
+        log.info("notifications: sending invader_id=%s to %d device(s)", invader_id, len(messages))
+        _send_expo_push(db, messages)
     except Exception as e:
         log.warning("notifications: notify_invader_event failed: %s", e)

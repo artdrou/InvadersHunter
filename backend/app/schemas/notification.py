@@ -1,6 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 from datetime import datetime
+
+Language = Literal["fr", "en"]
 
 
 class PushTokenRegister(BaseModel):
@@ -19,10 +21,12 @@ class PushTokenOut(BaseModel):
 
 class UserNotificationPrefsOut(BaseModel):
     notifications_enabled: bool
+    language: Language
 
 
 class UserNotificationPrefsUpdate(BaseModel):
-    notifications_enabled: bool
+    notifications_enabled: Optional[bool] = None
+    language: Optional[Language] = None
 
 
 class NotificationSettingsOut(BaseModel):

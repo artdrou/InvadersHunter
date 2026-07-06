@@ -166,7 +166,7 @@ def test_approve_create_triggers_invader_added_notification(db, client, users, m
     calls = []
     monkeypatch.setattr(
         admin_request_service.notification_service, "notify_invader_event",
-        lambda db, event_type, title, body, invader_id: calls.append((event_type, invader_id)),
+        lambda db, event_type, texts, invader_id: calls.append((event_type, invader_id)),
     )
 
     req = UserRequest(
@@ -194,7 +194,7 @@ def test_approve_modify_triggers_invader_updated_notification(db, client, users,
     calls = []
     monkeypatch.setattr(
         admin_request_service.notification_service, "notify_invader_event",
-        lambda db, event_type, title, body, invader_id: calls.append((event_type, invader_id)),
+        lambda db, event_type, texts, invader_id: calls.append((event_type, invader_id)),
     )
 
     _, ar = submit_unnamed_modify(db, regular.id, invader.id)

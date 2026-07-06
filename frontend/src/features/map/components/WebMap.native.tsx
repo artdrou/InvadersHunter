@@ -10,7 +10,7 @@ import { useInvaderGeojson } from "../hooks/use-invader-geojson";
 import { useUserLocation } from "../hooks/use-user-location";
 import { InvaderClusterSource } from "./InvaderClusterSource";
 import { UserLocationLayer } from "./UserLocationLayer";
-import { MARKER_IMAGES } from "./invader-markers";
+import { useMarkerImages, useMarkerImagesVersion } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/ISSMarker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import {
@@ -83,6 +83,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
   const userLocation  = useUserLocation(headingAlpha);
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);
+  const markerImages  = useMarkerImages();
+  const markerImagesVersion = useMarkerImagesVersion();
 
   userCoordsRef.current = userLocation?.coords ?? null;
 
@@ -165,7 +167,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       <StableCamera cameraRef={cameraRef} />
       {routeLayer}
       <UserLocationLayer location={userLocation} />
-      <Images images={MARKER_IMAGES} />
+      <Images key={markerImagesVersion} images={markerImages} />
       <InvaderClusterSource
         geojson={geojson}
         invaders={invaders}

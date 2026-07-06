@@ -119,6 +119,10 @@ MIGRATIONS = [
     )""",
     "INSERT INTO notification_settings (id, enabled, notify_on_create, notify_on_update) "
     "SELECT 1, TRUE, TRUE, TRUE WHERE NOT EXISTS (SELECT 1 FROM notification_settings WHERE id = 1)",
+
+    # Push notifications — per-user language, drives which translation of the
+    # notification text gets sent (see news_service.NOTIFICATION_COPY)
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR NOT NULL DEFAULT 'fr'",
 ]
 
 
