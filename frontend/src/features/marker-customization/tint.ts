@@ -60,17 +60,6 @@ function luminance({ r, g, b }: { r: number; g: number; b: number }): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-// Derive a glow color from an icon color when no explicit glow color is set
-// (used only for sensible defaults — the store always persists an explicit
-// glow color once the user has touched the customization screen).
-export function deriveGlowColor(iconHex: string): string {
-  const hsl = rgbToHsl(hexToRgb(iconHex));
-  const h = (hsl.h - 0.03 + 1) % 1;
-  const s = Math.max(0, Math.min(1, hsl.s + 0.25));
-  const l = Math.max(0, Math.min(1, hsl.l + 0));
-  return rgbToHex(hslToRgb({ h, s, l }));
-}
-
 function extractUniqueFills(svg: string): string[] {
   const re = /(?:fill="|fill:\s*)(#[0-9a-fA-F]{3,8})/g;
   const seen = new Set<string>();

@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from '@/features/marker-customization/types';
-import { generateMarkerSet, clearMarkerSet, type GeneratedMarkerSet } from '@/features/marker-customization/generate-markers';
+import { generateMarkerSet, clearMarkerSet, resolveMarkerSet, type GeneratedMarkerSet, type GenerationResult } from '@/features/marker-customization/generate-markers';
 
 const SHAPE_FOR_TIER_KEY = 'app-marker-shape-for-tier';
 const COLORS_KEY = 'app-marker-colors';
 const OPACITY_KEY = 'app-marker-opacity';
-const CUSTOM_ICON_URIS_KEY = 'app-marker-custom-icon-uris';
+// We persist only the generation *folder name* (relative), not the absolute
+// file:// URIs — the document-directory path isn't stable across app updates
+// on iOS, so absolute URIs would dangle. The live URIs are rebuilt on hydrate.
+const GENERATION_DIR_KEY = 'app-marker-generation-dir';
 
 export const DEFAULT_SHAPE_FOR_TIER: Record<TierPts, TierPts> = { 10: 10, 20: 20, 30: 30, 40: 40, 50: 50, 100: 100 };
 
@@ -41,10 +44,17 @@ type MarkerCustomizationState = {
   hydrate: () => Promise<void>;
 };
 
-// Sequences regenerate()/reset() calls so a regenerate() that resolves after
-// being superseded by a later reset()/regenerate() doesn't clobber the
-// newer state with its now-stale result.
-let operationSeq = 0;
+// Runs regenerate()/reset() one-at-a-time. Serializing them (rather than
+// letting a later call merely "supersede" an in-flight one) is what guarantees
+// a regenerate()'s file writes can never interleave with a reset()'s
+// clearMarkerSet() — otherwise a reset landing mid-persist could delete the
+// folder the regenerate then points customIconUris/storage at (blank markers).
+let opChain: Promise<unknown> = Promise.resolve();
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const run = opChain.then(task, task);
+  opChain = run.catch(() => {}); // keep the chain alive even if a task rejects
+  return run;
+}
 
 export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set, get) => ({
   shapeForTier: DEFAULT_SHAPE_FOR_TIER,
@@ -72,28 +82,23 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     AsyncStorage.setItem(OPACITY_KEY, String(clamped)).catch(() => {});
   },
 
-  regenerate: async () => {
-    const myOp = ++operationSeq;
+  regenerate: () => enqueue(async () => {
     const { shapeForTier, colors } = get();
     set({ isGenerating: true });
 
-    let uris: GeneratedMarkerSet;
+    let generated: GenerationResult;
     try {
-      uris = await generateMarkerSet(shapeForTier, colors);
+      generated = await generateMarkerSet(shapeForTier, colors);
     } catch (err) {
-      if (myOp === operationSeq) set({ isGenerating: false });
+      set({ isGenerating: false });
       throw err;
     }
-
-    // Superseded by a reset() or another regenerate() while this one was
-    // working — the newer operation already owns customIconUris/storage.
-    if (myOp !== operationSeq) return;
 
     try {
       await Promise.all([
         AsyncStorage.setItem(SHAPE_FOR_TIER_KEY, JSON.stringify(shapeForTier)),
         AsyncStorage.setItem(COLORS_KEY, JSON.stringify(colors)),
-        AsyncStorage.setItem(CUSTOM_ICON_URIS_KEY, JSON.stringify(uris)),
+        AsyncStorage.setItem(GENERATION_DIR_KEY, generated.dirName),
       ]);
     } catch (err) {
       // Don't pretend success if persistence failed — leave isDirty/customIconUris
@@ -102,15 +107,15 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
       throw err;
     }
 
-    set((s) => ({ customIconUris: uris, generationVersion: s.generationVersion + 1, isGenerating: false, isDirty: false }));
-  },
+    set((s) => ({ customIconUris: generated.markers, generationVersion: s.generationVersion + 1, isGenerating: false, isDirty: false }));
+  }),
 
-  reset: async () => {
-    operationSeq++;
+  reset: () => enqueue(async () => {
     await clearMarkerSet();
     set((s) => ({
       shapeForTier: DEFAULT_SHAPE_FOR_TIER,
       colors: DEFAULT_MARKER_COLORS,
+      opacity: 1,
       customIconUris: null,
       generationVersion: s.generationVersion + 1,
       isGenerating: false,
@@ -119,9 +124,10 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     await Promise.all([
       AsyncStorage.removeItem(SHAPE_FOR_TIER_KEY),
       AsyncStorage.removeItem(COLORS_KEY),
-      AsyncStorage.removeItem(CUSTOM_ICON_URIS_KEY),
+      AsyncStorage.removeItem(OPACITY_KEY),
+      AsyncStorage.removeItem(GENERATION_DIR_KEY),
     ]);
-  },
+  }),
 
   hydrate: async () => {
     // Each key is parsed independently so a single corrupt/legacy entry
@@ -129,13 +135,13 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     let shapeForTierRaw: string | null = null;
     let colorsRaw: string | null = null;
     let opacityRaw: string | null = null;
-    let urisRaw: string | null = null;
+    let dirName: string | null = null;
     try {
-      [shapeForTierRaw, colorsRaw, opacityRaw, urisRaw] = await Promise.all([
+      [shapeForTierRaw, colorsRaw, opacityRaw, dirName] = await Promise.all([
         AsyncStorage.getItem(SHAPE_FOR_TIER_KEY),
         AsyncStorage.getItem(COLORS_KEY),
         AsyncStorage.getItem(OPACITY_KEY),
-        AsyncStorage.getItem(CUSTOM_ICON_URIS_KEY),
+        AsyncStorage.getItem(GENERATION_DIR_KEY),
       ]);
     } catch {
       return;
@@ -150,7 +156,15 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
         if (Number.isFinite(n)) patch.opacity = Math.max(0, Math.min(1, n));
       }
     } catch {}
-    try { if (urisRaw) patch.customIconUris = JSON.parse(urisRaw); } catch {}
+    // Rebuild the live file:// URIs from the persisted folder name against the
+    // current document dir; if the folder is gone (e.g. cleared by the OS),
+    // silently fall back to the bundled sprites.
+    try {
+      if (dirName) {
+        const markers = resolveMarkerSet(dirName);
+        if (markers) patch.customIconUris = markers;
+      }
+    } catch {}
 
     if (Object.keys(patch).length) set(patch);
   },

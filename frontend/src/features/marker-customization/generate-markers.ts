@@ -17,6 +17,19 @@ const BLOOM_OPACITY = 0.8;
 const BLOOM_PASSES = 1;
 const TRANSPARENT = '#00000000';
 
+// Skia host objects (surfaces, images, SVG DOMs, paints, filters) are backed
+// by native memory that is otherwise only reclaimed on GC — which lags well
+// behind this tight 30-marker loop and can spike memory / OOM on low-end
+// devices. Eagerly free every intermediate the moment we're done with it.
+// `dispose` isn't on all the TS types and double-dispose can throw, so guard.
+function disposeSkia(obj: unknown): void {
+  try {
+    (obj as { dispose?: () => void } | null | undefined)?.dispose?.();
+  } catch {
+    // already disposed / not disposable — nothing to do
+  }
+}
+
 // Fixed per-tier palette used by "rarity" color mode — not user-customizable
 // today (only the silhouette follows the user's shape reassignment).
 const RARITY_PALETTE: Record<TierPts, MarkerPalette> = {
@@ -72,11 +85,15 @@ function shapeBBox(shapeId: TierPts, size: number): { x: number; y: number; widt
   const dom = Skia.SVG.MakeFromString(SHAPE_SVG[shapeId]);
   if (!dom) throw new Error('Failed to parse marker SVG');
   const surface = Skia.Surface.Make(largeSize, largeSize);
-  if (!surface) throw new Error('Failed to allocate Skia surface');
+  if (!surface) { disposeSkia(dom); throw new Error('Failed to allocate Skia surface'); }
   const canvas = surface.getCanvas();
   canvas.clear(Skia.Color(TRANSPARENT));
   canvas.drawSvg(dom, largeSize, largeSize);
-  const bbox = alphaBBox(surface.makeImageSnapshot()) ?? { x: 0, y: 0, width: largeSize, height: largeSize };
+  const snapshot = surface.makeImageSnapshot();
+  const bbox = alphaBBox(snapshot) ?? { x: 0, y: 0, width: largeSize, height: largeSize };
+  disposeSkia(snapshot);
+  disposeSkia(surface);
+  disposeSkia(dom);
   bboxCache.set(cacheKey, bbox);
   return bbox;
 }
@@ -92,7 +109,7 @@ function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkIma
 
   const largeSize = size * 2;
   const largeSurface = Skia.Surface.Make(largeSize, largeSize);
-  if (!largeSurface) throw new Error('Failed to allocate Skia surface');
+  if (!largeSurface) { disposeSkia(dom); throw new Error('Failed to allocate Skia surface'); }
   const largeCanvas = largeSurface.getCanvas();
   largeCanvas.clear(Skia.Color(TRANSPARENT));
   largeCanvas.drawSvg(dom, largeSize, largeSize);
@@ -103,11 +120,26 @@ function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkIma
   const dstRect = fitCenteredRect(bbox, iconBoxPx, size);
 
   const iconSurface = Skia.Surface.Make(size, size);
-  if (!iconSurface) throw new Error('Failed to allocate Skia surface');
+  if (!iconSurface) {
+    disposeSkia(largeImage);
+    disposeSkia(largeSurface);
+    disposeSkia(dom);
+    throw new Error('Failed to allocate Skia surface');
+  }
   const iconCanvas = iconSurface.getCanvas();
   iconCanvas.clear(Skia.Color(TRANSPARENT));
-  iconCanvas.drawImageRect(largeImage, Skia.XYWHRect(bbox.x, bbox.y, bbox.width, bbox.height), dstRect, Skia.Paint());
-  return iconSurface.makeImageSnapshot();
+  const paint = Skia.Paint();
+  iconCanvas.drawImageRect(largeImage, Skia.XYWHRect(bbox.x, bbox.y, bbox.width, bbox.height), dstRect, paint);
+  // Raster snapshots keep their own ref to the pixel data, so the returned
+  // image stays valid after its source surface is freed.
+  const snapshot = iconSurface.makeImageSnapshot();
+
+  disposeSkia(paint);
+  disposeSkia(largeImage);
+  disposeSkia(largeSurface);
+  disposeSkia(iconSurface);
+  disposeSkia(dom);
+  return snapshot;
 }
 
 // Composites the glow halo (blurred, recolored silhouette, drawn under the
@@ -121,12 +153,21 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number): S
   const radius = BLOOM_RADIUS * (size / SIZE);
   const glowPaint = Skia.Paint();
   const recolor = Skia.ColorFilter.MakeBlend(Skia.Color(glowHex), BlendMode.SrcIn);
-  glowPaint.setImageFilter(Skia.ImageFilter.MakeBlur(radius, radius, TileMode.Decal, Skia.ImageFilter.MakeColorFilter(recolor, null)));
+  const recolorFilter = Skia.ImageFilter.MakeColorFilter(recolor, null);
+  const blurFilter = Skia.ImageFilter.MakeBlur(radius, radius, TileMode.Decal, recolorFilter);
+  glowPaint.setImageFilter(blurFilter);
   glowPaint.setAlphaf(BLOOM_OPACITY);
 
   for (let i = 0; i < BLOOM_PASSES; i++) canvas.drawImage(iconImage, 0, 0, glowPaint);
   canvas.drawImage(iconImage, 0, 0);
-  return surface.makeImageSnapshot();
+  const snapshot = surface.makeImageSnapshot();
+
+  disposeSkia(blurFilter);
+  disposeSkia(recolorFilter);
+  disposeSkia(recolor);
+  disposeSkia(glowPaint);
+  disposeSkia(surface);
+  return snapshot;
 }
 
 // Renders one marker variant (shape recolored to `iconHex`, optional glow
@@ -136,10 +177,16 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number): S
 export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE): string {
   const tinted = tintSvg(SHAPE_SVG[shapeId], iconHex);
   const icon = rasterizeIcon(shapeId, tinted, size);
-  const final = glowHex ? compositeWithGlow(icon, glowHex, size) : icon;
-  const base64 = final.encodeToBase64(ImageFormat.PNG);
-  if (!base64) throw new Error('Failed to encode marker PNG');
-  return base64;
+  let final = icon;
+  try {
+    if (glowHex) final = compositeWithGlow(icon, glowHex, size);
+    const base64 = final.encodeToBase64(ImageFormat.PNG);
+    if (!base64) throw new Error('Failed to encode marker PNG');
+    return base64;
+  } finally {
+    if (final !== icon) disposeSkia(final);
+    disposeSkia(icon);
+  }
 }
 
 function outputName(tier: TierPts, state: 'rarity' | CustomizableState): string {
@@ -151,13 +198,34 @@ function outputName(tier: TierPts, state: 'rarity' | CustomizableState): string 
 
 const STATE_KEYS: Array<'rarity' | CustomizableState> = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
 
+// The deterministic set of iconKeys / file basenames a full generation writes.
+export const GENERATED_MARKER_NAMES: string[] = TIER_VALUES.flatMap((tier) =>
+  STATE_KEYS.map((state) => outputName(tier, state)),
+);
+
 function paletteFor(state: 'rarity' | CustomizableState, tier: TierPts, colors: MarkerColorPrefs): MarkerPalette {
   return state === 'rarity' ? RARITY_PALETTE[tier] : colors[state];
 }
 
 export type GeneratedMarkerSet = Record<string, string>; // iconKey -> file:// uri
+export type GenerationResult = { dirName: string; markers: GeneratedMarkerSet };
 
 const MARKERS_ROOT = new FileSystem.Directory(FileSystem.Paths.document, 'markers');
+
+// Build the absolute file:// URIs for a generation folder from the *current*
+// document directory. Callers persist only `dirName` (a relative folder name)
+// and rebuild here, because the absolute document-directory path is not stable
+// across app updates/reinstalls on iOS — persisting the absolute URIs directly
+// would leave them dangling (blank markers) after an update.
+export function resolveMarkerSet(dirName: string): GeneratedMarkerSet | null {
+  const dir = new FileSystem.Directory(MARKERS_ROOT, dirName);
+  if (!dir.exists) return null;
+  const markers: GeneratedMarkerSet = {};
+  for (const name of GENERATED_MARKER_NAMES) {
+    markers[name] = new FileSystem.File(dir, `${name}.png`).uri;
+  }
+  return markers;
+}
 
 // Yields to the JS thread so a long synchronous Skia batch doesn't fully
 // freeze the UI (e.g. lets the "generating" spinner actually paint).
@@ -169,13 +237,13 @@ function yieldToUi(): Promise<void> {
 // fresh, timestamped subfolder. Older generations are only pruned *after*
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
-export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, colors: MarkerColorPrefs): Promise<GeneratedMarkerSet> {
+export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, colors: MarkerColorPrefs): Promise<GenerationResult> {
   if (!MARKERS_ROOT.exists) MARKERS_ROOT.create({ intermediates: true });
   const dir = new FileSystem.Directory(MARKERS_ROOT, `v${Date.now()}`);
   dir.create({ intermediates: true });
 
   try {
-    const result: GeneratedMarkerSet = {};
+    const markers: GeneratedMarkerSet = {};
     for (const tier of TIER_VALUES) {
       const shapeId = shapeForTier[tier] ?? tier;
       for (const state of STATE_KEYS) {
@@ -184,7 +252,7 @@ export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, 
         const name = outputName(tier, state);
         const file = new FileSystem.File(dir, `${name}.png`);
         file.write(base64, { encoding: 'base64' });
-        result[name] = file.uri;
+        markers[name] = file.uri;
       }
       await yieldToUi();
     }
@@ -194,7 +262,7 @@ export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, 
     for (const entry of MARKERS_ROOT.list()) {
       if (entry.name !== dir.name) entry.delete();
     }
-    return result;
+    return { dirName: dir.name, markers };
   } catch (err) {
     dir.delete();
     throw err;

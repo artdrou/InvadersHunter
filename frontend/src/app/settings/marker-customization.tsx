@@ -19,6 +19,18 @@ function dataUri(base64: string): string {
   return `data:image/png;base64,${base64}`;
 }
 
+// Rasterizing happens synchronously during render (useMemo). renderMarkerBase64
+// throws if a Skia allocation/parse/encode fails — under memory pressure, say —
+// and a throw here would take down the whole screen via the error boundary. Fall
+// back to no image so the picker still renders instead of crashing.
+function safeMarkerUri(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number): string | undefined {
+  try {
+    return dataUri(renderMarkerBase64(shapeId, iconHex, glowHex, size));
+  } catch {
+    return undefined;
+  }
+}
+
 export default function MarkerCustomizationScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -42,15 +54,15 @@ export default function MarkerCustomizationScreen() {
   // One neutral-grey thumbnail per silhouette — reused across all 6 tier rows,
   // so the picker reads as "which shape", independent of color.
   const thumbnails = useMemo(() => {
-    const map = {} as Record<TierPts, string>;
-    for (const shapeId of SHAPE_IDS) map[shapeId] = dataUri(renderMarkerBase64(shapeId, '#9a9a9a', null, THUMB_SIZE));
+    const map = {} as Record<TierPts, string | undefined>;
+    for (const shapeId of SHAPE_IDS) map[shapeId] = safeMarkerUri(shapeId, '#9a9a9a', null, THUMB_SIZE);
     return map;
   }, []);
 
   const previewUri = useMemo(() => {
     const shapeId = shapeForTier[previewTier] ?? previewTier;
     const palette = colors[previewState];
-    return dataUri(renderMarkerBase64(shapeId, palette.icon, palette.glow, PREVIEW_SIZE));
+    return safeMarkerUri(shapeId, palette.icon, palette.glow, PREVIEW_SIZE);
   }, [shapeForTier, previewTier, colors, previewState]);
 
   return (

@@ -110,9 +110,13 @@ export function useMarkerLayerStyle(): SymbolLayerStyle {
   return useMemo(() => ({
     iconImage: ["get", "iconKey"] as Expression,
     iconSize: ["get", "iconSize"] as Expression,
+    // The user's opacity setting scales *every* marker, including the dimmed
+    // pending/grey ones, so "Marker opacity" affects the whole map (grey mode
+    // included). At the default opacity of 1 this is identical to the old fixed
+    // 0.45 / 0.8 / 1.0 values.
     iconOpacity: ["case",
-      ["==", ["get", "pending"], 1], 0.45,
-      ["==", ["get", "grey"], 1],    0.8,
+      ["==", ["get", "pending"], 1], 0.45 * opacity,
+      ["==", ["get", "grey"], 1],    0.8 * opacity,
       opacity,
     ] as Expression,
     iconAllowOverlap: true,
