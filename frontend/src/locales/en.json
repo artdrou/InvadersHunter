@@ -1,6 +1,7 @@
 {
   "common": {
     "cancel": "Cancel",
+    "close": "Close",
     "validate": "Validate",
     "validatePosition": "Validate position",
     "submit": "Submit",
@@ -340,7 +341,9 @@
     "photoUploadFailed": "Photo upload failed - please try again",
     "submit": "Submit",
     "sendingShort": "Sending…",
-    "localiser": "Locate"
+    "localiser": "Locate",
+    "spotter": "InvaderSpotter",
+    "spotterError": "Couldn't load InvaderSpotter. Check your connection."
   },
   "admin": {
     "noRequests": "No requests",

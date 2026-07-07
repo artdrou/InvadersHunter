@@ -1,6 +1,7 @@
 {
   "common": {
     "cancel": "Annuler",
+    "close": "Fermer",
     "validate": "Valider",
     "validatePosition": "Valider la position",
     "submit": "Envoyer",
@@ -340,7 +341,9 @@
     "photoUploadFailed": "Échec de l'envoi de la photo, veuillez réessayer",
     "submit": "Envoyer",
     "sendingShort": "Envoi…",
-    "localiser": "Localiser"
+    "localiser": "Localiser",
+    "spotter": "InvaderSpotter",
+    "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion."
   },
   "admin": {
     "noRequests": "Aucune requête",
