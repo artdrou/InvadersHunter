@@ -55,6 +55,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
           id: invader.id,
           captured: invader.isCaptured ? 1 : 0,
           pending: !highlighted && invader.isPending ? 1 : 0,
+          highlight: highlighted ? 1 : 0,
           grey,
           iconKey,
           iconSize,

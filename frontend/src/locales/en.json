@@ -213,6 +213,9 @@
     "opacitySubtitle": "Transparency of invaders on the map",
     "iconColor": "Icon color",
     "glowColor": "Glow color",
+    "color1": "Color 1",
+    "color2": "Color 2",
+    "opacityLabel": "Opacity",
     "reset": "Reset",
     "validate": "Apply",
     "state": {

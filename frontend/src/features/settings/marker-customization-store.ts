@@ -20,12 +20,22 @@ export const DEFAULT_MARKER_COLORS: MarkerColorPrefs = {
   grey: { icon: '#C8C8C8', glow: '#888888' },
 };
 
+// Per-state opacity applied live on the map (see useMarkerLayerStyle). The
+// grey default of 0.8 reproduces the old fixed grey-mode dimming so the map
+// looks identical until the user actually changes something.
+export const DEFAULT_MARKER_OPACITY: Record<CustomizableState, number> = {
+  flashCaptured: 1,
+  flashUncaptured: 1,
+  highlight: 1,
+  grey: 0.8,
+};
+
 const CUSTOMIZABLE_STATES: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
 
 type MarkerCustomizationState = {
   shapeForTier: Record<TierPts, TierPts>;
   colors: MarkerColorPrefs;
-  opacity: number;
+  opacity: Record<CustomizableState, number>;
   customIconUris: GeneratedMarkerSet | null;
   // Bumped every time customIconUris meaningfully changes (successful
   // regenerate or reset). MapLibre's native Images component only ever
@@ -38,7 +48,7 @@ type MarkerCustomizationState = {
 
   setShapeForTier: (tier: TierPts, shapeId: TierPts) => void;
   setColor: (state: keyof MarkerColorPrefs, kind: 'icon' | 'glow', hex: string) => void;
-  setOpacity: (v: number) => void;
+  setOpacity: (state: CustomizableState, v: number) => void;
   regenerate: () => Promise<void>;
   reset: () => Promise<void>;
   hydrate: () => Promise<void>;
@@ -59,7 +69,7 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set, get) => ({
   shapeForTier: DEFAULT_SHAPE_FOR_TIER,
   colors: DEFAULT_MARKER_COLORS,
-  opacity: 1,
+  opacity: DEFAULT_MARKER_OPACITY,
   customIconUris: null,
   generationVersion: 0,
   isGenerating: false,
@@ -76,10 +86,13 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     }));
   },
 
-  setOpacity: (v) => {
+  // Opacity is applied live on the map (not baked into the PNGs), so — unlike
+  // shape/color — changing it doesn't mark the set dirty or need a regenerate.
+  setOpacity: (state, v) => {
     const clamped = Math.max(0, Math.min(1, v));
-    set({ opacity: clamped });
-    AsyncStorage.setItem(OPACITY_KEY, String(clamped)).catch(() => {});
+    const opacity = { ...get().opacity, [state]: clamped };
+    set({ opacity });
+    AsyncStorage.setItem(OPACITY_KEY, JSON.stringify(opacity)).catch(() => {});
   },
 
   regenerate: () => enqueue(async () => {
@@ -115,7 +128,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     set((s) => ({
       shapeForTier: DEFAULT_SHAPE_FOR_TIER,
       colors: DEFAULT_MARKER_COLORS,
-      opacity: 1,
+      opacity: DEFAULT_MARKER_OPACITY,
       customIconUris: null,
       generationVersion: s.generationVersion + 1,
       isGenerating: false,
@@ -150,12 +163,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     const patch: Partial<MarkerCustomizationState> = {};
     try { if (shapeForTierRaw) patch.shapeForTier = sanitizeShapeForTier(JSON.parse(shapeForTierRaw)); } catch {}
     try { if (colorsRaw) patch.colors = sanitizeColors(JSON.parse(colorsRaw)); } catch {}
-    try {
-      if (opacityRaw !== null) {
-        const n = Number(opacityRaw);
-        if (Number.isFinite(n)) patch.opacity = Math.max(0, Math.min(1, n));
-      }
-    } catch {}
+    try { if (opacityRaw !== null) patch.opacity = sanitizeOpacity(JSON.parse(opacityRaw)); } catch {}
     // Rebuild the live file:// URIs from the persisted folder name against the
     // current document dir; if the folder is gone (e.g. cleared by the OS),
     // silently fall back to the bundled sprites.
@@ -192,6 +200,25 @@ function sanitizeColors(raw: Partial<Record<CustomizableState, unknown>>): Marke
   for (const state of CUSTOMIZABLE_STATES) {
     const v = raw[state];
     if (isValidPalette(v)) out[state] = v;
+  }
+  return out;
+}
+
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+function sanitizeOpacity(raw: unknown): Record<CustomizableState, number> {
+  // Legacy: opacity used to be a single global number — spread it across all
+  // states so an upgrading user keeps roughly the look they had.
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    const v = clamp01(raw);
+    return { flashCaptured: v, flashUncaptured: v, highlight: v, grey: v };
+  }
+  const out = { ...DEFAULT_MARKER_OPACITY };
+  if (raw && typeof raw === 'object') {
+    for (const state of CUSTOMIZABLE_STATES) {
+      const v = (raw as Record<string, unknown>)[state];
+      if (typeof v === 'number' && Number.isFinite(v)) out[state] = clamp01(v);
+    }
   }
   return out;
 }
