@@ -51,6 +51,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0 # full history so the version.json commit can rebase on a moved main
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -68,6 +69,17 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci --legacy-peer-deps
+
+      - name: Set app version in app.json
+        # Build the APK with the release version baked in, so the installed app
+        # reports it via Constants.expoConfig.version. Without this the app keeps
+        # its old version while the manifest advances → a perpetual "update available".
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          jq --arg v "$VERSION" '.expo.version=$v' app.json > app.json.tmp
+          mv app.json.tmp app.json
+          echo "app.json expo.version -> $VERSION"
 
       - name: Build APK on EAS
         id: build
@@ -102,8 +114,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${VERSION}_${PROFILE}"
+          # Full GitHub release only for production builds from 1.0.0 onward;
+          # 0.x production builds are still betas → marked as prereleases.
           PRERELEASE_FLAG="--prerelease"
-          if [ "$PROFILE" = "production" ]; then PRERELEASE_FLAG=""; fi
+          MAJOR="${VERSION%%.*}"
+          if [ "$PROFILE" = "production" ] && [ "${MAJOR:-0}" -ge 1 ]; then
+            PRERELEASE_FLAG=""
+          fi
           # Recreate the tag's release if re-running the same version.
           gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" InvadersHunter-latest.apk \
@@ -130,12 +147,25 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/static/apk/version.json
+          git add backend/static/apk/version.json frontend/app.json
           if git diff --cached --quiet; then
-            echo "version.json unchanged, nothing to commit."
+            echo "version.json / app.json unchanged, nothing to commit."
           else
             git commit -m "chore(release): APK ${VERSION} (${PROFILE})"
-            git push origin HEAD:main
+            # main can advance during the long EAS build (e.g. a PR merged mid-build),
+            # which makes a plain push non-fast-forward. Rebase onto the latest main
+            # and retry instead of failing the release.
+            n=0
+            until git push origin HEAD:main; do
+              n=$((n + 1))
+              if [ "$n" -ge 5 ]; then
+                echo "::error::could not push version.json to main after $n attempts"
+                exit 1
+              fi
+              echo "push rejected; rebasing on origin/main (attempt $n)"
+              git fetch origin main
+              git rebase origin/main
+            done
           fi
 
       - name: Summary
