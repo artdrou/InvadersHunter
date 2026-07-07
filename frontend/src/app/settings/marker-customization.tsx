@@ -9,7 +9,7 @@ import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, ColorPickerModal, useMarkerCustomizationStore } from '@/features/settings';
 import { SHAPE_IDS } from '@/features/marker-customization/shapes';
-import { renderMarkerBase64 } from '@/features/marker-customization/generate-markers';
+import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
 import { TIER_VALUES, type TierPts, type CustomizableState } from '@/features/marker-customization/types';
 
 // Carousel geometry. ITEM is the vertical snap height (one shape per page);
@@ -22,9 +22,10 @@ const THUMB = 34;
 const THUMB_RENDER = 72;
 const STATE_PREVIEW = 76;
 const OPACITY_STEP = 0.05;
-// Colors are per-state (not per-tier), so the color previews just need *some*
-// representative silhouette — reuse whichever shape the user assigned to 30pts.
-const COLOR_PREVIEW_TIER: TierPts = 30;
+// Default silhouette used for the color previews (index of the 30pt shape).
+const DEFAULT_PREVIEW_SHAPE_IDX = Math.max(0, SHAPE_IDS.indexOf(30 as TierPts));
+// Compact bloom read-out: size letter + intensity level (1..3).
+const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
 
 const STATE_ORDER: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
 
@@ -36,9 +37,9 @@ function dataUri(base64: string): string {
 // throws if a Skia allocation/parse/encode fails — under memory pressure, say —
 // and a throw here would take down the whole screen via the error boundary. Fall
 // back to no image so the picker still renders instead of crashing.
-function safeMarkerUri(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number): string | undefined {
+function safeMarkerUri(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number, bloomIndex?: number): string | undefined {
   try {
-    return dataUri(renderMarkerBase64(shapeId, iconHex, glowHex, size));
+    return dataUri(renderMarkerBase64(shapeId, iconHex, glowHex, size, bloomIndex));
   } catch {
     return undefined;
   }
@@ -137,12 +138,15 @@ export default function MarkerCustomizationScreen() {
   const setColor        = useMarkerCustomizationStore((s) => s.setColor);
   const opacity         = useMarkerCustomizationStore((s) => s.opacity);
   const setOpacity      = useMarkerCustomizationStore((s) => s.setOpacity);
+  const bloom           = useMarkerCustomizationStore((s) => s.bloom);
+  const setBloom        = useMarkerCustomizationStore((s) => s.setBloom);
   const isGenerating    = useMarkerCustomizationStore((s) => s.isGenerating);
   const isDirty         = useMarkerCustomizationStore((s) => s.isDirty);
   const regenerate      = useMarkerCustomizationStore((s) => s.regenerate);
   const reset           = useMarkerCustomizationStore((s) => s.reset);
 
   const [activeState, setActiveState] = useState<CustomizableState>('flashUncaptured');
+  const [previewShapeIdx, setPreviewShapeIdx] = useState(DEFAULT_PREVIEW_SHAPE_IDX);
   const [colorPicker, setColorPicker] = useState<{ state: CustomizableState; kind: 'icon' | 'glow' } | null>(null);
 
   // Shape thumbnails tinted with the "not flashed" colour so the picker reads
@@ -154,18 +158,27 @@ export default function MarkerCustomizationScreen() {
     return map;
   }, [thumbTint]);
 
-  // One colored preview per state, sharing a representative silhouette.
-  const previewShape = shapeForTier[COLOR_PREVIEW_TIER] ?? COLOR_PREVIEW_TIER;
+  // One colored preview per state on the user-selected preview silhouette; the
+  // baked bloom (size/intensity) is reflected live here even though it only
+  // reaches the map on the next regenerate().
+  const previewShape = SHAPE_IDS[previewShapeIdx];
   const statePreviews = useMemo(() => {
     const map = {} as Record<CustomizableState, string | undefined>;
     for (const state of STATE_ORDER) {
       const p = colors[state];
-      map[state] = safeMarkerUri(previewShape, p.icon, p.glow, STATE_PREVIEW);
+      map[state] = safeMarkerUri(previewShape, p.icon, p.glow, STATE_PREVIEW, bloom[state]);
     }
     return map;
-  }, [colors, previewShape]);
+  }, [colors, previewShape, bloom]);
 
   const activeOpacity = opacity[activeState];
+  const activeBloom = bloom[activeState];
+  const bloomDesc = decodeBloom(activeBloom);
+
+  const cyclePreviewShape = (delta: number) => {
+    hapticTap();
+    setPreviewShapeIdx((i) => (i + delta + SHAPE_IDS.length) % SHAPE_IDS.length);
+  };
 
   return (
     <SettingsShell title={t('markerCustomization.title')}>
@@ -187,7 +200,20 @@ export default function MarkerCustomizationScreen() {
       </View>
 
       {/* ── Couleurs ── */}
-      <Text style={[styles.subcategoryLabel, styles.subcategoryLabelSpaced]}>{t('markerCustomization.sectionColors')}</Text>
+      <View style={styles.colorsHeader}>
+        <Text style={[styles.subcategoryLabel, styles.subcategoryLabelSpaced]}>{t('markerCustomization.sectionColors')}</Text>
+        {/* Switch which silhouette the state previews are drawn on. */}
+        <View style={styles.previewShapeSwitch}>
+          <Pressable onPress={() => cyclePreviewShape(-1)} hitSlop={8} style={({ pressed }) => [styles.arrowBtnH, pressed && styles.pressed]}>
+            <View style={styles.arrowLeft} />
+          </Pressable>
+          <Text style={styles.previewShapeVal}>{previewShape}</Text>
+          <Pressable onPress={() => cyclePreviewShape(1)} hitSlop={8} style={({ pressed }) => [styles.arrowBtnH, pressed && styles.pressed]}>
+            <View style={styles.arrowRight} />
+          </Pressable>
+        </View>
+      </View>
+
       <View style={styles.stateRow}>
         {STATE_ORDER.map((state) => {
           const isActive = state === activeState;
@@ -210,22 +236,25 @@ export default function MarkerCustomizationScreen() {
       <View style={styles.encart}>
         <Text style={styles.encartTitle}>{t(`markerCustomization.state.${activeState}`)}</Text>
         <View style={styles.encartParams}>
+          {/* Corps (couleur de l'icône) */}
           <Pressable
             onPress={() => { hapticTap(); setColorPicker({ state: activeState, kind: 'icon' }); }}
             style={({ pressed }) => [styles.param, pressed && styles.pressed]}
           >
             <View style={[styles.swatch, { backgroundColor: colors[activeState].icon, borderColor: theme.border }]} />
-            <Text style={styles.paramLabel}>{t('markerCustomization.color1')}</Text>
+            <Text style={styles.paramLabel}>{t('markerCustomization.body')}</Text>
           </Pressable>
 
+          {/* Lueur (couleur du halo) */}
           <Pressable
             onPress={() => { hapticTap(); setColorPicker({ state: activeState, kind: 'glow' }); }}
             style={({ pressed }) => [styles.param, pressed && styles.pressed]}
           >
             <View style={[styles.swatch, { backgroundColor: colors[activeState].glow, borderColor: theme.border }]} />
-            <Text style={styles.paramLabel}>{t('markerCustomization.color2')}</Text>
+            <Text style={styles.paramLabel}>{t('markerCustomization.gloom')}</Text>
           </Pressable>
 
+          {/* Opacité (appliquée en direct) */}
           <View style={styles.param}>
             <Text style={styles.stepperValue}>{Math.round(activeOpacity * 100)}%</Text>
             <View style={styles.stepper}>
@@ -245,6 +274,28 @@ export default function MarkerCustomizationScreen() {
               </Pressable>
             </View>
             <Text style={styles.paramLabel}>{t('markerCustomization.opacityLabel')}</Text>
+          </View>
+
+          {/* Bloom (taille × intensité du halo, cuit dans le PNG → regénère) */}
+          <View style={styles.param}>
+            <Text style={styles.stepperValue}>{BLOOM_SIZE_LABELS[bloomDesc.size]}·{bloomDesc.intensity + 1}</Text>
+            <View style={styles.stepper}>
+              <Pressable
+                style={({ pressed }) => [styles.stepperBtn, activeBloom <= 0 && styles.arrowDisabled, pressed && styles.pressed]}
+                disabled={activeBloom <= 0}
+                onPress={() => { hapticTap(); setBloom(activeState, activeBloom - 1); }}
+              >
+                <Text style={styles.stepperBtnText}>−</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.stepperBtn, activeBloom >= BLOOM_LEVEL_COUNT - 1 && styles.arrowDisabled, pressed && styles.pressed]}
+                disabled={activeBloom >= BLOOM_LEVEL_COUNT - 1}
+                onPress={() => { hapticTap(); setBloom(activeState, activeBloom + 1); }}
+              >
+                <Text style={styles.stepperBtnText}>+</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.paramLabel}>{t('markerCustomization.bloom')}</Text>
           </View>
         </View>
       </View>
@@ -320,6 +371,22 @@ function makeStyles(t: ThemeTokens) {
     carouselThumb: { width: THUMB, height: THUMB },
     carouselLabel: { fontFamily: ButtonFont, fontSize: FontSize.xs },
 
+    // ── Colors header + preview-shape switch ──
+    colorsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    previewShapeSwitch: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.two },
+    arrowBtnH: { paddingHorizontal: 4, paddingVertical: 4 },
+    arrowLeft: {
+      width: 0, height: 0, backgroundColor: 'transparent',
+      borderTopWidth: 6, borderBottomWidth: 6, borderRightWidth: 8,
+      borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: t.text,
+    },
+    arrowRight: {
+      width: 0, height: 0, backgroundColor: 'transparent',
+      borderTopWidth: 6, borderBottomWidth: 6, borderLeftWidth: 8,
+      borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: t.text,
+    },
+    previewShapeVal: { minWidth: 28, textAlign: 'center', color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
+
     // ── Color state previews ──
     stateRow: { flexDirection: 'row', gap: Spacing.two },
     statePreview: {
@@ -329,19 +396,19 @@ function makeStyles(t: ThemeTokens) {
     statePreviewImg: { width: 44, height: 44 },
     statePreviewLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xxs },
 
-    // ── Params encart ──
+    // ── Params encart (2×2: body / gloom / opacity / bloom) ──
     encart: {
       gap: Spacing.three,
       backgroundColor: t.bgElement, borderWidth: 1, borderColor: t.border,
       borderRadius: BorderRadius.md, padding: Spacing.three,
     },
     encartTitle: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md, letterSpacing: 1 },
-    encartParams: { flexDirection: 'row', alignItems: 'flex-start' },
-    param: { flex: 1, alignItems: 'center', gap: Spacing.two },
+    encartParams: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: Spacing.three },
+    param: { width: '47%', alignItems: 'center', gap: Spacing.two },
     paramLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, textAlign: 'center' },
     swatch: { width: 44, height: 44, borderRadius: BorderRadius.sm, borderWidth: 2 },
 
-    stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
+    stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     stepperBtn: {
       width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
       borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border, backgroundColor: t.bg,

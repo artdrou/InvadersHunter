@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from '@/features/marker-customization/types';
-import { generateMarkerSet, clearMarkerSet, resolveMarkerSet, type GeneratedMarkerSet, type GenerationResult } from '@/features/marker-customization/generate-markers';
+import { generateMarkerSet, clearMarkerSet, resolveMarkerSet, DEFAULT_BLOOM_INDEX, BLOOM_LEVEL_COUNT, type GeneratedMarkerSet, type GenerationResult } from '@/features/marker-customization/generate-markers';
 
 const SHAPE_FOR_TIER_KEY = 'app-marker-shape-for-tier';
 const COLORS_KEY = 'app-marker-colors';
 const OPACITY_KEY = 'app-marker-opacity';
+const BLOOM_KEY = 'app-marker-bloom';
 // We persist only the generation *folder name* (relative), not the absolute
 // file:// URIs — the document-directory path isn't stable across app updates
 // on iOS, so absolute URIs would dangle. The live URIs are rebuilt on hydrate.
@@ -30,12 +31,23 @@ export const DEFAULT_MARKER_OPACITY: Record<CustomizableState, number> = {
   grey: 0.8,
 };
 
+// Per-state bloom (glow size x intensity), stored as a 0..8 preset index. Baked
+// into the PNGs at generate time (so changing it marks the set dirty), unlike
+// opacity which is applied live. DEFAULT_BLOOM_INDEX reproduces the old glow.
+export const DEFAULT_MARKER_BLOOM: Record<CustomizableState, number> = {
+  flashCaptured: DEFAULT_BLOOM_INDEX,
+  flashUncaptured: DEFAULT_BLOOM_INDEX,
+  highlight: DEFAULT_BLOOM_INDEX,
+  grey: DEFAULT_BLOOM_INDEX,
+};
+
 const CUSTOMIZABLE_STATES: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
 
 type MarkerCustomizationState = {
   shapeForTier: Record<TierPts, TierPts>;
   colors: MarkerColorPrefs;
   opacity: Record<CustomizableState, number>;
+  bloom: Record<CustomizableState, number>;
   customIconUris: GeneratedMarkerSet | null;
   // Bumped every time customIconUris meaningfully changes (successful
   // regenerate or reset). MapLibre's native Images component only ever
@@ -44,11 +56,12 @@ type MarkerCustomizationState = {
   // without it, a re-customization would never reach an already-mounted map.
   generationVersion: number;
   isGenerating: boolean;
-  isDirty: boolean; // true when shapeForTier/colors changed since the last successful regenerate()
+  isDirty: boolean; // true when shapeForTier/colors/bloom changed since the last successful regenerate()
 
   setShapeForTier: (tier: TierPts, shapeId: TierPts) => void;
   setColor: (state: keyof MarkerColorPrefs, kind: 'icon' | 'glow', hex: string) => void;
   setOpacity: (state: CustomizableState, v: number) => void;
+  setBloom: (state: CustomizableState, index: number) => void;
   regenerate: () => Promise<void>;
   reset: () => Promise<void>;
   hydrate: () => Promise<void>;
@@ -70,6 +83,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
   shapeForTier: DEFAULT_SHAPE_FOR_TIER,
   colors: DEFAULT_MARKER_COLORS,
   opacity: DEFAULT_MARKER_OPACITY,
+  bloom: DEFAULT_MARKER_BLOOM,
   customIconUris: null,
   generationVersion: 0,
   isGenerating: false,
@@ -95,13 +109,20 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     AsyncStorage.setItem(OPACITY_KEY, JSON.stringify(opacity)).catch(() => {});
   },
 
+  // Bloom is baked into the PNGs, so — like shape/color — it marks the set dirty
+  // and only reaches the map on the next regenerate().
+  setBloom: (state, index) => {
+    const clamped = Math.max(0, Math.min(BLOOM_LEVEL_COUNT - 1, Math.round(index)));
+    set((s) => ({ bloom: { ...s.bloom, [state]: clamped }, isDirty: true }));
+  },
+
   regenerate: () => enqueue(async () => {
-    const { shapeForTier, colors } = get();
+    const { shapeForTier, colors, bloom } = get();
     set({ isGenerating: true });
 
     let generated: GenerationResult;
     try {
-      generated = await generateMarkerSet(shapeForTier, colors);
+      generated = await generateMarkerSet(shapeForTier, colors, bloom);
     } catch (err) {
       set({ isGenerating: false });
       throw err;
@@ -111,6 +132,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
       await Promise.all([
         AsyncStorage.setItem(SHAPE_FOR_TIER_KEY, JSON.stringify(shapeForTier)),
         AsyncStorage.setItem(COLORS_KEY, JSON.stringify(colors)),
+        AsyncStorage.setItem(BLOOM_KEY, JSON.stringify(bloom)),
         AsyncStorage.setItem(GENERATION_DIR_KEY, generated.dirName),
       ]);
     } catch (err) {
@@ -129,6 +151,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
       shapeForTier: DEFAULT_SHAPE_FOR_TIER,
       colors: DEFAULT_MARKER_COLORS,
       opacity: DEFAULT_MARKER_OPACITY,
+      bloom: DEFAULT_MARKER_BLOOM,
       customIconUris: null,
       generationVersion: s.generationVersion + 1,
       isGenerating: false,
@@ -138,6 +161,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
       AsyncStorage.removeItem(SHAPE_FOR_TIER_KEY),
       AsyncStorage.removeItem(COLORS_KEY),
       AsyncStorage.removeItem(OPACITY_KEY),
+      AsyncStorage.removeItem(BLOOM_KEY),
       AsyncStorage.removeItem(GENERATION_DIR_KEY),
     ]);
   }),
@@ -148,12 +172,14 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     let shapeForTierRaw: string | null = null;
     let colorsRaw: string | null = null;
     let opacityRaw: string | null = null;
+    let bloomRaw: string | null = null;
     let dirName: string | null = null;
     try {
-      [shapeForTierRaw, colorsRaw, opacityRaw, dirName] = await Promise.all([
+      [shapeForTierRaw, colorsRaw, opacityRaw, bloomRaw, dirName] = await Promise.all([
         AsyncStorage.getItem(SHAPE_FOR_TIER_KEY),
         AsyncStorage.getItem(COLORS_KEY),
         AsyncStorage.getItem(OPACITY_KEY),
+        AsyncStorage.getItem(BLOOM_KEY),
         AsyncStorage.getItem(GENERATION_DIR_KEY),
       ]);
     } catch {
@@ -164,6 +190,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     try { if (shapeForTierRaw) patch.shapeForTier = sanitizeShapeForTier(JSON.parse(shapeForTierRaw)); } catch {}
     try { if (colorsRaw) patch.colors = sanitizeColors(JSON.parse(colorsRaw)); } catch {}
     try { if (opacityRaw !== null) patch.opacity = sanitizeOpacity(JSON.parse(opacityRaw)); } catch {}
+    try { if (bloomRaw !== null) patch.bloom = sanitizeBloom(JSON.parse(bloomRaw)); } catch {}
     // Rebuild the live file:// URIs from the persisted folder name against the
     // current document dir; if the folder is gone (e.g. cleared by the OS),
     // silently fall back to the bundled sprites.
@@ -218,6 +245,19 @@ function sanitizeOpacity(raw: unknown): Record<CustomizableState, number> {
     for (const state of CUSTOMIZABLE_STATES) {
       const v = (raw as Record<string, unknown>)[state];
       if (typeof v === 'number' && Number.isFinite(v)) out[state] = clamp01(v);
+    }
+  }
+  return out;
+}
+
+function sanitizeBloom(raw: unknown): Record<CustomizableState, number> {
+  const out = { ...DEFAULT_MARKER_BLOOM };
+  if (raw && typeof raw === 'object') {
+    for (const state of CUSTOMIZABLE_STATES) {
+      const v = (raw as Record<string, unknown>)[state];
+      if (typeof v === 'number' && Number.isFinite(v)) {
+        out[state] = Math.max(0, Math.min(BLOOM_LEVEL_COUNT - 1, Math.round(v)));
+      }
     }
   }
   return out;
