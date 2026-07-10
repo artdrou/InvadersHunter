@@ -119,6 +119,12 @@ export default function SettingsLanding() {
           subtitle={t('settings.roadmapSubtitle')}
           onPress={() => router.push('/settings/roadmap')}
         />
+        <SettingsRow
+          icon="document-text-outline"
+          label={t('settings.changelog')}
+          subtitle={t('settings.changelogSubtitle')}
+          onPress={() => router.push('/settings/changelog')}
+        />
       </SettingsSection>
       </View>
 

@@ -17,6 +17,7 @@ import {
 } from '@/features/app-update';
 import { useAppearanceStore, useMarkerCustomizationStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
+import { WhatsNewModal } from '@/features/changelog';
 import { usePushRegistration, syncNotificationLanguage } from '@/features/notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -102,6 +103,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }} />
           <UpdateAvailableModal />
           <AccountGateModal />
+          <WhatsNewModal enabled={!!token || isGuest} />
         </ThemeProvider>
       </SQLiteProvider>
     </ErrorBoundary>

@@ -142,8 +142,8 @@ export default function InvadersScreen() {
 
   const handleUnflash = useCallback(async (invader: InvaderWithState) => {
     if (!invader.progressId) return;
-    await unflash(invader.progressId);
-    hapticDisappoint();
+    const removed = await unflash(invader.progressId);
+    if (removed) hapticDisappoint();
   }, [unflash]);
 
   const handleLocate = useCallback((invader: InvaderWithState) => {

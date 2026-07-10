@@ -104,33 +104,44 @@
     "statsMemberSince": "Member since",
     "roadmap": "Roadmap",
     "roadmapSubtitle": "Upcoming features",
-    "roadmapIntro": "A peek at features being prepared for future releases of the app.",
+    "roadmapIntro": "A preview of the features in preparation for upcoming versions of the app.",
     "roadmapItems": {
-      "gamification": {
-        "title": "Gamification",
-        "body": "Progress, emblems, rewards."
-      },
       "guestMode": {
         "title": "Guest mode",
-        "body": "Use the app without an account."
+        "body": "Use the app without an account. Flashes stay on your phone and transfer when you sign up."
+      },
+      "customInvaders": {
+        "title": "Personal invaders",
+        "body": "Add your own invaders to your map."
       },
       "friends": {
         "title": "Friends",
-        "body": "Compare collections."
+        "body": "Connect with other hunters, see their flashes on the map and compare collections."
       },
       "commentWall": {
         "title": "Comment wall",
-        "body": "Discussions around invaders."
+        "body": "Leave descriptions and tips on each invader."
       },
-      "customInvaders": {
-        "title": "Custom invaders",
-        "body": "Add your own invaders to your map."
+      "discoveredBy": {
+        "title": "Discoverers",
+        "body": "See who discovered or updated each invader."
+      },
+      "gamification": {
+        "title": "Gamification",
+        "body": "Progression, badges, rewards."
       },
       "radarMode": {
         "title": "Radar mode",
         "body": "Spot invaders around you."
       }
-    }
+    },
+    "roadmapStatus": {
+      "soon": "Soon",
+      "wip": "In progress",
+      "planned": "Planned"
+    },
+    "changelog": "Release notes",
+    "changelogSubtitle": "What changed in each version"
   },
   "connectivity": {
     "offline": "Offline",
@@ -551,5 +562,10 @@
     "gateCreate": "Create account",
     "createAccount": "Create account",
     "createAccountSubtitle": "Back up your flashes online and unlock contributions"
+  },
+  "changelog": {
+    "whatsNewTitle": "What's new?",
+    "versionLabel": "Version {{version}}",
+    "gotIt": "Got it!"
   }
 }

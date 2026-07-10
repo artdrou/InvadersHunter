@@ -104,33 +104,44 @@
     "statsMemberSince": "Membre depuis",
     "roadmap": "Feuille de route",
     "roadmapSubtitle": "Fonctionnalites a venir",
-    "roadmapIntro": "Voici un apercu des fonctionnalites en preparation pour les prochaines versions de l'application.",
+    "roadmapIntro": "Voici un aperçu des fonctionnalités en préparation pour les prochaines versions de l'application.",
     "roadmapItems": {
-      "gamification": {
-        "title": "Gamification",
-        "body": "Progression, emblemes, recompenses."
-      },
       "guestMode": {
-        "title": "Mode invite",
-        "body": "Utiliser l'app sans compte."
-      },
-      "friends": {
-        "title": "Amis",
-        "body": "Comparer les collections."
-      },
-      "commentWall": {
-        "title": "Mur de commentaires",
-        "body": "Discussions autour des invaders."
+        "title": "Mode invité",
+        "body": "Utiliser l'app sans compte. Les flashs restent sur le téléphone et sont transférés à la création du compte."
       },
       "customInvaders": {
         "title": "Invaders personnels",
         "body": "Ajouter ses propres invaders sur sa carte."
       },
+      "friends": {
+        "title": "Amis",
+        "body": "Se connecter à d'autres chasseurs, voir leurs flashs sur la carte et comparer les collections."
+      },
+      "commentWall": {
+        "title": "Mur de commentaires",
+        "body": "Laisser des descriptions et astuces sur chaque invader."
+      },
+      "discoveredBy": {
+        "title": "Découvreurs",
+        "body": "Voir qui a découvert ou mis à jour chaque invader."
+      },
+      "gamification": {
+        "title": "Gamification",
+        "body": "Progression, emblèmes, récompenses."
+      },
       "radarMode": {
         "title": "Mode radar",
-        "body": "Reperer les invaders autour de soi."
+        "body": "Repérer les invaders autour de soi."
       }
-    }
+    },
+    "roadmapStatus": {
+      "soon": "Bientôt",
+      "wip": "En cours",
+      "planned": "Prévu"
+    },
+    "changelog": "Notes de version",
+    "changelogSubtitle": "Les nouveautés de chaque version"
   },
   "connectivity": {
     "offline": "Hors ligne",
@@ -551,5 +562,10 @@
     "gateCreate": "Créer un compte",
     "createAccount": "Créer un compte",
     "createAccountSubtitle": "Sauvegarde tes flashs en ligne et débloque les contributions"
+  },
+  "changelog": {
+    "whatsNewTitle": "Quoi de neuf ?",
+    "versionLabel": "Version {{version}}",
+    "gotIt": "Compris !"
   }
 }

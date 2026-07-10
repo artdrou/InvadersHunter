@@ -177,15 +177,20 @@ export function useInvaderData() {
 
   // ── Unflash ─────────────────────────────────────────────────────────────────
 
-  const unflash = useCallback(async (progressId: number): Promise<void> => {
+  /**
+   * Returns false when nothing was removed (stale progressId — e.g. the row
+   * was replaced by a sync between popup open and the tap). Callers must not
+   * flip their local UI state in that case.
+   */
+  const unflash = useCallback(async (progressId: number): Promise<boolean> => {
     const cap = progress.find((p) => p.id === progressId);
-    if (!cap) return;
+    if (!cap) return false;
 
     if (cap.user_id === GUEST_USER_ID) {
       // Guest capture: purely local, nothing queued server-side
       await deleteCapture(db, progressId);
       setProgress((prev) => prev.filter((p) => p.id !== progressId));
-      return;
+      return true;
     }
 
     if (cap.is_pending === 1) {
@@ -194,7 +199,7 @@ export function useInvaderData() {
       await deleteCapture(db, progressId);
       if (pendingFlash) await deletePendingSync(db, pendingFlash.id);
       setProgress((prev) => prev.filter((p) => p.id !== progressId));
-      return;
+      return true;
     }
 
     await deleteCapture(db, progressId);
@@ -203,11 +208,17 @@ export function useInvaderData() {
     apiUnflash(progressId).catch(async (err) => {
       if (isNetworkError(err)) {
         await insertPendingSync(db, { type: 'unflash', invader_id: null, capture_id: progressId, user_id: cap.user_id });
+      } else if ((err as { response?: { status?: number } })?.response?.status === 404) {
+        // Row already gone server-side — the local delete was correct, don't
+        // resurrect a phantom capture (kept the marker stuck on "flashed").
+        logger.warn('[unflash] server row already gone, keeping local delete');
       } else {
+        logger.warn('[unflash] server rejected, restoring capture:', err);
         await insertCapture(db, cap);
         setProgress((prev) => [...prev, cap]);
       }
     });
+    return true;
   }, [db, progress, setProgress]);
 
   const submitModifyRequest = useCallback(

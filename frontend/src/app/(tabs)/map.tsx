@@ -160,7 +160,8 @@ export default function MapScreen() {
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
-    await unflash(invader.progressId);
+    const removed = await unflash(invader.progressId);
+    if (!removed) return; // stale progressId — the dataset effect will refresh the popup
     hapticDisappoint();
     selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
