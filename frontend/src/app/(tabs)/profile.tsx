@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
+import { useAuthStore, useRequireAccount } from "@/features/auth";
 import { type ThemeTokens, Spacing, FontSize } from "@/constants/theme";
 import { SettingsSection, SettingsRow } from "@/features/settings";
 
@@ -18,6 +19,8 @@ export default function SettingsLanding() {
   const { t } = useTranslation();
   const { theme, appFont } = useTheme();
   const insets = useSafeAreaInsets();
+  const isGuest = useAuthStore((s) => s.isGuest);
+  const requireAccount = useRequireAccount();
   const styles = makeStyles(theme, appFont, insets.top);
 
   return (
@@ -26,18 +29,29 @@ export default function SettingsLanding() {
 
       <View style={styles.body}>
       <SettingsSection title={t('settings.sectionAccount')}>
-        <SettingsRow
-          icon="person-outline"
-          label={t('settings.profileInfo')}
-          subtitle={t('settings.profileInfoSubtitle')}
-          onPress={() => router.push('/settings/profile-info')}
-        />
-        <SettingsRow
-          icon="lock-closed-outline"
-          label={t('settings.security')}
-          subtitle={t('settings.securitySubtitle')}
-          onPress={() => router.push('/settings/security')}
-        />
+        {isGuest ? (
+          <SettingsRow
+            icon="person-add-outline"
+            label={t('guest.createAccount')}
+            subtitle={t('guest.createAccountSubtitle')}
+            onPress={() => router.push('/register')}
+          />
+        ) : (
+          <>
+            <SettingsRow
+              icon="person-outline"
+              label={t('settings.profileInfo')}
+              subtitle={t('settings.profileInfoSubtitle')}
+              onPress={() => router.push('/settings/profile-info')}
+            />
+            <SettingsRow
+              icon="lock-closed-outline"
+              label={t('settings.security')}
+              subtitle={t('settings.securitySubtitle')}
+              onPress={() => router.push('/settings/security')}
+            />
+          </>
+        )}
       </SettingsSection>
 
       <SettingsSection title={t('settings.sectionPersonalization')}>
@@ -67,7 +81,7 @@ export default function SettingsLanding() {
           icon="notifications-outline"
           label={t('settings.notifications')}
           subtitle={t('settings.notificationsSubtitle')}
-          onPress={() => router.push('/settings/notifications')}
+          onPress={() => requireAccount(() => router.push('/settings/notifications'))}
         />
       </SettingsSection>
 
@@ -76,7 +90,7 @@ export default function SettingsLanding() {
           icon="sync-outline"
           label={t('settings.sync')}
           subtitle={t('settings.syncSubtitle')}
-          onPress={() => router.push('/settings/sync')}
+          onPress={() => requireAccount(() => router.push('/settings/sync'))}
         />
       </SettingsSection>
 

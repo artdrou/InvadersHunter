@@ -148,7 +148,8 @@
       "invalid": "Identifiant ou mot de passe invalide",
       "noAccount": "Pas de compte ?",
       "createOne": "En créer un",
-      "forgotPassword": "Mot de passe oublié ?"
+      "forgotPassword": "Mot de passe oublié ?",
+      "guestMode": "Continuer sans compte"
     },
     "register": {
       "button": "Créer un compte",
@@ -542,5 +543,13 @@
     "checkFailed": "Impossible de verifier les mises a jour.",
     "upToDateTitle": "A jour",
     "upToDateBody": "Vous etes a jour."
+  },
+  "guest": {
+    "gateTitle": "Compte requis",
+    "gateMessage": "Crée un compte gratuit pour proposer des ajouts et modifications, et sauvegarder tes flashs en ligne. Tes flashs locaux seront transférés automatiquement.",
+    "gateCancel": "Plus tard",
+    "gateCreate": "Créer un compte",
+    "createAccount": "Créer un compte",
+    "createAccountSubtitle": "Sauvegarde tes flashs en ligne et débloque les contributions"
   }
 }

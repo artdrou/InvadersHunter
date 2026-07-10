@@ -197,6 +197,11 @@ export async function deleteCapture(db: SQLiteDatabase, progressId: number): Pro
   await db.runAsync('DELETE FROM captures WHERE id = ?', [progressId]);
 }
 
+/** Remove every capture belonging to a user — used to clear guest rows once claimed. */
+export async function deleteCapturesForUser(db: SQLiteDatabase, userId: number): Promise<void> {
+  await db.runAsync('DELETE FROM captures WHERE user_id = ?', [userId]);
+}
+
 // ── Pending syncs ─────────────────────────────────────────────────────────────
 
 export async function getPendingSyncs(db: SQLiteDatabase, userId: number): Promise<PendingSync[]> {

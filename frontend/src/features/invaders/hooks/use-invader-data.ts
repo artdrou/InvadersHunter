@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore, GUEST_USER_ID } from '@/features/auth';
 import {
   getAllInvaders, getAllCaptures,
   insertCapture, deleteCapture,
   insertPendingSync, deletePendingSync, getPendingSyncs,
 } from '@/services/db';
-import { syncAll, isNetworkError, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '@/services/sync';
+import { syncAll, syncInvadersOnly, isNetworkError, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '@/services/sync';
 import { useConnectivityStore } from '@/services/connectivity';
 import { logger } from '@/services/logger';
 import { useNetworkConnectivity } from '@/hooks/use-network-connectivity';
@@ -39,6 +39,9 @@ export function useInvaderData() {
   const setSyncError = useInvaderStore((s) => s.setSyncError);
 
   const user = useAuthStore((s) => s.user);
+  const isGuest = useAuthStore((s) => s.isGuest);
+  // Guest data lives in SQLite under the sentinel id; null = logged out entirely
+  const userId = user?.id ?? (isGuest ? GUEST_USER_ID : null);
   const setOnline = useConnectivityStore((s) => s.setOnline);
   const syncTrigger = useInvaderStore((s) => s.syncTrigger);
   const syncingRef     = useRef(false);
@@ -67,7 +70,12 @@ export function useInvaderData() {
     syncingRef.current = true;
     setIsSyncing(true);
     try {
-      await syncAll(db, userId);
+      // Guests only pull the public invader list; their captures never sync
+      if (userId === GUEST_USER_ID) {
+        await syncInvadersOnly(db);
+      } else {
+        await syncAll(db, userId);
+      }
       await loadFromDb(userId);
       lastSyncAt = Date.now();
       retryDelayRef.current = RETRY_BASE_MS;
@@ -96,38 +104,38 @@ export function useInvaderData() {
 
   // Trigger a sync whenever NetInfo detects an offline → online transition
   useNetworkConnectivity(useCallback(() => {
-    if (user) {
+    if (userId != null) {
       lastSyncAt = 0;
-      runSync(user.id);
+      runSync(userId);
     }
-  }, [user, runSync]));
+  }, [userId, runSync]));
 
   // On mount: load from SQLite instantly, then sync in background
   useEffect(() => {
-    if (!user) return;
-    loadFromDb(user.id);
-    runSync(user.id);
+    if (userId == null) return;
+    loadFromDb(userId);
+    runSync(userId);
     return () => { clearRetry(); };
-  }, [user, loadFromDb, runSync, clearRetry]);
+  }, [userId, loadFromDb, runSync, clearRetry]);
 
   // On app foreground: sync only if data is stale (> 5 min since last sync)
   useEffect(() => {
-    if (!user) return;
+    if (userId == null) return;
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') return;
       if (Date.now() - lastSyncAt < SYNC_COOLDOWN_MS) return;
-      runSync(user.id);
+      runSync(userId);
     });
     return () => sub.remove();
-  }, [user, runSync]);
+  }, [userId, runSync]);
 
   // Manual sync requested from UI — skip cooldown
   const isFirstTrigger = useRef(true);
   useEffect(() => {
     if (isFirstTrigger.current) { isFirstTrigger.current = false; return; }
-    if (!user) return;
+    if (userId == null) return;
     lastSyncAt = 0;
-    runSync(user.id);
+    runSync(userId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncTrigger]);
 
@@ -135,15 +143,19 @@ export function useInvaderData() {
 
   const flash = useCallback(async (userId: number, invaderId: number): Promise<Capture> => {
     const tempId = -Date.now();
+    const isGuestFlash = userId === GUEST_USER_ID;
     const tempCapture: Capture = {
       id: tempId,
       invader_id: invaderId,
       user_id: userId,
       found_at: new Date().toISOString(),
-      is_pending: 1,
+      // Guest captures are local-only by design — not "pending server sync"
+      is_pending: isGuestFlash ? 0 : 1,
     };
     await insertCapture(db, tempCapture);
     setProgress((prev) => [...prev, tempCapture]);
+
+    if (isGuestFlash) return tempCapture; // stays local until the guest signs up
 
     apiFlash(userId, invaderId)
       .then(async (capture) => {
@@ -168,6 +180,13 @@ export function useInvaderData() {
   const unflash = useCallback(async (progressId: number): Promise<void> => {
     const cap = progress.find((p) => p.id === progressId);
     if (!cap) return;
+
+    if (cap.user_id === GUEST_USER_ID) {
+      // Guest capture: purely local, nothing queued server-side
+      await deleteCapture(db, progressId);
+      setProgress((prev) => prev.filter((p) => p.id !== progressId));
+      return;
+    }
 
     if (cap.is_pending === 1) {
       const queue = await getPendingSyncs(db, cap.user_id);

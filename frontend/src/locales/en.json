@@ -148,7 +148,8 @@
       "invalid": "Invalid username or password",
       "noAccount": "No account?",
       "createOne": "Create one",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "guestMode": "Continue without account"
     },
     "register": {
       "button": "Create account",
@@ -542,5 +543,13 @@
     "checkFailed": "Could not check for updates.",
     "upToDateTitle": "Up to date",
     "upToDateBody": "You are on the latest version."
+  },
+  "guest": {
+    "gateTitle": "Account required",
+    "gateMessage": "Create a free account to submit additions and edits, and back up your flashes online. Your local flashes will be transferred automatically.",
+    "gateCancel": "Later",
+    "gateCreate": "Create account",
+    "createAccount": "Create account",
+    "createAccountSubtitle": "Back up your flashes online and unlock contributions"
   }
 }

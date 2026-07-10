@@ -7,10 +7,13 @@ type AuthState = {
   token: string | null;
   refreshToken: string | null;
   user: User | null;
+  /** Guest mode: app usable without an account, data stays in local SQLite. */
+  isGuest: boolean;
   _hasHydrated: boolean;
   login: (accessToken: string, refreshToken: string) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  enterGuestMode: () => void;
   setHasHydrated: (val: boolean) => void;
 };
 
@@ -25,12 +28,15 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       refreshToken: null,
       user: null,
+      isGuest: false,
       _hasHydrated: false,
       login: (accessToken, refreshToken) =>
-        set({ token: accessToken, refreshToken, user: parseToken(accessToken) }),
+        // Logging in ends guest mode; local guest data is claimed by the next sync
+        set({ token: accessToken, refreshToken, user: parseToken(accessToken), isGuest: false }),
       setTokens: (accessToken, refreshToken) =>
         set({ token: accessToken, refreshToken }),
-      logout: () => set({ token: null, refreshToken: null, user: null }),
+      logout: () => set({ token: null, refreshToken: null, user: null, isGuest: false }),
+      enterGuestMode: () => set({ isGuest: true }),
       setHasHydrated: (val) => set({ _hasHydrated: val }),
     }),
     {

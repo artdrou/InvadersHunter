@@ -4,14 +4,17 @@
  * The SQLite db and API calls are fully mocked so these run without a device.
  */
 
-import { isNetworkError, flushPendingSyncs, syncAll, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '../services/sync';
+import { isNetworkError, flushPendingSyncs, syncAll, syncInvadersOnly, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '../services/sync';
 import * as db from '../services/db';
 import * as api from '../features/invaders/services/invaders.api';
+import * as accountApi from '../features/auth/services/account.api';
+import { GUEST_USER_ID } from '../features/auth/guest';
 import type { PendingSync } from '../services/db';
 import type { Capture } from '../features/invaders/types';
 
 jest.mock('../services/db');
 jest.mock('../features/invaders/services/invaders.api');
+jest.mock('../features/auth/services/account.api');
 
 const mockDb = {} as any;
 
@@ -28,6 +31,10 @@ const replaceCaptures  = db.replaceCaptures  as jest.Mock;
 const upsertCaptures   = db.upsertCaptures   as jest.Mock;
 const replaceRequests  = db.replaceRequests  as jest.Mock;
 const upsertRequests   = db.upsertRequests   as jest.Mock;
+const getAllCaptures   = db.getAllCaptures   as jest.Mock;
+const deleteCapturesForUser = db.deleteCapturesForUser as jest.Mock;
+
+const claimCaptures    = accountApi.claimCaptures as jest.Mock;
 
 const apiFlash         = api.flashInvader          as jest.Mock;
 const apiUnflash       = api.unflashInvader        as jest.Mock;
@@ -53,6 +60,9 @@ beforeEach(() => {
   upsertCaptures.mockResolvedValue(undefined);
   replaceRequests.mockResolvedValue(undefined);
   upsertRequests.mockResolvedValue(undefined);
+  getAllCaptures.mockResolvedValue([]);
+  deleteCapturesForUser.mockResolvedValue(undefined);
+  claimCaptures.mockResolvedValue(undefined);
   apiSubmitModify.mockResolvedValue(undefined);
   apiSubmitCreate.mockResolvedValue(undefined);
   fetchInvaders.mockResolvedValue([]);
@@ -397,5 +407,69 @@ describe('syncAll', () => {
     await expect(syncAll(mockDb, 42)).rejects.toBeTruthy();
 
     expect(setMeta).not.toHaveBeenCalled();
+  });
+});
+
+// ── Guest mode ────────────────────────────────────────────────────────────────
+
+describe('syncInvadersOnly (guest sync)', () => {
+  it('fetches and stores invaders without touching progress or requests', async () => {
+    fetchInvaders.mockResolvedValue([{ id: 1 }]);
+    fetchDeletedInvaderIds.mockResolvedValue([2]);
+
+    await syncInvadersOnly(mockDb);
+
+    expect(upsertInvaders).toHaveBeenCalledWith(mockDb, [{ id: 1 }]);
+    expect(deleteInvadersByIds).toHaveBeenCalledWith(mockDb, [2]);
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_invaders_sync', expect.any(String));
+    expect(fetchProgress).not.toHaveBeenCalled();
+    expect(fetchUserRequests).not.toHaveBeenCalled();
+    expect(setMeta).not.toHaveBeenCalledWith(mockDb, 'last_progress_sync', expect.any(String));
+  });
+
+  it('does a delta fetch when a timestamp is stored', async () => {
+    getMeta.mockResolvedValue('2024-06-01T00:00:00Z');
+
+    await syncInvadersOnly(mockDb);
+
+    expect(fetchInvaders).toHaveBeenCalledWith('2024-06-01T00:00:00Z');
+  });
+});
+
+describe('syncAll — guest → account claim', () => {
+  function makeGuestCapture(overrides: Partial<Capture> = {}): Capture {
+    return { id: -1000, invader_id: 10, user_id: GUEST_USER_ID, found_at: '2024-01-01T00:00:00Z', ...overrides };
+  }
+
+  it('claims local guest captures then deletes them', async () => {
+    getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCapture(), makeGuestCapture({ id: -1001, invader_id: 11 })] : [],
+    );
+
+    await syncAll(mockDb, 42);
+
+    expect(claimCaptures).toHaveBeenCalledWith([
+      { invader_id: 10, found_at: '2024-01-01T00:00:00Z' },
+      { invader_id: 11, found_at: '2024-01-01T00:00:00Z' },
+    ]);
+    expect(deleteCapturesForUser).toHaveBeenCalledWith(mockDb, GUEST_USER_ID);
+  });
+
+  it('does nothing when there are no guest captures', async () => {
+    await syncAll(mockDb, 42);
+
+    expect(claimCaptures).not.toHaveBeenCalled();
+    expect(deleteCapturesForUser).not.toHaveBeenCalled();
+  });
+
+  it('keeps local guest captures when the claim fails (retried next sync)', async () => {
+    getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCapture()] : [],
+    );
+    claimCaptures.mockRejectedValue({ code: 'ERR_NETWORK' });
+
+    await expect(syncAll(mockDb, 42)).rejects.toBeTruthy();
+
+    expect(deleteCapturesForUser).not.toHaveBeenCalled();
   });
 });
