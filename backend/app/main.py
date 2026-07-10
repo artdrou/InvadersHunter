@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import users, invaders, user_progress, auth, user_requests, admin_requests, upload, flash_import, apk, news, notifications
+from app.api.routers import users, invaders, user_progress, auth, user_requests, admin_requests, upload, flash_import, apk, news, notifications, account
 from app.migrate import run as run_migrations
 
 
@@ -34,6 +34,7 @@ app.include_router(flash_import.router)
 app.include_router(apk.router)
 app.include_router(news.router)
 app.include_router(notifications.router)
+app.include_router(account.router)
 
 # Serve the Flash Import PC script (and any future static assets) as downloads.
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"

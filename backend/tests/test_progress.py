@@ -1,4 +1,4 @@
-"""Tests for progress/capture routes: flash, unflash, list, delta sync."""
+"""Tests for progress/capture routes: flash, unflash, list, delta sync, auth."""
 import pytest
 from datetime import datetime, timedelta, timezone
 
@@ -6,6 +6,8 @@ from app.models.user import User
 from app.models.space_invader import Invader
 from app.models.user_progress import UserProgress
 from app.core.security import hash_password
+
+from tests.conftest import auth_headers
 
 
 @pytest.fixture()
@@ -19,6 +21,14 @@ def user(db):
 @pytest.fixture()
 def other_user(db):
     u = User(username="bob", email="bob@test.com", hashed_password=hash_password("pw"))
+    db.add(u)
+    db.flush()
+    return u
+
+
+@pytest.fixture()
+def admin(db):
+    u = User(username="root", email="root@test.com", hashed_password=hash_password("pw"), is_admin=True)
     db.add(u)
     db.flush()
     return u
@@ -43,7 +53,11 @@ def invader2(db):
 # ── flash (POST /progress/) ───────────────────────────────────────────────────
 
 def test_flash_invader(client, user, invader):
-    res = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id})
+    res = client.post(
+        "/progress/",
+        json={"user_id": user.id, "invader_id": invader.id},
+        headers=auth_headers(user),
+    )
     assert res.status_code == 200
     body = res.json()
     assert body["user_id"] == user.id
@@ -51,37 +65,78 @@ def test_flash_invader(client, user, invader):
     assert body["id"] is not None
 
 
-def test_flash_duplicate_returns_409(client, user, invader):
-    client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id})
+def test_flash_requires_auth(client, user, invader):
     res = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id})
+    assert res.status_code == 401
+
+
+def test_flash_for_another_user_forbidden(client, user, other_user, invader):
+    res = client.post(
+        "/progress/",
+        json={"user_id": other_user.id, "invader_id": invader.id},
+        headers=auth_headers(user),
+    )
+    assert res.status_code == 403
+
+
+def test_flash_for_another_user_ok_as_admin(client, admin, user, invader):
+    res = client.post(
+        "/progress/",
+        json={"user_id": user.id, "invader_id": invader.id},
+        headers=auth_headers(admin),
+    )
+    assert res.status_code == 200
+
+
+def test_flash_duplicate_returns_409(client, user, invader):
+    client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id}, headers=auth_headers(user))
+    res = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id}, headers=auth_headers(user))
     assert res.status_code == 409
 
 
 def test_flash_same_invader_different_users_ok(client, user, other_user, invader):
-    r1 = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id})
-    r2 = client.post("/progress/", json={"user_id": other_user.id, "invader_id": invader.id})
+    r1 = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id}, headers=auth_headers(user))
+    r2 = client.post("/progress/", json={"user_id": other_user.id, "invader_id": invader.id}, headers=auth_headers(other_user))
     assert r1.status_code == 200
     assert r2.status_code == 200
 
 
-def test_flash_unknown_user_returns_404(client, invader):
-    res = client.post("/progress/", json={"user_id": 9999, "invader_id": invader.id})
+def test_flash_unknown_user_returns_404(client, admin, invader):
+    # Only an admin can reach the UserMissing branch (self is always a real user)
+    res = client.post(
+        "/progress/",
+        json={"user_id": 9999, "invader_id": invader.id},
+        headers=auth_headers(admin),
+    )
     assert res.status_code == 404
 
 
 def test_flash_unknown_invader_returns_404(client, user):
-    res = client.post("/progress/", json={"user_id": user.id, "invader_id": 9999})
+    res = client.post(
+        "/progress/",
+        json={"user_id": user.id, "invader_id": 9999},
+        headers=auth_headers(user),
+    )
     assert res.status_code == 404
 
 
 # ── list all captures (GET /progress/) ───────────────────────────────────────
 
-def test_list_all_captures(client, db, user, invader, invader2):
+def test_list_all_captures_admin_only(client, db, user, invader, invader2):
     db.add(UserProgress(user_id=user.id, invader_id=invader.id))
     db.add(UserProgress(user_id=user.id, invader_id=invader2.id))
     db.flush()
 
-    res = client.get("/progress/")
+    res = client.get("/progress/", headers=auth_headers(user))
+    assert res.status_code == 403
+
+
+def test_list_all_captures_as_admin(client, db, admin, user, invader, invader2):
+    db.add(UserProgress(user_id=user.id, invader_id=invader.id))
+    db.add(UserProgress(user_id=user.id, invader_id=invader2.id))
+    db.flush()
+
+    res = client.get("/progress/", headers=auth_headers(admin))
     assert res.status_code == 200
     assert len(res.json()) == 2
 
@@ -92,11 +147,30 @@ def test_list_user_captures(client, db, user, invader):
     db.add(UserProgress(user_id=user.id, invader_id=invader.id))
     db.flush()
 
-    res = client.get(f"/progress/user/{user.id}")
+    res = client.get(f"/progress/user/{user.id}", headers=auth_headers(user))
     assert res.status_code == 200
     data = res.json()
     assert len(data) == 1
     assert data[0]["invader_id"] == invader.id
+
+
+def test_list_user_captures_requires_auth(client, user):
+    res = client.get(f"/progress/user/{user.id}")
+    assert res.status_code == 401
+
+
+def test_list_other_user_captures_forbidden(client, user, other_user):
+    res = client.get(f"/progress/user/{other_user.id}", headers=auth_headers(user))
+    assert res.status_code == 403
+
+
+def test_list_other_user_captures_ok_as_admin(client, db, admin, user, invader):
+    db.add(UserProgress(user_id=user.id, invader_id=invader.id))
+    db.flush()
+
+    res = client.get(f"/progress/user/{user.id}", headers=auth_headers(admin))
+    assert res.status_code == 200
+    assert len(res.json()) == 1
 
 
 def test_list_user_captures_only_own(client, db, user, other_user, invader, invader2):
@@ -104,7 +178,7 @@ def test_list_user_captures_only_own(client, db, user, other_user, invader, inva
     db.add(UserProgress(user_id=other_user.id, invader_id=invader2.id))
     db.flush()
 
-    res = client.get(f"/progress/user/{user.id}")
+    res = client.get(f"/progress/user/{user.id}", headers=auth_headers(user))
     assert len(res.json()) == 1
     assert res.json()[0]["user_id"] == user.id
 
@@ -118,7 +192,7 @@ def test_list_user_captures_delta_sync(client, db, user, invader, invader2):
     db.flush()
 
     cutoff = (datetime.utcnow() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
-    res = client.get(f"/progress/user/{user.id}?updated_since={cutoff}")
+    res = client.get(f"/progress/user/{user.id}?updated_since={cutoff}", headers=auth_headers(user))
     assert res.status_code == 200
     results = res.json()
     assert len(results) == 1
@@ -126,7 +200,7 @@ def test_list_user_captures_delta_sync(client, db, user, invader, invader2):
 
 
 def test_list_user_captures_empty_user(client, db, user):
-    res = client.get(f"/progress/user/{user.id}")
+    res = client.get(f"/progress/user/{user.id}", headers=auth_headers(user))
     assert res.status_code == 200
     assert res.json() == []
 
@@ -138,13 +212,32 @@ def test_unflash_invader(client, db, user, invader):
     db.add(progress)
     db.flush()
 
-    res = client.delete(f"/progress/{progress.id}")
+    res = client.delete(f"/progress/{progress.id}", headers=auth_headers(user))
     assert res.status_code == 200
     assert db.query(UserProgress).filter(UserProgress.id == progress.id).first() is None
 
 
-def test_unflash_not_found(client):
-    res = client.delete("/progress/9999")
+def test_unflash_requires_auth(client, db, user, invader):
+    progress = UserProgress(user_id=user.id, invader_id=invader.id)
+    db.add(progress)
+    db.flush()
+
+    res = client.delete(f"/progress/{progress.id}")
+    assert res.status_code == 401
+
+
+def test_unflash_other_users_capture_forbidden(client, db, user, other_user, invader):
+    progress = UserProgress(user_id=other_user.id, invader_id=invader.id)
+    db.add(progress)
+    db.flush()
+
+    res = client.delete(f"/progress/{progress.id}", headers=auth_headers(user))
+    assert res.status_code == 403
+    assert db.query(UserProgress).filter(UserProgress.id == progress.id).first() is not None
+
+
+def test_unflash_not_found(client, user):
+    res = client.delete("/progress/9999", headers=auth_headers(user))
     assert res.status_code == 404
 
 
@@ -153,8 +246,12 @@ def test_unflash_then_reflash_works(client, db, user, invader):
     db.add(progress)
     db.flush()
 
-    client.delete(f"/progress/{progress.id}")
-    res = client.post("/progress/", json={"user_id": user.id, "invader_id": invader.id})
+    client.delete(f"/progress/{progress.id}", headers=auth_headers(user))
+    res = client.post(
+        "/progress/",
+        json={"user_id": user.id, "invader_id": invader.id},
+        headers=auth_headers(user),
+    )
     assert res.status_code == 200
 
 
@@ -165,11 +262,41 @@ def test_update_capture_found_at(client, db, user, invader):
     db.add(progress)
     db.flush()
 
-    res = client.put(f"/progress/{progress.id}", json={"found_at": "2024-01-15T12:00:00"})
+    res = client.put(
+        f"/progress/{progress.id}",
+        json={"found_at": "2024-01-15T12:00:00"},
+        headers=auth_headers(user),
+    )
     assert res.status_code == 200
     assert "2024-01-15" in res.json()["found_at"]
 
 
-def test_update_capture_not_found(client):
-    res = client.put("/progress/9999", json={"found_at": "2024-01-15T12:00:00"})
+def test_update_other_users_capture_forbidden(client, db, user, other_user, invader):
+    progress = UserProgress(user_id=other_user.id, invader_id=invader.id)
+    db.add(progress)
+    db.flush()
+
+    res = client.put(
+        f"/progress/{progress.id}",
+        json={"found_at": "2024-01-15T12:00:00"},
+        headers=auth_headers(user),
+    )
+    assert res.status_code == 403
+
+
+def test_update_reassign_to_other_user_forbidden(client, db, user, other_user, invader):
+    progress = UserProgress(user_id=user.id, invader_id=invader.id)
+    db.add(progress)
+    db.flush()
+
+    res = client.put(
+        f"/progress/{progress.id}",
+        json={"user_id": other_user.id},
+        headers=auth_headers(user),
+    )
+    assert res.status_code == 403
+
+
+def test_update_capture_not_found(client, user):
+    res = client.put("/progress/9999", json={"found_at": "2024-01-15T12:00:00"}, headers=auth_headers(user))
     assert res.status_code == 404
