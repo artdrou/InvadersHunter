@@ -462,6 +462,18 @@ describe('syncAll — guest → account claim', () => {
     expect(deleteCapturesForUser).not.toHaveBeenCalled();
   });
 
+  it('continues the sync and keeps guest rows when the server rejects the claim (e.g. old backend 404)', async () => {
+    getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCapture()] : [],
+    );
+    claimCaptures.mockRejectedValue({ response: { status: 404 } });
+
+    await syncAll(mockDb, 42);  // must NOT throw
+
+    expect(deleteCapturesForUser).not.toHaveBeenCalled();
+    expect(fetchProgress).toHaveBeenCalled();  // rest of the sync ran
+  });
+
   it('keeps local guest captures when the claim fails (retried next sync)', async () => {
     getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
       userId === GUEST_USER_ID ? [makeGuestCapture()] : [],

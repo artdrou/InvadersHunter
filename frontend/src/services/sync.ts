@@ -141,13 +141,23 @@ export async function syncInvadersOnly(db: SQLiteDatabase): Promise<void> {
  * rows — the following sync pulls back the canonical server rows.
  * Self-healing: runs at the start of every authenticated sync, so a claim
  * that failed offline is retried automatically.
+ *
+ * Never lets a claim failure abort the rest of the sync: network errors
+ * propagate (the whole sync retries later anyway), but a server rejection
+ * (e.g. an older backend without /account/claim) just keeps the guest rows
+ * for a future attempt.
  */
 async function claimGuestCaptures(db: SQLiteDatabase): Promise<void> {
   const guestRows = await getAllCaptures(db, GUEST_USER_ID);
   if (guestRows.length === 0) return;
-  await claimCaptures(
-    guestRows.map((c) => ({ invader_id: c.invader_id, found_at: c.found_at })),
-  );
+  try {
+    await claimCaptures(
+      guestRows.map((c) => ({ invader_id: c.invader_id, found_at: c.found_at })),
+    );
+  } catch (err) {
+    if (isNetworkError(err)) throw err;
+    return; // server rejected — keep local rows, retry on a later sync
+  }
   await deleteCapturesForUser(db, GUEST_USER_ID);
 }
 

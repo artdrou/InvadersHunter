@@ -149,6 +149,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     guestLink: {
       alignItems: 'center',
       marginTop: Spacing.three,
+      alignSelf: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 10,
+      paddingHorizontal: Spacing.four,
     },
     registerText: {
       color: t.textMuted,

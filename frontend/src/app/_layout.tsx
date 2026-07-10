@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore, AccountGateModal } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initDb } from '@/services/db';
@@ -101,6 +101,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <Stack screenOptions={{ headerShown: false }} />
           <UpdateAvailableModal />
+          <AccountGateModal />
         </ThemeProvider>
       </SQLiteProvider>
     </ErrorBoundary>
