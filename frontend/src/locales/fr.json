@@ -359,6 +359,22 @@
     "discoveredByLabel": "Découvert par",
     "updatedByLabel": "Mis à jour par"
   },
+  "comments": {
+    "title": "Commentaires",
+    "empty": "Aucun commentaire. Sois le premier !",
+    "placeholder": "Ajouter un commentaire…",
+    "send": "Envoyer",
+    "delete": "Supprimer",
+    "report": "Signaler",
+    "underReview": "En attente de modération",
+    "guestPrompt": "Connecte-toi pour commenter",
+    "hiddenNotice": "Ton commentaire a été masqué par la modération.",
+    "pendingNotice": "Publié — en attente de modération.",
+    "reportedNotice": "Commentaire signalé, merci.",
+    "postError": "Échec de l'envoi. Réessaie.",
+    "actionError": "Action impossible. Réessaie.",
+    "loadError": "Impossible de charger les commentaires."
+  },
   "admin": {
     "noRequests": "Aucune requête",
     "type": "Type",

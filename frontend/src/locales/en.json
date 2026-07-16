@@ -359,6 +359,22 @@
     "discoveredByLabel": "Discovered by",
     "updatedByLabel": "Updated by"
   },
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet. Be the first!",
+    "placeholder": "Add a comment…",
+    "send": "Send",
+    "delete": "Delete",
+    "report": "Report",
+    "underReview": "Pending review",
+    "guestPrompt": "Log in to comment",
+    "hiddenNotice": "Your comment was hidden by moderation.",
+    "pendingNotice": "Posted — pending review.",
+    "reportedNotice": "Comment reported, thanks.",
+    "postError": "Couldn't post. Try again.",
+    "actionError": "Action failed. Try again.",
+    "loadError": "Couldn't load comments."
+  },
   "admin": {
     "noRequests": "No requests",
     "type": "Type",

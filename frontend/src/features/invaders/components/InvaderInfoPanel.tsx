@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
 import { hapticTap } from "@/features/settings";
+import { InvaderCommentsModal } from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
 import { useInvaderContributors } from "../hooks/use-invader-contributors";
 import type { InvaderWithState } from "../types";
@@ -28,8 +31,9 @@ const STATE_KEYS: Record<string, string> = {
 
 export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
   const { t } = useTranslation();
-  const { theme, fontScale } = useTheme();
+  const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
   const contributors = useInvaderContributors(invader.id);
@@ -103,6 +107,23 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
           </Pressable>
         )}
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.commentsBtn, pressed && styles.btnPressed]}
+        onPress={() => { hapticTap(); setCommentsOpen(true); }}
+      >
+        <Ionicons name="chatbubbles-outline" size={sz(16)} color={theme.textMuted} />
+        <Text style={[styles.commentsBtnText, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(13) }]}>
+          {t('comments.title')}
+        </Text>
+      </Pressable>
+
+      <InvaderCommentsModal
+        visible={commentsOpen}
+        invaderId={invader.id}
+        invaderName={invader.name}
+        onClose={() => setCommentsOpen(false)}
+      />
     </View>
   );
 }
@@ -151,5 +172,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: {},
+  commentsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.one,
+    paddingVertical: Spacing.two,
+  },
+  commentsBtnText: {},
   btnPressed: { opacity: 0.7 },
 });

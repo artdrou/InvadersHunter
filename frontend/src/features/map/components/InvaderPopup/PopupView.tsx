@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import type { ThemeTokens } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
 import { useInvaderContributors } from "@/features/invaders/hooks/use-invader-contributors";
+import { InvaderCommentsModal } from "@/features/comments";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
 import { STATE_KEYS } from "@/features/invaders/state-options";
 import { formatDate } from "./format";
@@ -28,6 +29,7 @@ type Props = {
 export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const contributors = useInvaderContributors(isISS ? null : invader.id);
   const lastModifier = contributors?.modified_by.length
     ? contributors.modified_by[contributors.modified_by.length - 1]
@@ -109,6 +111,14 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
           >
             <Ionicons name="globe-outline" size={20} color={theme.accent} />
           </Pressable>
+          <Pressable
+            onPress={() => setCommentsOpen(true)}
+            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+            hitSlop={8}
+            accessibilityLabel={t('comments.title')}
+          >
+            <Ionicons name="chatbubbles-outline" size={20} color={theme.accent} />
+          </Pressable>
         </View>
       )}
 
@@ -143,6 +153,15 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
           name={invader.name}
           onClose={() => setSpotterOpen(false)}
           theme={theme}
+        />
+      )}
+
+      {!isISS && (
+        <InvaderCommentsModal
+          visible={commentsOpen}
+          invaderId={invader.id}
+          invaderName={invader.name}
+          onClose={() => setCommentsOpen(false)}
         />
       )}
     </>
