@@ -561,7 +561,10 @@
     "gateCancel": "Later",
     "gateCreate": "Create account",
     "createAccount": "Create account",
-    "createAccountSubtitle": "Back up your flashes online and unlock contributions"
+    "createAccountSubtitle": "Back up your flashes online and unlock contributions",
+    "gateLogin": "I already have an account",
+    "login": "Log in",
+    "loginSubtitle": "Your guest flashes will be added to your account"
   },
   "changelog": {
     "whatsNewTitle": "What's new?",

@@ -30,12 +30,20 @@ export default function SettingsLanding() {
       <View style={styles.body}>
       <SettingsSection title={t('settings.sectionAccount')}>
         {isGuest ? (
-          <SettingsRow
-            icon="person-add-outline"
-            label={t('guest.createAccount')}
-            subtitle={t('guest.createAccountSubtitle')}
-            onPress={() => router.push('/register')}
-          />
+          <>
+            <SettingsRow
+              icon="person-add-outline"
+              label={t('guest.createAccount')}
+              subtitle={t('guest.createAccountSubtitle')}
+              onPress={() => router.push('/register')}
+            />
+            <SettingsRow
+              icon="log-in-outline"
+              label={t('guest.login')}
+              subtitle={t('guest.loginSubtitle')}
+              onPress={() => router.push('/login')}
+            />
+          </>
         ) : (
           <>
             <SettingsRow

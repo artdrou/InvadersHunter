@@ -561,7 +561,10 @@
     "gateCancel": "Plus tard",
     "gateCreate": "Créer un compte",
     "createAccount": "Créer un compte",
-    "createAccountSubtitle": "Sauvegarde tes flashs en ligne et débloque les contributions"
+    "createAccountSubtitle": "Sauvegarde tes flashs en ligne et débloque les contributions",
+    "gateLogin": "J'ai déjà un compte",
+    "login": "Se connecter",
+    "loginSubtitle": "Tes flashs invité seront ajoutés à ton compte"
   },
   "changelog": {
     "whatsNewTitle": "Quoi de neuf ?",

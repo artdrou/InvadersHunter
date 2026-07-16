@@ -26,6 +26,11 @@ export function AccountGateModal() {
     router.push('/register');
   }
 
+  function handleLogin() {
+    close();
+    router.push('/login');
+  }
+
   return (
     <Modal transparent visible animationType="fade" onRequestClose={close}>
       <View style={styles.overlay}>
@@ -37,6 +42,12 @@ export function AccountGateModal() {
             style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
             onPress={handleCreate}>
             <Text style={styles.primaryBtnText}>{t('guest.gateCreate')}</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.outlineBtn, pressed && styles.pressed]}
+            onPress={handleLogin}>
+            <Text style={styles.outlineBtnText}>{t('guest.gateLogin')}</Text>
           </Pressable>
 
           <Pressable
@@ -94,6 +105,18 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       color: t.bg,
       fontFamily: ButtonFont,
       fontSize: FontSize.xxl,
+    },
+    outlineBtn: {
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    outlineBtnText: {
+      color: t.text,
+      fontFamily: ButtonFont,
+      fontSize: FontSize.xl,
     },
     secondaryBtn: {
       paddingVertical: 10,
