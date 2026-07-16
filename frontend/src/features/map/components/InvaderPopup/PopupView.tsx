@@ -5,11 +5,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import type { ThemeTokens } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
-import { useInvaderContributors } from "@/features/invaders/hooks/use-invader-contributors";
+import { useInvaderOverview } from "@/features/invaders";
 import {
   InvaderCommentsModal,
   CommentCountBadge,
-  useInvaderCommentSummary,
   useCommentSeenStore,
   hasNewComments,
 } from "@/features/comments";
@@ -36,12 +35,13 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const contributors = useInvaderContributors(isISS ? null : invader.id);
+  const { overview, refresh: refreshSummary } = useInvaderOverview(isISS ? null : invader.id);
+  const contributors = overview?.contributors ?? null;
+  const summary = overview?.comments ?? null;
   const lastModifier = contributors?.modified_by.length
     ? contributors.modified_by[contributors.modified_by.length - 1]
     : null;
 
-  const { summary, refresh: refreshSummary } = useInvaderCommentSummary(isISS ? null : invader.id);
   const seen = useCommentSeenStore((s) => s.seen);
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);

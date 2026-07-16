@@ -347,6 +347,25 @@ def test_summary_unknown_invader_404(client):
     assert client.get("/invaders/999/comments/summary").status_code == 404
 
 
+# ── overview (GET /invaders/{id}/overview) ────────────────────────────────────
+
+def test_overview_bundles_contributors_and_comments(client, db, user, other_user, invader):
+    top = _make_comment(db, invader, user, body="great tip")
+    client.post(f"/comments/{top.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+
+    body = client.get(f"/invaders/{invader.id}/overview").json()
+    assert "contributors" in body and "comments" in body
+    assert body["comments"]["count"] == 1
+    assert body["comments"]["top"]["body"] == "great tip"
+    # no approved requests in this fixture → contributors empty but well-formed
+    assert body["contributors"]["created_by"] is None
+    assert body["contributors"]["modified_by"] == []
+
+
+def test_overview_unknown_invader_404(client):
+    assert client.get("/invaders/999/overview").status_code == 404
+
+
 # ── moderation service unit tests ─────────────────────────────────────────────
 
 def test_moderation_returns_none_without_api_key(monkeypatch):

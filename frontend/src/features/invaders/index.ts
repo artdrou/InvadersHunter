@@ -1,6 +1,7 @@
 export { InvaderState, NON_FLASHABLE_STATES, isNonFlashable } from './types';
 export type { Invader, Capture, InvaderWithState, UserRequest } from './types';
 export { useInvaderData } from './hooks/use-invader-data';
+export { useInvaderOverview } from './hooks/use-invader-overview';
 export { useInvaderStore } from './store';
 export { mapInvadersWithProgress } from './mapper';
 export { fetchInvaders, fetchProgress, flashInvader, unflashInvader } from './services/invaders.api';

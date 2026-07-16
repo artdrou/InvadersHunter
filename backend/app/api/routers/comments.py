@@ -21,18 +21,7 @@ router = APIRouter(tags=["Comments"])
 
 
 def _to_out(comment, username: str, my_reaction: int = 0) -> CommentOut:
-    return CommentOut(
-        id=comment.id,
-        invader_id=comment.invader_id,
-        user_id=comment.user_id,
-        username=username,
-        body=comment.body,
-        status=comment.status,
-        created_at=comment.created_at,
-        likes=comment.likes,
-        dislikes=comment.dislikes,
-        my_reaction=my_reaction,
-    )
+    return CommentOut.from_row(comment, username, my_reaction)
 
 
 @router.get("/invaders/{invader_id}/comments", response_model=List[CommentOut])
@@ -60,8 +49,7 @@ def comments_summary(
         count, top = comment_service.get_summary(db, invader_id, uid)
     except InvaderMissing:
         raise HTTPException(status_code=404, detail="Invader not found")
-    top_out = _to_out(*top) if top else None
-    return CommentSummaryOut(count=count, top=top_out)
+    return CommentSummaryOut.from_service(count, top)
 
 
 @router.post("/invaders/{invader_id}/comments", response_model=CommentOut)

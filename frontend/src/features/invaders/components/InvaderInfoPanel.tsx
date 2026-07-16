@@ -9,12 +9,11 @@ import { hapticTap } from "@/features/settings";
 import {
   InvaderCommentsModal,
   CommentCountBadge,
-  useInvaderCommentSummary,
   useCommentSeenStore,
   hasNewComments,
 } from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
-import { useInvaderContributors } from "../hooks/use-invader-contributors";
+import { useInvaderOverview } from "../hooks/use-invader-overview";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -40,13 +39,15 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const { summary, refresh: refreshSummary } = useInvaderCommentSummary(invader.id);
+  // One request for the popup payload: contributors + comment summary
+  const { overview, refresh: refreshSummary } = useInvaderOverview(invader.id);
+  const contributors = overview?.contributors ?? null;
+  const summary = overview?.comments ?? null;
   const seen = useCommentSeenStore((s) => s.seen);
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
-  const contributors = useInvaderContributors(invader.id);
   const lastModifier = contributors?.modified_by.length
     ? contributors.modified_by[contributors.modified_by.length - 1]
     : null;

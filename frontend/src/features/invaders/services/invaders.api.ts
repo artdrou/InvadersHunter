@@ -1,5 +1,6 @@
 import { api, BASE_URL } from '@/services/api-client';
 import { useAuthStore } from '@/features/auth/store';
+import type { CommentSummary } from '@/features/comments';
 import type { Invader, Capture, UserRequest, InvaderContributors } from '../types';
 
 /**
@@ -99,8 +100,22 @@ export async function fetchUserRequests(updatedSince?: string): Promise<UserRequ
   return res.data;
 }
 
-/** Who discovered/modified this invader. Not wired into any screen yet. */
+/** Who discovered/modified this invader. */
 export async function fetchInvaderContributors(invaderId: number): Promise<InvaderContributors> {
   const res = await api.get(`/invaders/${invaderId}/contributors`);
+  return res.data;
+}
+
+export type InvaderOverview = {
+  contributors: InvaderContributors;
+  comments: CommentSummary;
+};
+
+/**
+ * Aggregated popup payload — contributors + comment summary in a single request
+ * (replaces separate /contributors and /comments/summary calls on popup open).
+ */
+export async function fetchInvaderOverview(invaderId: number): Promise<InvaderOverview> {
+  const res = await api.get(`/invaders/${invaderId}/overview`);
   return res.data;
 }

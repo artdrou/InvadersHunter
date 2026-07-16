@@ -5,8 +5,9 @@ from datetime import datetime
 
 from app.schemas.space_invader import InvaderCreate, InvaderOut, InvaderUpdate
 from app.schemas.admin_request import InvaderContributorsOut
-from app.dependencies import get_db
-from app.services import invader_service, admin_request_service
+from app.schemas.comment import CommentSummaryOut, InvaderOverviewOut
+from app.dependencies import get_db, get_current_user_optional
+from app.services import invader_service, admin_request_service, comment_service
 from app.services.invader_service import InvaderMissing
 
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
@@ -44,6 +45,28 @@ def get_invader_contributors(invader_id: int, db: Session = Depends(get_db)):
     except InvaderMissing:
         raise HTTPException(status_code=404, detail="Invader not found")
     return admin_request_service.get_invader_contributors(db, invader_id)
+
+
+@router.get("/{invader_id}/overview", response_model=InvaderOverviewOut)
+def get_invader_overview(
+    invader_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user_optional),
+):
+    """Popup payload in one request: contributors + comment summary (count + top).
+    Replaces the separate /contributors and /comments/summary calls; both are
+    kept for backward compatibility with already-deployed clients."""
+    try:
+        invader_service.get_by_id(db, invader_id)
+    except InvaderMissing:
+        raise HTTPException(status_code=404, detail="Invader not found")
+    contributors = admin_request_service.get_invader_contributors(db, invader_id)
+    uid = current_user.id if current_user else None
+    count, top = comment_service.get_summary(db, invader_id, uid)
+    return InvaderOverviewOut(
+        contributors=contributors,
+        comments=CommentSummaryOut.from_service(count, top),
+    )
 
 
 @router.post("/", response_model=InvaderOut)
