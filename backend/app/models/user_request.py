@@ -27,7 +27,7 @@ class UserRequest(Base):
     proposed_date_pose = Column(Date, nullable=True)  # year of installation (stored as YYYY-01-01)
 
     # Set once this request is aggregated into an admin_request
-    admin_request_id = Column(Integer, ForeignKey("admin_requests.id"), nullable=True)
+    admin_request_id = Column(Integer, ForeignKey("admin_requests.id"), nullable=True, index=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
