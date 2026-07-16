@@ -6,7 +6,13 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
 import { hapticTap } from "@/features/settings";
-import { InvaderCommentsModal } from "@/features/comments";
+import {
+  InvaderCommentsModal,
+  CommentCountBadge,
+  useInvaderCommentSummary,
+  useCommentSeenStore,
+  hasNewComments,
+} from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
 import { useInvaderContributors } from "../hooks/use-invader-contributors";
 import type { InvaderWithState } from "../types";
@@ -34,6 +40,10 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const { summary, refresh: refreshSummary } = useInvaderCommentSummary(invader.id);
+  const seen = useCommentSeenStore((s) => s.seen);
+  const commentCount = summary?.count ?? 0;
+  const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
   const contributors = useInvaderContributors(invader.id);
@@ -56,20 +66,28 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
-      <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
-      <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
-      <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
-      <InfoRow
-        label={t('popup.flashed')}
-        value={formatDate(invader.capturedAt)}
-        valueColor={invader.isCaptured ? theme.success : theme.text}
-        sz={sz}
-      />
-      {contributors?.created_by && (
-        <InfoRow label={t('popup.discoveredByLabel')} value={contributors.created_by.username} valueColor={theme.accent} sz={sz} />
-      )}
-      {lastModifier && (
-        <InfoRow label={t('popup.updatedByLabel')} value={lastModifier.username} valueColor={theme.accent} sz={sz} />
+      <View style={styles.infoBlock}>
+        <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
+        <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
+        <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
+        <InfoRow
+          label={t('popup.flashed')}
+          value={formatDate(invader.capturedAt)}
+          valueColor={invader.isCaptured ? theme.success : theme.text}
+          sz={sz}
+        />
+      </View>
+
+      {(contributors?.created_by || lastModifier) && (
+        <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+          {contributors?.created_by && (
+            <>{t('popup.discoveredByLabel')} <Text style={{ color: theme.accent }}>{contributors.created_by.username}</Text></>
+          )}
+          {contributors?.created_by && lastModifier && '   ·   '}
+          {lastModifier && (
+            <>{t('popup.updatedByLabel')} <Text style={{ color: theme.accent }}>{lastModifier.username}</Text></>
+          )}
+        </Text>
       )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
@@ -112,7 +130,10 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         style={({ pressed }) => [styles.commentsBtn, pressed && styles.btnPressed]}
         onPress={() => { hapticTap(); setCommentsOpen(true); }}
       >
-        <Ionicons name="chatbubbles-outline" size={sz(16)} color={theme.textMuted} />
+        <View>
+          <Ionicons name="chatbubbles-outline" size={sz(16)} color={theme.textMuted} />
+          <CommentCountBadge count={commentCount} hasNew={commentsHaveNew} />
+        </View>
         <Text style={[styles.commentsBtnText, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(13) }]}>
           {t('comments.title')}
         </Text>
@@ -122,7 +143,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         visible={commentsOpen}
         invaderId={invader.id}
         invaderName={invader.name}
-        onClose={() => setCommentsOpen(false)}
+        onClose={() => { setCommentsOpen(false); refreshSummary(); }}
       />
     </View>
   );
@@ -151,6 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   divider: { height: 1 },
+  infoBlock: { gap: 5 },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -158,6 +180,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {},
   infoValue: {},
+  contributorLine: { textAlign: "left" },
   btnRow: {
     flexDirection: "row",
     gap: Spacing.two,

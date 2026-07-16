@@ -16,4 +16,18 @@ export type Comment = {
    */
   status: CommentStatus;
   created_at: string;
+  likes: number;
+  dislikes: number;
+  /** The current user's reaction: 1 like, -1 dislike, 0 none (0 when anonymous). */
+  my_reaction: number;
+};
+
+/** Reaction value sent to the API: 1 like, -1 dislike, 0 clear. */
+export type ReactionValue = 1 | -1 | 0;
+
+export type CommentSummary = {
+  /** Number of listed comments (visible + pending_review). */
+  count: number;
+  /** Most-liked comment for the map popup; null when nothing has likes yet. */
+  top: Comment | null;
 };

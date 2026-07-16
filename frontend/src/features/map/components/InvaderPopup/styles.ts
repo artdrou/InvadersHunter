@@ -108,6 +108,21 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     linkIconBtn: {
       padding: Spacing.one,
     },
+    topCommentRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: Spacing.one,
+    },
+    topCommentIcon: {
+      marginTop: 2,
+    },
+    topCommentText: {
+      flex: 1,
+      color: t.text,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
+      fontStyle: "italic",
+    },
     contributorText: {
       color: t.textMuted,
       fontSize: sz(FontSize.xs),

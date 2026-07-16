@@ -7,6 +7,7 @@ jest.mock('../features/comments/services/comments.api', () => ({
   postComment: jest.fn(),
   reportComment: jest.fn(),
   deleteComment: jest.fn(),
+  reactToComment: jest.fn(),
 }));
 
 import {
@@ -14,12 +15,15 @@ import {
   postComment,
   reportComment,
   deleteComment,
+  reactToComment,
 } from '../features/comments/services/comments.api';
+import { hasNewComments } from '../features/comments/seen-store';
 
 const mockFetch = fetchComments as jest.Mock;
 const mockPost = postComment as jest.Mock;
 const mockReport = reportComment as jest.Mock;
 const mockDelete = deleteComment as jest.Mock;
+const mockReact = reactToComment as jest.Mock;
 
 function comment(over: Partial<Comment> = {}): Comment {
   return {
@@ -30,6 +34,9 @@ function comment(over: Partial<Comment> = {}): Comment {
     body: 'hello',
     status: 'visible',
     created_at: '2026-07-16T12:00:00',
+    likes: 0,
+    dislikes: 0,
+    my_reaction: 0,
     ...over,
   };
 }
@@ -111,15 +118,46 @@ describe('useInvaderComments', () => {
     expect(result.current.comments[0].status).toBe('pending_review');
   });
 
+  it('replaces a comment with its updated reaction state', async () => {
+    mockFetch.mockResolvedValue([comment({ id: 1, likes: 0, my_reaction: 0 })]);
+    mockReact.mockResolvedValue(comment({ id: 1, likes: 1, my_reaction: 1 }));
+    const { result } = renderHook(() => useInvaderComments(10, true));
+    await waitFor(() => expect(result.current.comments).toHaveLength(1));
+
+    await act(async () => { await result.current.react(1, 1); });
+
+    expect(mockReact).toHaveBeenCalledWith(1, 1);
+    expect(result.current.comments[0].likes).toBe(1);
+    expect(result.current.comments[0].my_reaction).toBe(1);
+  });
+
   it('drops stale data when disabled again', async () => {
     mockFetch.mockResolvedValue([comment({ id: 1 })]);
     const { result, rerender } = renderHook(
-      ({ enabled }) => useInvaderComments(10, enabled),
+      ({ enabled }: { enabled: boolean }) => useInvaderComments(10, enabled),
       { initialProps: { enabled: true } },
     );
     await waitFor(() => expect(result.current.comments).toHaveLength(1));
 
     rerender({ enabled: false });
     expect(result.current.comments).toHaveLength(0);
+  });
+});
+
+describe('hasNewComments', () => {
+  it('is true when the count exceeds what was last seen', () => {
+    expect(hasNewComments({ 10: 2 }, 10, 5)).toBe(true);
+  });
+
+  it('is false once the count has been seen', () => {
+    expect(hasNewComments({ 10: 5 }, 10, 5)).toBe(false);
+  });
+
+  it('treats a never-seen invader with comments as new', () => {
+    expect(hasNewComments({}, 10, 3)).toBe(true);
+  });
+
+  it('is false when there are no comments', () => {
+    expect(hasNewComments({}, 10, 0)).toBe(false);
   });
 });

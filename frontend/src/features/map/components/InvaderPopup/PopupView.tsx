@@ -6,7 +6,13 @@ import { useTranslation } from "react-i18next";
 import type { ThemeTokens } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
 import { useInvaderContributors } from "@/features/invaders/hooks/use-invader-contributors";
-import { InvaderCommentsModal } from "@/features/comments";
+import {
+  InvaderCommentsModal,
+  CommentCountBadge,
+  useInvaderCommentSummary,
+  useCommentSeenStore,
+  hasNewComments,
+} from "@/features/comments";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
 import { STATE_KEYS } from "@/features/invaders/state-options";
 import { formatDate } from "./format";
@@ -34,6 +40,11 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
   const lastModifier = contributors?.modified_by.length
     ? contributors.modified_by[contributors.modified_by.length - 1]
     : null;
+
+  const { summary, refresh: refreshSummary } = useInvaderCommentSummary(isISS ? null : invader.id);
+  const seen = useCommentSeenStore((s) => s.seen);
+  const commentCount = summary?.count ?? 0;
+  const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
 
   return (
     <>
@@ -72,16 +83,28 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
         </Text>
       </View>
 
-      {contributors?.created_by && (
-        <Text style={styles.contributorText}>
-          {t('popup.discoveredByLabel')}{' '}
-          <Text style={styles.contributorName}>{contributors.created_by.username}</Text>
-        </Text>
+      {summary?.top && (
+        <View style={styles.topCommentRow}>
+          <Ionicons name="chatbubble" size={12} color={theme.accent} style={styles.topCommentIcon} />
+          <Text style={styles.topCommentText} numberOfLines={2}>{summary.top.body}</Text>
+        </View>
       )}
-      {lastModifier && (
+
+      {(contributors?.created_by || lastModifier) && (
         <Text style={styles.contributorText}>
-          {t('popup.updatedByLabel')}{' '}
-          <Text style={styles.contributorName}>{lastModifier.username}</Text>
+          {contributors?.created_by && (
+            <>
+              {t('popup.discoveredByLabel')}{' '}
+              <Text style={styles.contributorName}>{contributors.created_by.username}</Text>
+            </>
+          )}
+          {contributors?.created_by && lastModifier && '   ·   '}
+          {lastModifier && (
+            <>
+              {t('popup.updatedByLabel')}{' '}
+              <Text style={styles.contributorName}>{lastModifier.username}</Text>
+            </>
+          )}
         </Text>
       )}
 
@@ -118,6 +141,7 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
             accessibilityLabel={t('comments.title')}
           >
             <Ionicons name="chatbubbles-outline" size={20} color={theme.accent} />
+            <CommentCountBadge count={commentCount} hasNew={commentsHaveNew} />
           </Pressable>
         </View>
       )}
@@ -161,7 +185,7 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
           visible={commentsOpen}
           invaderId={invader.id}
           invaderName={invader.name}
-          onClose={() => setCommentsOpen(false)}
+          onClose={() => { setCommentsOpen(false); refreshSummary(); }}
         />
       )}
     </>

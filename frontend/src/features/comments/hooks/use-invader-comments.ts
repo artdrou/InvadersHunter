@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchComments, postComment, reportComment, deleteComment } from '../services/comments.api';
-import type { Comment } from '../types';
+import {
+  fetchComments,
+  postComment,
+  reportComment,
+  deleteComment,
+  reactToComment,
+} from '../services/comments.api';
+import type { Comment, ReactionValue } from '../types';
 
 type State = {
   comments: Comment[];
@@ -58,5 +64,14 @@ export function useInvaderComments(invaderId: number | null, enabled: boolean) {
     return updated;
   }, []);
 
-  return { ...state, reload: load, add, remove, report };
+  const react = useCallback(async (commentId: number, value: ReactionValue): Promise<Comment> => {
+    const updated = await reactToComment(commentId, value);
+    setState((s) => ({
+      ...s,
+      comments: s.comments.map((c) => (c.id === updated.id ? updated : c)),
+    }));
+    return updated;
+  }, []);
+
+  return { ...state, reload: load, add, remove, report, react };
 }

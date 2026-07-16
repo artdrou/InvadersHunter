@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,7 +8,6 @@ import {
   FlatList,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +18,17 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@
 import { useAuthStore } from '@/features/auth/store';
 import { useAccountGateStore } from '@/features/auth/gate-store';
 import { useInvaderComments } from '../hooks/use-invader-comments';
-import type { Comment } from '../types';
+import { useCommentSeenStore } from '../seen-store';
+import type { Comment, ReactionValue } from '../types';
+
+/** Highest-liked comment (needs at least one like), ties break newest-first. */
+function topCommentId(comments: Comment[]): number | null {
+  let best: Comment | null = null;
+  for (const c of comments) {
+    if (c.likes > 0 && (!best || c.likes > best.likes)) best = c;
+  }
+  return best?.id ?? null;
+}
 
 const MAX_LENGTH = 500;
 
@@ -44,13 +53,23 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
 
   const user = useAuthStore((s) => s.user);
   const isGuest = useAuthStore((s) => s.isGuest);
+  const isAdmin = !!user?.is_admin;
 
-  const { comments, loading, error, reload, add, remove, report } = useInvaderComments(invaderId, visible);
+  const { comments, loading, error, reload, add, remove, report, react } = useInvaderComments(invaderId, visible);
+  const markSeen = useCommentSeenStore((s) => s.markSeen);
 
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const listRef = useRef<FlatList<Comment>>(null);
+
+  // Pin the most-liked comment to the top; the rest stay newest-first.
+  const pinnedId = useMemo(() => topCommentId(comments), [comments]);
+  const ordered = useMemo(() => {
+    if (pinnedId == null) return comments;
+    const top = comments.find((c) => c.id === pinnedId)!;
+    return [top, ...comments.filter((c) => c.id !== pinnedId)];
+  }, [comments, pinnedId]);
 
   useEffect(() => {
     if (!visible) {
@@ -59,6 +78,11 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
       setSending(false);
     }
   }, [visible]);
+
+  // Once the wall is open and loaded, everything here is "seen" — clears the badge.
+  useEffect(() => {
+    if (visible && !loading && invaderId != null) markSeen(invaderId, comments.length);
+  }, [visible, loading, invaderId, comments.length, markSeen]);
 
   // Guests can read but not write — send them to create/log in.
   function requireAccount(action: () => void) {
@@ -109,11 +133,20 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
     }
   }
 
+  async function handleReact(comment: Comment, value: ReactionValue) {
+    try {
+      await react(comment.id, value);
+    } catch {
+      setNotice(t('comments.actionError'));
+    }
+  }
+
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={[styles.container, { paddingTop: insets.top }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
+        keyboardVerticalOffset={0}
       >
         <View style={styles.header}>
           <View style={styles.headerTitles}>
@@ -144,14 +177,17 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
         ) : (
           <FlatList
             ref={listRef}
-            data={comments}
+            data={ordered}
             keyExtractor={(c) => String(c.id)}
             renderItem={({ item }) => (
               <CommentRow
                 comment={item}
-                isOwn={item.user_id === user?.id}
+                isTop={item.id === pinnedId}
+                canDelete={item.user_id === user?.id || isAdmin}
+                canReport={item.user_id !== user?.id && !isAdmin}
                 onReport={() => requireAccount(() => handleReport(item))}
                 onDelete={() => handleDelete(item)}
+                onReact={(value) => requireAccount(() => handleReact(item, value))}
                 styles={styles}
                 theme={theme}
                 t={t}
@@ -213,29 +249,41 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
 
 type RowProps = {
   comment: Comment;
-  isOwn: boolean;
+  isTop: boolean;
+  canDelete: boolean;
+  canReport: boolean;
   onReport: () => void;
   onDelete: () => void;
+  onReact: (value: ReactionValue) => void;
   styles: ReturnType<typeof makeStyles>;
   theme: ThemeTokens;
   t: (k: string) => string;
 };
 
-function CommentRow({ comment, isOwn, onReport, onDelete, styles, theme, t }: RowProps) {
+function CommentRow({ comment, isTop, canDelete, canReport, onReport, onDelete, onReact, styles, theme, t }: RowProps) {
+  const liked = comment.my_reaction === 1;
+  const disliked = comment.my_reaction === -1;
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, isTop && styles.rowTop]}>
+      {isTop && (
+        <View style={styles.topTag}>
+          <Ionicons name="star" size={11} color={theme.accent} />
+          <Text style={styles.topTagText}>{t('comments.topTag')}</Text>
+        </View>
+      )}
       <View style={styles.rowHead}>
         <Text style={styles.author} numberOfLines={1}>{comment.username}</Text>
         <Text style={styles.date}>{formatCommentDate(comment.created_at)}</Text>
-        {isOwn ? (
-          <Pressable onPress={onDelete} hitSlop={8} style={({ pressed }) => pressed && styles.pressed}
-            accessibilityLabel={t('comments.delete')}>
-            <Ionicons name="trash-outline" size={16} color={theme.textMuted} />
-          </Pressable>
-        ) : (
+        {canReport && (
           <Pressable onPress={onReport} hitSlop={8} style={({ pressed }) => pressed && styles.pressed}
             accessibilityLabel={t('comments.report')}>
             <Ionicons name="flag-outline" size={16} color={theme.textMuted} />
+          </Pressable>
+        )}
+        {canDelete && (
+          <Pressable onPress={onDelete} hitSlop={8} style={({ pressed }) => pressed && styles.pressed}
+            accessibilityLabel={t('comments.delete')}>
+            <Ionicons name="trash-outline" size={16} color={theme.textMuted} />
           </Pressable>
         )}
       </View>
@@ -243,6 +291,30 @@ function CommentRow({ comment, isOwn, onReport, onDelete, styles, theme, t }: Ro
       {comment.status === 'pending_review' && (
         <Text style={styles.reviewTag}>{t('comments.underReview')}</Text>
       )}
+      <View style={styles.reactRow}>
+        <Pressable
+          onPress={() => onReact(liked ? 0 : 1)}
+          hitSlop={8}
+          style={({ pressed }) => [styles.reactBtn, pressed && styles.pressed]}
+          accessibilityLabel={t('comments.like')}
+        >
+          <Ionicons name={liked ? 'thumbs-up' : 'thumbs-up-outline'} size={15} color={liked ? theme.accent : theme.textMuted} />
+          {comment.likes > 0 && (
+            <Text style={[styles.reactCount, { color: liked ? theme.accent : theme.textMuted }]}>{comment.likes}</Text>
+          )}
+        </Pressable>
+        <Pressable
+          onPress={() => onReact(disliked ? 0 : -1)}
+          hitSlop={8}
+          style={({ pressed }) => [styles.reactBtn, pressed && styles.pressed]}
+          accessibilityLabel={t('comments.dislike')}
+        >
+          <Ionicons name={disliked ? 'thumbs-down' : 'thumbs-down-outline'} size={15} color={disliked ? theme.danger : theme.textMuted} />
+          {comment.dislikes > 0 && (
+            <Text style={[styles.reactCount, { color: disliked ? theme.danger : theme.textMuted }]}>{comment.dislikes}</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -299,11 +371,22 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     retryText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
     listContent: { padding: Spacing.three, gap: Spacing.three },
     row: { gap: 4 },
+    rowTop: {
+      borderWidth: 1,
+      borderColor: t.accent,
+      borderRadius: BorderRadius.sm,
+      padding: Spacing.two,
+    },
+    topTag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    topTagText: { color: t.accent, fontFamily: font, fontSize: sz(FontSize.xxs), letterSpacing: 1 },
     rowHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     author: { color: t.accent, fontFamily: font, fontSize: sz(FontSize.sm), flexShrink: 1 },
     date: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.xxs), flex: 1 },
     body: { color: t.text, fontFamily: font, fontSize: sz(FontSize.sm), lineHeight: sz(FontSize.sm) + 6 },
     reviewTag: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.xxs), fontStyle: 'italic' },
+    reactRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, marginTop: 2 },
+    reactBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    reactCount: { fontFamily: font, fontSize: sz(FontSize.xs) },
     notice: {
       backgroundColor: t.bgElement,
       borderTopWidth: 1,
