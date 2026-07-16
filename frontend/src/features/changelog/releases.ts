@@ -32,17 +32,21 @@ export const RELEASES: ReleaseNotes[] = [
     date: null,
     items: {
       fr: [
-        'Chaque invader affiche son découvreur (popup carte et fiche détail)',
+        'Mur de commentaires sur chaque invader : publie un mot, aime ou n’aime pas, avec commentaire vedette et modération automatique',
+        'Chaque invader affiche qui l’a découvert et qui l’a mis à jour (popup carte et fiche détail)',
         'Mode invité : utilise l’app sans compte, tes flashs restent sur ton téléphone et sont transférés si tu crées un compte',
         'Nouvelle icône globe sur les invaders : ouvre la fiche invader-spotter.art correspondante',
         'Personnalisation des marqueurs : interface compacte et opacité réglable par état',
+        'Réglages simplifiés et notes de version consultables dans l’app',
         'Sécurité renforcée côté serveur (flashs et comptes)',
       ],
       en: [
-        'Each invader now shows its discoverer (map popup and detail panel)',
+        'Comment wall on every invader: post a note, like or dislike, with a highlighted top comment and automatic moderation',
+        'Each invader now shows who discovered it and who last updated it (map popup and detail panel)',
         'Guest mode: use the app without an account, your flashes stay on your phone and transfer when you sign up',
         'New globe icon on invaders: opens the matching invader-spotter.art page',
         'Marker customization: compact UI and per-state opacity',
+        'Streamlined settings and in-app release notes',
         'Hardened server-side security (flashes and accounts)',
       ],
     },

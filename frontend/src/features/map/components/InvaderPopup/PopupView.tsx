@@ -61,51 +61,52 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
 
       <View style={styles.divider} />
 
-      <View style={styles.row}>
-        <Text style={styles.label}>{t('popup.points')}</Text>
-        <Text style={styles.value}>{invader.points ?? "--"}</Text>
-      </View>
-
-      <View style={styles.row}>
-        <Text style={styles.label}>{t('popup.state')}</Text>
-        <Text style={styles.value}>{invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--"}</Text>
-      </View>
-
-      <View style={styles.row}>
-        <Text style={styles.label}>{t('popup.posed')}</Text>
-        <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
-      </View>
-
-      <View style={styles.row}>
-        <Text style={styles.label}>{t('popup.flashed')}</Text>
-        <Text style={[styles.value, invader.isCaptured && styles.flashedDate]}>
-          {formatDate(invader.capturedAt)}
-        </Text>
-      </View>
-
-      {summary?.top && (
-        <View style={styles.topCommentRow}>
-          <Ionicons name="chatbubble" size={12} color={theme.accent} style={styles.topCommentIcon} />
-          <Text style={styles.topCommentText} numberOfLines={2}>{summary.top.body}</Text>
+      <View style={styles.infoBlock}>
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('popup.points')}</Text>
+          <Text style={styles.value}>{invader.points ?? "--"}</Text>
         </View>
-      )}
+
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('popup.state')}</Text>
+          <Text style={styles.value}>{invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--"}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('popup.posed')}</Text>
+          <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>{t('popup.flashed')}</Text>
+          <Text style={[styles.value, invader.isCaptured && styles.flashedDate]}>
+            {formatDate(invader.capturedAt)}
+          </Text>
+        </View>
+
+        {summary?.top && (
+          <View style={styles.topCommentRow}>
+            <Ionicons name="chatbubble" size={12} color={theme.accent} style={styles.topCommentIcon} />
+            <Text style={styles.topCommentText} numberOfLines={2}>{summary.top.body}</Text>
+          </View>
+        )}
+      </View>
 
       {(contributors?.created_by || lastModifier) && (
-        <Text style={styles.contributorText}>
+        <View style={styles.contributorsBlock}>
           {contributors?.created_by && (
-            <>
+            <Text style={styles.contributorText}>
               {t('popup.discoveredByLabel')}{' '}
               <Text style={styles.contributorName}>{contributors.created_by.username}</Text>
-            </>
+            </Text>
           )}
-          {contributors?.created_by && lastModifier && '   ·   '}
           {lastModifier && (
-            <>
+            <Text style={styles.contributorText}>
               {t('popup.updatedByLabel')}{' '}
               <Text style={styles.contributorName}>{lastModifier.username}</Text>
-            </>
+            </Text>
           )}
-        </Text>
+        </View>
       )}
 
       <View style={styles.divider} />

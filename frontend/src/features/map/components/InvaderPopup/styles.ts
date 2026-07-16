@@ -108,6 +108,8 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     linkIconBtn: {
       padding: Spacing.one,
     },
+    // Slightly tighter than the popup's own 14px gap, for the info rows.
+    infoBlock: { gap: 10 },
     topCommentRow: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -123,12 +125,13 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: font,
       fontStyle: "italic",
     },
+    // Discovered-by / updated-by on their own lines, same interligne as infoBlock.
+    contributorsBlock: { gap: 10 },
     contributorText: {
       color: t.textMuted,
       fontSize: sz(FontSize.xs),
       fontFamily: font,
       textAlign: "center",
-      paddingTop: Spacing.one,
     },
     contributorName: {
       color: t.accent,

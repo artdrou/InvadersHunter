@@ -21,8 +21,12 @@ import { useInvaderComments } from '../hooks/use-invader-comments';
 import { useCommentSeenStore } from '../seen-store';
 import type { Comment, ReactionValue } from '../types';
 
-/** Highest-liked comment (needs at least one like), ties break newest-first. */
+/**
+ * Highest-liked comment, ties break newest-first. A lone comment is the top by
+ * default even without likes; otherwise a top needs at least one like.
+ */
 function topCommentId(comments: Comment[]): number | null {
+  if (comments.length === 1) return comments[0].id;
   let best: Comment | null = null;
   for (const c of comments) {
     if (c.likes > 0 && (!best || c.likes > best.likes)) best = c;

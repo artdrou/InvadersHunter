@@ -72,6 +72,9 @@ def get_summary(
         .order_by(InvaderComment.likes.desc(), InvaderComment.created_at.desc())
         .first()
     )
+    # A lone comment is the top by default, even without any likes.
+    if top is None and count == 1:
+        top = base.first()
     if top is None:
         return count, None
     username = db.query(User.username).filter(User.id == top.user_id).scalar() or "?"

@@ -80,15 +80,18 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
       </View>
 
       {(contributors?.created_by || lastModifier) && (
-        <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+        <View style={styles.contributorsBlock}>
           {contributors?.created_by && (
-            <>{t('popup.discoveredByLabel')} <Text style={{ color: theme.accent }}>{contributors.created_by.username}</Text></>
+            <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+              {t('popup.discoveredByLabel')} <Text style={{ color: theme.accent }}>{contributors.created_by.username}</Text>
+            </Text>
           )}
-          {contributors?.created_by && lastModifier && '   ·   '}
           {lastModifier && (
-            <>{t('popup.updatedByLabel')} <Text style={{ color: theme.accent }}>{lastModifier.username}</Text></>
+            <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+              {t('popup.updatedByLabel')} <Text style={{ color: theme.accent }}>{lastModifier.username}</Text>
+            </Text>
           )}
-        </Text>
+        </View>
       )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
@@ -173,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   divider: { height: 1 },
-  infoBlock: { gap: 5 },
+  infoBlock: { gap: 4 },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -181,7 +184,8 @@ const styles = StyleSheet.create({
   },
   infoLabel: {},
   infoValue: {},
-  contributorLine: { textAlign: "left" },
+  contributorsBlock: { gap: 4 },
+  contributorLine: { textAlign: "center" },
   btnRow: {
     flexDirection: "row",
     gap: Spacing.two,

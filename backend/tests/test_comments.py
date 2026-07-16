@@ -331,10 +331,17 @@ def test_summary_counts_and_top(client, db, user, other_user, invader):
     assert body["top"]["likes"] == 1
 
 
-def test_summary_top_none_without_likes(client, db, user, invader):
+def test_summary_lone_comment_is_top_without_likes(client, db, user, invader):
     _make_comment(db, invader, user, body="hi")
     body = client.get(f"/invaders/{invader.id}/comments/summary").json()
-    assert body["count"] == 1 and body["top"] is None
+    assert body["count"] == 1 and body["top"]["body"] == "hi"
+
+
+def test_summary_top_none_when_several_without_likes(client, db, user, invader):
+    _make_comment(db, invader, user, body="one")
+    _make_comment(db, invader, user, body="two")
+    body = client.get(f"/invaders/{invader.id}/comments/summary").json()
+    assert body["count"] == 2 and body["top"] is None
 
 
 def test_summary_excludes_hidden_from_count(client, db, user, invader):
