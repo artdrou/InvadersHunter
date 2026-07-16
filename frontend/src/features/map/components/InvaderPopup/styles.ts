@@ -108,6 +108,14 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     linkIconBtn: {
       padding: Spacing.one,
     },
+    contributorText: {
+      color: t.textMuted,
+      fontSize: sz(FontSize.xs),
+      fontFamily: font,
+      fontStyle: "italic",
+      textAlign: "center",
+      paddingTop: Spacing.one,
+    },
     modifyLink: {
       alignItems: "center",
       paddingVertical: Spacing.one,

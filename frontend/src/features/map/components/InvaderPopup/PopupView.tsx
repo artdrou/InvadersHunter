@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import type { ThemeTokens } from "@/constants/theme";
 import type { InvaderWithState } from "@/features/invaders";
+import { useInvaderContributors } from "@/features/invaders/hooks/use-invader-contributors";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
 import { STATE_KEYS } from "@/features/invaders/state-options";
 import { formatDate } from "./format";
@@ -27,6 +28,8 @@ type Props = {
 export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
+  // Short-form attribution (full history lives in the invader info panel)
+  const contributors = useInvaderContributors(isISS ? null : invader.id);
 
   return (
     <>
@@ -64,6 +67,12 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
           {formatDate(invader.capturedAt)}
         </Text>
       </View>
+
+      {contributors?.created_by && (
+        <Text style={styles.contributorText}>
+          {t('popup.discoveredBy', { user: contributors.created_by.username })}
+        </Text>
+      )}
 
       <View style={styles.divider} />
 

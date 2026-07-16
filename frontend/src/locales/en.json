@@ -355,7 +355,10 @@
     "sendingShort": "Sending…",
     "localiser": "Locate",
     "spotter": "InvaderSpotter",
-    "spotterError": "Couldn't load InvaderSpotter. Check your connection."
+    "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
+    "discoveredBy": "Discovered by {{user}}",
+    "discoveredByLabel": "Discovered by",
+    "updatedByLabel": "Updated by"
   },
   "admin": {
     "noRequests": "No requests",

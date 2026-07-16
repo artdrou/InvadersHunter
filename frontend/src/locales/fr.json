@@ -355,7 +355,10 @@
     "sendingShort": "Envoi…",
     "localiser": "Localiser",
     "spotter": "InvaderSpotter",
-    "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion."
+    "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
+    "discoveredBy": "Découvert par {{user}}",
+    "discoveredByLabel": "Découvert par",
+    "updatedByLabel": "Mis à jour par"
   },
   "admin": {
     "noRequests": "Aucune requête",
