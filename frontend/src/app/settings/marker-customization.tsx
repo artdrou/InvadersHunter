@@ -78,6 +78,12 @@ function ShapeCarousel({
     if (next !== index) { hapticTap(); onSelect(tier, SHAPE_IDS[next]); }
   };
 
+  // Commit the shape the viewport landed on. Wired to *both* momentum-end and
+  // drag-end: a fling settles via onMomentumScrollEnd, but a slow drag released
+  // at rest fires only onScrollEndDrag (no momentum) — without that second wire
+  // the visible shape would silently diverge from the stored one, so Apply would
+  // regenerate the old shape. Idempotent (guarded by i !== index); the snap and
+  // the selection-sync effect both target the same offset, so they don't fight.
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.min(lastIndex, Math.max(0, Math.round(e.nativeEvent.contentOffset.y / ITEM)));
     if (i !== index) onSelect(tier, SHAPE_IDS[i]);
@@ -101,8 +107,8 @@ function ShapeCarousel({
           snapToInterval={ITEM}
           disableIntervalMomentum
           decelerationRate="fast"
-          nestedScrollEnabled
           contentOffset={{ x: 0, y: index * ITEM }}
+          onScrollEndDrag={onScrollEnd}
           onMomentumScrollEnd={onScrollEnd}
         >
           {SHAPE_IDS.map((sid) => (
@@ -181,7 +187,7 @@ export default function MarkerCustomizationScreen() {
   };
 
   return (
-    <SettingsShell title={t('markerCustomization.title')}>
+    <SettingsShell title={t('markerCustomization.title')} scrollable={false}>
       {/* ── Formes ── */}
       <Text style={styles.subcategoryLabel}>{t('markerCustomization.sectionShapes')}</Text>
       <Text style={styles.sectionSubtitle}>{t('markerCustomization.sectionShapesSubtitle')}</Text>

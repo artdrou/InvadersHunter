@@ -14,9 +14,16 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@
 type Props = {
   title: string;
   children: ReactNode;
+  // When false, the body is a plain View instead of a ScrollView. Use it for
+  // screens whose controls are designed to fit on one screen and that embed
+  // their own scrollable/gesture regions (e.g. the marker shape carousels): a
+  // wrapping same-axis ScrollView fights those child gestures on iOS, where
+  // nestedScrollEnabled is a no-op. Content that overflows is clipped, so only
+  // opt out when the layout genuinely fits.
+  scrollable?: boolean;
 };
 
-export function SettingsShell({ title, children }: Props) {
+export function SettingsShell({ title, children, scrollable = true }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme, appFont } = useTheme();
@@ -34,9 +41,13 @@ export function SettingsShell({ title, children }: Props) {
         </Pressable>
         <Text style={styles.title}>{title}</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
-        {children}
-      </ScrollView>
+      {scrollable ? (
+        <ScrollView contentContainerStyle={styles.body}>
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={styles.body}>{children}</View>
+      )}
     </View>
   );
 }
