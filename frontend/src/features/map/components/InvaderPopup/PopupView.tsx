@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +8,7 @@ import type { InvaderWithState } from "@/features/invaders";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
 import { STATE_KEYS } from "@/features/invaders/state-options";
 import { formatDate } from "./format";
+import { InvaderSpotterModal } from "./InvaderSpotterModal";
 import type { PopupStyles } from "./styles";
 
 type Props = {
@@ -24,6 +26,7 @@ type Props = {
 /** Read-only popup: details, external links, flash/unflash, and the modify link. */
 export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
+  const [spotterOpen, setSpotterOpen] = useState(false);
 
   return (
     <>
@@ -80,6 +83,14 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
           >
             <Ionicons name="logo-instagram" size={20} color={theme.accent} />
           </Pressable>
+          <Pressable
+            onPress={() => setSpotterOpen(true)}
+            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+            hitSlop={8}
+            accessibilityLabel={t('popup.spotter')}
+          >
+            <Ionicons name="globe-outline" size={20} color={theme.accent} />
+          </Pressable>
         </View>
       )}
 
@@ -106,6 +117,15 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
             {alreadySent ? t('popup.updateSent') : t('popup.update')}
           </Text>
         </Pressable>
+      )}
+
+      {!isISS && (
+        <InvaderSpotterModal
+          visible={spotterOpen}
+          name={invader.name}
+          onClose={() => setSpotterOpen(false)}
+          theme={theme}
+        />
       )}
     </>
   );
