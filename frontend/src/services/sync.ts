@@ -3,6 +3,7 @@ import {
   getMeta, setMeta,
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
+  getAllCaptures, deleteCapturesForUser,
 } from './db';
 import {
   fetchInvaders, fetchDeletedInvaderIds, fetchProgress, fetchUserRequests,
@@ -10,6 +11,8 @@ import {
   submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
   type ModifyRequestPayload, type CreateRequestPayload,
 } from '@/features/invaders/services/invaders.api';
+import { GUEST_USER_ID } from '@/features/auth/guest';
+import { claimCaptures } from '@/features/auth/services/account.api';
 import type { UserRequest } from '@/features/invaders/types';
 
 export function isNetworkError(err: unknown): boolean {
@@ -109,7 +112,59 @@ export async function submitCreateRequestOfflineAware(
   }
 }
 
+// ── Guest mode ────────────────────────────────────────────────────────────────
+
+/**
+ * Guest sync: invaders only (GET /invaders/ is public). Captures stay local
+ * under GUEST_USER_ID until the guest creates an account.
+ */
+export async function syncInvadersOnly(db: SQLiteDatabase): Promise<void> {
+  const lastInvadersSync = await getMeta(db, 'last_invaders_sync');
+  const now = new Date().toISOString();
+
+  const invaders = await fetchInvaders(lastInvadersSync ?? undefined);
+  let deletedIds: number[] = [];
+  try {
+    deletedIds = await fetchDeletedInvaderIds(lastInvadersSync ?? undefined);
+  } catch {
+    // endpoint unavailable — skip deletion step
+  }
+
+  await upsertInvaders(db, invaders);
+  await deleteInvadersByIds(db, deletedIds);
+  await setMeta(db, 'last_invaders_sync', now);
+}
+
+/**
+ * Guest → account migration. If local guest captures exist, bulk-import them
+ * into the authenticated account (idempotent server-side) then drop the local
+ * rows — the following sync pulls back the canonical server rows.
+ * Self-healing: runs at the start of every authenticated sync, so a claim
+ * that failed offline is retried automatically.
+ *
+ * Never lets a claim failure abort the rest of the sync: network errors
+ * propagate (the whole sync retries later anyway), but a server rejection
+ * (e.g. an older backend without /account/claim) just keeps the guest rows
+ * for a future attempt.
+ */
+async function claimGuestCaptures(db: SQLiteDatabase): Promise<void> {
+  const guestRows = await getAllCaptures(db, GUEST_USER_ID);
+  if (guestRows.length === 0) return;
+  try {
+    await claimCaptures(
+      guestRows.map((c) => ({ invader_id: c.invader_id, found_at: c.found_at })),
+    );
+  } catch (err) {
+    if (isNetworkError(err)) throw err;
+    return; // server rejected — keep local rows, retry on a later sync
+  }
+  await deleteCapturesForUser(db, GUEST_USER_ID);
+}
+
 export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void> {
+  // 0. Claim any guest-mode data left on this device (no-op in the common case)
+  await claimGuestCaptures(db);
+
   // 1. Push any pending offline operations first
   await flushPendingSyncs(db, userId);
 

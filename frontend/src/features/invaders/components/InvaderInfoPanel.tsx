@@ -5,6 +5,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
 import { hapticTap } from "@/features/settings";
 import { formatDate } from "../utils/invader-list";
+import { useInvaderContributors } from "../hooks/use-invader-contributors";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -30,6 +31,11 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   const { theme, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
+  // Full-form attribution: discoverer + most recent updater
+  const contributors = useInvaderContributors(invader.id);
+  const lastModifier = contributors?.modified_by.length
+    ? contributors.modified_by[contributors.modified_by.length - 1]
+    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgElement }, containerStyle]}>
@@ -55,6 +61,12 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         valueColor={invader.isCaptured ? theme.success : theme.text}
         sz={sz}
       />
+      {contributors?.created_by && (
+        <InfoRow label={t('popup.discoveredByLabel')} value={contributors.created_by.username} valueColor={theme.accent} sz={sz} />
+      )}
+      {lastModifier && (
+        <InfoRow label={t('popup.updatedByLabel')} value={lastModifier.username} valueColor={theme.accent} sz={sz} />
+      )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 

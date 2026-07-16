@@ -11,7 +11,7 @@ import {
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
 import { applyMapFilter, useLocateStore } from "@/features/map";
 import { useNewsUnreadCount } from "@/features/news";
-import { useAuthStore } from "@/features/auth";
+import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
@@ -39,6 +39,7 @@ export default function InvadersScreen() {
   const [toolbar, setToolbar]                     = useState<ToolbarState>(DEFAULT_TOOLBAR_STATE);
 
   const user = useAuthStore((s) => s.user);
+  const isGuest = useAuthStore((s) => s.isGuest);
   const { theme, appFont } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
@@ -133,15 +134,16 @@ export default function InvadersScreen() {
   }, []);
 
   const handleFlash = useCallback(async (invader: InvaderWithState) => {
-    if (!user) return;
-    await flash(user.id, invader.id);
+    const uid = user?.id ?? (isGuest ? GUEST_USER_ID : null);
+    if (uid == null) return;
+    await flash(uid, invader.id);
     hapticSuccess();
-  }, [user, flash]);
+  }, [user, isGuest, flash]);
 
   const handleUnflash = useCallback(async (invader: InvaderWithState) => {
     if (!invader.progressId) return;
-    await unflash(invader.progressId);
-    hapticDisappoint();
+    const removed = await unflash(invader.progressId);
+    if (removed) hapticDisappoint();
   }, [unflash]);
 
   const handleLocate = useCallback((invader: InvaderWithState) => {

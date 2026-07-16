@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useAuthStore } from '@/features/auth';
+import { useAuthStore, AccountGateModal } from '@/features/auth';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { initDb } from '@/services/db';
@@ -17,12 +17,14 @@ import {
 } from '@/features/app-update';
 import { useAppearanceStore, useMarkerCustomizationStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
+import { WhatsNewModal } from '@/features/changelog';
 import { usePushRegistration, syncNotificationLanguage } from '@/features/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const token = useAuthStore((s) => s.token);
+  const isGuest = useAuthStore((s) => s.isGuest);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const segments = useSegments();
   const router = useRouter();
@@ -60,10 +62,11 @@ export default function RootLayout() {
     })();
   }, []);
 
-  // Keep the unread-news badge fresh once authenticated (feed is small, few/day).
+  // Keep the unread-news badge fresh once in the app (feed is small, few/day).
+  // GET /news/ is public, so guests get it too.
   useEffect(() => {
-    if (token) useNewsStore.getState().refreshRecent();
-  }, [token]);
+    if (token || isGuest) useNewsStore.getState().refreshRecent();
+  }, [token, isGuest]);
 
   usePushRegistration(!!token);
 
@@ -82,12 +85,14 @@ export default function RootLayout() {
   useEffect(() => {
     if (!hasHydrated) return;
     const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password';
-    if (!token && !inPublicScreen) {
+    // Guests bypass the login wall; they can still visit the public screens
+    // (that's how they create an account later — see useRequireAccount).
+    if (!token && !isGuest && !inPublicScreen) {
       router.replace('/login');
     } else if (token && inPublicScreen) {
       router.replace('/(tabs)/map');
     }
-  }, [token, segments, hasHydrated, router]);
+  }, [token, isGuest, segments, hasHydrated, router]);
 
   if (!fontsLoaded || !i18nReady) return null;
 
@@ -97,6 +102,8 @@ export default function RootLayout() {
         <ThemeProvider>
           <Stack screenOptions={{ headerShown: false }} />
           <UpdateAvailableModal />
+          <AccountGateModal />
+          <WhatsNewModal enabled={!!token || isGuest} />
         </ThemeProvider>
       </SQLiteProvider>
     </ErrorBoundary>

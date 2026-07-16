@@ -22,7 +22,7 @@ import { MapZoom } from "@/features/map/constants";
 import { useNewsUnreadCount } from "@/features/news";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
-import { useAuthStore } from "@/features/auth";
+import { useAuthStore, useRequireAccount, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { Brand, White, Overlay, BottomTabInset, AppFont, FontSize, Spacing, BorderRadius, ZIndex, Motion } from "@/constants/theme";
 import { hapticSuccess, hapticDisappoint, hapticTap } from "@/features/settings";
@@ -43,6 +43,8 @@ export default function MapScreen() {
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
   const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
   const user = useAuthStore((s) => s.user);
+  const isGuest = useAuthStore((s) => s.isGuest);
+  const requireAccount = useRequireAccount();
   const { theme } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -149,15 +151,17 @@ export default function MapScreen() {
   }
 
   async function handleFlash(invader: InvaderWithState) {
-    if (!user) return;
-    const capture = await flash(user.id, invader.id);
+    const uid = user?.id ?? (isGuest ? GUEST_USER_ID : null);
+    if (uid == null) return;
+    const capture = await flash(uid, invader.id);
     hapticSuccess();
     selectInvader({ ...invader, isCaptured: true, capturedAt: capture.found_at, progressId: capture.id });
   }
 
   async function handleUnflash(invader: InvaderWithState) {
     if (!invader.progressId) return;
-    await unflash(invader.progressId);
+    const removed = await unflash(invader.progressId);
+    if (!removed) return; // stale progressId — the dataset effect will refresh the popup
     hapticDisappoint();
     selectInvader({ ...invader, isCaptured: false, capturedAt: undefined, progressId: undefined });
   }
@@ -297,7 +301,7 @@ export default function MapScreen() {
 
       {/* ── Create-invader: initial pin + "create here" card ── */}
       {create.pickerOpen && (
-        <CreateHerePopup onCreate={create.openModal} onCancel={create.cancel} />
+        <CreateHerePopup onCreate={() => requireAccount(create.openModal)} onCancel={create.cancel} />
       )}
 
       {/* ── Create-invader: full form modal ── */}
