@@ -211,8 +211,12 @@
     "sectionOpacity": "Opacite",
     "opacity": "Opacite des markers",
     "opacitySubtitle": "Transparence des invaders sur la carte",
-    "iconColor": "Couleur de l'icone",
+    "iconColor": "Couleur du corps",
     "glowColor": "Couleur de la lueur",
+    "body": "Corps",
+    "gloom": "Lueur",
+    "opacityLabel": "Opacite",
+    "bloom": "Halo",
     "reset": "Reinitialiser",
     "validate": "Valider",
     "state": {
