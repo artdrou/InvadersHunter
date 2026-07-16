@@ -21,5 +21,10 @@ class InvaderComment(Base):
     flagged_categories = Column(String, nullable=True)
     reports = Column(Integer, nullable=False, default=0)
 
+    # Denormalized reaction tallies (see comment_reaction.py) — kept authoritative
+    # by comment_service.set_reaction so the wall / top-comment sort cheaply.
+    likes = Column(Integer, nullable=False, default=0)
+    dislikes = Column(Integer, nullable=False, default=0)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)

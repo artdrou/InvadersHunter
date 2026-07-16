@@ -243,6 +243,110 @@ def test_delete_unknown_404(client, user):
     assert res.status_code == 404
 
 
+# ── reactions (POST /comments/{id}/react) ─────────────────────────────────────
+
+def _make_comment(db, invader, user, body="hi", status="visible"):
+    c = InvaderComment(invader_id=invader.id, user_id=user.id, body=body, status=status)
+    db.add(c)
+    db.flush()
+    return c
+
+
+def test_react_requires_auth(client, db, user, invader):
+    c = _make_comment(db, invader, user)
+    res = client.post(f"/comments/{c.id}/react", json={"value": 1})
+    assert res.status_code == 401
+
+
+def test_like_increments_and_sets_my_reaction(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    res = client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+    assert res.status_code == 200
+    body = res.json()
+    assert body["likes"] == 1 and body["dislikes"] == 0 and body["my_reaction"] == 1
+
+
+def test_dislike_increments(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    res = client.post(f"/comments/{c.id}/react", json={"value": -1}, headers=auth_headers(other_user))
+    body = res.json()
+    assert body["dislikes"] == 1 and body["likes"] == 0 and body["my_reaction"] == -1
+
+
+def test_toggle_like_off(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+    res = client.post(f"/comments/{c.id}/react", json={"value": 0}, headers=auth_headers(other_user))
+    body = res.json()
+    assert body["likes"] == 0 and body["my_reaction"] == 0
+
+
+def test_switch_like_to_dislike(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+    res = client.post(f"/comments/{c.id}/react", json={"value": -1}, headers=auth_headers(other_user))
+    body = res.json()
+    assert body["likes"] == 0 and body["dislikes"] == 1 and body["my_reaction"] == -1
+
+
+def test_react_is_one_per_user(client, db, user, other_user, admin, invader):
+    c = _make_comment(db, invader, user)
+    client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+    res = client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(admin))
+    assert res.json()["likes"] == 2  # two distinct users
+
+
+def test_react_unknown_comment_404(client, user):
+    res = client.post("/comments/999/react", json={"value": 1}, headers=auth_headers(user))
+    assert res.status_code == 404
+
+
+def test_react_invalid_value_422(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    res = client.post(f"/comments/{c.id}/react", json={"value": 2}, headers=auth_headers(other_user))
+    assert res.status_code == 422
+
+
+def test_list_annotates_my_reaction(client, db, user, other_user, invader):
+    c = _make_comment(db, invader, user)
+    client.post(f"/comments/{c.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+
+    mine = client.get(f"/invaders/{invader.id}/comments", headers=auth_headers(other_user)).json()[0]
+    assert mine["my_reaction"] == 1 and mine["likes"] == 1
+
+    anon = client.get(f"/invaders/{invader.id}/comments").json()[0]
+    assert anon["my_reaction"] == 0 and anon["likes"] == 1  # count is public, personal reaction isn't
+
+
+# ── summary (GET /invaders/{id}/comments/summary) ─────────────────────────────
+
+def test_summary_counts_and_top(client, db, user, other_user, invader):
+    _make_comment(db, invader, user, body="meh")
+    top = _make_comment(db, invader, user, body="great tip")
+    client.post(f"/comments/{top.id}/react", json={"value": 1}, headers=auth_headers(other_user))
+
+    body = client.get(f"/invaders/{invader.id}/comments/summary").json()
+    assert body["count"] == 2
+    assert body["top"]["body"] == "great tip"
+    assert body["top"]["likes"] == 1
+
+
+def test_summary_top_none_without_likes(client, db, user, invader):
+    _make_comment(db, invader, user, body="hi")
+    body = client.get(f"/invaders/{invader.id}/comments/summary").json()
+    assert body["count"] == 1 and body["top"] is None
+
+
+def test_summary_excludes_hidden_from_count(client, db, user, invader):
+    _make_comment(db, invader, user, body="ok", status="visible")
+    _make_comment(db, invader, user, body="bad", status="hidden")
+    assert client.get(f"/invaders/{invader.id}/comments/summary").json()["count"] == 1
+
+
+def test_summary_unknown_invader_404(client):
+    assert client.get("/invaders/999/comments/summary").status_code == 404
+
+
 # ── moderation service unit tests ─────────────────────────────────────────────
 
 def test_moderation_returns_none_without_api_key(monkeypatch):
