@@ -11,6 +11,7 @@ import i18n, { initI18n, type LanguageCode } from '@/services/i18n';
 import {
   UpdateAvailableModal,
   useAppUpdateStore,
+  useOtaReload,
   fetchVersionManifest,
   getCurrentVersion,
   isNewer,
@@ -67,6 +68,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (token || isGuest) useNewsStore.getState().refreshRecent();
   }, [token, isGuest]);
+
+  // Force-apply OTAs on foreground for users who never cold-start the app.
+  useOtaReload(true);
 
   usePushRegistration(!!token);
 
