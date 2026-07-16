@@ -2,26 +2,68 @@
  * Settings landing screen (mounted as the "Profile" tab — name kept for route
  * stability; the user-facing label is "Reglages"/"Settings" via t('tabs.profile')).
  *
- * Categorized list of sub-screens. Each row navigates to `src/app/settings/<id>.tsx`.
- * Logout stays directly on this screen (action, not a sub-screen).
+ * Categorized list. Rich settings navigate to `src/app/settings/<id>.tsx`;
+ * simple booleans (haptics, notifications) and the language picker live
+ * inline right here.
  */
-import { View, Text, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "@/contexts/theme-context";
 import { useAuthStore, useRequireAccount } from "@/features/auth";
-import { type ThemeTokens, Spacing, FontSize } from "@/constants/theme";
-import { SettingsSection, SettingsRow } from "@/features/settings";
+import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from "@/constants/theme";
+import { SettingsSection, SettingsRow, SettingsToggleRow, useHapticsStore, hapticTap } from "@/features/settings";
+import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/notifications";
+import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
 
 export default function SettingsLanding() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, appFont } = useTheme();
   const insets = useSafeAreaInsets();
   const isGuest = useAuthStore((s) => s.isGuest);
   const requireAccount = useRequireAccount();
   const styles = makeStyles(theme, appFont, insets.top);
+
+  // Haptics — local store, instant
+  const hapticsEnabled = useHapticsStore((s) => s.enabled);
+  const setHapticsEnabled = useHapticsStore((s) => s.setEnabled);
+  function handleHapticsToggle(v: boolean) {
+    setHapticsEnabled(v);
+    // Preview pulse on enable so the user feels what they just turned on.
+    if (v) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+  }
+
+  // Notifications — server-side preference (account only)
+  const [notifLoading, setNotifLoading] = useState(!isGuest);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifEnabled, setNotifEnabled] = useState(true);
+  useEffect(() => {
+    if (isGuest) return;
+    fetchMyNotificationPrefs()
+      .then((prefs) => setNotifEnabled(prefs.notifications_enabled))
+      .catch(() => {})
+      .finally(() => setNotifLoading(false));
+  }, [isGuest]);
+  async function handleNotifToggle(value: boolean) {
+    if (isGuest) {
+      requireAccount(() => {});
+      return;
+    }
+    setNotifEnabled(value); // optimistic
+    setNotifSaving(true);
+    try {
+      const prefs = await updateMyNotificationPrefs(value);
+      setNotifEnabled(prefs.notifications_enabled);
+    } catch {
+      setNotifEnabled(!value); // revert on failure
+    } finally {
+      setNotifSaving(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -78,18 +120,44 @@ export default function SettingsLanding() {
         <SettingsRow
           icon="language-outline"
           label={t('settings.language')}
-          onPress={() => router.push('/settings/language')}
+          hideChevron
+          rightAccessory={
+            <View style={styles.langGroup}>
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const isActive = lang.code === i18n.language;
+                return (
+                  <Pressable
+                    key={lang.code}
+                    style={({ pressed }) => [
+                      styles.langPill,
+                      isActive && { borderColor: theme.accent },
+                      pressed && { opacity: 0.6 },
+                    ]}
+                    onPress={() => { hapticTap(); setLanguage(lang.code); }}
+                  >
+                    <Text style={[styles.langPillText, isActive && { color: theme.accent }]}>
+                      {lang.code.toUpperCase()}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          }
         />
-        <SettingsRow
+        <SettingsToggleRow
           icon="pulse-outline"
           label={t('settings.haptics')}
-          onPress={() => router.push('/settings/haptics')}
+          value={hapticsEnabled}
+          onValueChange={handleHapticsToggle}
         />
-        <SettingsRow
+        <SettingsToggleRow
           icon="notifications-outline"
           label={t('settings.notifications')}
           subtitle={t('settings.notificationsSubtitle')}
-          onPress={() => requireAccount(() => router.push('/settings/notifications'))}
+          value={isGuest ? false : notifEnabled}
+          onValueChange={handleNotifToggle}
+          loading={notifLoading && !isGuest}
+          disabled={notifSaving}
         />
       </SettingsSection>
 
@@ -121,18 +189,6 @@ export default function SettingsLanding() {
           subtitle={t('settings.supportSubtitle')}
           onPress={() => router.push('/settings/support')}
         />
-        <SettingsRow
-          icon="rocket-outline"
-          label={t('settings.roadmap')}
-          subtitle={t('settings.roadmapSubtitle')}
-          onPress={() => router.push('/settings/roadmap')}
-        />
-        <SettingsRow
-          icon="document-text-outline"
-          label={t('settings.changelog')}
-          subtitle={t('settings.changelogSubtitle')}
-          onPress={() => router.push('/settings/changelog')}
-        />
       </SettingsSection>
       </View>
 
@@ -161,6 +217,23 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       fontFamily: font,
       fontSize: FontSize.xl,
       letterSpacing: 1,
+    },
+    langGroup: {
+      flexDirection: 'row',
+      gap: Spacing.one,
+    },
+    langPill: {
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 4,
+      backgroundColor: t.bgElement,
+    },
+    langPillText: {
+      color: t.textMuted,
+      fontFamily: ButtonFont,
+      fontSize: FontSize.xs,
     },
   });
 }

@@ -356,7 +356,6 @@
     "localiser": "Localiser",
     "spotter": "InvaderSpotter",
     "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
-    "discoveredBy": "Découvert par {{user}}",
     "discoveredByLabel": "Découvert par",
     "updatedByLabel": "Mis à jour par"
   },

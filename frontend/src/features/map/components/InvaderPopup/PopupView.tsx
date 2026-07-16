@@ -28,8 +28,10 @@ type Props = {
 export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
-  // Short-form attribution (full history lives in the invader info panel)
   const contributors = useInvaderContributors(isISS ? null : invader.id);
+  const lastModifier = contributors?.modified_by.length
+    ? contributors.modified_by[contributors.modified_by.length - 1]
+    : null;
 
   return (
     <>
@@ -70,7 +72,14 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
 
       {contributors?.created_by && (
         <Text style={styles.contributorText}>
-          {t('popup.discoveredBy', { user: contributors.created_by.username })}
+          {t('popup.discoveredByLabel')}{' '}
+          <Text style={styles.contributorName}>{contributors.created_by.username}</Text>
+        </Text>
+      )}
+      {lastModifier && (
+        <Text style={styles.contributorText}>
+          {t('popup.updatedByLabel')}{' '}
+          <Text style={styles.contributorName}>{lastModifier.username}</Text>
         </Text>
       )}
 

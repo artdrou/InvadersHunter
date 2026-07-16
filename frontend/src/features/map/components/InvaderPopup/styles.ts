@@ -112,9 +112,12 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       color: t.textMuted,
       fontSize: sz(FontSize.xs),
       fontFamily: font,
-      fontStyle: "italic",
       textAlign: "center",
       paddingTop: Spacing.one,
+    },
+    contributorName: {
+      color: t.accent,
+      fontFamily: font,
     },
     modifyLink: {
       alignItems: "center",

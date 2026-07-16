@@ -62,10 +62,10 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         sz={sz}
       />
       {contributors?.created_by && (
-        <InfoRow label={t('popup.discoveredByLabel')} value={contributors.created_by.username} sz={sz} />
+        <InfoRow label={t('popup.discoveredByLabel')} value={contributors.created_by.username} valueColor={theme.accent} sz={sz} />
       )}
       {lastModifier && (
-        <InfoRow label={t('popup.updatedByLabel')} value={lastModifier.username} sz={sz} />
+        <InfoRow label={t('popup.updatedByLabel')} value={lastModifier.username} valueColor={theme.accent} sz={sz} />
       )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
