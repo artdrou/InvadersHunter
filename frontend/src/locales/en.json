@@ -1,6 +1,7 @@
 {
   "common": {
     "cancel": "Cancel",
+    "close": "Close",
     "validate": "Validate",
     "validatePosition": "Validate position",
     "submit": "Submit",
@@ -103,33 +104,44 @@
     "statsMemberSince": "Member since",
     "roadmap": "Roadmap",
     "roadmapSubtitle": "Upcoming features",
-    "roadmapIntro": "A peek at features being prepared for future releases of the app.",
+    "roadmapIntro": "A preview of the features in preparation for upcoming versions of the app.",
     "roadmapItems": {
-      "gamification": {
-        "title": "Gamification",
-        "body": "Progress, emblems, rewards."
-      },
       "guestMode": {
         "title": "Guest mode",
-        "body": "Use the app without an account."
+        "body": "Use the app without an account. Flashes stay on your phone and transfer when you sign up."
+      },
+      "customInvaders": {
+        "title": "Personal invaders",
+        "body": "Add your own invaders to your map."
       },
       "friends": {
         "title": "Friends",
-        "body": "Compare collections."
+        "body": "Connect with other hunters, see their flashes on the map and compare collections."
       },
       "commentWall": {
         "title": "Comment wall",
-        "body": "Discussions around invaders."
+        "body": "Leave descriptions and tips on each invader."
       },
-      "customInvaders": {
-        "title": "Custom invaders",
-        "body": "Add your own invaders to your map."
+      "discoveredBy": {
+        "title": "Discoverers",
+        "body": "See who discovered or updated each invader."
+      },
+      "gamification": {
+        "title": "Gamification",
+        "body": "Progression, badges, rewards."
       },
       "radarMode": {
         "title": "Radar mode",
         "body": "Spot invaders around you."
       }
-    }
+    },
+    "roadmapStatus": {
+      "soon": "Soon",
+      "wip": "In progress",
+      "planned": "Planned"
+    },
+    "changelog": "Release notes",
+    "changelogSubtitle": "What changed in each version"
   },
   "connectivity": {
     "offline": "Offline",
@@ -147,7 +159,8 @@
       "invalid": "Invalid username or password",
       "noAccount": "No account?",
       "createOne": "Create one",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "guestMode": "Continue without account"
     },
     "register": {
       "button": "Create account",
@@ -211,8 +224,12 @@
     "sectionOpacity": "Opacity",
     "opacity": "Marker opacity",
     "opacitySubtitle": "Transparency of invaders on the map",
-    "iconColor": "Icon color",
-    "glowColor": "Glow color",
+    "iconColor": "Body color",
+    "glowColor": "Gloom color",
+    "body": "Body",
+    "gloom": "Gloom",
+    "opacityLabel": "Opacity",
+    "bloom": "Bloom",
     "reset": "Reset",
     "validate": "Apply",
     "state": {
@@ -336,7 +353,30 @@
     "photoUploadFailed": "Photo upload failed - please try again",
     "submit": "Submit",
     "sendingShort": "Sending…",
-    "localiser": "Locate"
+    "localiser": "Locate",
+    "spotter": "InvaderSpotter",
+    "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
+    "discoveredByLabel": "Discovered by",
+    "updatedByLabel": "Updated by"
+  },
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet. Be the first!",
+    "placeholder": "Add a comment…",
+    "send": "Send",
+    "delete": "Delete",
+    "report": "Report",
+    "underReview": "Pending review",
+    "topTag": "TOP",
+    "like": "Like",
+    "dislike": "Dislike",
+    "guestPrompt": "Log in to comment",
+    "hiddenNotice": "Your comment was hidden by moderation.",
+    "pendingNotice": "Posted — pending review.",
+    "reportedNotice": "Comment reported, thanks.",
+    "postError": "Couldn't post. Try again.",
+    "actionError": "Action failed. Try again.",
+    "loadError": "Couldn't load comments."
   },
   "admin": {
     "noRequests": "No requests",
@@ -535,5 +575,21 @@
     "checkFailed": "Could not check for updates.",
     "upToDateTitle": "Up to date",
     "upToDateBody": "You are on the latest version."
+  },
+  "guest": {
+    "gateTitle": "Account required",
+    "gateMessage": "Create a free account to submit additions and edits, and back up your flashes online. Your local flashes will be transferred automatically.",
+    "gateCancel": "Later",
+    "gateCreate": "Create account",
+    "createAccount": "Create account",
+    "createAccountSubtitle": "Back up your flashes online and unlock contributions",
+    "gateLogin": "I already have an account",
+    "login": "Log in",
+    "loginSubtitle": "Your guest flashes will be added to your account"
+  },
+  "changelog": {
+    "whatsNewTitle": "What's new?",
+    "versionLabel": "Version {{version}}",
+    "gotIt": "Got it!"
   }
 }

@@ -9,7 +9,7 @@ class AdminRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # null for "create" requests (invader doesn't exist yet)
-    invader_id = Column(Integer, ForeignKey("invaders.id"), nullable=True)
+    invader_id = Column(Integer, ForeignKey("invaders.id"), nullable=True, index=True)
 
     request_type = Column(String, nullable=False)  # "create" | "modify"
     status = Column(String, nullable=False, default="pending")  # "pending" | "approved" | "rejected"

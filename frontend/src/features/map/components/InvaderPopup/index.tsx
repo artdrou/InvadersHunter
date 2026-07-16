@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSQLiteContext } from "expo-sqlite";
 import { useTheme } from "@/contexts/theme-context";
+import { useRequireAccount } from "@/features/auth";
 import type { InvaderWithState } from "@/features/invaders";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
@@ -32,6 +33,7 @@ export function InvaderPopup({
   onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest,
 }: Props) {
   const db = useSQLiteContext();
+  const requireAccount = useRequireAccount();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -67,7 +69,7 @@ export function InvaderPopup({
           alreadySent={alreadySent}
           onFlash={onFlash}
           onUnflash={onUnflash}
-          onModify={() => setMode("edit")}
+          onModify={() => requireAccount(() => setMode("edit"))}
           onClose={onClose}
           theme={theme}
           styles={styles}

@@ -110,14 +110,17 @@ export function useMarkerLayerStyle(): SymbolLayerStyle {
   return useMemo(() => ({
     iconImage: ["get", "iconKey"] as Expression,
     iconSize: ["get", "iconSize"] as Expression,
-    // The user's opacity setting scales *every* marker, including the dimmed
-    // pending/grey ones, so "Marker opacity" affects the whole map (grey mode
-    // included). At the default opacity of 1 this is identical to the old fixed
-    // 0.45 / 0.8 / 1.0 values.
+    // Each customizable state carries its own opacity (set on the customization
+    // screen). Order mirrors resolveIconKey's precedence: a highlighted marker
+    // wins over everything, pending stays a fixed sync-in-progress dim, then
+    // grey-mode, then captured vs uncaptured. Defaults (grey 0.8, the rest 1)
+    // reproduce the old fixed 0.8 / 1.0 look until the user changes anything.
     iconOpacity: ["case",
-      ["==", ["get", "pending"], 1], 0.45 * opacity,
-      ["==", ["get", "grey"], 1],    0.8 * opacity,
-      opacity,
+      ["==", ["get", "highlight"], 1], opacity.highlight,
+      ["==", ["get", "pending"], 1],   0.45,
+      ["==", ["get", "grey"], 1],      opacity.grey,
+      ["==", ["get", "captured"], 1],  opacity.flashCaptured,
+      opacity.flashUncaptured,
     ] as Expression,
     iconAllowOverlap: true,
     iconIgnorePlacement: true,

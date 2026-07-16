@@ -23,6 +23,8 @@ import app.models.refresh_token  # noqa: F401
 import app.models.announcement   # noqa: F401
 import app.models.push_token     # noqa: F401
 import app.models.notification_settings  # noqa: F401
+import app.models.invader_comment  # noqa: F401
+import app.models.comment_reaction  # noqa: F401
 
 from sqlalchemy import text
 from app.main import app

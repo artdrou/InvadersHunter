@@ -108,6 +108,35 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     linkIconBtn: {
       padding: Spacing.one,
     },
+    // Slightly tighter than the popup's own 14px gap, for the info rows.
+    infoBlock: { gap: 10 },
+    topCommentRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: Spacing.one,
+    },
+    topCommentIcon: {
+      marginTop: 2,
+    },
+    topCommentText: {
+      flex: 1,
+      color: t.text,
+      fontSize: sz(FontSize.md),
+      fontFamily: font,
+      fontStyle: "italic",
+    },
+    // Discovered-by / updated-by on their own lines, same interligne as infoBlock.
+    contributorsBlock: { gap: 10 },
+    contributorText: {
+      color: t.textMuted,
+      fontSize: sz(FontSize.xs),
+      fontFamily: font,
+      textAlign: "center",
+    },
+    contributorName: {
+      color: t.accent,
+      fontFamily: font,
+    },
     modifyLink: {
       alignItems: "center",
       paddingVertical: Spacing.one,

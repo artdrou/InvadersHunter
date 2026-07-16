@@ -1,6 +1,9 @@
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Updates from 'expo-updates';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
@@ -9,6 +12,8 @@ import { getDateLocale } from '@/services/i18n';
 
 export default function AboutScreen() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const router = useRouter();
   const styles = useThemedStyles(makeStyles);
 
   const isOta = !Updates.isEmbeddedLaunch;
@@ -59,6 +64,30 @@ export default function AboutScreen() {
         <Text style={styles.btnText}>{t('settings.checkForUpdates')}</Text>
       </Pressable>
 
+      <Pressable
+        style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
+        onPress={() => { hapticTap(); router.push('/settings/roadmap'); }}
+      >
+        <Ionicons name="rocket-outline" size={20} color={theme.accent} />
+        <View style={styles.navLabelWrap}>
+          <Text style={styles.navLabel}>{t('settings.roadmap')}</Text>
+          <Text style={styles.navSubtitle}>{t('settings.roadmapSubtitle')}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+      </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
+        onPress={() => { hapticTap(); router.push('/settings/changelog'); }}
+      >
+        <Ionicons name="document-text-outline" size={20} color={theme.accent} />
+        <View style={styles.navLabelWrap}>
+          <Text style={styles.navLabel}>{t('settings.changelog')}</Text>
+          <Text style={styles.navSubtitle}>{t('settings.changelogSubtitle')}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+      </Pressable>
+
       <View style={styles.creditsBlock}>
         <Text style={styles.creditsTitle}>{t('settings.credits')}</Text>
         <Text style={styles.creditsBody}>{t('settings.creditsBody')}</Text>
@@ -88,6 +117,20 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center',
     },
     btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
+    navRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+      backgroundColor: t.bgElement,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.two,
+    },
+    navLabelWrap: { flex: 1, gap: 2 },
+    navLabel: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    navSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
     pressed: { opacity: 0.6 },
     creditsBlock: { gap: Spacing.two, paddingTop: Spacing.three },
     creditsTitle: {

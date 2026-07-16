@@ -1,10 +1,19 @@
+import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
 import { hapticTap } from "@/features/settings";
+import {
+  InvaderCommentsModal,
+  CommentCountBadge,
+  useCommentSeenStore,
+  hasNewComments,
+} from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
+import { useInvaderOverview } from "../hooks/use-invader-overview";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -27,9 +36,21 @@ const STATE_KEYS: Record<string, string> = {
 
 export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
   const { t } = useTranslation();
-  const { theme, fontScale } = useTheme();
+  const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  // One request for the popup payload: contributors + comment summary
+  const { overview, refresh: refreshSummary } = useInvaderOverview(invader.id);
+  const contributors = overview?.contributors ?? null;
+  const summary = overview?.comments ?? null;
+  const seen = useCommentSeenStore((s) => s.seen);
+  const commentCount = summary?.count ?? 0;
+  const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
+  // Full-form attribution: discoverer + most recent updater
+  const lastModifier = contributors?.modified_by.length
+    ? contributors.modified_by[contributors.modified_by.length - 1]
+    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgElement }, containerStyle]}>
@@ -46,15 +67,32 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
-      <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
-      <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
-      <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
-      <InfoRow
-        label={t('popup.flashed')}
-        value={formatDate(invader.capturedAt)}
-        valueColor={invader.isCaptured ? theme.success : theme.text}
-        sz={sz}
-      />
+      <View style={styles.infoBlock}>
+        <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
+        <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
+        <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
+        <InfoRow
+          label={t('popup.flashed')}
+          value={formatDate(invader.capturedAt)}
+          valueColor={invader.isCaptured ? theme.success : theme.text}
+          sz={sz}
+        />
+      </View>
+
+      {(contributors?.created_by || lastModifier) && (
+        <View style={styles.contributorsBlock}>
+          {contributors?.created_by && (
+            <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+              {t('popup.discoveredByLabel')} <Text style={{ color: theme.accent }}>{contributors.created_by.username}</Text>
+            </Text>
+          )}
+          {lastModifier && (
+            <Text style={[styles.contributorLine, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+              {t('popup.updatedByLabel')} <Text style={{ color: theme.accent }}>{lastModifier.username}</Text>
+            </Text>
+          )}
+        </View>
+      )}
 
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
@@ -91,6 +129,26 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
           </Pressable>
         )}
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.commentsBtn, pressed && styles.btnPressed]}
+        onPress={() => { hapticTap(); setCommentsOpen(true); }}
+      >
+        <View>
+          <Ionicons name="chatbubbles-outline" size={sz(16)} color={theme.textMuted} />
+          <CommentCountBadge count={commentCount} hasNew={commentsHaveNew} />
+        </View>
+        <Text style={[styles.commentsBtnText, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(13) }]}>
+          {t('comments.title')}
+        </Text>
+      </Pressable>
+
+      <InvaderCommentsModal
+        visible={commentsOpen}
+        invaderId={invader.id}
+        invaderName={invader.name}
+        onClose={() => { setCommentsOpen(false); refreshSummary(); }}
+      />
     </View>
   );
 }
@@ -118,6 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   divider: { height: 1 },
+  infoBlock: { gap: 4 },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -125,6 +184,8 @@ const styles = StyleSheet.create({
   },
   infoLabel: {},
   infoValue: {},
+  contributorsBlock: { gap: 4 },
+  contributorLine: { textAlign: "center" },
   btnRow: {
     flexDirection: "row",
     gap: Spacing.two,
@@ -139,5 +200,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: {},
+  commentsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.one,
+    paddingVertical: Spacing.two,
+  },
+  commentsBtnText: {},
   btnPressed: { opacity: 0.7 },
 });

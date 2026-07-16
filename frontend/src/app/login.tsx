@@ -13,6 +13,7 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
+  const enterGuestMode = useAuthStore((s) => s.enterGuestMode);
   const router = useRouter();
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
@@ -74,6 +75,13 @@ export default function LoginScreen() {
 
         <Pressable onPress={() => router.push('/forgot-password')} style={styles.registerLink}>
           <Text style={styles.registerText}><Text style={styles.registerHighlight}>{t('auth.login.forgotPassword')}</Text></Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => { hapticTap(); enterGuestMode(); router.replace('/(tabs)/map'); }}
+          style={styles.guestLink}
+        >
+          <Text style={styles.registerText}><Text style={styles.registerHighlight}>{t('auth.login.guestMode')}</Text></Text>
         </Pressable>
       </View>
     </View>
@@ -137,6 +145,16 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     registerLink: {
       alignItems: 'center',
+    },
+    guestLink: {
+      alignItems: 'center',
+      marginTop: Spacing.three,
+      alignSelf: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.border,
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 10,
+      paddingHorizontal: Spacing.four,
     },
     registerText: {
       color: t.textMuted,

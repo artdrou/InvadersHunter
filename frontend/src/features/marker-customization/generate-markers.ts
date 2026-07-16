@@ -12,10 +12,44 @@ import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPref
 
 const SIZE = 128;
 const ICON_FRACTION = 0.7;
-const BLOOM_RADIUS = 8;
-const BLOOM_OPACITY = 0.8;
-const BLOOM_PASSES = 1;
+// Fixed intermediate canvas for rasterizing the source SVG, independent of the
+// requested output size. Must be >= the largest shape's intrinsic viewBox
+// (shape 100 is 200x200) or that shape gets clipped — which is exactly what
+// happened for the small preview/carousel renders (output 72-76 -> old
+// intermediate 144-152 < 200). 256 also matches the on-map render (size 128 ->
+// 256), so previews now rasterize identically to the map.
+const SVG_RASTER = 256;
 const TRANSPARENT = '#00000000';
+
+// ── Bloom presets ─────────────────────────────────────────────────────────
+// The glow halo is customizable per state as a 3x3 grid of (size x intensity).
+// Encoded as a single 0..8 index = size*3 + intensity, matching the stepper on
+// the customization screen. Index 4 (medium size + medium intensity) reproduces
+// the old fixed BLOOM_RADIUS=8 / BLOOM_OPACITY=0.8 / 1 pass, so default markers
+// look unchanged.
+const BLOOM_RADII = [5, 8, 12];                    // tiny, medium, large (at SIZE=128)
+const BLOOM_INTENSITIES = [                          // weak, medium, strong
+  { opacity: 0.5, passes: 1 },
+  { opacity: 0.8, passes: 1 },
+  { opacity: 1.0, passes: 2 },
+];
+export const BLOOM_SIZE_COUNT = BLOOM_RADII.length;             // 3 (tiny/medium/large)
+export const BLOOM_INTENSITY_COUNT = BLOOM_INTENSITIES.length;  // 3 (weak/medium/strong)
+export const BLOOM_LEVEL_COUNT = BLOOM_SIZE_COUNT * BLOOM_INTENSITY_COUNT; // 9
+export const DEFAULT_BLOOM_INDEX = 4;               // medium / medium
+
+type Bloom = { radius: number; opacity: number; passes: number };
+
+// Preset index 0..8 = size*3 + intensity.
+export function decodeBloom(index: number): { size: number; intensity: number } {
+  const i = Math.max(0, Math.min(BLOOM_LEVEL_COUNT - 1, Math.round(index)));
+  return { size: Math.floor(i / BLOOM_INTENSITY_COUNT), intensity: i % BLOOM_INTENSITY_COUNT };
+}
+
+function bloomFromIndex(index: number): Bloom {
+  const { size, intensity } = decodeBloom(index);
+  return { radius: BLOOM_RADII[size], ...BLOOM_INTENSITIES[intensity] };
+}
 
 // Skia host objects (surfaces, images, SVG DOMs, paints, filters) are backed
 // by native memory that is otherwise only reclaimed on GC — which lags well
@@ -70,31 +104,30 @@ function fitCenteredRect(bbox: { width: number; height: number }, boxPx: number,
   return Skia.XYWHRect((canvasSize - w) / 2, (canvasSize - h) / 2, w, h);
 }
 
-// tintSvg only ever rewrites `fill` colors — it never touches which pixels
-// are opaque — so the trimmed bounding box is a pure function of (shapeId,
-// size), independent of the tint color. Caching it here means the 5 states
-// sharing a tier's shape only pay for one full pixel scan instead of 5.
-const bboxCache = new Map<string, { x: number; y: number; width: number; height: number }>();
+// tintSvg only ever rewrites `fill` colors — it never touches which pixels are
+// opaque — and the SVG is always rasterized at the fixed SVG_RASTER size, so the
+// trimmed bounding box is a pure function of shapeId (independent of tint color
+// and output size). Caching it means the 5 states sharing a tier's shape only
+// pay for one full pixel scan instead of 5.
+const bboxCache = new Map<TierPts, { x: number; y: number; width: number; height: number }>();
 
-function shapeBBox(shapeId: TierPts, size: number): { x: number; y: number; width: number; height: number } {
-  const cacheKey = `${shapeId}:${size}`;
-  const cached = bboxCache.get(cacheKey);
+function shapeBBox(shapeId: TierPts): { x: number; y: number; width: number; height: number } {
+  const cached = bboxCache.get(shapeId);
   if (cached) return cached;
 
-  const largeSize = size * 2;
   const dom = Skia.SVG.MakeFromString(SHAPE_SVG[shapeId]);
   if (!dom) throw new Error('Failed to parse marker SVG');
-  const surface = Skia.Surface.Make(largeSize, largeSize);
+  const surface = Skia.Surface.Make(SVG_RASTER, SVG_RASTER);
   if (!surface) { disposeSkia(dom); throw new Error('Failed to allocate Skia surface'); }
   const canvas = surface.getCanvas();
   canvas.clear(Skia.Color(TRANSPARENT));
-  canvas.drawSvg(dom, largeSize, largeSize);
+  canvas.drawSvg(dom, SVG_RASTER, SVG_RASTER);
   const snapshot = surface.makeImageSnapshot();
-  const bbox = alphaBBox(snapshot) ?? { x: 0, y: 0, width: largeSize, height: largeSize };
+  const bbox = alphaBBox(snapshot) ?? { x: 0, y: 0, width: SVG_RASTER, height: SVG_RASTER };
   disposeSkia(snapshot);
   disposeSkia(surface);
   disposeSkia(dom);
-  bboxCache.set(cacheKey, bbox);
+  bboxCache.set(shapeId, bbox);
   return bbox;
 }
 
@@ -107,15 +140,14 @@ function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkIma
   const dom = Skia.SVG.MakeFromString(tintedSvg);
   if (!dom) throw new Error('Failed to parse marker SVG');
 
-  const largeSize = size * 2;
-  const largeSurface = Skia.Surface.Make(largeSize, largeSize);
+  const largeSurface = Skia.Surface.Make(SVG_RASTER, SVG_RASTER);
   if (!largeSurface) { disposeSkia(dom); throw new Error('Failed to allocate Skia surface'); }
   const largeCanvas = largeSurface.getCanvas();
   largeCanvas.clear(Skia.Color(TRANSPARENT));
-  largeCanvas.drawSvg(dom, largeSize, largeSize);
+  largeCanvas.drawSvg(dom, SVG_RASTER, SVG_RASTER);
   const largeImage = largeSurface.makeImageSnapshot();
 
-  const bbox = shapeBBox(shapeId, size);
+  const bbox = shapeBBox(shapeId);
   const iconBoxPx = size * ICON_FRACTION;
   const dstRect = fitCenteredRect(bbox, iconBoxPx, size);
 
@@ -144,21 +176,22 @@ function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkIma
 
 // Composites the glow halo (blurred, recolored silhouette, drawn under the
 // flat icon) — the Skia equivalent of build.mjs's blur+dest-in bloom layer.
-function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number): SkImage {
+// `bloom` controls the halo's radius (size) and opacity/passes (intensity).
+function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number, bloom: Bloom): SkImage {
   const surface = Skia.Surface.Make(size, size);
   if (!surface) throw new Error('Failed to allocate Skia surface');
   const canvas = surface.getCanvas();
   canvas.clear(Skia.Color(TRANSPARENT));
 
-  const radius = BLOOM_RADIUS * (size / SIZE);
+  const radius = bloom.radius * (size / SIZE);
   const glowPaint = Skia.Paint();
   const recolor = Skia.ColorFilter.MakeBlend(Skia.Color(glowHex), BlendMode.SrcIn);
   const recolorFilter = Skia.ImageFilter.MakeColorFilter(recolor, null);
   const blurFilter = Skia.ImageFilter.MakeBlur(radius, radius, TileMode.Decal, recolorFilter);
   glowPaint.setImageFilter(blurFilter);
-  glowPaint.setAlphaf(BLOOM_OPACITY);
+  glowPaint.setAlphaf(bloom.opacity);
 
-  for (let i = 0; i < BLOOM_PASSES; i++) canvas.drawImage(iconImage, 0, 0, glowPaint);
+  for (let i = 0; i < bloom.passes; i++) canvas.drawImage(iconImage, 0, 0, glowPaint);
   canvas.drawImage(iconImage, 0, 0);
   const snapshot = surface.makeImageSnapshot();
 
@@ -173,13 +206,14 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number): S
 // Renders one marker variant (shape recolored to `iconHex`, optional glow
 // halo in `glowHex`) to a base64-encoded PNG. Exported standalone so the
 // customization screen's shape thumbnails and live preview can call it
-// directly (no file I/O) — `size` defaults to the final on-map asset size.
-export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE): string {
+// directly (no file I/O) — `size` defaults to the final on-map asset size and
+// `bloomIndex` (0..8) picks the glow size/intensity preset.
+export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
   const tinted = tintSvg(SHAPE_SVG[shapeId], iconHex);
   const icon = rasterizeIcon(shapeId, tinted, size);
   let final = icon;
   try {
-    if (glowHex) final = compositeWithGlow(icon, glowHex, size);
+    if (glowHex) final = compositeWithGlow(icon, glowHex, size, bloomFromIndex(bloomIndex));
     const base64 = final.encodeToBase64(ImageFormat.PNG);
     if (!base64) throw new Error('Failed to encode marker PNG');
     return base64;
@@ -237,7 +271,11 @@ function yieldToUi(): Promise<void> {
 // fresh, timestamped subfolder. Older generations are only pruned *after*
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
-export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, colors: MarkerColorPrefs): Promise<GenerationResult> {
+export async function generateMarkerSet(
+  shapeForTier: Record<TierPts, TierPts>,
+  colors: MarkerColorPrefs,
+  bloom: Record<CustomizableState, number>,
+): Promise<GenerationResult> {
   if (!MARKERS_ROOT.exists) MARKERS_ROOT.create({ intermediates: true });
   const dir = new FileSystem.Directory(MARKERS_ROOT, `v${Date.now()}`);
   dir.create({ intermediates: true });
@@ -248,7 +286,9 @@ export async function generateMarkerSet(shapeForTier: Record<TierPts, TierPts>, 
       const shapeId = shapeForTier[tier] ?? tier;
       for (const state of STATE_KEYS) {
         const { icon, glow } = paletteFor(state, tier, colors);
-        const base64 = renderMarkerBase64(shapeId, icon, glow);
+        // "rarity" isn't user-customizable — keep it at the default bloom.
+        const bloomIdx = state === 'rarity' ? DEFAULT_BLOOM_INDEX : bloom[state];
+        const base64 = renderMarkerBase64(shapeId, icon, glow, SIZE, bloomIdx);
         const name = outputName(tier, state);
         const file = new FileSystem.File(dir, `${name}.png`);
         file.write(base64, { encoding: 'base64' });

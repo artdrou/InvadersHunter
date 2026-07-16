@@ -123,6 +123,42 @@ MIGRATIONS = [
     # Push notifications — per-user language, drives which translation of the
     # notification text gets sent (see news_service.NOTIFICATION_COPY)
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR NOT NULL DEFAULT 'fr'",
+
+    # Comment wall — one wall per invader, auto-moderated at creation
+    # (status: visible | hidden | pending_review — see models/invader_comment.py)
+    """CREATE TABLE IF NOT EXISTS invader_comments (
+        id                 SERIAL PRIMARY KEY,
+        invader_id         INTEGER NOT NULL REFERENCES invaders (id) ON DELETE CASCADE,
+        user_id            INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        body               VARCHAR NOT NULL,
+        status             VARCHAR NOT NULL DEFAULT 'visible',
+        flagged_categories VARCHAR,
+        reports            INTEGER NOT NULL DEFAULT 0,
+        created_at         TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at         TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_invader_comments_invader_id ON invader_comments (invader_id)",
+    "CREATE INDEX IF NOT EXISTS idx_invader_comments_user_id ON invader_comments (user_id)",
+
+    # Comment reactions — one like/dislike per (comment, user); counts kept
+    # denormalized on invader_comments for cheap wall/top-comment sorting.
+    "ALTER TABLE invader_comments ADD COLUMN IF NOT EXISTS likes INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE invader_comments ADD COLUMN IF NOT EXISTS dislikes INTEGER NOT NULL DEFAULT 0",
+    """CREATE TABLE IF NOT EXISTS comment_reactions (
+        id         SERIAL PRIMARY KEY,
+        comment_id INTEGER NOT NULL REFERENCES invader_comments (id) ON DELETE CASCADE,
+        user_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        value      SMALLINT NOT NULL,
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        UNIQUE (comment_id, user_id)
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_comment_reactions_comment_id ON comment_reactions (comment_id)",
+    "CREATE INDEX IF NOT EXISTS idx_comment_reactions_user_id ON comment_reactions (user_id)",
+
+    # FK lookup indexes — Postgres doesn't index foreign keys automatically.
+    # Both are hit on every popup open by GET /invaders/{id}/contributors.
+    "CREATE INDEX IF NOT EXISTS idx_admin_requests_invader_id ON admin_requests (invader_id)",
+    "CREATE INDEX IF NOT EXISTS idx_user_requests_admin_request_id ON user_requests (admin_request_id)",
 ]
 
 
