@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from ..models.custom_invader import CustomInvader, DeletedCustomInvader
 from ..core.db_utils import safe_commit
+from ..core import r2
 
 
 class CustomInvaderMissing(Exception): ...
@@ -72,6 +73,7 @@ def delete(db: Session, custom_invader_id: int, user_id: int) -> None:
     """Hard-delete + tombstone, so the owner's other devices prune the row on
     their next delta sync."""
     row = get_owned(db, custom_invader_id, user_id)
+    image_url = row.image_url
     db.add(DeletedCustomInvader(
         custom_invader_id=custom_invader_id,
         user_id=user_id,
@@ -79,6 +81,10 @@ def delete(db: Session, custom_invader_id: int, user_id: int) -> None:
     ))
     db.delete(row)
     safe_commit(db)
+    # Best-effort R2 cleanup once the row is really gone (failures are logged
+    # inside r2.delete_object) — nothing references the object any more.
+    if image_url:
+        r2.delete_object(image_url)
 
 
 def bulk_claim(db: Session, user_id: int, items: List) -> List[CustomInvader]:

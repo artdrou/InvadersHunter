@@ -182,6 +182,51 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: font,
       textAlign: "center",
     },
+
+    // ── Personal-invader toggle ──
+    personalRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.two,
+      paddingVertical: Spacing.one,
+    },
+    personalTextBlock: {
+      flexShrink: 1,
+      gap: 2,
+    },
+    personalLabel: {
+      color: t.text,
+      fontSize: sz(FontSize.sm),
+      fontFamily: font,
+    },
+    personalHint: {
+      color: t.textMuted,
+      fontSize: sz(FontSize.xxs),
+      fontFamily: font,
+    },
+    personalTrack: {
+      width: 44,
+      height: 24,
+      borderRadius: BorderRadius.pill,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.bgDivider,
+      padding: 2,
+      justifyContent: "center",
+    },
+    personalKnob: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: t.bgElement,
+    },
+    personalKnobOn: {
+      alignSelf: "flex-end",
+    },
+    personalKnobOff: {
+      alignSelf: "flex-start",
+    },
   });
 }
 

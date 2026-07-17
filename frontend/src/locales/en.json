@@ -236,8 +236,10 @@
       "flashCaptured": "Flashed",
       "flashUncaptured": "Not flashed",
       "highlight": "Highlighted",
-      "grey": "Greyed out"
-    }
+      "grey": "Greyed out",
+      "custom": "Personal"
+    },
+    "customEnabled": "Apply to personal invaders"
   },
   "themeNames": {
     "dark": "Dark",
@@ -360,10 +362,12 @@
     "updatedByLabel": "Updated by"
   },
   "customInvaders": {
-    "markerLabel": "personal",
-    "createBtn": "Add a personal one",
     "newTitle": "New personal invader",
     "editTitle": "Edit personal invader",
+    "toggle": "Personal invader",
+    "toggleHintOn": "Only you can see it, no review",
+    "toggleHintOff": "Proposed to the community, subject to review",
+    "icon": "Marker icon",
     "badge": "Type",
     "badgeValue": "Personal",
     "save": "Save",

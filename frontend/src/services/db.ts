@@ -89,6 +89,7 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
       latitude    REAL,
       longitude   REAL,
       date_pose   TEXT,
+      icon_shape  INTEGER,
       created_at  TEXT,
       updated_at  TEXT,
       is_pending  INTEGER NOT NULL DEFAULT 0
@@ -97,6 +98,11 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
   await db.runAsync(
     'CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_id ON custom_invaders (user_id)'
   );
+  // Added after the table shipped — devices that already created it need the column.
+  const customCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(custom_invaders)');
+  if (!customCols.some((c) => c.name === 'icon_shape')) {
+    await db.runAsync('ALTER TABLE custom_invaders ADD COLUMN icon_shape INTEGER');
+  }
   await db.runAsync(
     `CREATE TABLE IF NOT EXISTS pending_syncs (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -241,6 +247,13 @@ export async function getAllCustomInvaders(db: SQLiteDatabase, userId: number): 
   );
 }
 
+export async function getCustomInvaderById(
+  db: SQLiteDatabase,
+  id: number,
+): Promise<CustomInvader | null> {
+  return db.getFirstAsync<CustomInvader>('SELECT * FROM custom_invaders WHERE id = ?', [id]);
+}
+
 export async function upsertCustomInvaders(
   db: SQLiteDatabase,
   invaders: CustomInvader[],
@@ -251,12 +264,13 @@ export async function upsertCustomInvaders(
       await db.runAsync(
         `INSERT OR REPLACE INTO custom_invaders
           (id, user_id, name, city, number, image_url, description, points, state,
-           latitude, longitude, date_pose, created_at, updated_at, is_pending)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           latitude, longitude, date_pose, icon_shape, created_at, updated_at, is_pending)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           inv.id, inv.user_id, inv.name, inv.city ?? null, inv.number ?? null,
           inv.image_url ?? null, inv.description ?? null, inv.points ?? null,
           inv.state ?? null, inv.latitude, inv.longitude, inv.date_pose ?? null,
+          inv.icon_shape ?? null,
           inv.created_at ?? null, inv.updated_at ?? null, inv.is_pending ?? 0,
         ],
       );
@@ -276,12 +290,13 @@ export async function replaceCustomInvaders(
       await db.runAsync(
         `INSERT OR REPLACE INTO custom_invaders
           (id, user_id, name, city, number, image_url, description, points, state,
-           latitude, longitude, date_pose, created_at, updated_at, is_pending)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+           latitude, longitude, date_pose, icon_shape, created_at, updated_at, is_pending)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
         [
           inv.id, inv.user_id, inv.name, inv.city ?? null, inv.number ?? null,
           inv.image_url ?? null, inv.description ?? null, inv.points ?? null,
           inv.state ?? null, inv.latitude, inv.longitude, inv.date_pose ?? null,
+          inv.icon_shape ?? null,
           inv.created_at ?? null, inv.updated_at ?? null,
         ],
       );

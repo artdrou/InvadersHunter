@@ -27,6 +27,11 @@ class CustomInvader(Base):
     longitude = Column(Float, nullable=True)
     date_pose = Column(Date, nullable=True)
 
+    # Which of the six marker silhouettes to draw (a point-tier value: 10…100),
+    # picked by the owner in the create form. NULL → follow `points`, i.e. look
+    # exactly like a community invader of the same tier.
+    icon_shape = Column(Integer, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 

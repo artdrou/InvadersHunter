@@ -4,8 +4,10 @@ Tests for /custom-invaders — personal invaders, owner-scoped.
 The load-bearing property here is isolation: a user must never read, update or
 delete another user's rows, and must never learn they exist (404, not 403).
 """
+import io
 import pytest
 from datetime import datetime, timedelta
+from PIL import Image
 
 from app.models.user import User
 from app.models.custom_invader import CustomInvader
@@ -84,6 +86,24 @@ def test_create_ignores_user_id_in_body(client, alice, bob):
 
 def test_create_rejects_empty_name(client, alice):
     res = client.post("/custom-invaders/", json=_payload(name=""), headers=auth_headers(alice))
+    assert res.status_code == 422
+
+
+def test_create_accepts_an_icon_shape(client, alice):
+    res = client.post("/custom-invaders/", json=_payload(icon_shape=100), headers=auth_headers(alice))
+    assert res.status_code == 200
+    assert res.json()["icon_shape"] == 100
+
+
+def test_icon_shape_defaults_to_null(client, alice):
+    """NULL means 'look like a community invader of my points tier'."""
+    res = client.post("/custom-invaders/", json=_payload(), headers=auth_headers(alice))
+    assert res.json()["icon_shape"] is None
+
+
+def test_create_rejects_an_unknown_icon_shape(client, alice):
+    """Only the six real marker tiers exist — anything else has no sprite."""
+    res = client.post("/custom-invaders/", json=_payload(icon_shape=42), headers=auth_headers(alice))
     assert res.status_code == 422
 
 
@@ -313,6 +333,95 @@ def test_claim_is_idempotent(client, alice):
             == first.json()["custom_invaders"][0]["invader"]["id"])
     listed = client.get("/custom-invaders/", headers=auth_headers(alice)).json()
     assert len(listed) == 1
+
+
+# ── photo upload (R2) ──────────────────────────────────────────────────────────
+
+def _jpeg(width=400, height=400) -> bytes:
+    buf = io.BytesIO()
+    Image.new("RGB", (width, height), color=(120, 80, 200)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+def _file():
+    return {"file": ("photo.jpg", _jpeg(), "image/jpeg")}
+
+
+@pytest.fixture()
+def fake_r2(monkeypatch):
+    """R2 isn't configured in tests — stub the transport, keep the endpoint real."""
+    uploaded, deleted = [], []
+
+    def fake_upload(custom_invader_id, jpeg_bytes):
+        uploaded.append((custom_invader_id, jpeg_bytes))
+        return f"https://cdn.test/customInvaders/{custom_invader_id}/photo.jpg"
+
+    from app.core import r2
+    monkeypatch.setattr(r2, "upload_custom_invader_photo", fake_upload)
+    monkeypatch.setattr(r2, "delete_object", lambda url: deleted.append(url) or True)
+    return {"uploaded": uploaded, "deleted": deleted}
+
+
+def test_photo_upload_requires_auth(client, db, alice):
+    row = CustomInvader(user_id=alice.id, name="A1")
+    db.add(row)
+    db.flush()
+    assert client.post(f"/upload/custom-invader-photo/{row.id}", files=_file()).status_code == 401
+
+
+def test_photo_upload_sets_image_url(client, db, alice, fake_r2):
+    row = CustomInvader(user_id=alice.id, name="A1")
+    db.add(row)
+    db.flush()
+
+    res = client.post(
+        f"/upload/custom-invader-photo/{row.id}", files=_file(), headers=auth_headers(alice),
+    )
+    assert res.status_code == 200
+    url = res.json()["url"]
+    assert url.endswith("photo.jpg")
+    # Persisted on the row, so the next sync carries it to every device
+    listed = client.get("/custom-invaders/", headers=auth_headers(alice)).json()
+    assert listed[0]["image_url"] == url
+    # The image reached R2 cropped, not raw
+    assert Image.open(io.BytesIO(fake_r2["uploaded"][0][1])).size == (400, 400)
+
+
+def test_photo_upload_on_other_users_row_is_404(client, db, alice, bob, fake_r2):
+    row = CustomInvader(user_id=bob.id, name="B1")
+    db.add(row)
+    db.flush()
+
+    res = client.post(
+        f"/upload/custom-invader-photo/{row.id}", files=_file(), headers=auth_headers(alice),
+    )
+    assert res.status_code == 404
+    assert fake_r2["uploaded"] == []
+
+
+def test_photo_upload_on_missing_row_is_404(client, alice, fake_r2):
+    res = client.post("/upload/custom-invader-photo/999", files=_file(), headers=auth_headers(alice))
+    assert res.status_code == 404
+
+
+def test_replacing_a_photo_cleans_up_the_old_object(client, db, alice, fake_r2):
+    row = CustomInvader(user_id=alice.id, name="A1", image_url="https://cdn.test/customInvaders/1/old.jpg")
+    db.add(row)
+    db.flush()
+
+    client.post(f"/upload/custom-invader-photo/{row.id}", files=_file(), headers=auth_headers(alice))
+
+    assert fake_r2["deleted"] == ["https://cdn.test/customInvaders/1/old.jpg"]
+
+
+def test_deleting_an_invader_cleans_up_its_photo(client, db, alice, fake_r2):
+    row = CustomInvader(user_id=alice.id, name="A1", image_url="https://cdn.test/customInvaders/1/p.jpg")
+    db.add(row)
+    db.flush()
+
+    client.delete(f"/custom-invaders/{row.id}", headers=auth_headers(alice))
+
+    assert fake_r2["deleted"] == ["https://cdn.test/customInvaders/1/p.jpg"]
 
 
 def test_claim_keeps_distinct_rows_at_different_positions(client, alice):

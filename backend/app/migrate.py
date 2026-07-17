@@ -173,6 +173,8 @@ MIGRATIONS = [
         created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
     )""",
+    # Owner-picked marker silhouette (a point-tier value); NULL → follow `points`
+    "ALTER TABLE custom_invaders ADD COLUMN IF NOT EXISTS icon_shape INTEGER",
     "CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_id ON custom_invaders (user_id)",
     # Delta sync reads (user_id, updated_at) together on every sync cycle
     "CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_updated ON custom_invaders (user_id, updated_at)",

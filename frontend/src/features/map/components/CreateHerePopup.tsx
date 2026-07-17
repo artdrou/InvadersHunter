@@ -6,17 +6,15 @@ import { CenterPin } from "./CenterPin";
 
 type Props = {
   onCreate: () => void;
-  onCreatePersonal: () => void;
   onCancel: () => void;
 };
 
 /**
  * First step of the create-invader flow: a {@link CenterPin} the user drops on
- * the spot, plus a small "Create here" card offering the two things you can add
- * at that spot — a community proposal (goes to admin review) or a personal
- * invader (lands straight in your own collection).
+ * the spot, plus a small "Create here" card offering to open the full form.
+ * Community vs personal is chosen inside the form, not here.
  */
-export function CreateHerePopup({ onCreate, onCreatePersonal, onCancel }: Props) {
+export function CreateHerePopup({ onCreate, onCancel }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -27,12 +25,6 @@ export function CreateHerePopup({ onCreate, onCreatePersonal, onCancel }: Props)
           <Text style={[styles.label, { color: theme.text }]}>{t("map.createHere")}</Text>
           <TouchableOpacity style={[styles.btn, { backgroundColor: theme.accent }]} onPress={onCreate}>
             <Text style={[styles.btnText, { color: theme.bg }]}>{t("map.createBtn")}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btn, { borderColor: theme.accent, borderWidth: 1 }]}
-            onPress={onCreatePersonal}
-          >
-            <Text style={[styles.btnText, { color: theme.accent }]}>{t("customInvaders.createBtn")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, { borderColor: theme.border, borderWidth: 1 }]} onPress={onCancel}>
             <Text style={[styles.btnText, { color: theme.textMuted }]}>{t("common.cancel")}</Text>

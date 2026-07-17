@@ -27,7 +27,7 @@ const DEFAULT_PREVIEW_SHAPE_IDX = Math.max(0, SHAPE_IDS.indexOf(30 as TierPts));
 // Compact bloom read-out: size letter + intensity level (1..3).
 const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
 
-const STATE_ORDER: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
+const STATE_ORDER: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey', 'custom'];
 
 function dataUri(base64: string): string {
   return `data:image/png;base64,${base64}`;
@@ -146,6 +146,8 @@ export default function MarkerCustomizationScreen() {
   const setOpacity      = useMarkerCustomizationStore((s) => s.setOpacity);
   const bloom           = useMarkerCustomizationStore((s) => s.bloom);
   const setBloom        = useMarkerCustomizationStore((s) => s.setBloom);
+  const customColorEnabled    = useMarkerCustomizationStore((s) => s.customColorEnabled);
+  const setCustomColorEnabled = useMarkerCustomizationStore((s) => s.setCustomColorEnabled);
   const isGenerating    = useMarkerCustomizationStore((s) => s.isGenerating);
   const isDirty         = useMarkerCustomizationStore((s) => s.isDirty);
   const regenerate      = useMarkerCustomizationStore((s) => s.regenerate);
@@ -241,7 +243,28 @@ export default function MarkerCustomizationScreen() {
       {/* ── Encart: paramètres de l'état sélectionné ── */}
       <View style={styles.encart}>
         <Text style={styles.encartTitle}>{t(`markerCustomization.state.${activeState}`)}</Text>
-        <View style={styles.encartParams}>
+
+        {/* The custom palette is the only opt-in state: off, personal invaders
+            render like community ones; on, it wins for every one of them. */}
+        {activeState === 'custom' && (
+          <Pressable
+            onPress={() => { hapticTap(); setCustomColorEnabled(!customColorEnabled); }}
+            style={({ pressed }) => [styles.customToggleRow, pressed && styles.pressed]}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: customColorEnabled }}
+          >
+            <Text style={styles.customToggleLabel}>{t('markerCustomization.customEnabled')}</Text>
+            <View style={[
+              styles.toggleTrack,
+              customColorEnabled && { backgroundColor: theme.accent, borderColor: theme.accent },
+            ]}>
+              <View style={[styles.toggleKnob, customColorEnabled ? styles.toggleKnobOn : styles.toggleKnobOff]} />
+            </View>
+          </Pressable>
+        )}
+
+        <View style={[styles.encartParams, activeState === 'custom' && !customColorEnabled && styles.paramsDisabled]}
+              pointerEvents={activeState === 'custom' && !customColorEnabled ? 'none' : 'auto'}>
           {/* Corps (couleur de l'icône) */}
           <Pressable
             onPress={() => { hapticTap(); setColorPicker({ state: activeState, kind: 'icon' }); }}
@@ -410,6 +433,23 @@ function makeStyles(t: ThemeTokens) {
     },
     encartTitle: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md, letterSpacing: 1 },
     encartParams: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: Spacing.three },
+    // Dimmed (and inert) while the custom palette is switched off — its settings
+    // wouldn't affect anything on the map.
+    paramsDisabled: { opacity: 0.4 },
+
+    customToggleRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two,
+    },
+    customToggleLabel: {
+      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, flexShrink: 1,
+    },
+    toggleTrack: {
+      width: 44, height: 24, borderRadius: BorderRadius.pill, borderWidth: 1,
+      borderColor: t.border, backgroundColor: t.bgDivider, padding: 2, justifyContent: 'center',
+    },
+    toggleKnob: { width: 18, height: 18, borderRadius: 9, backgroundColor: t.bgElement },
+    toggleKnobOn: { alignSelf: 'flex-end' },
+    toggleKnobOff: { alignSelf: 'flex-start' },
     param: { width: '47%', alignItems: 'center', gap: Spacing.two },
     paramLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, textAlign: 'center' },
     swatch: { width: 44, height: 44, borderRadius: BorderRadius.sm, borderWidth: 2 },

@@ -7,10 +7,8 @@ import type { WebMapHandle } from "../components/WebMap.native";
 type LatLon = { lat: number; lon: number };
 
 type ModalState = LatLon & {
-  /** true → the form edits one of the user's own invaders instead of proposing
-   *  a community one. */
-  personal: boolean;
-  /** Row being edited; null when creating. */
+  /** Personal invader being edited; null when creating (community *or* personal —
+   *  the form's own toggle decides which, so the flow doesn't need to know). */
   initial: CustomInvader | null;
 };
 
@@ -43,18 +41,18 @@ export function useMapCreateFlow(mapRef: RefObject<WebMapHandle | null>) {
   }
 
   /** Stage 1 → 2: open the form on the pin's current center. */
-  async function openModal(personal = false) {
+  async function openModal() {
     const c = await mapRef.current?.getCenter();
     if (!c) return;
     setPickerOpen(false);
-    setModal({ lat: c[1], lon: c[0], personal, initial: null });
+    setModal({ lat: c[1], lon: c[0], initial: null });
   }
 
   /** Enter stage 2 directly to edit an existing personal invader. */
   function editPersonal(invader: CustomInvader) {
     if (invader.latitude == null || invader.longitude == null) return;
     setPickerOpen(false);
-    setModal({ lat: invader.latitude, lon: invader.longitude, personal: true, initial: invader });
+    setModal({ lat: invader.latitude, lon: invader.longitude, initial: invader });
   }
 
   /** Stage 2 → 3: leave the form to fine-tune the location on the map. */

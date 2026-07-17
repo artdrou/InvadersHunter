@@ -151,10 +151,10 @@ export default function MapScreen() {
     create.begin(lat, lon);
   }
 
-  async function handlePersonalSubmit(draft: CustomInvaderDraft) {
+  async function handlePersonalSubmit(draft: CustomInvaderDraft, imageUri: string | null) {
     const editing = create.modal?.initial;
-    if (editing) await updateCustomInvader(editing.id, draft);
-    else await createCustomInvader(draft);
+    if (editing) await updateCustomInvader(editing.id, draft, imageUri);
+    else await createCustomInvader(draft, imageUri);
   }
 
   async function handleCustomDelete(invader: CustomInvader) {
@@ -252,7 +252,12 @@ export default function MapScreen() {
           />
         }
       >
-        <CustomInvaderSource customInvaders={customInvaders} onPress={handleCustomInvaderClick} />
+        <CustomInvaderSource
+          customInvaders={customInvaders}
+          colorMode={colorMode}
+          greyMode={greyMode}
+          onPress={handleCustomInvaderClick}
+        />
       </WebMap>
 
       {!picking && !anyCreating && (
@@ -345,14 +350,11 @@ export default function MapScreen() {
       <MapToast opacity={toast.opacity} message={t("map.modificationSent")} />
 
       {/* ── Create-invader: initial pin + "create here" card ── */}
+      {/* Ungated: the form's personal toggle decides what gets created, and a
+          guest may create personal invaders. The account gate lives on the
+          community submit inside the form. */}
       {create.pickerOpen && (
-        <CreateHerePopup
-          onCreate={() => requireAccount(() => create.openModal(false))}
-          // No account gate: a guest's personal invaders live locally until the
-          // claim moves them over (roadmap decision 4).
-          onCreatePersonal={() => create.openModal(true)}
-          onCancel={create.cancel}
-        />
+        <CreateHerePopup onCreate={() => create.openModal()} onCancel={create.cancel} />
       )}
 
       {/* ── Create-invader: full form modal (community proposal or personal) ── */}
@@ -362,8 +364,7 @@ export default function MapScreen() {
             lat={create.modal.lat}
             lon={create.modal.lon}
             onPickLocation={create.startPickLoc}
-            onRequestSent={() => {
-              const wasPersonal = create.modal?.personal ?? false;
+            onRequestSent={(wasPersonal) => {
               create.closeModal();
               // A personal invader appears on the map immediately — the
               // "sent for review" toast would be a lie.
@@ -371,9 +372,8 @@ export default function MapScreen() {
             }}
             onClose={create.closeModal}
             onSubmitCreateRequest={submitCreateRequest}
-            personal={create.modal.personal
-              ? { initial: create.modal.initial, onSubmit: handlePersonalSubmit }
-              : undefined}
+            onSubmitPersonal={handlePersonalSubmit}
+            editingPersonal={create.modal.initial}
           />
         </View>
       )}

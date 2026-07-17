@@ -105,6 +105,19 @@ export function useMarkerImagesVersion(): number {
   return useMarkerCustomizationStore((s) => s.generationVersion);
 }
 
+/**
+ * Whether personal invaders should render with the user's `custom` palette.
+ *
+ * Requires a live generated set, not just the flag: the `-custom` sprites have
+ * no bundled counterpart, so referencing them without a generation on disk
+ * (never applied, or the folder was cleared by the OS) would blank the markers.
+ */
+export function useCustomPalette(): boolean {
+  const enabled = useMarkerCustomizationStore((s) => s.customColorEnabled);
+  const customIconUris = useMarkerCustomizationStore((s) => s.customIconUris);
+  return enabled && customIconUris != null;
+}
+
 export function useMarkerLayerStyle(): SymbolLayerStyle {
   const opacity = useMarkerCustomizationStore((s) => s.opacity);
   return useMemo(() => ({
@@ -112,12 +125,14 @@ export function useMarkerLayerStyle(): SymbolLayerStyle {
     iconSize: ["get", "iconSize"] as Expression,
     // Each customizable state carries its own opacity (set on the customization
     // screen). Order mirrors resolveIconKey's precedence: a highlighted marker
-    // wins over everything, pending stays a fixed sync-in-progress dim, then
-    // grey-mode, then captured vs uncaptured. Defaults (grey 0.8, the rest 1)
-    // reproduce the old fixed 0.8 / 1.0 look until the user changes anything.
+    // wins over everything, pending stays a fixed sync-in-progress dim, then the
+    // personal-invader palette, then grey-mode, then captured vs uncaptured.
+    // Defaults (grey 0.8, the rest 1) reproduce the old fixed 0.8 / 1.0 look
+    // until the user changes anything.
     iconOpacity: ["case",
       ["==", ["get", "highlight"], 1], opacity.highlight,
       ["==", ["get", "pending"], 1],   0.45,
+      ["==", ["get", "custom"], 1],    opacity.custom,
       ["==", ["get", "grey"], 1],      opacity.grey,
       ["==", ["get", "captured"], 1],  opacity.flashCaptured,
       opacity.flashUncaptured,

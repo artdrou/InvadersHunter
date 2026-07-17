@@ -38,7 +38,7 @@ Les 5 features telles que demandées :
 | **B** | Custom / perso invaders | 🟡 **En cours** — branche `feature/custom-invaders` (B1 + B2 codés, non mergés) |
 | **C** | Mode ami | ⬜ **À faire** — pas commencé |
 
-Suites vertes à date : **306 tests backend**, **201 tests frontend**.
+Suites vertes à date : **317 tests backend**, **209 tests frontend**.
 
 ---
 
@@ -146,29 +146,52 @@ SQLite » dont C a besoin pour partager les custom invaders des amis.
 3. `api/routers/custom_invaders.py` : list (delta `updated_since`) / deleted / create /
    update / delete, tous authentifiés.
 4. `migrate.py` : `CREATE TABLE IF NOT EXISTS` + index FK + index `(user_id, updated_at)`
-   pour le delta.
+   pour le delta + colonne `icon_shape`.
 5. Claim guest étendu (`/account/claim` prend `custom_invaders`, renvoie
-   `local_id → row canonique`).
-6. **21 tests** (`tests/test_custom_invaders.py`) : CRUD, isolation entre users, delta,
-   tombstones, claim. Suite backend : **306 verts**.
+   `local_id → row canonique`). **Idempotent** (dédoublonnage nom+position) : le claim
+   est rejoué à chaque sync, il doit survivre à une répétition.
+6. **Photo R2** : `POST /upload/custom-invader-photo/{id}` (owner-scoped, crop 800×800,
+   préfixe `customInvaders/`), cleanup best-effort de l'ancien objet au remplacement
+   et à la suppression.
+7. **32 tests** (`tests/test_custom_invaders.py`) : CRUD, isolation, delta, tombstones,
+   claim idempotent, photo, `icon_shape`. Suite backend : **317 verts**.
 
 ### B2 — Frontend ✅
 1. Table SQLite locale `custom_invaders` + CRUD dans `services/db.ts`.
-2. UI create/edit — `CreateInvaderModal` **réutilisée** via une prop `personal`
-   (`{ initial, onSubmit }`) : même formulaire, submit et titre branchés ailleurs.
-   Pas de photo en mode perso (l'upload est indexé sur un id d'admin request).
+2. UI create/edit — `CreateInvaderModal` **réutilisée** : un seul bouton « Créer » à
+   l'appui long, puis un **toggle « invader perso »** dans le formulaire décide de la
+   destination (communauté vs collection perso). Le **gate compte est sur le submit
+   communautaire**, pas à l'ouverture : un invité peut créer un perso.
+   Photo dans les deux modes.
 3. Rendu carte : `CustomInvaderSource` — **ShapeSource dédiée** (les ids perso sont un
    espace séparé, et négatifs tant que non synchronisés → collision avec les ids
-   communautaires dans la couche partagée), halo doré + label « perso ».
+   communautaires dans la couche partagée), mais **même geojson builder et même layer
+   style** que les invaders normaux : par défaut un perso est visuellement identique à
+   un invader communautaire de son tier.
    `CustomInvaderPopup` : pas de flash / commentaires / contributeurs, juste edit+delete.
-4. Sync delta (`last_custom_invaders_sync`) + file offline (`create/update/delete_custom_invader`).
-5. **Guest** : création locale sous `GUEST_USER_ID`, id négatif réécrit au claim.
-   Pas de gate compte sur le bouton perso (cf. décision 4).
-6. **25 tests** front ajoutés (15 hook + 10 sync). Suite front : **201 verts**.
+4. **Icône** : carrousel horizontal (`marker-customization/components/IconCarousel`)
+   dans le formulaire quand le toggle perso est actif → `icon_shape` (une des 6
+   silhouettes). `null` → suit `points`. Le mapper injecte `icon_shape` dans `points`
+   côté carte : le pipeline clé le sprite sur `points`.
+5. **Couleur custom** : nouvel état `custom` dans marker-customization (types,
+   générateur, store, écran). **Opt-in** (`customColorEnabled`) : off → les persos
+   rendent comme les communautaires ; on → cette palette gagne sur flash/rarity/grey
+   pour tous les persos. ⚠️ Les sprites `-custom` **n'ont pas de fallback bundlé** :
+   ils n'existent qu'après une génération, d'où le garde-fou `useCustomPalette()`
+   (flag **et** set généré vivant) — sinon marqueurs blancs.
+6. Sync delta (`last_custom_invaders_sync`) + file offline
+   (`create/update/delete_custom_invader`).
+7. **Photos différées** : une photo ne peut être uploadée qu'une fois la row dotée d'un
+   id serveur. Invité/offline → l'URI locale est parquée dans `image_url` et
+   `pushPendingPhotos()` (à chaque sync) fait l'upload dès que l'id est réel — chemin de
+   reprise unique pour claim, flush de file et échecs d'upload. Échec non-réseau →
+   `image_url` remis à null (pas d'image cassée à vie).
+8. **Guest** : création locale sous `GUEST_USER_ID`, id négatif réécrit au claim.
+9. **33 tests** front ajoutés (19 hook + 14 sync). Suite front : **209 verts**.
 
 ### Reste à faire sur B
-- **Test sur device** — rien n'a été lancé dans l'app réelle (marqueur, halo, label,
-  popup, formulaire perso).
+- **Test sur device** — rien n'a été lancé dans l'app réelle (toggle, carrousel,
+  marqueur, popup, photo, palette custom).
 - **Bug pré-existant hérité** : « ajuster la position » démonte `CreateInvaderModal`
   (`setModal(null)` dans `use-map-create-flow`), donc le formulaire perd les champs
   saisis au retour. Existe déjà sur le flux communautaire ; en perso les champs sont

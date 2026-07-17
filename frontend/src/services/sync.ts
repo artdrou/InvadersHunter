@@ -4,7 +4,7 @@ import {
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
   getAllCaptures, deleteCapturesForUser,
-  getAllCustomInvaders, upsertCustomInvaders, replaceCustomInvaders,
+  getAllCustomInvaders, getCustomInvaderById, upsertCustomInvaders, replaceCustomInvaders,
   deleteCustomInvader, deleteCustomInvadersByIds, deleteCustomInvadersForUser,
 } from './db';
 import {
@@ -18,7 +18,9 @@ import {
   createCustomInvader as apiCreateCustom,
   updateCustomInvader as apiUpdateCustom,
   deleteCustomInvader as apiDeleteCustom,
+  uploadCustomInvaderPhoto as apiUploadCustomPhoto,
 } from '@/features/custom-invaders/services/custom-invaders.api';
+import { isLocalPhoto } from '@/features/custom-invaders/types';
 import type { CustomInvaderDraft } from '@/features/custom-invaders/types';
 import { GUEST_USER_ID } from '@/features/auth/guest';
 import { claimGuestData } from '@/features/auth/services/account.api';
@@ -59,10 +61,14 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
         await apiSubmitCreate(JSON.parse(item.payload!) as CreateRequestPayload);
         await deletePendingSync(db, item.id);
       } else if (item.type === 'create_custom_invader') {
-        // The local row holds a temporary negative id — swap it for the server one.
+        // The local row holds a temporary negative id — swap it for the server one,
+        // carrying over any photo still waiting on this device (pushPendingPhotos
+        // uploads it once the row has a real id).
+        const local = await getCustomInvaderById(db, item.invader_id!);
         const created = await apiCreateCustom(JSON.parse(item.payload!) as CustomInvaderDraft);
         await deleteCustomInvader(db, item.invader_id!);
-        await upsertCustomInvaders(db, [created]);
+        const photo = isLocalPhoto(local?.image_url) ? local!.image_url : created.image_url;
+        await upsertCustomInvaders(db, [{ ...created, image_url: photo }]);
         await deletePendingSync(db, item.id);
       } else if (item.type === 'update_custom_invader') {
         const updated = await apiUpdateCustom(item.invader_id!, JSON.parse(item.payload!));
@@ -209,7 +215,41 @@ async function claimGuestDataLocally(db: SQLiteDatabase): Promise<void> {
   await deleteCustomInvadersForUser(db, GUEST_USER_ID);
   const claimed = result?.custom_invaders ?? [];
   if (claimed.length > 0) {
-    await upsertCustomInvaders(db, claimed.map((c) => ({ ...c.invader, is_pending: 0 })));
+    // Photos never travel in the claim (they're still local files, and the guest
+    // had no id to upload against). Carry them onto the canonical rows so
+    // pushPendingPhotos can send them now that the ids are real.
+    const photoByLocalId = new Map(
+      guestCustom.filter((c) => isLocalPhoto(c.image_url)).map((c) => [c.id, c.image_url]),
+    );
+    await upsertCustomInvaders(db, claimed.map((c) => ({
+      ...c.invader,
+      image_url: photoByLocalId.get(c.local_id) ?? c.invader.image_url,
+      is_pending: 0,
+    })));
+  }
+}
+
+/**
+ * Upload personal-invader photos that are still local files.
+ *
+ * A photo can only be uploaded once its row has a real server id, so anything
+ * created as a guest or while offline parks its file uri in image_url and waits
+ * here. Running it on every sync makes this the single retry path for all of
+ * them — guest claims, queue flushes, and uploads that simply failed.
+ */
+async function pushPendingPhotos(db: SQLiteDatabase, userId: number): Promise<void> {
+  const rows = await getAllCustomInvaders(db, userId);
+  for (const row of rows) {
+    if (row.id < 0 || !isLocalPhoto(row.image_url)) continue;
+    try {
+      const url = await apiUploadCustomPhoto(row.id, row.image_url!);
+      await upsertCustomInvaders(db, [{ ...row, image_url: url }]);
+    } catch (err) {
+      if (isNetworkError(err)) return; // still offline — retry on the next sync
+      // The file is gone (cache evicted) or the server refused it. Drop the dead
+      // reference rather than leave a broken image on the marker forever.
+      await upsertCustomInvaders(db, [{ ...row, image_url: null }]);
+    }
   }
 }
 
@@ -273,6 +313,9 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
     await replaceCustomInvaders(db, userId, customInvaders);
   }
   await deleteCustomInvadersByIds(db, deletedCustomIds);
+  // Photos waiting on a server id (guest rows just claimed, offline creates just
+  // flushed, earlier upload failures) — best-effort, never aborts the sync.
+  await pushPendingPhotos(db, userId);
 
   await Promise.all([
     setMeta(db, 'last_invaders_sync', now),

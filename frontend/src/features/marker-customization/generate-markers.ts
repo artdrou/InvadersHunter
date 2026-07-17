@@ -227,10 +227,16 @@ function outputName(tier: TierPts, state: 'rarity' | CustomizableState): string 
   if (state === 'grey') return `marker-${tier}pts-grey`;
   if (state === 'rarity') return `marker-${tier}pts-rarity`;
   if (state === 'highlight') return `marker-${tier}pts-highlight`;
+  if (state === 'custom') return `marker-${tier}pts-custom`;
   return `marker-${tier}pts-flash-${state === 'flashCaptured' ? 'captured' : 'uncaptured'}`;
 }
 
-const STATE_KEYS: Array<'rarity' | CustomizableState> = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
+/** The iconKey a personal invader uses when the custom palette is enabled. */
+export function customMarkerName(tier: TierPts): string {
+  return outputName(tier, 'custom');
+}
+
+const STATE_KEYS: Array<'rarity' | CustomizableState> = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey', 'custom'];
 
 // The deterministic set of iconKeys / file basenames a full generation writes.
 export const GENERATED_MARKER_NAMES: string[] = TIER_VALUES.flatMap((tier) =>
@@ -267,10 +273,14 @@ function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-// Regenerates all 30 marker PNGs from the user's prefs and writes them to a
-// fresh, timestamped subfolder. Older generations are only pruned *after*
-// the new one fully succeeds, so a failure partway through (e.g. a Skia
-// allocation failure) never leaves the app pointing at deleted files.
+// Regenerates every marker PNG (6 tiers × 6 states) from the user's prefs and
+// writes them to a fresh, timestamped subfolder. Older generations are only
+// pruned *after* the new one fully succeeds, so a failure partway through (e.g.
+// a Skia allocation failure) never leaves the app pointing at deleted files.
+//
+// Note the "custom" state has no bundled counterpart: its sprites exist only
+// once a generation has run, which is why the map falls back to the community
+// keys unless customIconUris is live (see useCustomPalette).
 export async function generateMarkerSet(
   shapeForTier: Record<TierPts, TierPts>,
   colors: MarkerColorPrefs,

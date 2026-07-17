@@ -14,6 +14,8 @@ from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.core.db_utils import safe_commit
 from app.core import r2
+from app.services import custom_invader_service
+from app.services.custom_invader_service import CustomInvaderMissing
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
@@ -81,3 +83,46 @@ async def upload_request_photo(
     safe_commit(db)
 
     return {"url": url}
+
+
+@router.post("/custom-invader-photo/{custom_invader_id}")
+async def upload_custom_invader_photo(
+    custom_invader_id: int,
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Accept an image for one of the caller's personal invaders, crop to 800×800
+    square, store in R2 under customInvaders/<id>/<timestamp>_<uuid>.jpg, and set
+    the row's image_url. Returns {"url": "<public url>"}.
+
+    Owner-scoped like the rest of /custom-invaders: someone else's row is a 404,
+    never a 403 — we don't reveal that it exists.
+    """
+    try:
+        invader = custom_invader_service.get_owned(db, custom_invader_id, current_user.id)
+    except CustomInvaderMissing:
+        raise HTTPException(status_code=404, detail="Custom invader not found")
+
+    raw = await file.read()
+    if len(raw) > _MAX_BYTES:
+        raise HTTPException(status_code=413, detail="File too large (max 8 MB)")
+
+    try:
+        jpeg_bytes = _crop_to_square_jpeg(raw)
+    except Exception as e:
+        log.error("upload: image processing failed: %s\n%s", e, traceback.format_exc())
+        raise HTTPException(status_code=422, detail=f"Could not process image: {e}")
+
+    previous_url = invader.image_url
+    invader.image_url = r2.upload_custom_invader_photo(custom_invader_id, jpeg_bytes)
+    invader.updated_at = datetime.utcnow()
+    safe_commit(db)
+
+    # Replacing a photo orphans the old object — best-effort cleanup, after the
+    # commit so a storage hiccup can't lose the new url.
+    if previous_url:
+        r2.delete_object(previous_url)
+
+    return {"url": invader.image_url}

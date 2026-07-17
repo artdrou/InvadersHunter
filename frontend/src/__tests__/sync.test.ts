@@ -49,6 +49,8 @@ const fetchDeletedCustomInvaderIds = customApi.fetchDeletedCustomInvaderIds as j
 const apiCreateCustom  = customApi.createCustomInvader as jest.Mock;
 const apiUpdateCustom  = customApi.updateCustomInvader as jest.Mock;
 const apiDeleteCustom  = customApi.deleteCustomInvader as jest.Mock;
+const apiUploadCustomPhoto = customApi.uploadCustomInvaderPhoto as jest.Mock;
+const getCustomInvaderById = db.getCustomInvaderById as jest.Mock;
 
 const apiFlash         = api.flashInvader          as jest.Mock;
 const apiUnflash       = api.unflashInvader        as jest.Mock;
@@ -93,6 +95,8 @@ beforeEach(() => {
   apiCreateCustom.mockResolvedValue(undefined);
   apiUpdateCustom.mockResolvedValue(undefined);
   apiDeleteCustom.mockResolvedValue(undefined);
+  apiUploadCustomPhoto.mockResolvedValue('https://cdn.test/p.jpg');
+  getCustomInvaderById.mockResolvedValue(null);
 });
 
 // ── isNetworkError ────────────────────────────────────────────────────────────
@@ -607,6 +611,60 @@ describe('syncAll — custom invaders delta', () => {
 
     expect(deleteCustomInvadersByIds).toHaveBeenCalledWith(mockDb, []);
     expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_custom_invaders_sync', expect.any(String));
+  });
+});
+
+describe('syncAll — deferred personal-invader photos', () => {
+  const LOCAL_URI = 'file:///tmp/photo.jpg';
+
+  function row(over: Record<string, unknown> = {}) {
+    return { id: 88, user_id: 42, name: 'PA_1', image_url: LOCAL_URI, ...over };
+  }
+
+  it('uploads photos still held as local files', async () => {
+    getAllCustomInvaders.mockResolvedValue([row()]);
+
+    await syncAll(mockDb, 42);
+
+    expect(apiUploadCustomPhoto).toHaveBeenCalledWith(88, LOCAL_URI);
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [
+      expect.objectContaining({ id: 88, image_url: 'https://cdn.test/p.jpg' }),
+    ]);
+  });
+
+  it('skips rows that are already uploaded or have no server id yet', async () => {
+    getAllCustomInvaders.mockResolvedValue([
+      row({ image_url: 'https://cdn.test/already.jpg' }),
+      row({ id: -2000 }),          // never reached the server — nothing to upload against
+      row({ id: 89, image_url: null }),
+    ]);
+
+    await syncAll(mockDb, 42);
+
+    expect(apiUploadCustomPhoto).not.toHaveBeenCalled();
+  });
+
+  it('keeps the local uri on a network error so the next sync retries', async () => {
+    getAllCustomInvaders.mockResolvedValue([row()]);
+    apiUploadCustomPhoto.mockRejectedValue({ code: 'ERR_NETWORK' });
+
+    await syncAll(mockDb, 42);  // must NOT throw
+
+    expect(upsertCustomInvaders).not.toHaveBeenCalledWith(mockDb, [
+      expect.objectContaining({ image_url: null }),
+    ]);
+  });
+
+  it('drops a dead file reference when the server refuses it', async () => {
+    getAllCustomInvaders.mockResolvedValue([row()]);
+    apiUploadCustomPhoto.mockRejectedValue(new Error('Upload failed (422)'));
+
+    await syncAll(mockDb, 42);
+
+    // No broken image left stuck on the marker forever
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [
+      expect.objectContaining({ id: 88, image_url: null }),
+    ]);
   });
 });
 

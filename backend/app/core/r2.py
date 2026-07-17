@@ -57,13 +57,13 @@ def delete_object(url: str) -> bool:
         return False
 
 
-def upload_request_photo(request_id: int, jpeg_bytes: bytes) -> str:
-    """Upload a processed JPEG for a UserRequest and return the public URL.
-    Centralises the createRequests/<id>/<ts>_<uid>.jpg key convention so callers
-    don't need to know the bucket layout. Raises HTTPException on R2 failure."""
+def _put_jpeg(prefix: str, entity_id: int, jpeg_bytes: bytes) -> str:
+    """Store a processed JPEG under <prefix>/<id>/<ts>_<uid>.jpg and return its
+    public URL. Centralises the key convention so callers don't need to know the
+    bucket layout. Raises HTTPException on R2 failure."""
     ts  = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     uid = uuid.uuid4().hex[:8]
-    key = f"createRequests/{request_id}/{ts}_{uid}.jpg"
+    key = f"{prefix}/{entity_id}/{ts}_{uid}.jpg"
     try:
         client().put_object(
             Bucket=BUCKET,
@@ -77,3 +77,16 @@ def upload_request_photo(request_id: int, jpeg_bytes: bytes) -> str:
         log.error("r2: put_object failed key=%s: %s\n%s", key, e, traceback.format_exc())
         raise HTTPException(status_code=502, detail=f"R2 upload failed: {e}")
     return f"{PUBLIC_URL}/{key}"
+
+
+def upload_request_photo(request_id: int, jpeg_bytes: bytes) -> str:
+    """Upload a processed JPEG for a UserRequest and return the public URL."""
+    return _put_jpeg("createRequests", request_id, jpeg_bytes)
+
+
+def upload_custom_invader_photo(custom_invader_id: int, jpeg_bytes: bytes) -> str:
+    """Upload a processed JPEG for a personal invader and return the public URL.
+    Own prefix rather than createRequests/: these never go through admin review,
+    and keeping them separated makes the bucket readable (and a future
+    friends-sharing feature easier to reason about)."""
+    return _put_jpeg("customInvaders", custom_invader_id, jpeg_bytes)

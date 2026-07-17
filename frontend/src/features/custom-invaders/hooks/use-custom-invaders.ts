@@ -14,9 +14,10 @@ import {
   createCustomInvader as apiCreate,
   updateCustomInvader as apiUpdate,
   deleteCustomInvader as apiDelete,
+  uploadCustomInvaderPhoto as apiUploadPhoto,
 } from '../services/custom-invaders.api';
 import { useCustomInvaderStore } from '../store';
-import { isLocalOnly } from '../types';
+import { isLocalOnly, isLocalPhoto } from '../types';
 import type { CustomInvader, CustomInvaderDraft } from '../types';
 
 /**
@@ -42,7 +43,28 @@ export function useCustomInvaders() {
     return queue.find((s) => s.type === 'create_custom_invader' && s.invader_id === localId);
   }, [db]);
 
-  const createCustomInvader = useCallback(async (draft: CustomInvaderDraft): Promise<CustomInvader | null> => {
+  /**
+   * Upload a locally-picked photo for a row that now has a server id. Best-effort:
+   * the row keeps the local uri on failure and a later sync retries it
+   * (pushPendingPhotos), so a flaky upload never blocks the write itself.
+   */
+  const uploadPhoto = useCallback(async (row: CustomInvader, uri: string): Promise<CustomInvader> => {
+    try {
+      const url = await apiUploadPhoto(row.id, uri);
+      const withPhoto = { ...row, image_url: url };
+      await upsertCustomInvaders(db, [withPhoto]);
+      setCustomInvaders((prev) => prev.map((c) => (c.id === row.id ? withPhoto : c)));
+      return withPhoto;
+    } catch (err) {
+      logger.warn('[custom-invaders] photo upload deferred:', err);
+      return row;
+    }
+  }, [db, setCustomInvaders]);
+
+  const createCustomInvader = useCallback(async (
+    draft: CustomInvaderDraft,
+    imageUri: string | null = null,
+  ): Promise<CustomInvader | null> => {
     if (userId == null) return null;
     const isGuestRow = userId === GUEST_USER_ID;
     const tempId = -Date.now();
@@ -52,7 +74,8 @@ export function useCustomInvaders() {
       name: draft.name,
       city: draft.city ?? null,
       number: draft.number ?? null,
-      image_url: null,
+      // Held as a local file uri until the row has a server id to upload against
+      image_url: imageUri,
       description: draft.description ?? null,
       points: draft.points ?? null,
       state: (draft.state ?? null) as CustomInvader['state'],
@@ -72,9 +95,12 @@ export function useCustomInvaders() {
     try {
       const created = await apiCreate(draft);
       await dbDeleteCustomInvader(db, tempId);
-      await upsertCustomInvaders(db, [created]);
-      setCustomInvaders((prev) => prev.map((c) => (c.id === tempId ? created : c)));
-      return created;
+      // Keep the local uri on the canonical row so the photo shows immediately
+      // and survives if the upload below fails.
+      const stored = { ...created, image_url: imageUri ?? created.image_url };
+      await upsertCustomInvaders(db, [stored]);
+      setCustomInvaders((prev) => prev.map((c) => (c.id === tempId ? stored : c)));
+      return imageUri ? await uploadPhoto(stored, imageUri) : stored;
     } catch (err) {
       if (isNetworkError(err)) {
         await insertPendingSync(db, {
@@ -92,17 +118,27 @@ export function useCustomInvaders() {
       setCustomInvaders((prev) => prev.filter((c) => c.id !== tempId));
       throw err;
     }
-  }, [db, userId, setCustomInvaders]);
+  }, [db, userId, setCustomInvaders, uploadPhoto]);
 
   const updateCustomInvader = useCallback(async (
     id: number,
     fields: Partial<CustomInvaderDraft>,
+    imageUri: string | null = null,
   ): Promise<void> => {
     if (userId == null) return;
     const previous = customInvaders.find((c) => c.id === id);
     if (!previous) return;
 
-    const merged: CustomInvader = { ...previous, ...fields, updated_at: new Date().toISOString() } as CustomInvader;
+    // A freshly picked photo is a local uri; an unchanged one is already the
+    // stored url and needs no re-upload.
+    const newPhoto = isLocalPhoto(imageUri) && imageUri !== previous.image_url ? imageUri : null;
+    const photoCleared = imageUri === null && previous.image_url != null;
+
+    const merged: CustomInvader = {
+      ...previous, ...fields,
+      image_url: newPhoto ?? (photoCleared ? null : previous.image_url),
+      updated_at: new Date().toISOString(),
+    } as CustomInvader;
     await upsertCustomInvaders(db, [merged]);
     setCustomInvaders((prev) => prev.map((c) => (c.id === id ? merged : c)));
 
@@ -119,10 +155,16 @@ export function useCustomInvaders() {
       return;
     }
 
+    // Clearing the photo is an explicit null the server must see; a new one is
+    // sent by the upload endpoint instead (it sets image_url itself).
+    const serverFields = photoCleared ? { ...fields, image_url: null } : fields;
+
     try {
-      const updated = await apiUpdate(id, fields);
-      await upsertCustomInvaders(db, [updated]);
-      setCustomInvaders((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      const updated = await apiUpdate(id, serverFields);
+      const stored = newPhoto ? { ...updated, image_url: newPhoto } : updated;
+      await upsertCustomInvaders(db, [stored]);
+      setCustomInvaders((prev) => prev.map((c) => (c.id === id ? stored : c)));
+      if (newPhoto) await uploadPhoto(stored, newPhoto);
     } catch (err) {
       if (isNetworkError(err)) {
         await insertPendingSync(db, {
@@ -130,7 +172,7 @@ export function useCustomInvaders() {
           invader_id: id,
           capture_id: null,
           user_id: userId,
-          payload: JSON.stringify(fields),
+          payload: JSON.stringify(serverFields),
         });
         return;
       }
@@ -139,7 +181,7 @@ export function useCustomInvaders() {
       setCustomInvaders((prev) => prev.map((c) => (c.id === id ? previous : c)));
       throw err;
     }
-  }, [db, userId, customInvaders, setCustomInvaders, findPendingCreate]);
+  }, [db, userId, customInvaders, setCustomInvaders, findPendingCreate, uploadPhoto]);
 
   const removeCustomInvader = useCallback(async (id: number): Promise<void> => {
     if (userId == null) return;

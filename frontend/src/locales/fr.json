@@ -236,8 +236,10 @@
       "flashCaptured": "Flashe",
       "flashUncaptured": "Pas flashe",
       "highlight": "Highlighte",
-      "grey": "Grise"
-    }
+      "grey": "Grise",
+      "custom": "Perso"
+    },
+    "customEnabled": "Appliquer aux invaders perso"
   },
   "themeNames": {
     "dark": "Sombre",
@@ -360,10 +362,12 @@
     "updatedByLabel": "Mis à jour par"
   },
   "customInvaders": {
-    "markerLabel": "perso",
-    "createBtn": "Créer un perso",
     "newTitle": "Nouvel invader perso",
     "editTitle": "Modifier l'invader perso",
+    "toggle": "Invader perso",
+    "toggleHintOn": "Visible par toi seul, sans validation",
+    "toggleHintOff": "Proposé à la communauté, soumis à validation",
+    "icon": "Icône du marker",
     "badge": "Type",
     "badgeValue": "Perso",
     "save": "Enregistrer",

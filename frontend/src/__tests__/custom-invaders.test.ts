@@ -29,6 +29,7 @@ const updatePendingSyncPayload = db.updatePendingSyncPayload as jest.Mock;
 const apiCreate = api.createCustomInvader as jest.Mock;
 const apiUpdate = api.updateCustomInvader as jest.Mock;
 const apiDelete = api.deleteCustomInvader as jest.Mock;
+const apiUploadPhoto = api.uploadCustomInvaderPhoto as jest.Mock;
 
 const NETWORK_ERROR = { code: 'ERR_NETWORK' };
 
@@ -121,6 +122,54 @@ describe('createCustomInvader', () => {
       expect(await result.current.createCustomInvader(draft())).toBeNull();
     });
     expect(apiCreate).not.toHaveBeenCalled();
+  });
+});
+
+// ── photos ─────────────────────────────────────────────────────────────────────
+
+describe('photos', () => {
+  const LOCAL_URI = 'file:///tmp/photo.jpg';
+
+  it('uploads a picked photo once the row has a server id', async () => {
+    apiCreate.mockResolvedValue({ id: 88, user_id: 42, name: 'PA_9001', image_url: null });
+    apiUploadPhoto.mockResolvedValue('https://cdn.test/customInvaders/88/p.jpg');
+    const { result } = renderHook(() => useCustomInvaders());
+
+    await act(async () => { await result.current.createCustomInvader(draft(), LOCAL_URI); });
+
+    expect(apiUploadPhoto).toHaveBeenCalledWith(88, LOCAL_URI);
+    expect(result.current.customInvaders[0].image_url).toBe('https://cdn.test/customInvaders/88/p.jpg');
+  });
+
+  it('keeps the local uri when the upload fails, for a later sync to retry', async () => {
+    apiCreate.mockResolvedValue({ id: 88, user_id: 42, name: 'PA_9001', image_url: null });
+    apiUploadPhoto.mockRejectedValue(NETWORK_ERROR);
+    const { result } = renderHook(() => useCustomInvaders());
+
+    await act(async () => { await result.current.createCustomInvader(draft(), LOCAL_URI); });
+
+    // The row still exists and still shows the photo — the write itself succeeded
+    expect(result.current.customInvaders[0].id).toBe(88);
+    expect(result.current.customInvaders[0].image_url).toBe(LOCAL_URI);
+  });
+
+  it("holds a guest's photo locally without ever calling the upload endpoint", async () => {
+    setUser(null, true);
+    const { result } = renderHook(() => useCustomInvaders());
+
+    await act(async () => { await result.current.createCustomInvader(draft(), LOCAL_URI); });
+
+    expect(apiUploadPhoto).not.toHaveBeenCalled();
+    expect(result.current.customInvaders[0].image_url).toBe(LOCAL_URI);
+  });
+
+  it('carries the picked icon shape into the create payload', async () => {
+    apiCreate.mockResolvedValue({ id: 88, user_id: 42, name: 'PA_9001' });
+    const { result } = renderHook(() => useCustomInvaders());
+
+    await act(async () => { await result.current.createCustomInvader(draft({ icon_shape: 100 })); });
+
+    expect(apiCreate).toHaveBeenCalledWith(expect.objectContaining({ icon_shape: 100 }));
   });
 });
 

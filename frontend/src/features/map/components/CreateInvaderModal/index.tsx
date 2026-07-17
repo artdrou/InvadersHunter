@@ -7,69 +7,107 @@ import { uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/
 import type { CreateRequestPayload } from "@/features/invaders/services/invaders.api";
 import type { CustomInvader, CustomInvaderDraft } from "@/features/custom-invaders/types";
 import { isNetworkError } from "@/services/sync";
+import { useRequireAccount } from "@/features/auth";
+import { useMarkerCustomizationStore } from "@/features/settings";
+import { IconCarousel } from "@/features/marker-customization/components/IconCarousel";
+import type { TierPts } from "@/features/marker-customization/types";
 import { useTheme } from "@/contexts/theme-context";
 import { makeStyles } from "./styles";
 import { cityNumberPadding, buildProposedName } from "./name";
 import { NameField } from "./NameField";
+import { PersonalToggle } from "./PersonalToggle";
 import { StateGrid } from "@/features/invaders/components/StateGrid";
 import { PhotoField } from "@/features/invaders/components/PhotoField";
 
 const POINT_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 
-/**
- * Turns the form into a personal-invader editor instead of a community proposal:
- * it writes straight to the user's own collection (no admin review), so there's
- * no photo upload — that endpoint is tied to a request id.
- */
-export type PersonalMode = {
-  /** Row being edited; omit to create a new one. */
-  initial?: CustomInvader | null;
-  onSubmit: (draft: CustomInvaderDraft) => Promise<unknown>;
-};
+/** Silhouette a personal invader falls back to before the owner picks one. */
+const DEFAULT_ICON_SHAPE: TierPts = 30;
 
 type Props = {
   lat: number;
   lon: number;
   onPickLocation: () => void;
-  onRequestSent: () => void;
+  /** `wasPersonal` lets the caller skip the "sent for review" toast — a personal
+   *  invader is already on the map, nothing was sent anywhere. */
+  onRequestSent: (wasPersonal: boolean) => void;
   onClose: () => void;
-  onSubmitCreateRequest?: (payload: CreateRequestPayload) => Promise<UserRequest | null>;
-  personal?: PersonalMode;
+  onSubmitCreateRequest: (payload: CreateRequestPayload) => Promise<UserRequest | null>;
+  /** Creates/updates a personal invader. `imageUri` is a freshly picked local
+   *  file; the caller owns uploading it once the row has a server id. */
+  onSubmitPersonal: (draft: CustomInvaderDraft, imageUri: string | null) => Promise<unknown>;
+  /** Personal invader being edited — locks the form into personal mode. */
+  editingPersonal?: CustomInvader | null;
 };
 
 /**
- * Form to add an invader at a picked location. Two modes sharing one form:
- * by default it proposes a new *community* invader (admin review, photo upload);
- * with `personal` it creates or edits one of the user's own invaders.
+ * Form to add an invader at a picked location. One form, two destinations, picked
+ * with the personal toggle: a *community* proposal (admin review) or one of the
+ * user's own invaders (straight into their collection).
+ *
+ * The account gate sits on the community submit rather than on opening the form:
+ * guests are allowed to create personal invaders (they stay local until the
+ * account claim migrates them), they just can't propose to the community.
  */
 export function CreateInvaderModal({
-  lat, lon, onPickLocation, onRequestSent, onClose, onSubmitCreateRequest, personal,
+  lat, lon, onPickLocation, onRequestSent, onClose, onSubmitCreateRequest,
+  onSubmitPersonal, editingPersonal,
 }: Props) {
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
+  const requireAccount = useRequireAccount();
 
-  const initial = personal?.initial ?? null;
+  const initial = editingPersonal ?? null;
+  const [isPersonal, setIsPersonal] = useState(initial != null);
   const [nameCity, setNameCity] = useState(initial?.city ?? "");
   const [nameNum, setNameNum] = useState(initial?.number != null ? String(initial.number) : "");
   const [invaderState, setInvaderState] = useState(initial?.state ?? "");
   const [points, setPoints] = useState<number | null>(initial?.points ?? null);
   const [year, setYear] = useState(initial?.date_pose?.slice(0, 4) ?? "");
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(initial?.image_url ?? null);
+  const [iconShape, setIconShape] = useState<TierPts>(initial?.icon_shape ?? DEFAULT_ICON_SHAPE);
   const [submitting, setSubmitting] = useState(false);
   const [offlineError, setOfflineError] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const [nameError, setNameError] = useState(false);
 
+  // Preview the carousel in the colours the marker will really use: the custom
+  // palette when it's switched on, the uncaptured one otherwise (personal
+  // invaders are never "captured").
+  const markerColors = useMarkerCustomizationStore((s) => s.colors);
+  const customColorEnabled = useMarkerCustomizationStore((s) => s.customColorEnabled);
+  const previewPalette = customColorEnabled ? markerColors.custom : markerColors.flashUncaptured;
+
   const allInvaders = useInvaderStore((s) => s.invaders);
   const cityPadding = cityNumberPadding(nameCity, allInvaders);
   const proposedName = buildProposedName(nameCity, nameNum, cityPadding);
   const isValid = nameCity.trim().length > 0 && nameNum.trim().length > 0;
-  const isPersonal = personal != null;
 
-  const title = isPersonal
-    ? (initial ? t('customInvaders.editTitle') : t('customInvaders.newTitle'))
-    : t('popup.newInvader');
+  const title = initial
+    ? t('customInvaders.editTitle')
+    : isPersonal ? t('customInvaders.newTitle') : t('popup.newInvader');
+
+  async function submitPersonal(datePose: string | null) {
+    try {
+      await onSubmitPersonal({
+        name: proposedName,
+        city: nameCity.trim().toUpperCase() || null,
+        number: nameNum ? Number(nameNum) : null,
+        state: invaderState || null,
+        points,
+        latitude: lat,
+        longitude: lon,
+        date_pose: datePose,
+        icon_shape: iconShape,
+      }, imageUri);
+      onRequestSent(true);
+      onClose();
+    } catch {
+      setSubmitting(false);
+      setUploadError(true);
+    }
+  }
 
   async function handleSend() {
     if (!isValid) { setNameError(true); return; }
@@ -80,29 +118,20 @@ export function CreateInvaderModal({
 
     const datePose = year.length === 4 ? `${year}-01-01` : null;
 
-    if (personal) {
-      try {
-        await personal.onSubmit({
-          name: proposedName,
-          city: nameCity.trim().toUpperCase() || null,
-          number: nameNum ? Number(nameNum) : null,
-          state: invaderState || null,
-          points,
-          latitude: lat,
-          longitude: lon,
-          date_pose: datePose,
-        });
-        onRequestSent();
-        onClose();
-      } catch {
-        setSubmitting(false);
-        setUploadError(true);
-      }
+    if (isPersonal) {
+      await submitPersonal(datePose);
       return;
     }
 
+    // Community proposals need an account; personal ones don't.
+    requireAccount(() => { void submitCommunity(datePose); });
+    setSubmitting(false);
+  }
+
+  async function submitCommunity(datePose: string | null) {
+    setSubmitting(true);
     try {
-      const req = await onSubmitCreateRequest!({
+      const req = await onSubmitCreateRequest({
         proposed_name: proposedName,
         proposed_latitude: lat,
         proposed_longitude: lon,
@@ -122,7 +151,7 @@ export function CreateInvaderModal({
           return;
         }
       }
-      onRequestSent();
+      onRequestSent(false);
       onClose();
     } catch {
       setSubmitting(false);
@@ -144,6 +173,26 @@ export function CreateInvaderModal({
       <View style={styles.divider} />
 
       <View style={styles.form}>
+        {/* Editing an existing personal invader can't switch destination — it
+            already lives in the user's collection. */}
+        {!initial && (
+          <PersonalToggle value={isPersonal} onChange={setIsPersonal} theme={theme} styles={styles} />
+        )}
+
+        {/* Only personal invaders carry their own icon — a community proposal's
+            marker follows its (admin-validated) points. */}
+        {isPersonal && (
+          <>
+            <Text style={styles.fieldLabel}>{t('customInvaders.icon')}</Text>
+            <IconCarousel
+              value={iconShape}
+              onChange={setIconShape}
+              iconHex={previewPalette.icon}
+              glowHex={previewPalette.glow}
+            />
+          </>
+        )}
+
         <NameField
           city={nameCity}
           num={nameNum}
@@ -194,14 +243,8 @@ export function CreateInvaderModal({
           <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
         </Pressable>
 
-        {/* Personal invaders have nowhere to put a photo: the upload endpoint
-            keys on an admin request id, which they never get. */}
-        {!isPersonal && (
-          <>
-            <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
-            <PhotoField imageUri={imageUri} onChange={setImageUri} />
-          </>
-        )}
+        <Text style={styles.fieldLabel}>{t('popup.photoOptional')}</Text>
+        <PhotoField imageUri={imageUri} onChange={setImageUri} />
       </View>
 
       <View style={styles.divider} />

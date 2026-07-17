@@ -1,4 +1,5 @@
 import { View, Text, Pressable, Linking, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
@@ -46,6 +47,12 @@ export function CustomInvaderPopup({ invader, onClose, onEdit, onDelete, onHeigh
           <Text style={styles.closeText}>✕</Text>
         </Pressable>
       </View>
+
+      {/* Renders a local file uri just as well as an uploaded one, so a photo
+          taken as a guest (or offline) shows before it ever reaches R2. */}
+      {invader.image_url && (
+        <Image source={invader.image_url} style={styles.image} contentFit="contain" />
+      )}
 
       <View style={styles.divider} />
 
