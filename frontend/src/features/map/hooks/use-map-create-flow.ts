@@ -1,9 +1,18 @@
 import { useState } from "react";
 import type { RefObject } from "react";
+import type { CustomInvader } from "@/features/custom-invaders";
 import { MapZoom } from "../constants";
 import type { WebMapHandle } from "../components/WebMap.native";
 
 type LatLon = { lat: number; lon: number };
+
+type ModalState = LatLon & {
+  /** true → the form edits one of the user's own invaders instead of proposing
+   *  a community one. */
+  personal: boolean;
+  /** Row being edited; null when creating. */
+  initial: CustomInvader | null;
+};
 
 /**
  * State machine for the create-invader flow, which walks through three stages:
@@ -11,11 +20,17 @@ type LatLon = { lat: number; lon: number };
  *  2. `modal`      — the full <CreateInvaderModal> form
  *  3. `pickLoc`    — an optional "adjust the location" pass on the map
  * The map screen renders the matching overlay for whichever stage is active.
+ *
+ * Editing a personal invader enters at stage 2 via {@link editPersonal}, skipping
+ * the pin: the row already has a position.
  */
 export function useMapCreateFlow(mapRef: RefObject<WebMapHandle | null>) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [modal, setModal] = useState<LatLon | null>(null);
-  const [pickLoc, setPickLoc] = useState<LatLon | null>(null);
+  const [modal, setModal] = useState<ModalState | null>(null);
+  // Holds the whole form state, not just the coords: the form unmounts during
+  // this stage, so anything not parked here (personal mode, the edited row)
+  // would be lost on the way back.
+  const [pickLoc, setPickLoc] = useState<ModalState | null>(null);
 
   /** Stage 1: drop the pin at (lat, lon) and offer to create here. */
   function begin(lat: number, lon: number) {
@@ -28,31 +43,41 @@ export function useMapCreateFlow(mapRef: RefObject<WebMapHandle | null>) {
   }
 
   /** Stage 1 → 2: open the form on the pin's current center. */
-  async function openModal() {
+  async function openModal(personal = false) {
     const c = await mapRef.current?.getCenter();
     if (!c) return;
     setPickerOpen(false);
-    setModal({ lat: c[1], lon: c[0] });
+    setModal({ lat: c[1], lon: c[0], personal, initial: null });
+  }
+
+  /** Enter stage 2 directly to edit an existing personal invader. */
+  function editPersonal(invader: CustomInvader) {
+    if (invader.latitude == null || invader.longitude == null) return;
+    setPickerOpen(false);
+    setModal({ lat: invader.latitude, lon: invader.longitude, personal: true, initial: invader });
   }
 
   /** Stage 2 → 3: leave the form to fine-tune the location on the map. */
   function startPickLoc() {
     if (!modal) return;
-    setPickLoc({ lat: modal.lat, lon: modal.lon });
-    setModal(null);
+    setPickLoc(modal);
     mapRef.current?.centerOn(modal.lat, modal.lon, 0, MapZoom.detail);
+    setModal(null);
   }
 
-  /** Stage 3 → 2: accept the adjusted center (falling back to the prior coords). */
+  /** Stage 3 → 2: accept the adjusted center (falling back to the prior coords).
+   *  Restores whatever the form was doing — personal mode and the edited row. */
   async function validatePickLoc() {
+    if (!pickLoc) return;
     const c = await mapRef.current?.getCenter();
-    setModal({ lat: c ? c[1] : pickLoc!.lat, lon: c ? c[0] : pickLoc!.lon });
+    setModal({ ...pickLoc, lat: c ? c[1] : pickLoc.lat, lon: c ? c[0] : pickLoc.lon });
     setPickLoc(null);
   }
 
   /** Stage 3 → 2: discard the adjustment. */
   function cancelPickLoc() {
-    setModal({ lat: pickLoc!.lat, lon: pickLoc!.lon });
+    if (!pickLoc) return;
+    setModal(pickLoc);
     setPickLoc(null);
   }
 
@@ -64,6 +89,6 @@ export function useMapCreateFlow(mapRef: RefObject<WebMapHandle | null>) {
 
   return {
     pickerOpen, modal, pickLoc, anyActive,
-    begin, cancel, openModal, startPickLoc, validatePickLoc, cancelPickLoc, closeModal,
+    begin, cancel, openModal, editPersonal, startPickLoc, validatePickLoc, cancelPickLoc, closeModal,
   };
 }

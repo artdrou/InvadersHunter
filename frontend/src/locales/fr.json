@@ -359,6 +359,20 @@
     "discoveredByLabel": "Découvert par",
     "updatedByLabel": "Mis à jour par"
   },
+  "customInvaders": {
+    "markerLabel": "perso",
+    "createBtn": "Créer un perso",
+    "newTitle": "Nouvel invader perso",
+    "editTitle": "Modifier l'invader perso",
+    "badge": "Type",
+    "badgeValue": "Perso",
+    "save": "Enregistrer",
+    "saveFailed": "Enregistrement impossible",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer l'invader perso",
+    "deleteMessage": "Supprimer « {{name}} » ? Cette action est définitive."
+  },
   "comments": {
     "title": "Commentaires",
     "empty": "Aucun commentaire. Sois le premier !",

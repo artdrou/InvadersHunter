@@ -4,6 +4,8 @@ import {
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
   getAllCaptures, deleteCapturesForUser,
+  getAllCustomInvaders, upsertCustomInvaders, replaceCustomInvaders,
+  deleteCustomInvader, deleteCustomInvadersByIds, deleteCustomInvadersForUser,
 } from './db';
 import {
   fetchInvaders, fetchDeletedInvaderIds, fetchProgress, fetchUserRequests,
@@ -11,8 +13,15 @@ import {
   submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
   type ModifyRequestPayload, type CreateRequestPayload,
 } from '@/features/invaders/services/invaders.api';
+import {
+  fetchCustomInvaders, fetchDeletedCustomInvaderIds,
+  createCustomInvader as apiCreateCustom,
+  updateCustomInvader as apiUpdateCustom,
+  deleteCustomInvader as apiDeleteCustom,
+} from '@/features/custom-invaders/services/custom-invaders.api';
+import type { CustomInvaderDraft } from '@/features/custom-invaders/types';
 import { GUEST_USER_ID } from '@/features/auth/guest';
-import { claimCaptures } from '@/features/auth/services/account.api';
+import { claimGuestData } from '@/features/auth/services/account.api';
 import type { UserRequest } from '@/features/invaders/types';
 
 export function isNetworkError(err: unknown): boolean {
@@ -48,6 +57,19 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
         await deletePendingSync(db, item.id);
       } else if (item.type === 'create_request') {
         await apiSubmitCreate(JSON.parse(item.payload!) as CreateRequestPayload);
+        await deletePendingSync(db, item.id);
+      } else if (item.type === 'create_custom_invader') {
+        // The local row holds a temporary negative id — swap it for the server one.
+        const created = await apiCreateCustom(JSON.parse(item.payload!) as CustomInvaderDraft);
+        await deleteCustomInvader(db, item.invader_id!);
+        await upsertCustomInvaders(db, [created]);
+        await deletePendingSync(db, item.id);
+      } else if (item.type === 'update_custom_invader') {
+        const updated = await apiUpdateCustom(item.invader_id!, JSON.parse(item.payload!));
+        await upsertCustomInvaders(db, [updated]);
+        await deletePendingSync(db, item.id);
+      } else if (item.type === 'delete_custom_invader') {
+        await apiDeleteCustom(item.invader_id!);
         await deletePendingSync(db, item.id);
       }
     } catch (err) {
@@ -136,8 +158,8 @@ export async function syncInvadersOnly(db: SQLiteDatabase): Promise<void> {
 }
 
 /**
- * Guest → account migration. If local guest captures exist, bulk-import them
- * into the authenticated account (idempotent server-side) then drop the local
+ * Guest → account migration. If local guest data exists (captures and/or custom
+ * invaders), bulk-import it into the authenticated account then drop the local
  * rows — the following sync pulls back the canonical server rows.
  * Self-healing: runs at the start of every authenticated sync, so a claim
  * that failed offline is retried automatically.
@@ -146,47 +168,85 @@ export async function syncInvadersOnly(db: SQLiteDatabase): Promise<void> {
  * propagate (the whole sync retries later anyway), but a server rejection
  * (e.g. an older backend without /account/claim) just keeps the guest rows
  * for a future attempt.
+ *
+ * Custom invaders are claimed in the same call: they come back paired with the
+ * temporary negative local id they were sent under, which is what lets the local
+ * rows be rewritten onto their real server ids rather than duplicated.
  */
-async function claimGuestCaptures(db: SQLiteDatabase): Promise<void> {
-  const guestRows = await getAllCaptures(db, GUEST_USER_ID);
-  if (guestRows.length === 0) return;
+async function claimGuestDataLocally(db: SQLiteDatabase): Promise<void> {
+  const [guestCaptures, guestCustom] = await Promise.all([
+    getAllCaptures(db, GUEST_USER_ID),
+    getAllCustomInvaders(db, GUEST_USER_ID),
+  ]);
+  if (guestCaptures.length === 0 && guestCustom.length === 0) return;
+
+  let result;
   try {
-    await claimCaptures(
-      guestRows.map((c) => ({ invader_id: c.invader_id, found_at: c.found_at })),
+    result = await claimGuestData(
+      guestCaptures.map((c) => ({ invader_id: c.invader_id, found_at: c.found_at })),
+      guestCustom.map((c) => ({
+        local_id: c.id,
+        name: c.name,
+        city: c.city ?? null,
+        number: c.number ?? null,
+        description: c.description,
+        points: c.points,
+        state: c.state,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        date_pose: c.date_pose,
+      })),
     );
   } catch (err) {
     if (isNetworkError(err)) throw err;
     return; // server rejected — keep local rows, retry on a later sync
   }
+
+  // Drop the guest rows and re-insert the canonical ones under the real account.
+  // Both steps must happen together: keeping a guest row after a successful
+  // import would re-claim it (and duplicate the invader) on the next sync.
   await deleteCapturesForUser(db, GUEST_USER_ID);
+  await deleteCustomInvadersForUser(db, GUEST_USER_ID);
+  const claimed = result?.custom_invaders ?? [];
+  if (claimed.length > 0) {
+    await upsertCustomInvaders(db, claimed.map((c) => ({ ...c.invader, is_pending: 0 })));
+  }
 }
 
 export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void> {
   // 0. Claim any guest-mode data left on this device (no-op in the common case)
-  await claimGuestCaptures(db);
+  await claimGuestDataLocally(db);
 
   // 1. Push any pending offline operations first
   await flushPendingSyncs(db, userId);
 
   // 2. Read per-endpoint sync timestamps
-  const [lastInvadersSync, lastProgressSync, lastRequestsSync] = await Promise.all([
+  const [lastInvadersSync, lastProgressSync, lastRequestsSync, lastCustomSync] = await Promise.all([
     getMeta(db, 'last_invaders_sync'),
     getMeta(db, 'last_progress_sync'),
     getMeta(db, 'last_requests_sync'),
+    getMeta(db, 'last_custom_invaders_sync'),
   ]);
 
   // 3. Fetch from server in parallel — delta when we have a timestamp, full otherwise
   // Deleted-IDs endpoint is best-effort: a failure must not abort the rest of the sync
-  const [invaders, captures, requests] = await Promise.all([
+  const [invaders, captures, requests, customInvaders] = await Promise.all([
     fetchInvaders(lastInvadersSync ?? undefined),
     fetchProgress(userId, lastProgressSync ?? undefined),
     fetchUserRequests(lastRequestsSync ?? undefined),
+    fetchCustomInvaders(lastCustomSync ?? undefined),
   ]);
   let deletedIds: number[] = [];
   try {
     deletedIds = await fetchDeletedInvaderIds(lastInvadersSync ?? undefined);
   } catch {
     // endpoint unavailable (e.g. 422 on older deploy) — skip deletion step
+  }
+  let deletedCustomIds: number[] = [];
+  try {
+    deletedCustomIds = await fetchDeletedCustomInvaderIds(lastCustomSync ?? undefined);
+  } catch {
+    // endpoint unavailable — skip the custom-invader deletion step
   }
 
   // 4. Write to SQLite: upsert for delta syncs, full replace for first sync
@@ -207,9 +267,17 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
     await replaceRequests(db, userId, requests);
   }
 
+  if (lastCustomSync) {
+    await upsertCustomInvaders(db, customInvaders);
+  } else {
+    await replaceCustomInvaders(db, userId, customInvaders);
+  }
+  await deleteCustomInvadersByIds(db, deletedCustomIds);
+
   await Promise.all([
     setMeta(db, 'last_invaders_sync', now),
     setMeta(db, 'last_progress_sync', now),
     setMeta(db, 'last_requests_sync', now),
+    setMeta(db, 'last_custom_invaders_sync', now),
   ]);
 }

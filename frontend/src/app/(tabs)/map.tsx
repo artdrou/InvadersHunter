@@ -22,6 +22,8 @@ import { MapZoom } from "@/features/map/constants";
 import { useNewsUnreadCount } from "@/features/news";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
+import { useCustomInvaders, CustomInvaderSource, CustomInvaderPopup } from "@/features/custom-invaders";
+import type { CustomInvader, CustomInvaderDraft } from "@/features/custom-invaders";
 import { useAuthStore, useRequireAccount, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { Brand, White, Overlay, BottomTabInset, AppFont, FontSize, Spacing, BorderRadius, ZIndex, Motion } from "@/constants/theme";
@@ -33,8 +35,10 @@ import { RouteLayer } from "@/features/routing/components/RouteLayer";
 export default function MapScreen() {
   const { t } = useTranslation();
   const { invaders, progress, syncError, flash, unflash, submitModifyRequest, submitCreateRequest } = useInvaderData();
+  const { customInvaders, createCustomInvader, updateCustomInvader, removeCustomInvader } = useCustomInvaders();
   const isOfflineEmpty = invaders.length === 0 && syncError === "network";
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
+  const [selectedCustom, setSelectedCustom] = useState<CustomInvader | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const [greyMode, setGreyMode] = useState<"none" | "all" | "unflashed">("all");
   const [colorMode, setColorMode] = useState<"flash" | "rarity">("flash");
@@ -124,16 +128,43 @@ export default function MapScreen() {
   const handleInvaderClick = useCallback((invader: InvaderWithState) => {
     if (routingSheetOpen) { toggleInvaderSelection(invader); return; }
     if (picking || creatingActive) return;
+    setSelectedCustom(null);
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
   }, [routingSheetOpen, toggleInvaderSelection, picking, creatingActive]);
+
+  // Personal invaders aren't part of the routing/flash game — a tap only ever
+  // opens their popup.
+  const handleCustomInvaderClick = useCallback((invader: CustomInvader) => {
+    if (routingSheetOpen || picking || creatingActive) return;
+    selectedInvaderRef.current = null;
+    setSelectedInvader(null);
+    setSelectedCustom(invader);
+  }, [routingSheetOpen, picking, creatingActive]);
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || create.modal || create.pickLoc) return;
     selectedInvaderRef.current = null;
     setSelectedInvader(null);
+    setSelectedCustom(null);
     setIsFollowing(false);
     create.begin(lat, lon);
+  }
+
+  async function handlePersonalSubmit(draft: CustomInvaderDraft) {
+    const editing = create.modal?.initial;
+    if (editing) await updateCustomInvader(editing.id, draft);
+    else await createCustomInvader(draft);
+  }
+
+  async function handleCustomDelete(invader: CustomInvader) {
+    setSelectedCustom(null);
+    await removeCustomInvader(invader.id);
+  }
+
+  function handleCustomEdit(invader: CustomInvader) {
+    setSelectedCustom(null);
+    create.editPersonal(invader);
   }
 
   function handlePopupHeight(height: number) {
@@ -220,7 +251,9 @@ export default function MapScreen() {
             onInvaderPress={handleInvaderClick}
           />
         }
-      />
+      >
+        <CustomInvaderSource customInvaders={customInvaders} onPress={handleCustomInvaderClick} />
+      </WebMap>
 
       {!picking && !anyCreating && (
         <View style={styles.filterBar}>
@@ -284,6 +317,18 @@ export default function MapScreen() {
         </View>
       )}
 
+      {selectedCustom && (
+        <View style={styles.popupWrapper} pointerEvents="box-none">
+          <CustomInvaderPopup
+            key={selectedCustom.id}
+            invader={selectedCustom}
+            onClose={() => setSelectedCustom(null)}
+            onEdit={handleCustomEdit}
+            onDelete={handleCustomDelete}
+          />
+        </View>
+      )}
+
       {isOfflineEmpty && (
         <View style={styles.offlineBanner} pointerEvents="none">
           <Text style={styles.offlineText}>{t("common.noInternet")}</Text>
@@ -301,19 +346,34 @@ export default function MapScreen() {
 
       {/* ── Create-invader: initial pin + "create here" card ── */}
       {create.pickerOpen && (
-        <CreateHerePopup onCreate={() => requireAccount(create.openModal)} onCancel={create.cancel} />
+        <CreateHerePopup
+          onCreate={() => requireAccount(() => create.openModal(false))}
+          // No account gate: a guest's personal invaders live locally until the
+          // claim moves them over (roadmap decision 4).
+          onCreatePersonal={() => create.openModal(true)}
+          onCancel={create.cancel}
+        />
       )}
 
-      {/* ── Create-invader: full form modal ── */}
+      {/* ── Create-invader: full form modal (community proposal or personal) ── */}
       {create.modal && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
           <CreateInvaderModal
             lat={create.modal.lat}
             lon={create.modal.lon}
             onPickLocation={create.startPickLoc}
-            onRequestSent={() => { create.closeModal(); toast.show(); }}
+            onRequestSent={() => {
+              const wasPersonal = create.modal?.personal ?? false;
+              create.closeModal();
+              // A personal invader appears on the map immediately — the
+              // "sent for review" toast would be a lie.
+              if (!wasPersonal) toast.show();
+            }}
             onClose={create.closeModal}
             onSubmitCreateRequest={submitCreateRequest}
+            personal={create.modal.personal
+              ? { initial: create.modal.initial, onSubmit: handlePersonalSubmit }
+              : undefined}
           />
         </View>
       )}

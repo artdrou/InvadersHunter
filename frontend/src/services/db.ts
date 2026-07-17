@@ -8,15 +8,20 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Invader, Capture, UserRequest } from '@/features/invaders/types';
+import type { CustomInvader } from '@/features/custom-invaders/types';
 
 export type PendingSync = {
   id: number;
-  type: 'flash' | 'unflash' | 'modify_request' | 'create_request';
+  type:
+    | 'flash' | 'unflash' | 'modify_request' | 'create_request'
+    // Personal invaders — invader_id carries the custom invader's local id
+    // (temp negative for create, real server id for update/delete).
+    | 'create_custom_invader' | 'update_custom_invader' | 'delete_custom_invader';
   invader_id: number | null;
   capture_id: number | null;  // temp local ID (flash) or real server ID (unflash)
   user_id: number;
   created_at: string;
-  payload?: string | null;    // JSON for modify_request / create_request; absent for flash/unflash
+  payload?: string | null;    // JSON for modify_request / create_request / custom invader writes
 };
 
 // ── Init / migrations ─────────────────────────────────────────────────────────
@@ -66,6 +71,31 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
       proposed_name TEXT,
       updated_at    TEXT
     )`
+  );
+  // Personal invaders. Mirrors the `invaders` columns plus user_id/is_pending —
+  // a negative id means the row has never reached the server (guest, or created
+  // offline) and will be rewritten once claimed/synced.
+  await db.runAsync(
+    `CREATE TABLE IF NOT EXISTS custom_invaders (
+      id          INTEGER PRIMARY KEY,
+      user_id     INTEGER NOT NULL,
+      name        TEXT    NOT NULL,
+      city        TEXT,
+      number      INTEGER,
+      image_url   TEXT,
+      description TEXT,
+      points      INTEGER,
+      state       TEXT,
+      latitude    REAL,
+      longitude   REAL,
+      date_pose   TEXT,
+      created_at  TEXT,
+      updated_at  TEXT,
+      is_pending  INTEGER NOT NULL DEFAULT 0
+    )`
+  );
+  await db.runAsync(
+    'CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_id ON custom_invaders (user_id)'
   );
   await db.runAsync(
     `CREATE TABLE IF NOT EXISTS pending_syncs (
@@ -202,6 +232,81 @@ export async function deleteCapturesForUser(db: SQLiteDatabase, userId: number):
   await db.runAsync('DELETE FROM captures WHERE user_id = ?', [userId]);
 }
 
+// ── Custom invaders ───────────────────────────────────────────────────────────
+
+export async function getAllCustomInvaders(db: SQLiteDatabase, userId: number): Promise<CustomInvader[]> {
+  return db.getAllAsync<CustomInvader>(
+    'SELECT * FROM custom_invaders WHERE user_id = ?',
+    [userId],
+  );
+}
+
+export async function upsertCustomInvaders(
+  db: SQLiteDatabase,
+  invaders: CustomInvader[],
+): Promise<void> {
+  if (invaders.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const inv of invaders) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO custom_invaders
+          (id, user_id, name, city, number, image_url, description, points, state,
+           latitude, longitude, date_pose, created_at, updated_at, is_pending)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          inv.id, inv.user_id, inv.name, inv.city ?? null, inv.number ?? null,
+          inv.image_url ?? null, inv.description ?? null, inv.points ?? null,
+          inv.state ?? null, inv.latitude, inv.longitude, inv.date_pose ?? null,
+          inv.created_at ?? null, inv.updated_at ?? null, inv.is_pending ?? 0,
+        ],
+      );
+    }
+  });
+}
+
+/** Full replace for the first (non-delta) sync — keeps rows still awaiting push. */
+export async function replaceCustomInvaders(
+  db: SQLiteDatabase,
+  userId: number,
+  invaders: CustomInvader[],
+): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM custom_invaders WHERE user_id = ? AND is_pending = 0', [userId]);
+    for (const inv of invaders) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO custom_invaders
+          (id, user_id, name, city, number, image_url, description, points, state,
+           latitude, longitude, date_pose, created_at, updated_at, is_pending)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [
+          inv.id, inv.user_id, inv.name, inv.city ?? null, inv.number ?? null,
+          inv.image_url ?? null, inv.description ?? null, inv.points ?? null,
+          inv.state ?? null, inv.latitude, inv.longitude, inv.date_pose ?? null,
+          inv.created_at ?? null, inv.updated_at ?? null,
+        ],
+      );
+    }
+  });
+}
+
+export async function deleteCustomInvader(db: SQLiteDatabase, id: number): Promise<void> {
+  await db.runAsync('DELETE FROM custom_invaders WHERE id = ?', [id]);
+}
+
+export async function deleteCustomInvadersByIds(db: SQLiteDatabase, ids: number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const id of ids) {
+      await db.runAsync('DELETE FROM custom_invaders WHERE id = ?', [id]);
+    }
+  });
+}
+
+/** Remove every custom invader belonging to a user — clears guest rows once claimed. */
+export async function deleteCustomInvadersForUser(db: SQLiteDatabase, userId: number): Promise<void> {
+  await db.runAsync('DELETE FROM custom_invaders WHERE user_id = ?', [userId]);
+}
+
 // ── Pending syncs ─────────────────────────────────────────────────────────────
 
 export async function getPendingSyncs(db: SQLiteDatabase, userId: number): Promise<PendingSync[]> {
@@ -223,6 +328,19 @@ export async function insertPendingSync(
 
 export async function deletePendingSync(db: SQLiteDatabase, id: number): Promise<void> {
   await db.runAsync('DELETE FROM pending_syncs WHERE id = ?', [id]);
+}
+
+/**
+ * Rewrite a queued operation's payload in place. Used when a row is edited again
+ * before its original write reached the server: the queue must carry the latest
+ * state, not replay a stale one.
+ */
+export async function updatePendingSyncPayload(
+  db: SQLiteDatabase,
+  id: number,
+  payload: string,
+): Promise<void> {
+  await db.runAsync('UPDATE pending_syncs SET payload = ? WHERE id = ?', [payload, id]);
 }
 
 // ── User Requests ─────────────────────────────────────────────────────────────

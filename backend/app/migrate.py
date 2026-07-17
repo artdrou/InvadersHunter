@@ -155,6 +155,38 @@ MIGRATIONS = [
     "CREATE INDEX IF NOT EXISTS idx_comment_reactions_comment_id ON comment_reactions (comment_id)",
     "CREATE INDEX IF NOT EXISTS idx_comment_reactions_user_id ON comment_reactions (user_id)",
 
+    # Personal ("custom") invaders — private per-user rows, deliberately kept out
+    # of `invaders` so they never reach the community dataset (models/custom_invader.py)
+    """CREATE TABLE IF NOT EXISTS custom_invaders (
+        id          SERIAL PRIMARY KEY,
+        user_id     INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        name        VARCHAR NOT NULL,
+        city        VARCHAR,
+        number      INTEGER,
+        image_url   VARCHAR,
+        description VARCHAR,
+        points      INTEGER,
+        state       VARCHAR,
+        latitude    DOUBLE PRECISION,
+        longitude   DOUBLE PRECISION,
+        date_pose   DATE,
+        created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_id ON custom_invaders (user_id)",
+    # Delta sync reads (user_id, updated_at) together on every sync cycle
+    "CREATE INDEX IF NOT EXISTS idx_custom_invaders_user_updated ON custom_invaders (user_id, updated_at)",
+    # Tombstones so a delete propagates to the owner's other devices — a delta
+    # sync only sees rows whose updated_at moved, never a vanished one.
+    """CREATE TABLE IF NOT EXISTS deleted_custom_invaders (
+        id                SERIAL PRIMARY KEY,
+        custom_invader_id INTEGER NOT NULL,
+        user_id           INTEGER NOT NULL,
+        deleted_at        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_deleted_custom_invaders_user_id ON deleted_custom_invaders (user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_deleted_custom_invaders_deleted_at ON deleted_custom_invaders (deleted_at)",
+
     # FK lookup indexes — Postgres doesn't index foreign keys automatically.
     # Both are hit on every popup open by GET /invaders/{id}/contributors.
     "CREATE INDEX IF NOT EXISTS idx_admin_requests_invader_id ON admin_requests (invader_id)",

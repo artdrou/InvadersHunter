@@ -35,10 +35,10 @@ Les 5 features telles que demandées :
 | **A** | Guest mode | ✅ **Livré** — mergé dans `main` (PR #15) |
 | **E** | Découvert / mis à jour par | ✅ **Livré** — mergé dans `main` (PR #15) |
 | **D** | Mur de commentaires | ✅ **Livré** — sur `main` (commits `ab709e8` → `19ac9ff`) |
-| **B** | Custom / perso invaders | ⬜ **À faire** — pas commencé |
+| **B** | Custom / perso invaders | 🟡 **En cours** — branche `feature/custom-invaders` (B1 + B2 codés, non mergés) |
 | **C** | Mode ami | ⬜ **À faire** — pas commencé |
 
-Suites vertes à date : **285 tests backend**, **176 tests frontend**.
+Suites vertes à date : **306 tests backend**, **201 tests frontend**.
 
 ---
 
@@ -130,27 +130,49 @@ Sans clé → tout en `pending_review`, jamais bloquant.
 
 # Ce qui reste à faire
 
-## Track B — Custom / perso invaders ⬜
+## Track B — Custom / perso invaders 🟡
 
-À faire **avant C** : établit le pattern « données custom locales SQLite » dont C a besoin
-pour partager les custom invaders des amis.
+Codé sur la branche `feature/custom-invaders` (partie de `dev/OTA-force-foreground`),
+**pas encore mergé ni testé sur device**. Établit le pattern « données custom locales
+SQLite » dont C a besoin pour partager les custom invaders des amis.
 
-### B1 — Backend
-1. Modèle `custom_invaders` : table dédiée liée au user (**pas** dans `invaders`), avec
-   les champs d'un invader (name, latitude, longitude, points, state, image…) + `user_id`
-   FK CASCADE **indexé**.
-2. Schémas Pydantic + CRUD **owner-scoped** (un user ne voit/modifie que les siens).
-3. Inclusion dans le **sync delta** (meta timestamps, même modèle que les autres endpoints).
-4. `migrate.py` : `CREATE TABLE IF NOT EXISTS` + index FK.
-5. Tests (create/list/update/delete owner-scoped + isolation entre users + sync delta).
+### B1 — Backend ✅
+1. `models/custom_invader.py` : `CustomInvader` (table dédiée, `user_id` FK CASCADE
+   indexé) + `DeletedCustomInvader` (tombstones — un delete est invisible d'un delta
+   sync sinon, même logique que `deleted_invaders`).
+2. `schemas/custom_invader.py` + `services/custom_invader_service.py` : CRUD
+   **owner-scoped** (l'owner vient du token, jamais du body). Row d'un autre user →
+   **404, pas 403** : on ne divulgue pas son existence.
+3. `api/routers/custom_invaders.py` : list (delta `updated_since`) / deleted / create /
+   update / delete, tous authentifiés.
+4. `migrate.py` : `CREATE TABLE IF NOT EXISTS` + index FK + index `(user_id, updated_at)`
+   pour le delta.
+5. Claim guest étendu (`/account/claim` prend `custom_invaders`, renvoie
+   `local_id → row canonique`).
+6. **21 tests** (`tests/test_custom_invaders.py`) : CRUD, isolation entre users, delta,
+   tombstones, claim. Suite backend : **306 verts**.
 
-### B2 — Frontend
-1. Table SQLite locale (check `PRAGMA table_info` dans `services/db.ts`).
-2. UI create/edit — **réutiliser `CreateInvaderModal`**.
-3. Rendu carte : marqueur visuellement distinct + label « perso ».
-4. Sync via le delta B1.
-5. **Guest** : création en local, **id local négatif temporaire réécrit au claim**
-   (cf. décision 4). Se branche sur le gate de Track A.
+### B2 — Frontend ✅
+1. Table SQLite locale `custom_invaders` + CRUD dans `services/db.ts`.
+2. UI create/edit — `CreateInvaderModal` **réutilisée** via une prop `personal`
+   (`{ initial, onSubmit }`) : même formulaire, submit et titre branchés ailleurs.
+   Pas de photo en mode perso (l'upload est indexé sur un id d'admin request).
+3. Rendu carte : `CustomInvaderSource` — **ShapeSource dédiée** (les ids perso sont un
+   espace séparé, et négatifs tant que non synchronisés → collision avec les ids
+   communautaires dans la couche partagée), halo doré + label « perso ».
+   `CustomInvaderPopup` : pas de flash / commentaires / contributeurs, juste edit+delete.
+4. Sync delta (`last_custom_invaders_sync`) + file offline (`create/update/delete_custom_invader`).
+5. **Guest** : création locale sous `GUEST_USER_ID`, id négatif réécrit au claim.
+   Pas de gate compte sur le bouton perso (cf. décision 4).
+6. **25 tests** front ajoutés (15 hook + 10 sync). Suite front : **201 verts**.
+
+### Reste à faire sur B
+- **Test sur device** — rien n'a été lancé dans l'app réelle (marqueur, halo, label,
+  popup, formulaire perso).
+- **Bug pré-existant hérité** : « ajuster la position » démonte `CreateInvaderModal`
+  (`setModal(null)` dans `use-map-create-flow`), donc le formulaire perd les champs
+  saisis au retour. Existe déjà sur le flux communautaire ; en perso les champs sont
+  repeuplés depuis la row en édition, mais les saisies non enregistrées sont perdues.
 
 ## Track C — Mode ami ⬜
 
@@ -164,7 +186,9 @@ peut démarrer avant. La part *custom invaders* dépend de B.
 
 ### C2 — Backend : accès aux données des amis
 1. Endpoint captures des amis — **accepted-only**.
-2. Endpoint custom invaders des amis — **accepted-only** (dépend de B1).
+2. Endpoint custom invaders des amis — **accepted-only** (dépend de B1, désormais posé :
+   voir `custom_invader_service.list_for_user`, à doubler d'une variante « ami » qui
+   scope sur une friendship acceptée plutôt que sur le token).
 
 ### C3 — Frontend : UI amis
 Liste / ajout par username / demandes en attente + store + api.

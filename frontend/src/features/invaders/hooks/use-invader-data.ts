@@ -3,10 +3,11 @@ import { AppState } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuthStore, GUEST_USER_ID } from '@/features/auth';
 import {
-  getAllInvaders, getAllCaptures,
+  getAllInvaders, getAllCaptures, getAllCustomInvaders,
   insertCapture, deleteCapture,
   insertPendingSync, deletePendingSync, getPendingSyncs,
 } from '@/services/db';
+import { useCustomInvaderStore } from '@/features/custom-invaders/store';
 import { syncAll, syncInvadersOnly, isNetworkError, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '@/services/sync';
 import { useConnectivityStore } from '@/services/connectivity';
 import { logger } from '@/services/logger';
@@ -55,13 +56,17 @@ export function useInvaderData() {
     }
   }, []);
 
+  // Single load path for everything the map reads — personal invaders included,
+  // so they refresh on the same cycle as invaders/captures (mount, sync, retry).
   const loadFromDb = useCallback(async (userId: number) => {
-    const [inv, prog] = await Promise.all([
+    const [inv, prog, custom] = await Promise.all([
       getAllInvaders(db),
       getAllCaptures(db, userId),
+      getAllCustomInvaders(db, userId),
     ]);
     setInvaders(inv);
     setProgress(prog);
+    useCustomInvaderStore.getState().setCustomInvaders(custom);
   }, [db, setInvaders, setProgress]);
 
   const runSync = useCallback(async (userId: number) => {

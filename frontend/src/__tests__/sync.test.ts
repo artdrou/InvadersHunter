@@ -7,13 +7,16 @@
 import { isNetworkError, flushPendingSyncs, syncAll, syncInvadersOnly, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '../services/sync';
 import * as db from '../services/db';
 import * as api from '../features/invaders/services/invaders.api';
+import * as customApi from '../features/custom-invaders/services/custom-invaders.api';
 import * as accountApi from '../features/auth/services/account.api';
 import { GUEST_USER_ID } from '../features/auth/guest';
 import type { PendingSync } from '../services/db';
 import type { Capture } from '../features/invaders/types';
+import type { CustomInvader } from '../features/custom-invaders/types';
 
 jest.mock('../services/db');
 jest.mock('../features/invaders/services/invaders.api');
+jest.mock('../features/custom-invaders/services/custom-invaders.api');
 jest.mock('../features/auth/services/account.api');
 
 const mockDb = {} as any;
@@ -33,8 +36,19 @@ const replaceRequests  = db.replaceRequests  as jest.Mock;
 const upsertRequests   = db.upsertRequests   as jest.Mock;
 const getAllCaptures   = db.getAllCaptures   as jest.Mock;
 const deleteCapturesForUser = db.deleteCapturesForUser as jest.Mock;
+const getAllCustomInvaders     = db.getAllCustomInvaders     as jest.Mock;
+const upsertCustomInvaders     = db.upsertCustomInvaders     as jest.Mock;
+const replaceCustomInvaders    = db.replaceCustomInvaders    as jest.Mock;
+const deleteCustomInvadersByIds = db.deleteCustomInvadersByIds as jest.Mock;
+const deleteCustomInvadersForUser = db.deleteCustomInvadersForUser as jest.Mock;
 
-const claimCaptures    = accountApi.claimCaptures as jest.Mock;
+const claimGuestData   = accountApi.claimGuestData as jest.Mock;
+
+const fetchCustomInvaders        = customApi.fetchCustomInvaders        as jest.Mock;
+const fetchDeletedCustomInvaderIds = customApi.fetchDeletedCustomInvaderIds as jest.Mock;
+const apiCreateCustom  = customApi.createCustomInvader as jest.Mock;
+const apiUpdateCustom  = customApi.updateCustomInvader as jest.Mock;
+const apiDeleteCustom  = customApi.deleteCustomInvader as jest.Mock;
 
 const apiFlash         = api.flashInvader          as jest.Mock;
 const apiUnflash       = api.unflashInvader        as jest.Mock;
@@ -62,13 +76,23 @@ beforeEach(() => {
   upsertRequests.mockResolvedValue(undefined);
   getAllCaptures.mockResolvedValue([]);
   deleteCapturesForUser.mockResolvedValue(undefined);
-  claimCaptures.mockResolvedValue(undefined);
+  getAllCustomInvaders.mockResolvedValue([]);
+  upsertCustomInvaders.mockResolvedValue(undefined);
+  replaceCustomInvaders.mockResolvedValue(undefined);
+  deleteCustomInvadersByIds.mockResolvedValue(undefined);
+  deleteCustomInvadersForUser.mockResolvedValue(undefined);
+  claimGuestData.mockResolvedValue({ custom_invaders: [] });
   apiSubmitModify.mockResolvedValue(undefined);
   apiSubmitCreate.mockResolvedValue(undefined);
   fetchInvaders.mockResolvedValue([]);
   fetchProgress.mockResolvedValue([]);
   fetchDeletedInvaderIds.mockResolvedValue([]);
   fetchUserRequests.mockResolvedValue([]);
+  fetchCustomInvaders.mockResolvedValue([]);
+  fetchDeletedCustomInvaderIds.mockResolvedValue([]);
+  apiCreateCustom.mockResolvedValue(undefined);
+  apiUpdateCustom.mockResolvedValue(undefined);
+  apiDeleteCustom.mockResolvedValue(undefined);
 });
 
 // ── isNetworkError ────────────────────────────────────────────────────────────
@@ -441,6 +465,14 @@ describe('syncAll — guest → account claim', () => {
     return { id: -1000, invader_id: 10, user_id: GUEST_USER_ID, found_at: '2024-01-01T00:00:00Z', ...overrides };
   }
 
+  function makeGuestCustom(overrides: Partial<CustomInvader> = {}): CustomInvader {
+    return {
+      id: -2000, user_id: GUEST_USER_ID, name: 'PA_9001', city: 'PA', number: 9001,
+      image_url: null, description: null, points: 30, state: 'Good',
+      latitude: 48.85, longitude: 2.35, date_pose: null, ...overrides,
+    };
+  }
+
   it('claims local guest captures then deletes them', async () => {
     getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
       userId === GUEST_USER_ID ? [makeGuestCapture(), makeGuestCapture({ id: -1001, invader_id: 11 })] : [],
@@ -448,25 +480,26 @@ describe('syncAll — guest → account claim', () => {
 
     await syncAll(mockDb, 42);
 
-    expect(claimCaptures).toHaveBeenCalledWith([
+    expect(claimGuestData).toHaveBeenCalledWith([
       { invader_id: 10, found_at: '2024-01-01T00:00:00Z' },
       { invader_id: 11, found_at: '2024-01-01T00:00:00Z' },
-    ]);
+    ], []);
     expect(deleteCapturesForUser).toHaveBeenCalledWith(mockDb, GUEST_USER_ID);
   });
 
-  it('does nothing when there are no guest captures', async () => {
+  it('does nothing when there is no guest data at all', async () => {
     await syncAll(mockDb, 42);
 
-    expect(claimCaptures).not.toHaveBeenCalled();
+    expect(claimGuestData).not.toHaveBeenCalled();
     expect(deleteCapturesForUser).not.toHaveBeenCalled();
+    expect(deleteCustomInvadersForUser).not.toHaveBeenCalled();
   });
 
   it('continues the sync and keeps guest rows when the server rejects the claim (e.g. old backend 404)', async () => {
     getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
       userId === GUEST_USER_ID ? [makeGuestCapture()] : [],
     );
-    claimCaptures.mockRejectedValue({ response: { status: 404 } });
+    claimGuestData.mockRejectedValue({ response: { status: 404 } });
 
     await syncAll(mockDb, 42);  // must NOT throw
 
@@ -478,10 +511,155 @@ describe('syncAll — guest → account claim', () => {
     getAllCaptures.mockImplementation(async (_db: unknown, userId: number) =>
       userId === GUEST_USER_ID ? [makeGuestCapture()] : [],
     );
-    claimCaptures.mockRejectedValue({ code: 'ERR_NETWORK' });
+    claimGuestData.mockRejectedValue({ code: 'ERR_NETWORK' });
 
     await expect(syncAll(mockDb, 42)).rejects.toBeTruthy();
 
     expect(deleteCapturesForUser).not.toHaveBeenCalled();
+  });
+
+  // ── custom invaders in the claim ────────────────────────────────────────────
+
+  it('claims guest custom invaders even when there are no captures', async () => {
+    getAllCustomInvaders.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCustom()] : [],
+    );
+
+    await syncAll(mockDb, 42);
+
+    expect(claimGuestData).toHaveBeenCalledWith([], [
+      expect.objectContaining({ local_id: -2000, name: 'PA_9001', latitude: 48.85 }),
+    ]);
+    expect(deleteCustomInvadersForUser).toHaveBeenCalledWith(mockDb, GUEST_USER_ID);
+  });
+
+  it('rewrites claimed custom invaders onto their real server ids', async () => {
+    getAllCustomInvaders.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCustom()] : [],
+    );
+    claimGuestData.mockResolvedValue({
+      custom_invaders: [
+        { local_id: -2000, invader: { ...makeGuestCustom(), id: 77, user_id: 42 } },
+      ],
+    });
+
+    await syncAll(mockDb, 42);
+
+    // The temporary -2000 row is gone and the canonical id 77 row took its place
+    expect(deleteCustomInvadersForUser).toHaveBeenCalledWith(mockDb, GUEST_USER_ID);
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [
+      expect.objectContaining({ id: 77, user_id: 42, is_pending: 0 }),
+    ]);
+  });
+
+  it('keeps guest custom invaders when the claim is rejected', async () => {
+    getAllCustomInvaders.mockImplementation(async (_db: unknown, userId: number) =>
+      userId === GUEST_USER_ID ? [makeGuestCustom()] : [],
+    );
+    claimGuestData.mockRejectedValue({ response: { status: 404 } });
+
+    await syncAll(mockDb, 42);
+
+    expect(deleteCustomInvadersForUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('syncAll — custom invaders delta', () => {
+  it('full-replaces on first sync and upserts on a delta sync', async () => {
+    const row = { id: 1, user_id: 42, name: 'PA_1' };
+    fetchCustomInvaders.mockResolvedValue([row]);
+
+    await syncAll(mockDb, 42);  // no meta → first sync
+    expect(replaceCustomInvaders).toHaveBeenCalledWith(mockDb, 42, [row]);
+    expect(upsertCustomInvaders).not.toHaveBeenCalled();
+
+    jest.clearAllMocks();
+    getMeta.mockImplementation(async (_db: unknown, key: string) =>
+      key === 'last_custom_invaders_sync' ? '2024-06-01T00:00:00Z' : null,
+    );
+    fetchCustomInvaders.mockResolvedValue([row]);
+    fetchDeletedCustomInvaderIds.mockResolvedValue([]);
+    fetchInvaders.mockResolvedValue([]);
+    fetchProgress.mockResolvedValue([]);
+    fetchUserRequests.mockResolvedValue([]);
+    fetchDeletedInvaderIds.mockResolvedValue([]);
+    getAllCaptures.mockResolvedValue([]);
+    getAllCustomInvaders.mockResolvedValue([]);
+
+    await syncAll(mockDb, 42);
+    expect(fetchCustomInvaders).toHaveBeenCalledWith('2024-06-01T00:00:00Z');
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [row]);
+    expect(replaceCustomInvaders).not.toHaveBeenCalled();
+  });
+
+  it('prunes rows deleted from another device', async () => {
+    fetchDeletedCustomInvaderIds.mockResolvedValue([5, 6]);
+
+    await syncAll(mockDb, 42);
+
+    expect(deleteCustomInvadersByIds).toHaveBeenCalledWith(mockDb, [5, 6]);
+  });
+
+  it('survives a backend without the deleted endpoint', async () => {
+    fetchDeletedCustomInvaderIds.mockRejectedValue({ response: { status: 422 } });
+
+    await syncAll(mockDb, 42);  // must NOT throw
+
+    expect(deleteCustomInvadersByIds).toHaveBeenCalledWith(mockDb, []);
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_custom_invaders_sync', expect.any(String));
+  });
+});
+
+describe('flushPendingSyncs — custom invaders', () => {
+  function queue(item: Partial<PendingSync>): PendingSync {
+    return {
+      id: 1, type: 'create_custom_invader', invader_id: -2000, capture_id: null,
+      user_id: 42, created_at: '2024-01-01T00:00:00Z', payload: '{"name":"PA_1"}',
+      ...item,
+    } as PendingSync;
+  }
+
+  it('swaps the temporary local row for the server one on create', async () => {
+    getPendingSyncs.mockResolvedValue([queue({})]);
+    apiCreateCustom.mockResolvedValue({ id: 88, user_id: 42, name: 'PA_1' });
+
+    await flushPendingSyncs(mockDb, 42);
+
+    expect(apiCreateCustom).toHaveBeenCalledWith({ name: 'PA_1' });
+    expect(db.deleteCustomInvader).toHaveBeenCalledWith(mockDb, -2000);
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [{ id: 88, user_id: 42, name: 'PA_1' }]);
+    expect(deletePendingSync).toHaveBeenCalledWith(mockDb, 1);
+  });
+
+  it('pushes a queued update and stores the server response', async () => {
+    getPendingSyncs.mockResolvedValue([
+      queue({ type: 'update_custom_invader', invader_id: 88, payload: '{"points":50}' }),
+    ]);
+    apiUpdateCustom.mockResolvedValue({ id: 88, points: 50 });
+
+    await flushPendingSyncs(mockDb, 42);
+
+    expect(apiUpdateCustom).toHaveBeenCalledWith(88, { points: 50 });
+    expect(upsertCustomInvaders).toHaveBeenCalledWith(mockDb, [{ id: 88, points: 50 }]);
+  });
+
+  it('pushes a queued delete', async () => {
+    getPendingSyncs.mockResolvedValue([
+      queue({ type: 'delete_custom_invader', invader_id: 88, payload: null }),
+    ]);
+
+    await flushPendingSyncs(mockDb, 42);
+
+    expect(apiDeleteCustom).toHaveBeenCalledWith(88);
+    expect(deletePendingSync).toHaveBeenCalledWith(mockDb, 1);
+  });
+
+  it('stops at a network error so the create is retried later', async () => {
+    getPendingSyncs.mockResolvedValue([queue({})]);
+    apiCreateCustom.mockRejectedValue({ code: 'ERR_NETWORK' });
+
+    await flushPendingSyncs(mockDb, 42);
+
+    expect(deletePendingSync).not.toHaveBeenCalled();
   });
 });

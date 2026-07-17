@@ -359,6 +359,20 @@
     "discoveredByLabel": "Discovered by",
     "updatedByLabel": "Updated by"
   },
+  "customInvaders": {
+    "markerLabel": "personal",
+    "createBtn": "Add a personal one",
+    "newTitle": "New personal invader",
+    "editTitle": "Edit personal invader",
+    "badge": "Type",
+    "badgeValue": "Personal",
+    "save": "Save",
+    "saveFailed": "Could not save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete personal invader",
+    "deleteMessage": "Delete “{{name}}”? This cannot be undone."
+  },
   "comments": {
     "title": "Comments",
     "empty": "No comments yet. Be the first!",
