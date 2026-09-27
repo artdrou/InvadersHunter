@@ -40,7 +40,9 @@ def main(argv=None) -> int:
                    help="full mode: send push notifications (news mode always does)")
     args = p.parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s",
+                        stream=sys.stdout, force=True)
+    log.info("spotter sync starting: %s", vars(args))
     _register_models()
 
     db = database.SessionLocal()

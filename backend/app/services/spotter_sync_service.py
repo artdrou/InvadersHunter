@@ -135,7 +135,8 @@ def sync_from_news(
     cutoff = (today or date.today()) - timedelta(days=days)
 
     # Network phase
-    entries = spotter_scraper.fetch_news(requests.Session())
+    log.info("news: fetching %s", spotter_scraper.NEWS_URL)
+    entries = spotter_scraper.fetch_news(spotter_scraper.new_session())
     names: List[Tuple[str, int]] = []
     for day, invaders in entries:
         if day < cutoff:
@@ -147,8 +148,9 @@ def sync_from_news(
 
     session = spotter_scraper.new_search_session()
     scraped: Dict[Tuple[str, int], dict] = {}
-    for city, number in names:
+    for idx, (city, number) in enumerate(names, 1):
         label = f"{city}_{number}"
+        log.info("news: [%d/%d] fetching %s", idx, len(names), label)
         try:
             info = spotter_scraper.fetch_single_invader(session, city, number)
         except requests.RequestException as e:
@@ -163,6 +165,7 @@ def sync_from_news(
             scraped[(city, number)] = info
 
     # DB phase
+    log.info("news: comparing %d scraped invaders with the DB", len(scraped))
     _reconcile(db, report, scraped, notify=True)
     return report
 
@@ -181,6 +184,7 @@ def sync_full(
     if city:
         q = q.filter(Invader.city == city)
     db_keys = set(q.all())
+    log.info("full: %d invaders in DB across %d cities", len(db_keys), len({c for c, _ in db_keys}))
     db.rollback()  # release the connection before minutes of scraping
 
     # Network phase
@@ -205,5 +209,6 @@ def sync_full(
         log.info("full: %s scraped (%d on site)", city_code, len(city_rows))
 
     # DB phase
+    log.info("full: comparing %d scraped invaders with the DB", len(scraped))
     _reconcile(db, report, scraped, notify=notify, city=city)
     return report

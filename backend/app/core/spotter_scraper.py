@@ -23,7 +23,8 @@ BASE_URL = "https://www.invader-spotter.art"
 LISTING_URL = f"{BASE_URL}/listing.php"
 NEWS_URL = f"{BASE_URL}/news.php"
 SEARCH_URL = f"{BASE_URL}/cherche.php"
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = (10, 30)  # (connect, read) seconds
+USER_AGENT = "InvadersHunter-sync/1.0 (+https://invader-hunter-development.up.railway.app)"
 
 INVADER_NAME_RE = re.compile(r"\b([A-Z]{1,5})_(\d{1,4})\b")
 _NEWS_MONTH_ID_RE = re.compile(r"^mois(\d{4})(\d{2})$")
@@ -66,6 +67,12 @@ def parse_news_html(html: str) -> List[Tuple[date, List[Tuple[str, int]]]]:
                 entries.append((day, seen))
     entries.sort(key=lambda e: e[0], reverse=True)
     return entries
+
+
+def new_session() -> requests.Session:
+    s = requests.Session()
+    s.headers.update({"User-Agent": USER_AGENT})
+    return s
 
 
 def fetch_news(session: requests.Session) -> List[Tuple[date, List[Tuple[str, int]]]]:
@@ -157,14 +164,14 @@ def parse_row(element) -> Optional[dict]:
 
 def new_search_session() -> requests.Session:
     """Session for single-invader lookups: needs a PHPSESSID from cherche.php first."""
-    s = requests.Session()
+    s = new_session()
     s.get(SEARCH_URL, timeout=REQUEST_TIMEOUT)
     s.headers.update({"Referer": SEARCH_URL})
     return s
 
 
 def new_listing_session() -> requests.Session:
-    s = requests.Session()
+    s = new_session()
     s.headers.update({"Referer": f"{BASE_URL}/villes.php", "Origin": BASE_URL})
     return s
 
