@@ -149,3 +149,9 @@ def test_full_sync_is_silent_and_reports_gaps(db, invaders, fake_site):
     assert report.missing_on_site == ["PA_267"]
     notify.assert_not_called()
     assert db.query(AdminRequest).filter(AdminRequest.status == "approved").count() == 2
+
+
+def test_full_sync_notifies_when_asked(db, invaders, fake_site):
+    with patch("app.services.notification_service.notify_invader_event") as notify:
+        spotter_sync_service.sync_full(db, delay=0, notify=True)
+    assert notify.call_count == 2

@@ -3,7 +3,7 @@ One-shot job: align invader states with invader-spotter.art, then exit.
 
 Run by Railway Cron services (see backend/railway.spotter-*.json):
   python -m app.jobs.spotter_sync --mode news     # twice a day
-  python -m app.jobs.spotter_sync --mode full     # once a week, no push notifications
+  python -m app.jobs.spotter_sync --mode full     # once a week, silent (add --notify to push)
 
 Local test (from /backend), no DB writes:
   venv/Scripts/python.exe -m app.jobs.spotter_sync --mode news --dry-run
@@ -36,6 +36,8 @@ def main(argv=None) -> int:
     p.add_argument("--delay", type=float, default=spotter_sync_service.DEFAULT_DELAY_S,
                    help="seconds between requests to the site")
     p.add_argument("--dry-run", action="store_true", help="report differences without writing")
+    p.add_argument("--notify", action="store_true",
+                   help="full mode: send push notifications (news mode always does)")
     args = p.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -46,7 +48,9 @@ def main(argv=None) -> int:
         if args.mode == "news":
             report = spotter_sync_service.sync_from_news(db, days=args.days, dry_run=args.dry_run, delay=args.delay)
         else:
-            report = spotter_sync_service.sync_full(db, dry_run=args.dry_run, delay=args.delay, city=args.city)
+            report = spotter_sync_service.sync_full(
+                db, dry_run=args.dry_run, delay=args.delay, city=args.city, notify=args.notify,
+            )
         if args.dry_run:
             db.rollback()
     except Exception:

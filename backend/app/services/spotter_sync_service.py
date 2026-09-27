@@ -6,7 +6,7 @@ Two modes, both run by app/jobs/spotter_sync.py on a Railway Cron schedule:
     invader mentioned in the last few days (the news text alone doesn't always
     say the new state, e.g. "Mise à jour du statut de PA_1324").
   - sync_full():      weekly safety net. Scrapes every city listing and fixes any
-    drift. Silent (no push) so a large first-run backlog doesn't spam users.
+    drift. Silent by default (--notify to push) so a large backlog doesn't spam users.
 
 Every change goes through a `source="scraper"` AdminRequest auto-approved via
 admin_request_service.approve(), so it shows up in the News feed (credited
@@ -172,7 +172,9 @@ def sync_full(
     dry_run: bool = False,
     delay: float = DEFAULT_DELAY_S,
     city: Optional[str] = None,
+    notify: bool = False,
 ) -> SyncReport:
+    """`notify` defaults to False so a large drift backlog doesn't spam users."""
     report = SyncReport(mode="full", dry_run=dry_run)
 
     q = db.query(Invader.city, Invader.number).filter(Invader.city.isnot(None), Invader.number.isnot(None))
@@ -203,5 +205,5 @@ def sync_full(
         log.info("full: %s scraped (%d on site)", city_code, len(city_rows))
 
     # DB phase
-    _reconcile(db, report, scraped, notify=False, city=city)
+    _reconcile(db, report, scraped, notify=notify, city=city)
     return report
