@@ -41,58 +41,10 @@ from app.models.space_invader import Invader
 from app.models.user_progress import UserProgress
 from app.models.admin_request import AdminRequest
 from app.models.user_request import UserRequest
+from app.core.invader_states import VALID_STATES, normalize_state  # noqa: F401 (VALID_STATES used by callers)
 
 
 UPDATABLE_COLUMNS = ["points", "state", "latitude", "longitude", "city", "number", "date_pose"]
-
-# Valid state values — must match the frontend STATE_OPTIONS list
-VALID_STATES = {
-    "Good",
-    "Slightly degraded",
-    "Degraded",
-    "Badly degraded",
-    "Destroyed",
-    "Not visible",
-    "Unknown",
-}
-
-# Maps CSV French values to canonical English states.
-# Prefix matches are used for entries like "Détruit !Instagram: ..." and "OKInstagram: ..."
-STATE_MAP = [
-    ("OK",              "Good"),
-    ("Un peu dégradé",  "Slightly degraded"),
-    ("Dégradé",         "Degraded"),
-    ("Très dégradé",    "Badly degraded"),
-    ("Détruit !",       "Destroyed"),
-    ("Détruit",         "Destroyed"),
-    ("Non visible",     "Not visible"),
-    ("Inconnu",         "Unknown"),
-]
-
-# Legacy lowercase values that were stored in the DB before the rename — map to new canonical
-LEGACY_LOWERCASE_MAP = {
-    "pristine": "Good",
-    "slightly degraded": "Slightly degraded",
-    "degraded": "Degraded",
-    "badly degraded": "Badly degraded",
-    "destroyed": "Destroyed",
-    "not visible": "Not visible",
-}
-
-
-def normalize_state(raw: str) -> str | None:
-    """Convert any state value (French CSV / legacy lowercase / already-canonical)
-    to the canonical capitalized state, or None if unknown."""
-    raw = raw.strip()
-    if raw in VALID_STATES:
-        return raw
-    if raw.lower() in LEGACY_LOWERCASE_MAP:
-        return LEGACY_LOWERCASE_MAP[raw.lower()]
-    for prefix, canonical in STATE_MAP:
-        if raw.startswith(prefix):
-            return canonical
-    return None
-
 
 def normalize_name(name: str) -> str:
     """Strip leading zeros from the numeric part of an invader name.

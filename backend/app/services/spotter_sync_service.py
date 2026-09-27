@@ -1,0 +1,207 @@
+"""
+Keeps invader states aligned with invader-spotter.art.
+
+Two modes, both run by app/jobs/spotter_sync.py on a Railway Cron schedule:
+  - sync_from_news(): cheap, twice a day. Reads news.php, then re-fetches each
+    invader mentioned in the last few days (the news text alone doesn't always
+    say the new state, e.g. "Mise à jour du statut de PA_1324").
+  - sync_full():      weekly safety net. Scrapes every city listing and fixes any
+    drift. Silent (no push) so a large first-run backlog doesn't spam users.
+
+Every change goes through a `source="scraper"` AdminRequest auto-approved via
+admin_request_service.approve(), so it shows up in the News feed (credited
+"invader-spotter.art"), bumps updated_at for delta sync, and (news mode) sends
+the usual push notification.
+
+Only `state` is synced. Invaders the site lists but the DB lacks (new ones:
+"Ajout de ...") are reported, not created: the site has no GPS coordinates.
+"""
+import logging
+import time
+from dataclasses import dataclass, field
+from datetime import date, timedelta
+from typing import Dict, List, Optional, Tuple
+
+import requests
+from sqlalchemy.orm import Session
+
+from ..core import spotter_scraper
+from ..core.invader_states import normalize_state
+from ..models.admin_request import AdminRequest
+from ..models.space_invader import Invader
+from . import admin_request_service
+
+log = logging.getLogger("spotter_sync")
+
+DEFAULT_NEWS_DAYS = 7          # overlap covers skipped runs (redeploys, site downtime)
+DEFAULT_DELAY_S = 0.5          # between requests — be polite to a hobby site
+VALIDATED_BY = "invader-spotter-sync"
+
+
+@dataclass
+class StateChange:
+    name: str
+    old_state: Optional[str]
+    new_state: str
+
+
+@dataclass
+class SyncReport:
+    mode: str
+    dry_run: bool
+    checked: int = 0
+    changes: List[StateChange] = field(default_factory=list)
+    missing_in_db: List[str] = field(default_factory=list)      # on the site, not in our DB
+    missing_on_site: List[str] = field(default_factory=list)    # asked the site, got nothing
+    unparsed_state: List[str] = field(default_factory=list)     # site label we can't map
+    errors: List[str] = field(default_factory=list)
+
+    def summary(self) -> str:
+        return (
+            f"[{self.mode}{' DRY-RUN' if self.dry_run else ''}] checked={self.checked} "
+            f"changed={len(self.changes)} missing_in_db={len(self.missing_in_db)} "
+            f"missing_on_site={len(self.missing_on_site)} unparsed_state={len(self.unparsed_state)} "
+            f"errors={len(self.errors)}"
+        )
+
+
+def _apply_state(db: Session, invader_id: int, new_state: str, notify: bool) -> None:
+    """Record the change as an auto-approved scraper AdminRequest (News feed + delta sync)."""
+    admin_req = AdminRequest(
+        invader_id=invader_id,
+        request_type="modify",
+        status="pending",
+        proposed_state=new_state,
+        request_count=0,
+        confidence=100,
+        source="scraper",
+        validated_by=VALIDATED_BY,
+    )
+    db.add(admin_req)
+    db.flush()
+    admin_request_service.approve(db, admin_req, admin_user=None, notify=notify)
+
+
+def _reconcile(
+    db: Session,
+    report: SyncReport,
+    scraped: Dict[Tuple[str, int], dict],
+    notify: bool,
+    city: Optional[str] = None,
+) -> None:
+    """DB phase: diff scraped rows against the DB, then apply.
+
+    Runs only once all scraping is done: Neon drops connections left idle in a
+    transaction for minutes, so no transaction may stay open across network calls.
+    Diffs are computed on plain values first because each approve() commits,
+    which expires every loaded ORM object.
+    """
+    q = db.query(Invader).filter(Invader.city.isnot(None), Invader.number.isnot(None))
+    if city:
+        q = q.filter(Invader.city == city)
+    db_invaders = {(inv.city, inv.number): inv for inv in q.all()}
+
+    pending: List[Tuple[int, str]] = []
+    for key, info in sorted(scraped.items()):
+        invader = db_invaders.get(key)
+        if invader is None:
+            report.missing_in_db.append(info.get("name") or f"{key[0]}_{key[1]}")
+            continue
+        report.checked += 1
+        raw_state = info.get("state")
+        new_state = normalize_state(raw_state) if raw_state else None
+        if new_state is None:
+            report.unparsed_state.append(f"{invader.name}: {raw_state!r}")
+            continue
+        if new_state == invader.state:
+            continue
+        report.changes.append(StateChange(invader.name, invader.state, new_state))
+        pending.append((invader.id, new_state))
+
+    if report.dry_run:
+        return
+    for invader_id, new_state in pending:
+        _apply_state(db, invader_id, new_state, notify=notify)
+
+
+def sync_from_news(
+    db: Session,
+    days: int = DEFAULT_NEWS_DAYS,
+    dry_run: bool = False,
+    delay: float = DEFAULT_DELAY_S,
+    today: Optional[date] = None,
+) -> SyncReport:
+    report = SyncReport(mode="news", dry_run=dry_run)
+    cutoff = (today or date.today()) - timedelta(days=days)
+
+    # Network phase
+    entries = spotter_scraper.fetch_news(requests.Session())
+    names: List[Tuple[str, int]] = []
+    for day, invaders in entries:
+        if day < cutoff:
+            continue
+        for key in invaders:
+            if key not in names:
+                names.append(key)
+    log.info("news: %d invaders mentioned since %s", len(names), cutoff)
+
+    session = spotter_scraper.new_search_session()
+    scraped: Dict[Tuple[str, int], dict] = {}
+    for city, number in names:
+        label = f"{city}_{number}"
+        try:
+            info = spotter_scraper.fetch_single_invader(session, city, number)
+        except requests.RequestException as e:
+            report.errors.append(f"{label}: {e}")
+            continue
+        finally:
+            if delay:
+                time.sleep(delay)
+        if info is None:
+            report.missing_on_site.append(label)
+        else:
+            scraped[(city, number)] = info
+
+    # DB phase
+    _reconcile(db, report, scraped, notify=True)
+    return report
+
+
+def sync_full(
+    db: Session,
+    dry_run: bool = False,
+    delay: float = DEFAULT_DELAY_S,
+    city: Optional[str] = None,
+) -> SyncReport:
+    report = SyncReport(mode="full", dry_run=dry_run)
+
+    q = db.query(Invader.city, Invader.number).filter(Invader.city.isnot(None), Invader.number.isnot(None))
+    if city:
+        q = q.filter(Invader.city == city)
+    db_keys = set(q.all())
+    db.rollback()  # release the connection before minutes of scraping
+
+    # Network phase
+    session = spotter_scraper.new_listing_session()
+    scraped: Dict[Tuple[str, int], dict] = {}
+    for city_code in sorted({c for c, _ in db_keys}):
+        try:
+            city_rows = spotter_scraper.fetch_city(session, city_code, delay=delay)
+        except requests.RequestException as e:
+            report.errors.append(f"{city_code}: {e}")
+            continue
+        finally:
+            if delay:
+                time.sleep(delay)
+        if not city_rows:
+            # Whole city absent: most likely a code mismatch with the site, not 100 missing invaders.
+            report.errors.append(f"{city_code}: site returned no invaders")
+            continue
+        scraped.update(city_rows)
+        for key in sorted(k for k in db_keys if k[0] == city_code and k not in city_rows):
+            report.missing_on_site.append(f"{key[0]}_{key[1]}")
+        log.info("full: %s scraped (%d on site)", city_code, len(city_rows))
+
+    # DB phase
+    _reconcile(db, report, scraped, notify=False, city=city)
+    return report
