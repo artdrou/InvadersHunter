@@ -1,7 +1,6 @@
 import argparse
 import csv
 import logging
-import re
 import sys
 from pathlib import Path
 
@@ -9,89 +8,14 @@ import requests
 from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from lib import invadersEditor
 
-BASE_URL = "https://www.invader-spotter.art"
-LISTING_URL = f"{BASE_URL}/listing.php"
+from app.core.spotter_scraper import BASE_URL, LISTING_URL, parse_row as _parseRow  # noqa: E402,F401 (re-exported for scrapeMissingFromDb)
 
 CSV_FIELDS = ["name", "city", "number", "latitude", "longitude", "state", "points", "date_pose", "state_date", "picture_url"]
 SCRAPED_FIELDS = ["state", "points", "date_pose", "state_date", "picture_url"]
 INCOMPLETE_FIELDS = ["name", "city", "number", "missing", "state", "points", "date_pose", "state_date", "picture_url", "raw_text", "raw_html"]
-
-
-def _splitByBr(font):
-    segments, current = [], []
-    for child in font.children:
-        if getattr(child, "name", None) == "br":
-            segments.append(current)
-            current = []
-        else:
-            current.append(child)
-    segments.append(current)
-    return segments
-
-
-def _segmentText(segment):
-    parts = [c.get_text() if hasattr(c, "get_text") else str(c) for c in segment]
-    return "".join(parts).strip()
-
-
-def _parseRow(element):
-    font = element.find("font", {"class": "normal"})
-    if font is None:
-        return None
-    info = {"name": None, "points": None, "date_pose": None, "state": None, "state_date": None, "picture_url": None}
-
-    for segment in _splitByBr(font):
-        text = _segmentText(segment)
-        if not text:
-            continue
-
-        for c in segment:
-            if getattr(c, "name", None) == "b":
-                bText = c.get_text()
-                nameMatch = re.search(r"\b([A-Z]{1,4}_\d{1,4})\b", bText.upper())
-                if nameMatch:
-                    info["name"] = nameMatch.group(1)
-                ptsMatch = re.search(r"\[(\d+)\s*pts\]", bText)
-                if ptsMatch:
-                    info["points"] = int(ptsMatch.group(1))
-
-        if "Date de pose" in text:
-            m = re.search(r"Date de pose\s*:\s*([\d/]+)", text)
-            if m:
-                info["date_pose"] = m.group(1)
-            continue
-
-        if "Date et source" in text:
-            m = re.search(r"Date et source\s*:\s*(.+)", text)
-            if m:
-                info["state_date"] = m.group(1).strip() or None
-            continue
-
-        if re.search(r"Dernier\s+.{1,5}tat\s+connu", text, re.IGNORECASE):
-            rawParts = []
-            for c in segment:
-                if getattr(c, "name", None) == "img":
-                    continue
-                rawParts.append(c.get_text() if hasattr(c, "get_text") else str(c))
-            joined = "".join(rawParts)
-            m = re.search(r":\s*(.+)$", joined, re.DOTALL)
-            if m:
-                state = m.group(1).strip().rstrip("!").strip()
-                info["state"] = state or None
-            continue
-
-    imgTag = element.find("img", src=re.compile(r"grosplan", re.IGNORECASE))
-    if imgTag is None:
-        imgTag = element.find("img", src=re.compile(r"\.(png|jpg|jpeg|gif)", re.IGNORECASE))
-    if imgTag is None:
-        imgTag = element.find("img", class_=lambda c: c != "banniere")
-    if imgTag and imgTag.get("src"):
-        src = imgTag["src"]
-        info["picture_url"] = src if src.startswith("http") else f"{BASE_URL}/{src.lstrip('/')}"
-
-    return info
 
 
 def _scrapeCity(session, city):

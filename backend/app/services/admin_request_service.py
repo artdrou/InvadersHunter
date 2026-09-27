@@ -96,11 +96,14 @@ def _prune_photos(urls: List[str], keep_url: Optional[str]) -> None:
 def approve(
     db: Session,
     admin_req: AdminRequest,
-    admin_user: User,
+    admin_user: Optional[User],
     override_latitude: Optional[float] = None,
     override_longitude: Optional[float] = None,
     override_image_url: Optional[str] = None,
+    notify: bool = True,
 ) -> AdminRequest:
+    """`admin_user` is None for automated approvals (e.g. the invader-spotter sync job).
+    `notify=False` skips the push notification (the News feed entry is still created)."""
     if admin_req.status != "pending":
         raise AdminRequestNotPending()
 
@@ -161,19 +164,20 @@ def approve(
     ).update({"status": "processed", "updated_at": datetime.utcnow()})
 
     admin_req.status = "approved"
-    admin_req.reviewed_by = admin_user.id
+    admin_req.reviewed_by = admin_user.id if admin_user else None
     admin_req.reviewed_at = datetime.utcnow()
 
     safe_commit(db)
 
-    event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
-    texts = news_service.notification_texts(
-        admin_req, invader,
-        previous_state=previous_state,
-        previous_latitude=previous_lat,
-        previous_longitude=previous_lon,
-    )
-    notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
+    if notify:
+        event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
+        texts = news_service.notification_texts(
+            admin_req, invader,
+            previous_state=previous_state,
+            previous_latitude=previous_lat,
+            previous_longitude=previous_lon,
+        )
+        notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
 
     _prune_photos(submission_urls, keep_url=final_image_url)
     return admin_req
