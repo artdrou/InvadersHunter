@@ -31,6 +31,26 @@ _NEWS_MONTH_ID_RE = re.compile(r"^mois(\d{4})(\d{2})$")
 _NEWS_DAY_RE = re.compile(r"(\d{1,2})")
 
 
+_FRENCH_MONTHS = {
+    "janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
+    "juillet": 7, "août": 8, "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11,
+    "décembre": 12, "decembre": 12,
+}
+_STATE_DATE_RE = re.compile(r"(" + "|".join(_FRENCH_MONTHS) + r")\s+(\d{4})", re.IGNORECASE)
+
+
+def parse_state_date(text: Optional[str]) -> Optional[date]:
+    """'septembre 2026 (report)' -> date(2026, 9, 1); None if absent/unreadable.
+
+    The site only gives month + year, so this is the *first* day of that month:
+    a DB change validated later in the same month counts as more recent.
+    """
+    m = _STATE_DATE_RE.search(text or "")
+    if not m:
+        return None
+    return date(int(m.group(2)), _FRENCH_MONTHS[m.group(1).lower()], 1)
+
+
 def split_name(name: str) -> Optional[Tuple[str, int]]:
     """'PA_0516' -> ('PA', 516); None if it isn't an invader name."""
     m = INVADER_NAME_RE.fullmatch(name.strip().upper())
