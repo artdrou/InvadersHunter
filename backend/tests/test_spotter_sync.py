@@ -23,11 +23,12 @@ NEWS_HTML = """
 <div id='mois202609'>
 <p class='news'><b>27 :</b> R&eacute;activation de <a href='#'>PA_207</a> , <a>PA_267</a> et <a>PA_692</a></p>
 <p class='news'><b>23 :</b> Destruction de <a class='ko'>PA_516</a></p>
-<p class='news'><b>19 :</b> Mise à jour de plusieurs SI: <br/>STK_11 , STK_12 , <br/>STK_13 et STK_15</p>
+<p class='news'><b>19 :</b> Mise à jour de plusieurs SI: <br/>STK_11 , STK_12 ,</p>
+<p class='news'>STK_13 et STK_15 . Destruction de <a href='javascript:lienm("LA",67);'>H</a></p>
 </div>
 <div id='mois202608' style='display:none;'>
-<p class='news'><b>31 :</b> R&eacute;activation de <a>PA_242</a></p>
-<p class='news'>no day here PA_1</p>
+<p class='news'>orphan line before any day PA_1</p>
+<p class='news'><b>31 :</b> R&eacute;activation de <a href='javascript:lienm("PA12",242);'>PA_242</a></p>
 </div>
 """
 
@@ -87,9 +88,17 @@ def test_parse_news_html_extracts_dates_and_names():
     assert entries == [
         (date(2026, 9, 27), [("PA", 207), ("PA", 267), ("PA", 692)]),
         (date(2026, 9, 23), [("PA", 516)]),
-        (date(2026, 9, 19), [("STK", 11), ("STK", 12), ("STK", 13), ("STK", 15)]),
+        # continuation line (no "DD :") belongs to the 19th; "H" link -> id from its href
+        (date(2026, 9, 19), [("STK", 11), ("STK", 12), ("STK", 13), ("STK", 15), ("LA", 67)]),
         (date(2026, 8, 31), [("PA", 242)]),
     ]
+
+
+def test_single_invader_lookup_covers_paris_suburbs():
+    payload = spotter_scraper._single_invader_payload("PA", 1306)
+    assert payload["numero"] == "1306"
+    assert {"PA01", "PA20", "PA77", "PA92", "PA93", "PA94", "PA95"} <= set(payload)
+    assert spotter_scraper._single_invader_payload("LDN", 12) == {"numero": "12", "LDN": "on"}
 
 
 def test_parse_state_date_uses_first_day_of_month():

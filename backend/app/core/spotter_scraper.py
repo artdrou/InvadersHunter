@@ -29,6 +29,8 @@ USER_AGENT = "InvadersHunter-sync/1.0 (+https://invader-hunter-development.up.ra
 INVADER_NAME_RE = re.compile(r"\b([A-Z]{1,5})_(\d{1,4})\b")
 _NEWS_MONTH_ID_RE = re.compile(r"^mois(\d{4})(\d{2})$")
 _NEWS_DAY_RE = re.compile(r"(\d{1,2})")
+# The site's own invader link: javascript:lienm("PA12",924) — city code may carry a Paris arrondissement
+_NEWS_LINK_RE = re.compile(r'lienm\(\s*"([A-Z]+?)\d*"\s*,\s*(\d+)\s*\)')
 
 
 _FRENCH_MONTHS = {
@@ -64,27 +66,37 @@ def parse_news_html(html: str) -> List[Tuple[date, List[Tuple[str, int]]]]:
 
     Page layout: one <div id='moisYYYYMM'> per month, each holding
     <p class='news'><b>DD :</b> Destruction de <a>PA_516</a> ...</p> entries.
+    A long day spills over into following <p class='news'> lines that have no
+    <b>DD :</b> — those belong to the last dated line above them.
+    Names come from the text; a link whose text isn't a name (the LA "HOLLYWOOD"
+    letters, "SPACE2ISS") falls back to the invader id inside its lienm() href.
+    Months before 2019 use an older layout (no <p class='news'>) and are skipped.
     """
     soup = BeautifulSoup(html, "html.parser")
-    entries: List[Tuple[date, List[Tuple[str, int]]]] = []
+    by_day: Dict[date, List[Tuple[str, int]]] = {}
     for month_div in soup.find_all("div", id=_NEWS_MONTH_ID_RE):
         year, month = map(int, _NEWS_MONTH_ID_RE.match(month_div["id"]).groups())
+        current_day: Optional[date] = None
         for p in month_div.find_all("p", class_="news"):
             bold = p.find("b")
             day_match = _NEWS_DAY_RE.search(bold.get_text()) if bold else None
-            if not day_match:
-                continue
-            try:
-                day = date(year, month, int(day_match.group(1)))
-            except ValueError:
-                continue
-            seen = []
-            for city, number in INVADER_NAME_RE.findall(p.get_text(" ")):
-                key = (city, int(number))
-                if key not in seen:
-                    seen.append(key)
-            if seen:
-                entries.append((day, seen))
+            if day_match:
+                try:
+                    current_day = date(year, month, int(day_match.group(1)))
+                except ValueError:
+                    current_day = None
+            if current_day is None:
+                continue  # continuation line before any dated line: nothing to attach it to
+            names = by_day.setdefault(current_day, [])
+            found = [(city, int(number)) for city, number in INVADER_NAME_RE.findall(p.get_text(" "))]
+            for a in p.find_all("a", href=_NEWS_LINK_RE):
+                if not INVADER_NAME_RE.search(a.get_text()):
+                    city, number = _NEWS_LINK_RE.search(a["href"]).groups()
+                    found.append((city, int(number)))
+            for key in found:
+                if key not in names:
+                    names.append(key)
+    entries = [(day, names) for day, names in by_day.items() if names]
     entries.sort(key=lambda e: e[0], reverse=True)
     return entries
 
@@ -196,12 +208,17 @@ def new_listing_session() -> requests.Session:
     return s
 
 
+# Paris is split into zones on the site's search form: the 20 arrondissements
+# plus the suburbs (Seine-et-Marne, Hauts-de-Seine, Seine-Saint-Denis, Val-de-Marne, Val-d'Oise).
+PARIS_ZONES = [f"PA{i:02d}" for i in range(1, 21)] + ["PA77", "PA92", "PA93", "PA94", "PA95"]
+
+
 def _single_invader_payload(city: str, number: int) -> dict:
-    """Paris is split into arrondissements PA01..PA20 on the site: tick them all."""
+    """Tick every zone of the invader's city (all Paris zones for PA)."""
     payload: dict = {"numero": str(number)}
     if city == "PA":
-        for i in range(1, 21):
-            payload[f"PA{i:02d}"] = "on"
+        for zone in PARIS_ZONES:
+            payload[zone] = "on"
     else:
         payload[city] = "on"
     return payload
