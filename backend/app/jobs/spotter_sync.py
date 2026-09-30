@@ -68,6 +68,7 @@ def main(argv=None) -> int:
         ("not in DB", report.missing_in_db),
         ("not found on site", report.missing_on_site),
         ("unparsed state", report.unparsed_state),
+        ("kept app state (newer than site)", report.kept_app_state),
         ("error", report.errors),
     ):
         if items:

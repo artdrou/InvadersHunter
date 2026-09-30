@@ -6,8 +6,9 @@ Key invariants:
 - a state mismatch becomes an approved source="scraper" AdminRequest and updates the invader
 - news mode notifies, full mode is silent
 - matching states / dry runs write nothing
+- a state validated in the app is kept unless the site info is more recent
 """
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import patch
 
 import pytest
@@ -22,11 +23,12 @@ NEWS_HTML = """
 <div id='mois202609'>
 <p class='news'><b>27 :</b> R&eacute;activation de <a href='#'>PA_207</a> , <a>PA_267</a> et <a>PA_692</a></p>
 <p class='news'><b>23 :</b> Destruction de <a class='ko'>PA_516</a></p>
-<p class='news'><b>19 :</b> Mise à jour de plusieurs SI: <br/>STK_11 , STK_12 , <br/>STK_13 et STK_15</p>
+<p class='news'><b>19 :</b> Mise à jour de plusieurs SI: <br/>STK_11 , STK_12 ,</p>
+<p class='news'>STK_13 et STK_15 . Destruction de <a href='javascript:lienm("LA",67);'>H</a></p>
 </div>
 <div id='mois202608' style='display:none;'>
-<p class='news'><b>31 :</b> R&eacute;activation de <a>PA_242</a></p>
-<p class='news'>no day here PA_1</p>
+<p class='news'>orphan line before any day PA_1</p>
+<p class='news'><b>31 :</b> R&eacute;activation de <a href='javascript:lienm("PA12",242);'>PA_242</a></p>
 </div>
 """
 
@@ -43,8 +45,18 @@ def invaders(db):
     return {inv.name: inv for inv in rows}
 
 
-def _row(name, state):
-    return {"name": name, "state": state, "points": 10}
+def _row(name, state, state_date="septembre 2026 (report)"):
+    return {"name": name, "state": state, "points": 10, "state_date": state_date}
+
+
+def _app_validation(db, invader, state, reviewed_at, source="community"):
+    """An approved human (community/admin) state change, as the admin workflow leaves it."""
+    db.add(AdminRequest(
+        invader_id=invader.id, request_type="modify", status="approved", source=source,
+        proposed_state=state, reviewed_at=reviewed_at, request_count=1, confidence=80,
+    ))
+    invader.state = state
+    db.commit()
 
 
 @pytest.fixture()
@@ -76,9 +88,25 @@ def test_parse_news_html_extracts_dates_and_names():
     assert entries == [
         (date(2026, 9, 27), [("PA", 207), ("PA", 267), ("PA", 692)]),
         (date(2026, 9, 23), [("PA", 516)]),
-        (date(2026, 9, 19), [("STK", 11), ("STK", 12), ("STK", 13), ("STK", 15)]),
+        # continuation line (no "DD :") belongs to the 19th; "H" link -> id from its href
+        (date(2026, 9, 19), [("STK", 11), ("STK", 12), ("STK", 13), ("STK", 15), ("LA", 67)]),
         (date(2026, 8, 31), [("PA", 242)]),
     ]
+
+
+def test_single_invader_lookup_covers_paris_suburbs():
+    payload = spotter_scraper._single_invader_payload("PA", 1306)
+    assert payload["numero"] == "1306"
+    assert {"PA01", "PA20", "PA77", "PA92", "PA93", "PA94", "PA95"} <= set(payload)
+    assert spotter_scraper._single_invader_payload("LDN", 12) == {"numero": "12", "LDN": "on"}
+
+
+def test_parse_state_date_uses_first_day_of_month():
+    assert spotter_scraper.parse_state_date("septembre 2026 (report)") == date(2026, 9, 1)
+    assert spotter_scraper.parse_state_date("mi-août 2020 (spott)") == date(2020, 8, 1)
+    assert spotter_scraper.parse_state_date("juin  2026") == date(2026, 6, 1)
+    assert spotter_scraper.parse_state_date("mai") is None
+    assert spotter_scraper.parse_state_date(None) is None
 
 
 def test_split_name_strips_padding():
@@ -155,3 +183,66 @@ def test_full_sync_notifies_when_asked(db, invaders, fake_site):
     with patch("app.services.notification_service.notify_invader_event") as notify:
         spotter_sync_service.sync_full(db, delay=0, notify=True)
     assert notify.call_count == 2
+
+
+# ── app validation vs site info ───────────────────────────────────────────────
+
+def test_full_sync_keeps_app_validation_newer_than_site(db, invaders, fake_site):
+    """User reported PA_267 destroyed (validated 15/09); site still says OK as of 'août 2026'."""
+    _app_validation(db, invaders["PA_267"], "Destroyed", datetime(2026, 9, 15, 10))
+    fake_site["rows"][("PA", 267)] = _row("PA_267", "OK", "août 2026 (report)")
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_full(db, delay=0)
+
+    assert "PA_267" not in [c.name for c in report.changes]
+    assert len(report.kept_app_state) == 1 and report.kept_app_state[0].startswith("PA_267")
+    assert db.get(Invader, invaders["PA_267"].id).state == "Destroyed"
+
+
+def test_full_sync_same_month_favours_app(db, invaders, fake_site):
+    """Site date is month-only: a validation during that month counts as newer."""
+    _app_validation(db, invaders["PA_267"], "Destroyed", datetime(2026, 9, 2))
+    fake_site["rows"][("PA", 267)] = _row("PA_267", "OK", "septembre 2026 (report)")
+    with patch("app.services.notification_service.notify_invader_event"):
+        spotter_sync_service.sync_full(db, delay=0)
+    assert db.get(Invader, invaders["PA_267"].id).state == "Destroyed"
+
+
+def test_full_sync_overrides_app_validation_older_than_site(db, invaders, fake_site):
+    """Validated in June, site reports a newer state in September: site wins."""
+    _app_validation(db, invaders["PA_267"], "Destroyed", datetime(2026, 6, 10), source="admin")
+    fake_site["rows"][("PA", 267)] = _row("PA_267", "OK", "septembre 2026 (report)")
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_full(db, delay=0)
+    assert "PA_267" in [c.name for c in report.changes]
+    assert db.get(Invader, invaders["PA_267"].id).state == "Good"
+
+
+def test_full_sync_keeps_app_validation_when_site_has_no_date(db, invaders, fake_site):
+    _app_validation(db, invaders["PA_267"], "Destroyed", datetime(2026, 6, 10))
+    fake_site["rows"][("PA", 267)] = _row("PA_267", "OK", "")
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_full(db, delay=0)
+    assert db.get(Invader, invaders["PA_267"].id).state == "Destroyed"
+    assert report.kept_app_state[0].endswith("(no date)")
+
+
+def test_news_sync_uses_exact_news_day(db, invaders, fake_site):
+    """Validated on 25/09, news of 27/09 reactivates it: the newer news wins.
+    Validated on 24/09, news of 23/09 destroys it: the app validation wins."""
+    _app_validation(db, invaders["PA_207"], "Destroyed", datetime(2026, 9, 25))
+    _app_validation(db, invaders["PA_516"], "Good", datetime(2026, 9, 24))
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 9, 27))
+
+    assert [c.name for c in report.changes] == ["PA_207"]
+    assert db.get(Invader, invaders["PA_207"].id).state == "Good"
+    assert db.get(Invader, invaders["PA_516"].id).state == "Good"
+
+
+def test_previous_scraper_changes_do_not_count_as_app_validation(db, invaders, fake_site):
+    """Only human approvals protect a state — the sync's own past changes don't."""
+    _app_validation(db, invaders["PA_267"], "Destroyed", datetime(2026, 9, 20), source="scraper")
+    with patch("app.services.notification_service.notify_invader_event"):
+        spotter_sync_service.sync_full(db, delay=0)
+    assert db.get(Invader, invaders["PA_267"].id).state == "Good"
