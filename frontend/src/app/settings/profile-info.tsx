@@ -31,7 +31,9 @@ export default function ProfileInfoScreen() {
       [userId],
     ).then((rows) => {
       setEditsSent(rows.length);
-      setEditsAccepted(rows.filter((r) => r.status === 'approved').length);
+      // The backend marks a submission "processed" once its admin request is approved
+      // (rejected ones become "rejected"); there is no "approved" submission status.
+      setEditsAccepted(rows.filter((r) => r.status === 'processed').length);
     }).catch(() => {});
   }, [userId, db]);
 
