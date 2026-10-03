@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.schemas.user import UserCreate, UserOut, UserUpdate
+from app.schemas.user import UserCreate, UserOut, UserUpdate, UserAdminProfileOut
 from app.dependencies import get_db, get_current_user, require_admin
 from app.services import user_service
 from app.services.user_service import UserMissing, UsernameTaken, EmailTaken
@@ -19,6 +19,15 @@ def _check_owner_or_admin(user_id: int, current_user) -> None:
 def list_users(db: Session = Depends(get_db), _admin=Depends(require_admin)):
     # Exposes every account (usernames + emails) — admin only
     return user_service.list_all(db)
+
+
+@router.get("/{user_id}/profile", response_model=UserAdminProfileOut)
+def get_user_profile(user_id: int, db: Session = Depends(get_db), _admin=Depends(require_admin)):
+    """Admin only: account details, key dates, contributions and flashed invaders."""
+    try:
+        return user_service.get_admin_profile(db, user_id)
+    except UserMissing:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/", response_model=UserOut)

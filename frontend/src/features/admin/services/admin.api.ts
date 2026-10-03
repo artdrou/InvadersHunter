@@ -1,5 +1,5 @@
 import { api } from '@/services/api-client';
-import type { AdminRequest, AdminSubmission } from '../types';
+import type { AdminRequest, AdminSubmission, AdminUser, AdminUserProfile } from '../types';
 import type { Invader } from '@/features/invaders/types';
 
 export async function fetchAdminRequests(params?: {
@@ -41,4 +41,14 @@ export async function approveAdminRequest(
 
 export async function rejectAdminRequest(id: number): Promise<void> {
   await api.post(`/admin-requests/${id}/reject`);
+}
+
+export async function fetchUsers(): Promise<AdminUser[]> {
+  const res = await api.get('/users/');
+  return res.data;
+}
+
+export async function fetchUserProfile(id: number): Promise<AdminUserProfile> {
+  const res = await api.get(`/users/${id}/profile`);
+  return res.data;
 }
