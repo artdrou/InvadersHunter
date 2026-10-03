@@ -12,16 +12,24 @@ type UpdateState = {
   manifest: VersionManifest | null;
   isAvailable: boolean;
   dismissedVersion: string | null;
+  /** An OTA bundle is downloaded and waits for a restart to apply. */
+  otaReady: boolean;
+  /** User said "later" this session — stop prompting until next launch. */
+  otaDismissed: boolean;
   setManifest: (m: VersionManifest | null) => void;
   setDismissedVersion: (v: string | null) => void;
   dismiss: () => Promise<void>;
   hydrate: () => Promise<void>;
+  setOtaReady: () => void;
+  dismissOta: () => void;
 };
 
 export const useAppUpdateStore = create<UpdateState>((set, get) => ({
   manifest: null,
   isAvailable: false,
   dismissedVersion: null,
+  otaReady: false,
+  otaDismissed: false,
 
   setManifest: (m) => {
     const dismissed = get().dismissedVersion;
@@ -44,4 +52,10 @@ export const useAppUpdateStore = create<UpdateState>((set, get) => ({
       set({ dismissedVersion: v });
     } catch {}
   },
+
+  setOtaReady: () => {
+    if (!get().otaDismissed) set({ otaReady: true });
+  },
+
+  dismissOta: () => set({ otaReady: false, otaDismissed: true }),
 }));
