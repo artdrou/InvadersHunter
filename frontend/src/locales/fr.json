@@ -252,7 +252,11 @@
     "language": "Langue",
     "accentColor": "Couleur d'accent",
     "routeColor": "Couleur du tracé",
-    "resetAccent": "Reinitialiser"
+    "resetAccent": "Reinitialiser",
+    "usernameSave": "Enregistrer",
+    "username_tooShort": "Au moins {{min}} caractères.",
+    "username_taken": "Ce nom est déjà pris.",
+    "username_failed": "Échec de l'enregistrement. Vérifiez votre connexion."
   },
   "appearance": {
     "sectionTheme": "Theme",

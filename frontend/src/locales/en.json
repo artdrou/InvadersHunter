@@ -252,7 +252,11 @@
     "language": "Language",
     "accentColor": "Accent color",
     "routeColor": "Route color",
-    "resetAccent": "Reset"
+    "resetAccent": "Reset",
+    "usernameSave": "Save",
+    "username_tooShort": "At least {{min}} characters.",
+    "username_taken": "This name is already taken.",
+    "username_failed": "Could not save. Check your connection."
   },
   "appearance": {
     "sectionTheme": "Theme",
