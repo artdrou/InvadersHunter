@@ -58,7 +58,7 @@ export default function AdminMenuScreen() {
             icon="person-outline"
             label={t('admin.searchUser')}
             subtitle={t('admin.searchUserSubtitle')}
-            onPress={soon}
+            onPress={() => router.push('/admin/users')}
           />
           <SettingsRow
             icon="shield-outline"

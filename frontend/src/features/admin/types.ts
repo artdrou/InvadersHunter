@@ -43,3 +43,28 @@ export type AdminSubmission = {
 export type AdminRequestWithInvader = AdminRequest & {
   invader?: Invader;
 };
+
+/** Row of the admin user list (GET /users/). */
+export type AdminUser = {
+  id: number;
+  username: string;
+  email: string;
+  is_admin: boolean;
+  created_at: string;
+};
+
+/** Admin view of one user (GET /users/{id}/profile). Dates are naive UTC ISO strings. */
+export type AdminUserProfile = AdminUser & {
+  language: string;
+  notifications_enabled: boolean;
+  last_login_at: string | null;
+  first_flash_at: string | null;
+  last_flash_at: string | null;
+  last_request_at: string | null;
+  requests_sent: number;
+  requests_accepted: number;
+  requests_rejected: number;
+  requests_pending: number;
+  comments: number;
+  flashed_invader_ids: number[];
+};
