@@ -4,9 +4,10 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useAuthStore, logoutUser } from '@/features/auth';
+import { EditableUsername } from '@/features/auth/components/EditableUsername';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
-import { SettingsShell, StatSection, StatCell, InfoCell, hapticTap } from '@/features/settings';
+import { SettingsShell, StatSection, StatCell, hapticTap } from '@/features/settings';
 import { useInvaderData, computeCollectionStats } from '@/features/invaders';
 import { unregisterPushToken, useNotificationsStore } from '@/features/notifications';
 
@@ -61,7 +62,7 @@ export default function ProfileInfoScreen() {
     <SettingsShell title={t('settings.profileInfo')}>
       {user && (
         <StatSection title={t('auth.username')} grid={false}>
-          <InfoCell value={user.username} />
+          <EditableUsername />
         </StatSection>
       )}
 

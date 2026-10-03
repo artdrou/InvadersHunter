@@ -12,6 +12,8 @@ type AuthState = {
   _hasHydrated: boolean;
   login: (accessToken: string, refreshToken: string) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  /** After a rename: the access token keeps the old name until its next refresh. */
+  setUsername: (username: string) => void;
   logout: () => void;
   enterGuestMode: () => void;
   setHasHydrated: (val: boolean) => void;
@@ -33,8 +35,12 @@ export const useAuthStore = create<AuthState>()(
       login: (accessToken, refreshToken) =>
         // Logging in ends guest mode; local guest data is claimed by the next sync
         set({ token: accessToken, refreshToken, user: parseToken(accessToken), isGuest: false }),
+      // Re-read the user from each refreshed token so a rename or an admin
+      // promotion / demotion reaches the app without logging out and back in.
       setTokens: (accessToken, refreshToken) =>
-        set({ token: accessToken, refreshToken }),
+        set({ token: accessToken, refreshToken, user: parseToken(accessToken) }),
+      setUsername: (username) =>
+        set((s) => (s.user ? { user: { ...s.user, username } } : {})),
       logout: () => set({ token: null, refreshToken: null, user: null, isGuest: false }),
       enterGuestMode: () => set({ isGuest: true }),
       setHasHydrated: (val) => set({ _hasHydrated: val }),

@@ -61,6 +61,9 @@ def update_user(
     if user_update.is_admin is not None and not current_user.is_admin:
         # Privilege escalation guard: only admins may grant/revoke admin
         raise HTTPException(status_code=403, detail="Only admins can change admin status")
+    if user_update.is_admin is False and user_id == current_user.id:
+        # Lock-out guard: another admin has to do it (there is always at least one admin left).
+        raise HTTPException(status_code=400, detail="You can't remove your own admin role")
     try:
         return user_service.update(
             db, user_id,

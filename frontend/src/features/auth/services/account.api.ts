@@ -13,3 +13,8 @@ export type ClaimCapturePayload = {
 export async function claimCaptures(captures: ClaimCapturePayload[]): Promise<void> {
   await api.post('/account/claim', { captures });
 }
+
+/** Rename the signed-in account. Rejects with HTTP 400 when the name is taken. */
+export async function updateMyUsername(userId: number, username: string): Promise<void> {
+  await api.put(`/users/${userId}`, { username });
+}

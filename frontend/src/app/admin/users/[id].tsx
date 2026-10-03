@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { FontSize, Spacing } from '@/constants/theme';
@@ -10,14 +10,17 @@ import { useInvaderStore } from '@/features/invaders/store';
 import { fetchUserProfile } from '@/features/admin/services/admin.api';
 import { formatServerDate } from '@/features/admin/utils';
 import type { AdminUserProfile } from '@/features/admin/types';
+import { UserAdminActions } from '@/features/admin/components/UserAdminActions';
 
 /**
  * Admin view of any user: same collection stats cards as the user's own profile
  * (computed from their flashed invader ids against the local invader list),
- * plus email, account details, key dates and contributions.
+ * plus email, account details, key dates and contributions, and the admin
+ * actions (promote / demote, delete).
  */
 export default function AdminUserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { t } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const invaders = useInvaderStore((s) => s.invaders);
@@ -94,6 +97,10 @@ export default function AdminUserProfileScreen() {
         <StatCell label={t('adminUsers.requestsRejected')} value={profile.requests_rejected} />
         <StatCell label={t('adminUsers.requestsPending')} value={profile.requests_pending} />
         <StatCell label={t('adminUsers.comments')} value={profile.comments} />
+      </StatSection>
+
+      <StatSection title={t('adminUsers.sectionActions')} grid={false}>
+        <UserAdminActions profile={profile} onChanged={load} onDeleted={() => router.back()} />
       </StatSection>
     </SettingsShell>
   );
