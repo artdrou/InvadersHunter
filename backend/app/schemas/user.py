@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 # Received data to create user
 class UserCreate(BaseModel):
@@ -24,3 +24,24 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserAdminProfileOut(BaseModel):
+    """Admin-only view of one user: account, key dates, contributions, flashes."""
+    id: int
+    username: str
+    email: str
+    is_admin: bool
+    language: str
+    notifications_enabled: bool
+    created_at: Optional[datetime] = None
+    last_login_at: Optional[datetime] = None
+    first_flash_at: Optional[datetime] = None
+    last_flash_at: Optional[datetime] = None
+    last_request_at: Optional[datetime] = None
+    requests_sent: int
+    requests_accepted: int
+    requests_rejected: int
+    requests_pending: int
+    comments: int
+    flashed_invader_ids: List[int]

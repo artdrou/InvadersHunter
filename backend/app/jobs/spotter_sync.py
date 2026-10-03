@@ -16,6 +16,7 @@ import pkgutil
 import sys
 
 from .. import database, models
+from ..migrate import run as run_migrations
 from ..services import spotter_sync_service
 
 log = logging.getLogger("spotter_sync")
@@ -44,6 +45,11 @@ def main(argv=None) -> int:
                         stream=sys.stdout, force=True)
     log.info("spotter sync starting: %s", vars(args))
     _register_models()
+    # The web backend applies migrations on startup, but a cron run can start
+    # before that deploy finishes: apply them here too (idempotent, Postgres only).
+    # Skipped on --dry-run, which promises no writes and doesn't insert rows.
+    if not args.dry_run:
+        run_migrations()
 
     db = database.SessionLocal()
     try:
@@ -69,6 +75,7 @@ def main(argv=None) -> int:
         ("not found on site", report.missing_on_site),
         ("unparsed state", report.unparsed_state),
         ("kept app state (newer than site)", report.kept_app_state),
+        ("tagged as reactivation (news colours)", report.backfilled_reactivations),
         ("error", report.errors),
     ):
         if items:

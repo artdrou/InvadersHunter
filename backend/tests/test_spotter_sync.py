@@ -8,7 +8,7 @@ Key invariants:
 - matching states / dry runs write nothing
 - a state validated in the app is kept unless the site info is more recent
 """
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -72,6 +72,7 @@ def fake_site(monkeypatch):
                  ("PA", 999): _row("PA_999", "OK")},    # on site, not in DB
     }
     monkeypatch.setattr(spotter_scraper, "fetch_news", lambda session: site["news"])
+    monkeypatch.setattr(spotter_scraper, "fetch_news_html", lambda session: site.get("news_html", ""))
     monkeypatch.setattr(spotter_scraper, "new_search_session", lambda: None)
     monkeypatch.setattr(spotter_scraper, "new_listing_session", lambda: None)
     monkeypatch.setattr(spotter_scraper, "fetch_single_invader",
@@ -246,3 +247,58 @@ def test_previous_scraper_changes_do_not_count_as_app_validation(db, invaders, f
     with patch("app.services.notification_service.notify_invader_event"):
         spotter_sync_service.sync_full(db, delay=0)
     assert db.get(Invader, invaders["PA_267"].id).state == "Good"
+
+
+# ── reactivation backfill (News colours) ─────────────────────────────────────
+
+def test_parse_news_reactivations_keeps_only_reactivated_names():
+    html = """<div id='mois202609'>
+    <p class='news'><b>27 :</b> R&eacute;activation de PA_207 et PA_267 . Destruction de PA_516</p>
+    <p class='news'>et PA_692 . D&eacute;gradation de PA_262</p>
+    </div>"""
+    got = spotter_scraper.parse_news_reactivations(html)
+    assert [key for _, key in got] == [("PA", 207), ("PA", 267)]
+    html2 = """<div id='mois202609'>
+    <p class='news'><b>18 :</b> R&eacute;activation de GNV_02 , GNV_07 ,</p>
+    <p class='news'>GNV_14 et GNV_15 . Destruction de WN_54</p></div>"""
+    # sentence spills over a continuation line
+    assert [k for _, k in spotter_scraper.parse_news_reactivations(html2)] == [
+        ("GNV", 2), ("GNV", 7), ("GNV", 14), ("GNV", 15)]
+
+
+def _scraper_good(db, invader, reviewed_at, previous_state=None):
+    ar = AdminRequest(invader_id=invader.id, request_type="modify", status="approved", source="scraper",
+                      proposed_state="Good", previous_state=previous_state, reviewed_at=reviewed_at,
+                      request_count=0, confidence=100)
+    db.add(ar)
+    db.commit()
+    return ar
+
+
+def test_full_sync_backfills_recent_reactivations(db, invaders, fake_site):
+    recent = date.today() - timedelta(days=10)
+    old = date.today() - timedelta(days=200)
+    fake_site["news_html"] = f"""
+    <div id='mois{recent:%Y%m}'><p class='news'><b>{recent.day} :</b> R&eacute;activation de PA_207</p></div>
+    <div id='mois{old:%Y%m}'><p class='news'><b>{old.day} :</b> R&eacute;activation de PA_267</p></div>"""
+    hit = _scraper_good(db, invaders["PA_207"], datetime.utcnow() - timedelta(days=5))
+    too_old = _scraper_good(db, invaders["PA_267"], datetime.utcnow() - timedelta(days=150))
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_full(db, delay=0)
+
+    db.expire_all()
+    assert db.get(AdminRequest, hit.id).previous_state == "Destroyed"
+    assert db.get(AdminRequest, too_old.id).previous_state is None   # news older than 3 months
+    assert report.backfilled_reactivations == [f"PA_207 (news {recent})"]
+
+
+def test_backfill_never_overrides_known_previous_state(db, invaders, fake_site):
+    recent = date.today() - timedelta(days=10)
+    fake_site["news_html"] = f"""<div id='mois{recent:%Y%m}'><p class='news'><b>{recent.day} :</b>
+    R&eacute;activation de PA_207</p></div>"""
+    known = _scraper_good(db, invaders["PA_207"], datetime.utcnow() - timedelta(days=5), previous_state="Degraded")
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_full(db, delay=0)
+    db.expire_all()
+    assert db.get(AdminRequest, known.id).previous_state == "Degraded"
+    assert report.backfilled_reactivations == []

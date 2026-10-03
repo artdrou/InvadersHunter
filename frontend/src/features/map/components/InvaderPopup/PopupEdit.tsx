@@ -7,6 +7,7 @@ import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
 import { StateGrid } from "@/features/invaders/components/StateGrid";
 import { PhotoField } from "@/features/invaders/components/PhotoField";
+import { DeleteInvaderButton } from "@/features/admin/components/DeleteInvaderButton";
 import type { PopupStyles } from "./styles";
 
 // Cap the scrollable form so its last field (the photo picker) stays reachable:
@@ -131,6 +132,9 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
       >
         <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
       </Pressable>
+
+      {/* Admins only (renders nothing otherwise) */}
+      <DeleteInvaderButton invaderId={invader.id} invaderName={invader.name} onDeleted={onClose} />
     </>
   );
 }

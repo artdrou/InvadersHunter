@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.schemas.user import UserCreate, UserOut, UserUpdate
+from app.schemas.user import UserCreate, UserOut, UserUpdate, UserAdminProfileOut
 from app.dependencies import get_db, get_current_user, require_admin
-from app.services import user_service
+from app.services import user_service, deletion_service
 from app.services.user_service import UserMissing, UsernameTaken, EmailTaken
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -19,6 +19,15 @@ def _check_owner_or_admin(user_id: int, current_user) -> None:
 def list_users(db: Session = Depends(get_db), _admin=Depends(require_admin)):
     # Exposes every account (usernames + emails) — admin only
     return user_service.list_all(db)
+
+
+@router.get("/{user_id}/profile", response_model=UserAdminProfileOut)
+def get_user_profile(user_id: int, db: Session = Depends(get_db), _admin=Depends(require_admin)):
+    """Admin only: account details, key dates, contributions and flashed invaders."""
+    try:
+        return user_service.get_admin_profile(db, user_id)
+    except UserMissing:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/", response_model=UserOut)
@@ -52,6 +61,9 @@ def update_user(
     if user_update.is_admin is not None and not current_user.is_admin:
         # Privilege escalation guard: only admins may grant/revoke admin
         raise HTTPException(status_code=403, detail="Only admins can change admin status")
+    if user_update.is_admin is False and user_id == current_user.id:
+        # Lock-out guard: another admin has to do it (there is always at least one admin left).
+        raise HTTPException(status_code=400, detail="You can't remove your own admin role")
     try:
         return user_service.update(
             db, user_id,
@@ -74,9 +86,11 @@ def delete_user(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    """Owner or admin. Also deletes the user's flashes, requests, comments,
+    reactions and tokens (approved admin requests stay as invader history)."""
     _check_owner_or_admin(user_id, current_user)
     try:
-        user_service.delete(db, user_id)
+        report = deletion_service.delete_user(db, user_id)
     except UserMissing:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+    return {"message": "User deleted successfully", "deleted": report.deleted}

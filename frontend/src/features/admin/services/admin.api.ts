@@ -1,5 +1,5 @@
 import { api } from '@/services/api-client';
-import type { AdminRequest, AdminSubmission } from '../types';
+import type { AdminRequest, AdminSubmission, AdminUser, AdminUserProfile } from '../types';
 import type { Invader } from '@/features/invaders/types';
 
 export async function fetchAdminRequests(params?: {
@@ -41,4 +41,29 @@ export async function approveAdminRequest(
 
 export async function rejectAdminRequest(id: number): Promise<void> {
   await api.post(`/admin-requests/${id}/reject`);
+}
+
+/** Admin only. Hard-deletes the invader with its flashes, requests and comments. */
+export async function deleteInvader(id: number): Promise<void> {
+  await api.delete(`/invaders/${id}`);
+}
+
+export async function fetchUsers(): Promise<AdminUser[]> {
+  const res = await api.get('/users/');
+  return res.data;
+}
+
+export async function fetchUserProfile(id: number): Promise<AdminUserProfile> {
+  const res = await api.get(`/users/${id}/profile`);
+  return res.data;
+}
+
+/** Admin only: grant or revoke the admin role (the backend refuses revoking your own). */
+export async function setUserAdmin(id: number, isAdmin: boolean): Promise<void> {
+  await api.put(`/users/${id}`, { is_admin: isAdmin });
+}
+
+/** Deletes the account with its flashes, requests, comments and tokens. */
+export async function deleteUser(id: number): Promise<void> {
+  await api.delete(`/users/${id}`);
 }
