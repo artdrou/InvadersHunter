@@ -159,6 +159,18 @@ MIGRATIONS = [
     # Both are hit on every popup open by GET /invaders/{id}/contributors.
     "CREATE INDEX IF NOT EXISTS idx_admin_requests_invader_id ON admin_requests (invader_id)",
     "CREATE INDEX IF NOT EXISTS idx_user_requests_admin_request_id ON user_requests (admin_request_id)",
+
+    # News feed colours — state before each approved change (reactivation detection).
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS previous_state VARCHAR",
+    # Backfill history: previous state = state set by the invader's previous approved change.
+    # Only fills NULLs, so re-running at every startup is a no-op once done.
+    """UPDATE admin_requests a SET previous_state = h.prev
+    FROM (
+        SELECT id, LAG(proposed_state) OVER (PARTITION BY invader_id ORDER BY reviewed_at, id) AS prev
+        FROM admin_requests
+        WHERE status = 'approved' AND proposed_state IS NOT NULL AND invader_id IS NOT NULL
+    ) h
+    WHERE a.id = h.id AND a.request_type = 'modify' AND a.previous_state IS NULL AND h.prev IS NOT NULL""",
 ]
 
 
