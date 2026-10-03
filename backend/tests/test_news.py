@@ -85,6 +85,37 @@ def test_scraper_source_credited_to_invader_spotter(db, client, invader):
     assert items[0]["credit_label"] == "invader-spotter.art"
 
 
+def test_approve_records_previous_state(db, client, users, invader):
+    regular, admin = users
+    ar = _approve_modify(db, client, regular.id, admin, invader.id)
+    db.refresh(ar)
+    assert ar.previous_state == "Good"
+    item = client.get("/news/").json()[0]
+    assert item["kind"] == "degraded"   # Good -> Degraded beats the location change
+
+
+@pytest.mark.parametrize("request_type, previous, new, located, kind", [
+    ("create", None, "Good", True, "create"),            # green
+    ("modify", "Good", "Destroyed", False, "destroyed"),  # red
+    ("modify", None, "Destroyed", False, "destroyed"),    # previous unknown: still destroyed
+    ("modify", "Good", "Not visible", False, "hidden"),   # grey
+    ("modify", "Destroyed", "Good", False, "reactivated"),  # magenta
+    ("modify", "Not visible", "Good", False, "reactivated"),
+    ("modify", None, None, True, "moved"),                # blue: location-only change
+    ("modify", "Degraded", "Good", False, "updated"),     # restoration: no special colour
+    ("modify", None, "Good", False, "updated"),           # unknown previous: can't call it a reactivation
+])
+def test_news_kind(db, client, invader, request_type, previous, new, located, kind):
+    db.add(AdminRequest(
+        invader_id=invader.id, request_type=request_type, status="approved", source="scraper",
+        previous_state=previous, proposed_state=new,
+        proposed_latitude=48.9 if located else None, proposed_longitude=2.4 if located else None,
+        reviewed_at=datetime.utcnow(),
+    ))
+    db.commit()
+    assert client.get("/news/").json()[0]["kind"] == kind
+
+
 # ── announcements ─────────────────────────────────────────────────────────────
 
 def test_admin_can_create_announcement_and_it_shows_in_feed(db, client, users):

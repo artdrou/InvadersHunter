@@ -134,6 +134,10 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
             city=(invader.city if invader else None),
             image_url=(invader.image_url if invader else admin_req.proposed_image_url),
             changes=changes,
+            kind=classify_event(
+                admin_req.request_type, admin_req.previous_state, admin_req.proposed_state,
+                moved="location" in changes,
+            ),
             new_state=admin_req.proposed_state,
             new_points=admin_req.proposed_points,
         ))
@@ -162,19 +166,15 @@ def _moved(previous_latitude: Optional[float], previous_longitude: Optional[floa
     )
 
 
-def _classify_transition(
-    admin_req: AdminRequest,
-    invader: Optional[Invader],
-    previous_state: Optional[str],
-    previous_latitude: Optional[float],
-    previous_longitude: Optional[float],
+def classify_event(
+    request_type: str, previous_state: Optional[str], new_state: Optional[str], moved: bool,
 ) -> str:
-    """Which NOTIFICATION_COPY entry describes this approved event."""
-    if admin_req.request_type == "create":
+    """Nature of an approved invader event — one of the NOTIFICATION_COPY keys.
+
+    Shared by push notifications and the News feed `kind` (which drives its colours).
+    """
+    if request_type == "create":
         return "create"
-
-    new_state = invader.state if invader else None
-
     if new_state == DESTROYED_STATE and previous_state != DESTROYED_STATE:
         return "destroyed"
     if new_state == HIDDEN_STATE and previous_state != HIDDEN_STATE:
@@ -183,9 +183,25 @@ def _classify_transition(
         return "reactivated"
     if previous_state == GOOD_STATE and new_state in DEGRADED_STATES:
         return "degraded"
-    if invader is not None and _moved(previous_latitude, previous_longitude, invader):
+    if moved:
         return "moved"
     return "updated"
+
+
+def _classify_transition(
+    admin_req: AdminRequest,
+    invader: Optional[Invader],
+    previous_state: Optional[str],
+    previous_latitude: Optional[float],
+    previous_longitude: Optional[float],
+) -> str:
+    """Which NOTIFICATION_COPY entry describes this just-approved event."""
+    return classify_event(
+        admin_req.request_type,
+        previous_state,
+        invader.state if invader else None,
+        invader is not None and _moved(previous_latitude, previous_longitude, invader),
+    )
 
 
 def _fallback_label(kind: str, lang: str) -> str:

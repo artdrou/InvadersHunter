@@ -25,6 +25,10 @@ class AdminRequest(Base):
     proposed_image_url = Column(String, nullable=True)
     proposed_date_pose = Column(Date, nullable=True)  # year of installation (stored as YYYY-01-01)
 
+    # Invader state just before this request was approved (modify only) — lets the
+    # News feed tell a reactivation (Destroyed -> Good) from any other update.
+    previous_state = Column(String, nullable=True)
+
     request_count = Column(Integer, nullable=False, default=0)
     confidence = Column(Integer, nullable=False, default=0)
 
