@@ -69,6 +69,7 @@ def main(argv=None) -> int:
         ("not found on site", report.missing_on_site),
         ("unparsed state", report.unparsed_state),
         ("kept app state (newer than site)", report.kept_app_state),
+        ("tagged as reactivation (news colours)", report.backfilled_reactivations),
         ("error", report.errors),
     ):
         if items:

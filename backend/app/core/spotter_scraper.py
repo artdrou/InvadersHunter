@@ -72,8 +72,25 @@ def parse_news_html(html: str) -> List[Tuple[date, List[Tuple[str, int]]]]:
     letters, "SPACE2ISS") falls back to the invader id inside its lienm() href.
     Months before 2019 use an older layout (no <p class='news'>) and are skipped.
     """
-    soup = BeautifulSoup(html, "html.parser")
     by_day: Dict[date, List[Tuple[str, int]]] = {}
+    for day, p in _iter_news_lines(html):
+        names = by_day.setdefault(day, [])
+        found = [(city, int(number)) for city, number in INVADER_NAME_RE.findall(p.get_text(" "))]
+        for a in p.find_all("a", href=_NEWS_LINK_RE):
+            if not INVADER_NAME_RE.search(a.get_text()):
+                city, number = _NEWS_LINK_RE.search(a["href"]).groups()
+                found.append((city, int(number)))
+        for key in found:
+            if key not in names:
+                names.append(key)
+    entries = [(day, names) for day, names in by_day.items() if names]
+    entries.sort(key=lambda e: e[0], reverse=True)
+    return entries
+
+
+def _iter_news_lines(html: str):
+    """(day, <p class='news'>) for every news line, continuation lines included."""
+    soup = BeautifulSoup(html, "html.parser")
     for month_div in soup.find_all("div", id=_NEWS_MONTH_ID_RE):
         year, month = map(int, _NEWS_MONTH_ID_RE.match(month_div["id"]).groups())
         current_day: Optional[date] = None
@@ -87,18 +104,30 @@ def parse_news_html(html: str) -> List[Tuple[date, List[Tuple[str, int]]]]:
                     current_day = None
             if current_day is None:
                 continue  # continuation line before any dated line: nothing to attach it to
-            names = by_day.setdefault(current_day, [])
-            found = [(city, int(number)) for city, number in INVADER_NAME_RE.findall(p.get_text(" "))]
-            for a in p.find_all("a", href=_NEWS_LINK_RE):
-                if not INVADER_NAME_RE.search(a.get_text()):
-                    city, number = _NEWS_LINK_RE.search(a["href"]).groups()
-                    found.append((city, int(number)))
-            for key in found:
-                if key not in names:
-                    names.append(key)
-    entries = [(day, names) for day, names in by_day.items() if names]
-    entries.sort(key=lambda e: e[0], reverse=True)
-    return entries
+            yield current_day, p
+
+
+_SENTENCE_SPLIT_RE = re.compile(r"\.\s+")
+_REACTIVATION_RE = re.compile(r"r[ée]activation", re.IGNORECASE)
+
+
+def parse_news_reactivations(html: str) -> List[Tuple[date, Tuple[str, int]]]:
+    """[(day, (city, number)), ...] for invaders named in a "Réactivation de ..." sentence.
+
+    A day's lines are joined, then split into sentences ("Réactivation de PA_207 et
+    PA_267. Destruction de PA_516" -> two sentences), so only reactivated names count.
+    """
+    text_by_day: Dict[date, List[str]] = {}
+    for day, p in _iter_news_lines(html):
+        text_by_day.setdefault(day, []).append(p.get_text(" "))
+    out: List[Tuple[date, Tuple[str, int]]] = []
+    for day, lines in text_by_day.items():
+        for sentence in _SENTENCE_SPLIT_RE.split(" ".join(lines)):
+            if _REACTIVATION_RE.search(sentence):
+                for city, number in INVADER_NAME_RE.findall(sentence):
+                    out.append((day, (city, int(number))))
+    out.sort(key=lambda e: e[0])
+    return out
 
 
 def new_session() -> requests.Session:
@@ -107,10 +136,14 @@ def new_session() -> requests.Session:
     return s
 
 
-def fetch_news(session: requests.Session) -> List[Tuple[date, List[Tuple[str, int]]]]:
+def fetch_news_html(session: requests.Session) -> str:
     r = session.get(NEWS_URL, timeout=REQUEST_TIMEOUT)
     r.raise_for_status()
-    return parse_news_html(r.text)
+    return r.text
+
+
+def fetch_news(session: requests.Session) -> List[Tuple[date, List[Tuple[str, int]]]]:
+    return parse_news_html(fetch_news_html(session))
 
 
 # ── invader rows (listing.php) ────────────────────────────────────────────────

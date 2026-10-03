@@ -40,6 +40,7 @@ from . import admin_request_service
 log = logging.getLogger("spotter_sync")
 
 DEFAULT_NEWS_DAYS = 7          # overlap covers skipped runs (redeploys, site downtime)
+REACTIVATION_BACKFILL_DAYS = 90   # full mode: only recent "Réactivation" news are back-filled
 DEFAULT_DELAY_S = 0.5          # between requests — be polite to a hobby site
 VALIDATED_BY = "invader-spotter-sync"
 
@@ -61,6 +62,7 @@ class SyncReport:
     missing_on_site: List[str] = field(default_factory=list)    # asked the site, got nothing
     unparsed_state: List[str] = field(default_factory=list)     # site label we can't map
     kept_app_state: List[str] = field(default_factory=list)     # app validation newer than site info
+    backfilled_reactivations: List[str] = field(default_factory=list)  # past changes now tagged reactivated
     errors: List[str] = field(default_factory=list)
 
     def summary(self) -> str:
@@ -69,6 +71,7 @@ class SyncReport:
             f"changed={len(self.changes)} missing_in_db={len(self.missing_in_db)} "
             f"missing_on_site={len(self.missing_on_site)} unparsed_state={len(self.unparsed_state)} "
             f"kept_app_state={len(self.kept_app_state)} "
+            f"backfilled_reactivations={len(self.backfilled_reactivations)} "
             f"errors={len(self.errors)}"
         )
 
@@ -163,6 +166,64 @@ def _reconcile(
         _apply_state(db, invader_id, new_state, notify=notify)
 
 
+def _invader_ids_by_key(db: Session, keys: List[Tuple[str, int]]) -> Dict[Tuple[str, int], int]:
+    """(city, number) -> invader id, also matching by name for invaders whose
+    city/number columns were never filled (created from the app)."""
+    out: Dict[Tuple[str, int], int] = {}
+    for city, number in set(keys):
+        names = {f"{city}_{number}", f"{city}_{number:02d}", f"{city}_{number:03d}", f"{city}_{number:04d}"}
+        inv = (
+            db.query(Invader.id)
+            .filter(
+                ((Invader.city == city) & (Invader.number == number)) | Invader.name.in_(names)
+            )
+            .first()
+        )
+        if inv:
+            out[(city, number)] = inv[0]
+    return out
+
+
+def _backfill_reactivations(
+    db: Session, report: SyncReport, reactivations: List[Tuple[date, Tuple[str, int]]],
+) -> None:
+    """Tag past changes as reactivations, so the News feed shows them in magenta.
+
+    `previous_state` is only recorded since the News colours shipped. For each recent
+    "Réactivation de X" news, the first approved change of X back to Good on or after
+    that day, whose previous state is unknown, gets previous_state = Destroyed.
+    Rows that already have a previous_state are never touched (re-runs are no-ops).
+    """
+    ids = _invader_ids_by_key(db, [key for _, key in reactivations])
+    tagged: List[int] = []   # one news -> one change (two reactivations of X tag two changes)
+    for day, key in reactivations:
+        invader_id = ids.get(key)
+        if invader_id is None:
+            continue
+        admin_req = (
+            db.query(AdminRequest)
+            .filter(
+                AdminRequest.invader_id == invader_id,
+                AdminRequest.status == "approved",
+                AdminRequest.request_type == "modify",
+                AdminRequest.proposed_state == "Good",
+                AdminRequest.previous_state.is_(None),
+                AdminRequest.reviewed_at >= datetime(day.year, day.month, day.day),
+                AdminRequest.id.notin_(tagged),
+            )
+            .order_by(AdminRequest.reviewed_at.asc())
+            .first()
+        )
+        if admin_req is None:
+            continue
+        tagged.append(admin_req.id)
+        report.backfilled_reactivations.append(f"{key[0]}_{key[1]} (news {day})")
+        if not report.dry_run:
+            admin_req.previous_state = "Destroyed"
+    if report.backfilled_reactivations and not report.dry_run:
+        db.commit()
+
+
 def sync_from_news(
     db: Session,
     days: int = DEFAULT_NEWS_DAYS,
@@ -228,6 +289,19 @@ def sync_full(
     db.rollback()  # release the connection before minutes of scraping
 
     # Network phase
+    reactivations: List[Tuple[date, Tuple[str, int]]] = []
+    try:
+        cutoff = date.today() - timedelta(days=REACTIVATION_BACKFILL_DAYS)
+        reactivations = [
+            (day, key)
+            for day, key in spotter_scraper.parse_news_reactivations(
+                spotter_scraper.fetch_news_html(spotter_scraper.new_session())
+            )
+            if day >= cutoff and (city is None or key[0] == city)
+        ]
+    except requests.RequestException as e:
+        report.errors.append(f"news.php: {e}")
+
     session = spotter_scraper.new_listing_session()
     scraped: Dict[Tuple[str, int], dict] = {}
     for city_code in sorted({c for c, _ in db_keys}):
@@ -253,4 +327,5 @@ def sync_full(
     # DB phase
     log.info("full: comparing %d scraped invaders with the DB", len(scraped))
     _reconcile(db, report, scraped, notify=notify, city=city)
+    _backfill_reactivations(db, report, reactivations)
     return report
