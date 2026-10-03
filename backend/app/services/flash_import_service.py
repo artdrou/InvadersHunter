@@ -9,6 +9,7 @@ feature isolated and easy to remove/refactor.
 Routers must delegate to import_flashes() and translate exceptions.
 """
 import re
+from pathlib import Path
 from typing import Iterable, List
 from sqlalchemy.orm import Session
 
@@ -98,3 +99,20 @@ def import_flashes(db: Session, user_id: int, raw_names: Iterable[str]) -> dict:
         "unknown": unknown,
         "total_submitted": len(names),
     }
+
+
+# --- PC tool download --------------------------------------------------------
+
+# One exe per environment, each with its API URL baked in (see build_exes.ps1).
+_TOOL_BUILDS_DIR = Path(__file__).resolve().parents[2] / "static" / "flash_import" / "builds"
+_ENV_HOST_RE = re.compile(r"^invader-hunter-(development|staging|production)\.")
+
+
+def tool_exe_for_host(host: str) -> Path:
+    """The PC tool exe that talks to the backend reached at `host`.
+
+    Unknown hosts (localhost, LAN IP) get the development build.
+    """
+    match = _ENV_HOST_RE.match(host or "")
+    env = match.group(1) if match else "development"
+    return _TOOL_BUILDS_DIR / f"InvadersHunter-FlashImport-{env}.exe"
