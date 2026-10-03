@@ -35,7 +35,20 @@
     "dateLastRequest": "Dernière demande de modification",
     "requestsRejected": "Modifications refusées",
     "requestsPending": "Modifications en attente",
-    "comments": "Commentaires"
+    "comments": "Commentaires",
+    "sectionActions": "Actions",
+    "selfNote": "C'est votre compte : utilisez Réglages > Profil pour le gérer.",
+    "promote": "Promouvoir admin",
+    "demote": "Retirer le statut admin",
+    "promoteTitle": "Promouvoir {{name}} admin ?",
+    "promoteBody": "Il aura accès à l'onglet Admin : validation des demandes, suppression d'invaders et d'utilisateurs. L'onglet Admin lui apparaîtra en moins d'une heure (ou à sa prochaine connexion).",
+    "demoteTitle": "Retirer le statut admin de {{name}} ?",
+    "demoteBody": "Il perd immédiatement l'accès aux actions admin.",
+    "deleteUser": "Supprimer l'utilisateur",
+    "deleteTitle": "Supprimer {{name}} ?",
+    "deleteBody": "Action DÉFINITIVE et sans retour. Le compte sera supprimé avec tous ses flashs, ses demandes, ses commentaires et ses réactions.",
+    "deleteConfirm": "Supprimer définitivement",
+    "actionFailed": "L'action a échoué. Vérifiez votre connexion."
   },
   "common": {
     "cancel": "Annuler",

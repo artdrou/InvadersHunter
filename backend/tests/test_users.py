@@ -235,3 +235,22 @@ def test_user_profile_stats_and_dates(client, db, user, admin):
     assert p["last_request_at"].startswith("2026-01-12")
     assert (p["requests_sent"], p["requests_accepted"], p["requests_rejected"], p["requests_pending"]) == (3, 1, 1, 1)
     assert p["comments"] == 1
+
+
+# ── admin role changes (PUT /users/{id} is_admin) ─────────────────────────────
+
+def test_admin_can_promote_and_demote(client, db, user, admin):
+    res = client.put(f"/users/{user.id}", json={"is_admin": True}, headers=auth_headers(admin))
+    assert res.status_code == 200 and res.json()["is_admin"] is True
+    res = client.put(f"/users/{user.id}", json={"is_admin": False}, headers=auth_headers(admin))
+    assert res.status_code == 200 and res.json()["is_admin"] is False
+
+
+def test_admin_cannot_remove_own_admin_role(client, admin):
+    res = client.put(f"/users/{admin.id}", json={"is_admin": False}, headers=auth_headers(admin))
+    assert res.status_code == 400
+
+
+def test_user_cannot_promote_self(client, user):
+    res = client.put(f"/users/{user.id}", json={"is_admin": True}, headers=auth_headers(user))
+    assert res.status_code == 403

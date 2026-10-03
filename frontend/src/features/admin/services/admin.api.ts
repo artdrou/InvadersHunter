@@ -57,3 +57,13 @@ export async function fetchUserProfile(id: number): Promise<AdminUserProfile> {
   const res = await api.get(`/users/${id}/profile`);
   return res.data;
 }
+
+/** Admin only: grant or revoke the admin role (the backend refuses revoking your own). */
+export async function setUserAdmin(id: number, isAdmin: boolean): Promise<void> {
+  await api.put(`/users/${id}`, { is_admin: isAdmin });
+}
+
+/** Deletes the account with its flashes, requests, comments and tokens. */
+export async function deleteUser(id: number): Promise<void> {
+  await api.delete(`/users/${id}`);
+}

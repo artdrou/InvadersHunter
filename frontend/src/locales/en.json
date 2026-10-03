@@ -35,7 +35,20 @@
     "dateLastRequest": "Last modification request",
     "requestsRejected": "Modifications rejected",
     "requestsPending": "Modifications pending",
-    "comments": "Comments"
+    "comments": "Comments",
+    "sectionActions": "Actions",
+    "selfNote": "This is your account: manage it from Settings > Profile.",
+    "promote": "Promote to admin",
+    "demote": "Remove admin role",
+    "promoteTitle": "Promote {{name}} to admin?",
+    "promoteBody": "They will get the Admin tab: approving requests, deleting invaders and users. The Admin tab shows up for them within the hour (or at their next login).",
+    "demoteTitle": "Remove admin role from {{name}}?",
+    "demoteBody": "They immediately lose access to admin actions.",
+    "deleteUser": "Delete user",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteBody": "PERMANENT, cannot be undone. The account will be deleted with all its flashes, requests, comments and reactions.",
+    "deleteConfirm": "Delete permanently",
+    "actionFailed": "The action failed. Check your connection."
   },
   "common": {
     "cancel": "Cancel",
