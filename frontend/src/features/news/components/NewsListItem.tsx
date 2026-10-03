@@ -21,14 +21,24 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
   release: 'rocket-launch-outline',
 };
 
-// Colour-coded event kinds; other kinds (degraded, updated) keep the default accent chip.
-const KIND_STYLE: Partial<Record<NewsKind, { color: string; label: string }>> = {
+// Colour-coded event kinds. Any other state change (degradation, restoration…)
+// is mustard; edits that don't touch the state keep the default accent chip.
+type KindStyle = { color: string; label: string };
+const STATE_CHANGE_STYLE: KindStyle = { color: '#D4A017', label: 'news.kindStateChanged' };
+const KIND_STYLE: Partial<Record<NewsKind, KindStyle>> = {
   create: { color: '#2ECC40', label: 'news.typeAdded' },
   destroyed: { color: '#FF3B30', label: 'news.kindDestroyed' },
   hidden: { color: '#9A9A9A', label: 'news.kindHidden' },
   moved: { color: '#2F80FF', label: 'news.kindMoved' },
   reactivated: { color: '#FF2BD6', label: 'news.kindReactivated' },
+  degraded: STATE_CHANGE_STYLE,
 };
+
+function kindStyleOf(item: NewsItem): KindStyle | undefined {
+  if (!item.kind) return undefined;
+  if (item.kind === 'updated' && item.changes?.includes('state')) return STATE_CHANGE_STYLE;
+  return KIND_STYLE[item.kind];
+}
 
 // Same canonical-state → i18n keys used by InvaderInfoPanel.
 const STATE_KEYS: Record<string, string> = {
@@ -67,7 +77,7 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
   });
 
   const title = isInvader ? item.invader_name ?? '?' : item.title ?? '';
-  const kindStyle = isInvader && item.kind ? KIND_STYLE[item.kind] : undefined;
+  const kindStyle = isInvader ? kindStyleOf(item) : undefined;
 
   let subtitle = isInvader ? '' : item.body ?? '';
   if (isInvader) {

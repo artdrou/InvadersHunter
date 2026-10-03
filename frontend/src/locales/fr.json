@@ -35,6 +35,7 @@
     "kindDestroyed": "Detruit",
     "kindHidden": "Non visible",
     "kindMoved": "Deplace",
+    "kindStateChanged": "Etat modifie",
     "kindReactivated": "Reactive",
     "typeRelease": "Mise a jour",
     "changeLocation": "Position",
