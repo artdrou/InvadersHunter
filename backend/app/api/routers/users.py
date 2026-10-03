@@ -4,7 +4,7 @@ from typing import List
 
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserAdminProfileOut
 from app.dependencies import get_db, get_current_user, require_admin
-from app.services import user_service
+from app.services import user_service, deletion_service
 from app.services.user_service import UserMissing, UsernameTaken, EmailTaken
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -83,9 +83,11 @@ def delete_user(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    """Owner or admin. Also deletes the user's flashes, requests, comments,
+    reactions and tokens (approved admin requests stay as invader history)."""
     _check_owner_or_admin(user_id, current_user)
     try:
-        user_service.delete(db, user_id)
+        report = deletion_service.delete_user(db, user_id)
     except UserMissing:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+    return {"message": "User deleted successfully", "deleted": report.deleted}

@@ -6,8 +6,8 @@ from datetime import datetime
 from app.schemas.space_invader import InvaderCreate, InvaderOut, InvaderUpdate
 from app.schemas.admin_request import InvaderContributorsOut
 from app.schemas.comment import CommentSummaryOut, InvaderOverviewOut
-from app.dependencies import get_db, get_current_user_optional
-from app.services import invader_service, admin_request_service, comment_service
+from app.dependencies import get_db, get_current_user_optional, require_admin
+from app.services import invader_service, admin_request_service, comment_service, deletion_service
 from app.services.invader_service import InvaderMissing
 
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
@@ -70,12 +70,14 @@ def get_invader_overview(
 
 
 @router.post("/", response_model=InvaderOut)
-def create_invader(invader: InvaderCreate, db: Session = Depends(get_db)):
+def create_invader(invader: InvaderCreate, db: Session = Depends(get_db), _admin=Depends(require_admin)):
     return invader_service.create(db, invader.model_dump())
 
 
 @router.put("/{invader_id}", response_model=InvaderOut)
-def update_invader(invader_id: int, invader_update: InvaderUpdate, db: Session = Depends(get_db)):
+def update_invader(
+    invader_id: int, invader_update: InvaderUpdate, db: Session = Depends(get_db), _admin=Depends(require_admin),
+):
     try:
         return invader_service.update(db, invader_id, invader_update.model_dump(exclude_unset=True))
     except InvaderMissing:
@@ -83,9 +85,10 @@ def update_invader(invader_id: int, invader_update: InvaderUpdate, db: Session =
 
 
 @router.delete("/{invader_id}")
-def delete_invader(invader_id: int, db: Session = Depends(get_db)):
+def delete_invader(invader_id: int, db: Session = Depends(get_db), _admin=Depends(require_admin)):
+    """Admin only. Also deletes its flashes, requests, admin requests and comments."""
     try:
-        invader_service.delete(db, invader_id)
+        report = deletion_service.delete_invader(db, invader_id)
     except InvaderMissing:
         raise HTTPException(status_code=404, detail="Invader not found")
-    return {"message": "Invader deleted successfully"}
+    return {"message": "Invader deleted successfully", "deleted": report.deleted}

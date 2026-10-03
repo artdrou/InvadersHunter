@@ -76,7 +76,7 @@ def test_full_create_validate_delete_clean_sequence(db, client, users):
     assert admin_req.invader_id == invader_id
 
     # ── 3. DELETE ────────────────────────────────────────────────────────────
-    res = client.delete(f"/invaders/{invader_id}")
+    res = client.delete(f"/invaders/{invader_id}", headers=auth_headers(admin))  # admin-only
     assert res.status_code == 200
 
     db.expire_all()

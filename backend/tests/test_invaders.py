@@ -3,6 +3,26 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 from app.models.space_invader import Invader
+from app.models.user import User
+from app.core.security import hash_password
+from tests.conftest import auth_headers
+
+
+@pytest.fixture()
+def admin_h(db):
+    """Auth headers of an admin — create / update / delete are admin-only."""
+    admin = User(username="admin", email="admin@test.com", hashed_password=hash_password("pw"), is_admin=True)
+    db.add(admin)
+    db.flush()
+    return auth_headers(admin)
+
+
+@pytest.fixture()
+def user_h(db):
+    user = User(username="u1", email="u1@test.com", hashed_password=hash_password("pw"))
+    db.add(user)
+    db.flush()
+    return auth_headers(user)
 
 
 @pytest.fixture()
@@ -80,15 +100,15 @@ def test_get_invader_not_found(client):
 
 # ── create (POST /invaders/) ──────────────────────────────────────────────────
 
-def test_create_invader(client):
-    res = client.post("/invaders/", json={"name": "LYO_1", "latitude": 45.74, "longitude": 4.83})
+def test_create_invader(client, admin_h):
+    res = client.post("/invaders/", json={"name": "LYO_1", "latitude": 45.74, "longitude": 4.83}, headers=admin_h)
     assert res.status_code == 200
     body = res.json()
     assert body["name"] == "LYO_1"
     assert body["id"] is not None
 
 
-def test_create_invader_with_all_fields(client):
+def test_create_invader_with_all_fields(client, admin_h):
     res = client.post("/invaders/", json={
         "name": "LYO_2",
         "city": "LYO",
@@ -98,62 +118,69 @@ def test_create_invader_with_all_fields(client):
         "state": "Good",
         "points": 50,
         "description": "Near the market",
-    })
+    }, headers=admin_h)
     assert res.status_code == 200
     body = res.json()
     assert body["city"] == "LYO"
     assert body["points"] == 50
 
 
-def test_created_invader_appears_in_list(client):
-    client.post("/invaders/", json={"name": "LYO_1", "latitude": 45.74, "longitude": 4.83})
+def test_created_invader_appears_in_list(client, admin_h):
+    client.post("/invaders/", json={"name": "LYO_1", "latitude": 45.74, "longitude": 4.83}, headers=admin_h)
     res = client.get("/invaders/")
     assert any(i["name"] == "LYO_1" for i in res.json())
 
 
 # ── update (PUT /invaders/{id}) ───────────────────────────────────────────────
 
-def test_update_invader_state(client, inv):
-    res = client.put(f"/invaders/{inv.id}", json={"state": "Destroyed"})
+def test_update_invader_state(client, inv, admin_h):
+    res = client.put(f"/invaders/{inv.id}", json={"state": "Destroyed"}, headers=admin_h)
     assert res.status_code == 200
     assert res.json()["state"] == "Destroyed"
 
 
-def test_update_invader_location(client, inv):
-    res = client.put(f"/invaders/{inv.id}", json={"latitude": 48.90, "longitude": 2.40})
+def test_update_invader_location(client, inv, admin_h):
+    res = client.put(f"/invaders/{inv.id}", json={"latitude": 48.90, "longitude": 2.40}, headers=admin_h)
     assert res.status_code == 200
     body = res.json()
     assert body["latitude"] == pytest.approx(48.90)
     assert body["longitude"] == pytest.approx(2.40)
 
 
-def test_update_invader_partial_fields_unchanged(client, inv):
-    res = client.put(f"/invaders/{inv.id}", json={"state": "Degraded"})
+def test_update_invader_partial_fields_unchanged(client, inv, admin_h):
+    res = client.put(f"/invaders/{inv.id}", json={"state": "Degraded"}, headers=admin_h)
     assert res.status_code == 200
     body = res.json()
     assert body["name"] == "PA_10"  # unchanged
     assert body["points"] == 10     # unchanged
 
 
-def test_update_invader_not_found(client):
-    res = client.put("/invaders/9999", json={"state": "Destroyed"})
+def test_update_invader_not_found(client, admin_h):
+    res = client.put("/invaders/9999", json={"state": "Destroyed"}, headers=admin_h)
     assert res.status_code == 404
 
 
 # ── delete (DELETE /invaders/{id}) ────────────────────────────────────────────
 
-def test_delete_invader(client, db, inv):
-    res = client.delete(f"/invaders/{inv.id}")
+def test_delete_invader(client, db, inv, admin_h):
+    res = client.delete(f"/invaders/{inv.id}", headers=admin_h)
     assert res.status_code == 200
     assert db.query(Invader).filter(Invader.id == inv.id).first() is None
 
 
-def test_delete_invader_not_found(client):
-    res = client.delete("/invaders/9999")
+def test_delete_invader_not_found(client, admin_h):
+    res = client.delete("/invaders/9999", headers=admin_h)
     assert res.status_code == 404
 
 
-def test_delete_invader_no_longer_in_list(client, db, inv):
-    client.delete(f"/invaders/{inv.id}")
+def test_delete_invader_no_longer_in_list(client, db, inv, admin_h):
+    client.delete(f"/invaders/{inv.id}", headers=admin_h)
     res = client.get("/invaders/")
     assert not any(i["id"] == inv.id for i in res.json())
+
+
+def test_invader_writes_are_admin_only(client, inv, user_h):
+    assert client.post("/invaders/", json={"name": "LYO_1", "latitude": 1, "longitude": 1}).status_code == 401
+    assert client.post("/invaders/", json={"name": "LYO_1", "latitude": 1, "longitude": 1}, headers=user_h).status_code == 403
+    assert client.put(f"/invaders/{inv.id}", json={"state": "Destroyed"}, headers=user_h).status_code == 403
+    assert client.delete(f"/invaders/{inv.id}", headers=user_h).status_code == 403

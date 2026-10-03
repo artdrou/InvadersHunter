@@ -132,9 +132,4 @@ def update(
     return user
 
 
-def delete(db: Session, user_id: int) -> None:
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise UserMissing()
-    db.delete(user)
-    safe_commit(db)
+# Deletion (with flashes, requests, comments, tokens…) lives in deletion_service.delete_user.
