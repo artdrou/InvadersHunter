@@ -182,3 +182,56 @@ def test_delete_other_user_as_admin(client, db, admin, user):
 def test_delete_not_found(client, admin):
     res = client.delete("/users/9999", headers=auth_headers(admin))
     assert res.status_code == 404
+
+
+# ── admin user profile (GET /users/{id}/profile) ──────────────────────────────
+
+def test_user_profile_is_admin_only(client, user, admin):
+    assert client.get(f"/users/{user.id}/profile").status_code == 401
+    assert client.get(f"/users/{user.id}/profile", headers=auth_headers(user)).status_code == 403
+    assert client.get("/users/9999/profile", headers=auth_headers(admin)).status_code == 404
+
+
+def test_user_profile_stats_and_dates(client, db, user, admin):
+    from datetime import datetime, timedelta
+    from app.models.space_invader import Invader
+    from app.models.user_progress import UserProgress
+    from app.models.user_request import UserRequest
+    from app.models.admin_request import AdminRequest
+    from app.models.invader_comment import InvaderComment
+    from app.models.refresh_token import RefreshToken
+
+    a, b = Invader(name="PA_1", state="Good"), Invader(name="PA_2", state="Good")
+    db.add_all([a, b])
+    db.flush()
+    t0 = datetime(2026, 1, 10)
+    db.add_all([
+        UserProgress(user_id=user.id, invader_id=a.id, found_at=t0),
+        UserProgress(user_id=user.id, invader_id=b.id, found_at=t0 + timedelta(days=5)),
+    ])
+    approved = AdminRequest(invader_id=a.id, request_type="modify", status="approved")
+    rejected = AdminRequest(invader_id=b.id, request_type="modify", status="rejected")
+    db.add_all([approved, rejected])
+    db.flush()
+    db.add_all([
+        UserRequest(user_id=user.id, invader_id=a.id, request_type="modify", status="processed",
+                    admin_request_id=approved.id, created_at=t0),
+        UserRequest(user_id=user.id, invader_id=b.id, request_type="modify", status="rejected",
+                    admin_request_id=rejected.id, created_at=t0 + timedelta(days=1)),
+        UserRequest(user_id=user.id, invader_id=b.id, request_type="modify", status="pending",
+                    created_at=t0 + timedelta(days=2)),
+        InvaderComment(invader_id=a.id, user_id=user.id, body="hi"),
+        RefreshToken(user_id=user.id, token="r1", expires_at=t0 + timedelta(days=30), created_at=t0 + timedelta(days=7)),
+    ])
+    db.commit()
+
+    res = client.get(f"/users/{user.id}/profile", headers=auth_headers(admin))
+    assert res.status_code == 200
+    p = res.json()
+    assert p["email"] == "alice@test.com" and p["username"] == "alice" and p["is_admin"] is False
+    assert sorted(p["flashed_invader_ids"]) == sorted([a.id, b.id])
+    assert p["first_flash_at"].startswith("2026-01-10") and p["last_flash_at"].startswith("2026-01-15")
+    assert p["last_login_at"].startswith("2026-01-17")
+    assert p["last_request_at"].startswith("2026-01-12")
+    assert (p["requests_sent"], p["requests_accepted"], p["requests_rejected"], p["requests_pending"]) == (3, 1, 1, 1)
+    assert p["comments"] == 1

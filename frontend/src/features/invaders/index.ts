@@ -4,6 +4,8 @@ export { useInvaderData } from './hooks/use-invader-data';
 export { useInvaderOverview } from './hooks/use-invader-overview';
 export { useInvaderStore } from './store';
 export { mapInvadersWithProgress } from './mapper';
+export { computeCollectionStats } from './utils/collection-stats';
+export type { CollectionStats } from './utils/collection-stats';
 export { fetchInvaders, fetchProgress, flashInvader, unflashInvader } from './services/invaders.api';
 export { cityOf, numOf, buildGroups, formatDate, SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR } from './utils/invader-list';
 export type { SortOption, GroupMode, SortDir } from './utils/invader-list';
