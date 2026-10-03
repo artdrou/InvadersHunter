@@ -1,7 +1,8 @@
 /**
  * Stat cards used by profile screens (the user's own profile and the admin
- * user page): a titled section, a 2-column grid of big-number cells, and a
- * full-width text cell.
+ * user page): a titled section, a 2-column grid of value cells, and a
+ * full-width text cell. Type sizes match the settings rows/sections
+ * (SettingsSection / SettingsRow) so these screens read like the rest of the app.
  */
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
@@ -44,10 +45,10 @@ export function InfoCell({ value, label }: { value: string; label?: string }) {
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
-    section: { gap: Spacing.two },
+    section: { gap: Spacing.one },
     sectionLabel: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm,
-      letterSpacing: 1, textTransform: 'uppercase',
+      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs,
+      letterSpacing: 1, textTransform: 'uppercase', paddingHorizontal: Spacing.two,
     },
     grid: {
       flexDirection: 'row',
@@ -62,7 +63,8 @@ function makeStyles(t: ThemeTokens) {
       borderWidth: 1,
       borderColor: t.border,
       borderRadius: BorderRadius.md,
-      padding: Spacing.three,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.two,
       gap: 2,
     },
     cellFull: {
@@ -70,25 +72,24 @@ function makeStyles(t: ThemeTokens) {
       borderWidth: 1,
       borderColor: t.border,
       borderRadius: BorderRadius.md,
-      padding: Spacing.three,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.two,
       gap: 2,
     },
     cellValue: {
       color: t.accent,
       fontFamily: ButtonFont,
-      fontSize: FontSize.xxl,
+      fontSize: FontSize.md,
     },
     cellSub: {
       color: t.textMuted,
       fontFamily: ButtonFont,
-      fontSize: FontSize.sm,
+      fontSize: FontSize.xs,
     },
     cellLabel: {
       color: t.textMuted,
       fontFamily: ButtonFont,
       fontSize: FontSize.xs,
-      marginTop: Spacing.one,
-      letterSpacing: 0.5,
     },
   });
 }
