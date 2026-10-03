@@ -1,4 +1,12 @@
 {
+  "adminDelete": {
+    "button": "Supprimer cet invader",
+    "title": "Supprimer {{name}} ?",
+    "body": "Action DEFINITIVE et sans retour. L'invader sera supprime pour TOUS les utilisateurs, avec tous ses flashs, ses demandes et ses commentaires.",
+    "typeToConfirm": "Tapez {{word}} pour confirmer",
+    "confirm": "Supprimer definitivement",
+    "failed": "La suppression a echoue. Verifiez votre connexion."
+  },
   "common": {
     "cancel": "Annuler",
     "close": "Fermer",

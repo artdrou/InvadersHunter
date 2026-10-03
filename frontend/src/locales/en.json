@@ -1,4 +1,12 @@
 {
+  "adminDelete": {
+    "button": "Delete this invader",
+    "title": "Delete {{name}}?",
+    "body": "PERMANENT, cannot be undone. The invader will be deleted for ALL users, with all its flashes, requests and comments.",
+    "typeToConfirm": "Type {{word}} to confirm",
+    "confirm": "Delete permanently",
+    "failed": "Deletion failed. Check your connection."
+  },
   "common": {
     "cancel": "Cancel",
     "close": "Close",

@@ -42,3 +42,8 @@ export async function approveAdminRequest(
 export async function rejectAdminRequest(id: number): Promise<void> {
   await api.post(`/admin-requests/${id}/reject`);
 }
+
+/** Admin only. Hard-deletes the invader with its flashes, requests and comments. */
+export async function deleteInvader(id: number): Promise<void> {
+  await api.delete(`/invaders/${id}`);
+}
