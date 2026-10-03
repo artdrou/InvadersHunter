@@ -138,6 +138,7 @@ def approve(
         if not invader:
             raise TargetInvaderMissing()
         previous_state = invader.state
+        admin_req.previous_state = previous_state
         previous_lat = invader.latitude
         previous_lon = invader.longitude
         if admin_req.proposed_name is not None:

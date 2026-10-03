@@ -25,6 +25,9 @@ class NewsItemOut(BaseModel):
     image_url: Optional[str] = None
     # What the approved request changed (for the feed subtitle)
     changes: Optional[List[str]] = None   # subset of name|state|location|points|image|description
+    # Nature of the event (drives the feed colours):
+    # create|destroyed|hidden|reactivated|degraded|moved|updated
+    kind: Optional[str] = None
     new_state: Optional[str] = None
     new_points: Optional[int] = None
 

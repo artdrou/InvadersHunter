@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { FontSize, Spacing, BorderRadius } from '@/constants/theme';
 import { getDateLocale } from '@/services/i18n';
-import { parseServerDate, type NewsItem } from '../types';
+import { parseServerDate, type NewsItem, type NewsKind } from '../types';
 
 const TYPE_LABEL: Record<NewsItem['type'], string> = {
   invader_added: 'news.typeAdded',
@@ -19,6 +19,15 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
   invader_updated: 'space-invaders',
   announcement: 'bullhorn-outline',
   release: 'rocket-launch-outline',
+};
+
+// Colour-coded event kinds; other kinds (degraded, updated) keep the default accent chip.
+const KIND_STYLE: Partial<Record<NewsKind, { color: string; label: string }>> = {
+  create: { color: '#2ECC40', label: 'news.typeAdded' },
+  destroyed: { color: '#FF3B30', label: 'news.kindDestroyed' },
+  hidden: { color: '#9A9A9A', label: 'news.kindHidden' },
+  moved: { color: '#2F80FF', label: 'news.kindMoved' },
+  reactivated: { color: '#FF2BD6', label: 'news.kindReactivated' },
 };
 
 // Same canonical-state → i18n keys used by InvaderInfoPanel.
@@ -58,6 +67,7 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
   });
 
   const title = isInvader ? item.invader_name ?? '?' : item.title ?? '';
+  const kindStyle = isInvader && item.kind ? KIND_STYLE[item.kind] : undefined;
 
   let subtitle = isInvader ? '' : item.body ?? '';
   if (isInvader) {
@@ -75,6 +85,7 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
       style={({ pressed }) => [
         styles.card,
         { borderBottomColor: theme.bgDivider },
+        kindStyle && { borderLeftWidth: KIND_BAR_WIDTH, borderLeftColor: kindStyle.color, paddingLeft: Spacing.three - KIND_BAR_WIDTH },
         pressed && canOpen && { backgroundColor: theme.bgElement },
       ]}
       onPress={canOpen ? () => onOpenInvader(item.invader_id!) : undefined}
@@ -98,8 +109,8 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
       {/* Body */}
       <View style={styles.body}>
         <View style={styles.topRow}>
-          <Text style={[styles.typeChip, { color: theme.accent, fontFamily: appFont, fontSize: sz(FontSize.xxs) }]}>
-            {t(TYPE_LABEL[item.type])}
+          <Text style={[styles.typeChip, { color: kindStyle?.color ?? theme.accent, fontFamily: appFont, fontSize: sz(FontSize.xxs) }]}>
+            {t(kindStyle?.label ?? TYPE_LABEL[item.type])}
           </Text>
           <Text style={[styles.date, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(FontSize.xxs) }]}>
             {dateLabel}
@@ -136,6 +147,8 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
     </Pressable>
   );
 }
+
+const KIND_BAR_WIDTH = 4;
 
 const styles = StyleSheet.create({
   card: {

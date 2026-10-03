@@ -1,5 +1,7 @@
 export type NewsType = 'invader_added' | 'invader_updated' | 'announcement' | 'release';
 export type NewsSource = 'community' | 'admin' | 'scraper';
+/** Nature of an invader event, computed by the backend (same rule as push notifications). */
+export type NewsKind = 'create' | 'destroyed' | 'hidden' | 'reactivated' | 'degraded' | 'moved' | 'updated';
 
 /** One entry in the unified News feed (mirror of the backend NewsItemOut). */
 export type NewsItem = {
@@ -14,6 +16,7 @@ export type NewsItem = {
   city?: string | null;
   image_url?: string | null;
   changes?: string[] | null; // name|state|location|points|image|description
+  kind?: NewsKind | null; // absent on older backends
   new_state?: string | null;
   new_points?: number | null;
 
