@@ -59,15 +59,4 @@ def update(db: Session, invader_id: int, fields: dict) -> Invader:
     return invader
 
 
-def delete(db: Session, invader_id: int) -> None:
-    """Hard-delete an invader and write a tombstone row so connected clients
-    pick up the removal on their next delta sync."""
-    invader = db.query(Invader).filter(Invader.id == invader_id).first()
-    if not invader:
-        raise InvaderMissing()
-    db.execute(
-        text("INSERT INTO deleted_invaders (invader_id, deleted_at) VALUES (:id, :now)"),
-        {"id": invader_id, "now": datetime.utcnow()},
-    )
-    db.delete(invader)
-    safe_commit(db)
+# Deletion (with flashes, requests, comments…) lives in deletion_service.delete_invader.
