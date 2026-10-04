@@ -131,6 +131,34 @@ def _send_expo_push(db: Session, messages: List[dict]) -> None:
         safe_commit(db)
 
 
+def notify_user(db: Session, user_id: int, texts: dict, data: dict) -> None:
+    """Push to every device of one user (unless they opted out). `texts` maps
+    language code to (title, body), like notify_invader_event. Not gated by the
+    admin's global switches, which only cover invader news. Never raises."""
+    try:
+        recipients = (
+            db.query(PushToken.token, User.language)
+            .join(User, User.id == PushToken.user_id)
+            .filter(PushToken.user_id == user_id, User.notifications_enabled.is_(True))
+            .all()
+        )
+        if not recipients:
+            return
+        fallback_lang = next(iter(texts))
+        messages = [
+            {
+                "to": token,
+                "title": texts.get(language, texts[fallback_lang])[0],
+                "body": texts.get(language, texts[fallback_lang])[1],
+                "data": data,
+            }
+            for token, language in recipients
+        ]
+        _send_expo_push(db, messages)
+    except Exception as e:
+        log.warning("notifications: notify_user failed for user_id=%s: %s", user_id, e)
+
+
 def notify_invader_event(
     db: Session,
     event_type: str,

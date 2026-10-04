@@ -52,6 +52,9 @@ export type InvaderWithState = Invader & {
   isPending: boolean;
   capturedAt?: string;
   progressId?: number;
+  // Shared map with a friend only (see features/friends/map-view.ts): whether
+  // the friend flashed it. Undefined everywhere else.
+  friendCaptured?: boolean;
 };
 
 export type UserRequest = {

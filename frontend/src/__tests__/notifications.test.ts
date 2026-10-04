@@ -49,6 +49,14 @@ describe('resolveNotificationTapScreen', () => {
   it('defaults to /news when screen is missing', () => {
     expect(resolveNotificationTapScreen({ invader_id: 5 })).toBe('/news');
   });
+
+  it('opens Social for friend notifications', () => {
+    expect(resolveNotificationTapScreen({ screen: '/social' })).toBe('/social');
+  });
+
+  it('ignores unknown screens', () => {
+    expect(resolveNotificationTapScreen({ screen: '/somewhere-else' })).toBe('/news');
+  });
 });
 
 // ── notifications.api ─────────────────────────────────────────────────────────

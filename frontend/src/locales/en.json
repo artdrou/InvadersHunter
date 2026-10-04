@@ -72,6 +72,7 @@
   "tabs": {
     "map": "Map",
     "invaders": "Invaders",
+    "social": "Social",
     "profile": "Settings",
     "admin": "Admin"
   },
@@ -651,5 +652,47 @@
     "whatsNewTitle": "What's new?",
     "versionLabel": "Version {{version}}",
     "gotIt": "Got it!"
+  },
+  "social": {
+    "title": "Social",
+    "addTitle": "Add a friend",
+    "addPlaceholder": "Their exact username",
+    "addButton": "Send",
+    "sent": "Invite sent to {{username}}",
+    "acceptedNow": "{{username}} had already invited you: you're now friends!",
+    "error": {
+      "user_not_found": "No user with this username",
+      "self": "That's you!",
+      "already_friends": "You're already friends",
+      "already_sent": "Invite already sent",
+      "network": "Couldn't send, check your connection"
+    },
+    "incoming": "Invites received ({{count}})",
+    "outgoing": "Invites sent",
+    "friends": "Friends ({{count}})",
+    "accept": "Accept",
+    "decline": "Decline",
+    "cancel": "Cancel",
+    "pending": "Waiting for an answer",
+    "flashedCount": "Invaders flashed: {{count}}",
+    "noFriends": "No friends yet. Add one with their username above.",
+    "loadFailed": "Couldn't load. Tap to retry.",
+    "guestMessage": "Create an account to add friends and compare your maps.",
+    "guestButton": "Create an account",
+    "profileTitle": "Friend",
+    "removeFriend": "Remove friend",
+    "removeConfirm": "Remove {{username}} from your friends?",
+    "mapPickerTitle": "Friends' maps",
+    "myMap": "My map",
+    "theirMap": "Their map",
+    "compare": "Compare",
+    "noFriendsMap": "No friends yet.",
+    "goToSocial": "Add friends",
+    "mapOf": "{{username}}'s map",
+    "sharedWith": "Shared map: me & {{username}}",
+    "legendBoth": "Both",
+    "legendMine": "Only me",
+    "legendFriend": "Only {{username}}",
+    "legendNeither": "Neither"
   }
 }

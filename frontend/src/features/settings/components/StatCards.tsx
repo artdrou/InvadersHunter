@@ -6,8 +6,29 @@
  */
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import type { CollectionStats } from '@/features/invaders/utils/collection-stats';
+
+/** The "Collection" section (flashed, cities, remaining…) shared by every profile screen. */
+export function CollectionStatsSection({ stats }: { stats: CollectionStats }) {
+  const { t } = useTranslation();
+  return (
+    <StatSection title={t('settings.statsCollection')}>
+      <StatCell label={t('settings.statsInvadersFlashed')} value={stats.flashed} />
+      <StatCell label={t('settings.statsCitiesWithFlashes')} value={stats.citiesWithFlashes} />
+      <StatCell label={t('settings.statsCompleteCities')} value={stats.completeCities} />
+      <StatCell label={t('settings.statsRemaining')} value={stats.remaining} />
+      <StatCell label={t('settings.statsDestroyedFlashed')} value={stats.destroyedFlashed} />
+      <StatCell
+        label={t('settings.statsTopCity')}
+        value={stats.topCity?.name ?? t('settings.statsNone')}
+        sub={stats.topCity ? `${stats.topCity.captured}/${stats.topCity.total}` : undefined}
+      />
+    </StatSection>
+  );
+}
 
 /** Section title + its cells (a 2-column grid unless `grid={false}`). */
 export function StatSection({ title, children, grid = true }: { title: string; children: ReactNode; grid?: boolean }) {
