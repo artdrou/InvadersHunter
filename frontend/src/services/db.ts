@@ -118,6 +118,11 @@ export async function getAllInvaders(db: SQLiteDatabase): Promise<Invader[]> {
   return db.getAllAsync<Invader>('SELECT * FROM invaders');
 }
 
+export async function getLocalInvaderIds(db: SQLiteDatabase): Promise<number[]> {
+  const rows = await db.getAllAsync<{ id: number }>('SELECT id FROM invaders');
+  return rows.map((r) => r.id);
+}
+
 export async function upsertInvaders(db: SQLiteDatabase, invaders: Invader[]): Promise<void> {
   if (invaders.length === 0) return;
   await db.withTransactionAsync(async () => {

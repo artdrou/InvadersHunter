@@ -3,10 +3,10 @@ import {
   getMeta, setMeta,
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
-  getAllCaptures, deleteCapturesForUser,
+  getAllCaptures, deleteCapturesForUser, getLocalInvaderIds,
 } from './db';
 import {
-  fetchInvaders, fetchDeletedInvaderIds, fetchProgress, fetchUserRequests,
+  fetchInvaders, fetchDeletedInvaderIds, fetchInvaderIds, fetchProgress, fetchUserRequests,
   flashInvader as apiFlash, unflashInvader as apiUnflash,
   submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
   type ModifyRequestPayload, type CreateRequestPayload,
@@ -112,6 +112,43 @@ export async function submitCreateRequestOfflineAware(
   }
 }
 
+// ── Cache reconciliation ──────────────────────────────────────────────────────
+
+/**
+ * Local invaders missing from the server's id list. An empty server list is
+ * treated as suspicious (server bug, empty DB) and never wipes the cache.
+ */
+export function findStaleInvaderIds(localIds: number[], serverIds: number[]): number[] {
+  if (serverIds.length === 0) return [];
+  const server = new Set(serverIds);
+  return localIds.filter((id) => !server.has(id));
+}
+
+// Module-level: reset only when the JS runtime restarts (cold app start),
+// so the check runs once per app launch, not on every background resume.
+let reconciledThisLaunch = false;
+
+/** Test helper — simulates a cold start. */
+export function resetReconciliationForTests(): void {
+  reconciledThisLaunch = false;
+}
+
+/**
+ * Safety net for invaders deleted without a tombstone (e.g. by hand in the DB):
+ * drop every local invader the server no longer has. Best-effort — a failure
+ * leaves the flag unset so the next sync retries.
+ */
+async function reconcileInvadersOncePerLaunch(db: SQLiteDatabase): Promise<void> {
+  if (reconciledThisLaunch) return;
+  try {
+    const [serverIds, localIds] = await Promise.all([fetchInvaderIds(), getLocalInvaderIds(db)]);
+    await deleteInvadersByIds(db, findStaleInvaderIds(localIds, serverIds));
+    reconciledThisLaunch = true;
+  } catch {
+    // offline or endpoint unavailable on an older deploy — retry next sync
+  }
+}
+
 // ── Guest mode ────────────────────────────────────────────────────────────────
 
 /**
@@ -132,6 +169,7 @@ export async function syncInvadersOnly(db: SQLiteDatabase): Promise<void> {
 
   await upsertInvaders(db, invaders);
   await deleteInvadersByIds(db, deletedIds);
+  await reconcileInvadersOncePerLaunch(db);
   await setMeta(db, 'last_invaders_sync', now);
 }
 
@@ -194,6 +232,7 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
 
   await upsertInvaders(db, invaders);
   await deleteInvadersByIds(db, deletedIds);
+  await reconcileInvadersOncePerLaunch(db);
 
   if (lastProgressSync) {
     await upsertCaptures(db, captures);

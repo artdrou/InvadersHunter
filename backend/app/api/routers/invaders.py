@@ -22,6 +22,12 @@ def list_deleted_invaders(
     return {"ids": invader_service.list_deleted_ids(db, updated_since)}
 
 
+@router.get("/ids")
+def list_invader_ids(db: Session = Depends(get_db)):
+    """Return the IDs of all existing invaders (client-side cache reconciliation)."""
+    return {"ids": invader_service.list_ids(db)}
+
+
 @router.get("/", response_model=List[InvaderOut])
 def list_invaders(
     updated_since: Optional[datetime] = Query(default=None, description="Return only invaders updated after this ISO timestamp"),
