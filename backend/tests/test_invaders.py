@@ -184,3 +184,17 @@ def test_invader_writes_are_admin_only(client, inv, user_h):
     assert client.post("/invaders/", json={"name": "LYO_1", "latitude": 1, "longitude": 1}, headers=user_h).status_code == 403
     assert client.put(f"/invaders/{inv.id}", json={"state": "Destroyed"}, headers=user_h).status_code == 403
     assert client.delete(f"/invaders/{inv.id}", headers=user_h).status_code == 403
+
+
+def test_list_ids_returns_every_existing_invader(client, inv, inv2):
+    res = client.get("/invaders/ids")
+    assert res.status_code == 200
+    assert sorted(res.json()["ids"]) == sorted([inv.id, inv2.id])
+
+
+def test_list_ids_excludes_invader_deleted_without_tombstone(client, db, inv, inv2):
+    # Simulates a manual DELETE in the DB console: no deleted_invaders row
+    db.delete(inv)
+    db.flush()
+    res = client.get("/invaders/ids")
+    assert res.json()["ids"] == [inv2.id]
