@@ -31,6 +31,7 @@ app.include_router(user_requests.router)
 app.include_router(admin_requests.router)
 app.include_router(upload.router)
 app.include_router(flash_import.router)
+app.include_router(flash_import.tool_router)  # must precede the /static mount
 app.include_router(apk.router)
 app.include_router(news.router)
 app.include_router(notifications.router)
