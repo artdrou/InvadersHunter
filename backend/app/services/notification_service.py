@@ -26,15 +26,33 @@ SETTINGS_ID = 1
 
 # ── token registry ────────────────────────────────────────────────────────────
 
-def register_token(db: Session, user_id: int, token: str, platform: Optional[str]) -> PushToken:
+def register_token(
+    db: Session,
+    user_id: int,
+    token: str,
+    platform: Optional[str],
+    app_variant: Optional[str] = None,
+    server_env: Optional[str] = None,
+) -> Optional[PushToken]:
     """Upsert by token: a device re-registering (app restart, user switch) just
-    moves the existing row to the current user instead of duplicating it."""
+    moves the existing row to the current user instead of duplicating it.
+
+    `server_env` is this backend's environment (from the request host). An app
+    of another environment (e.g. a prod app sent here by a bad OTA URL) is
+    refused, and any copy of its token is dropped. Returns None when refused."""
     existing = db.query(PushToken).filter(PushToken.token == token).first()
+    if server_env and app_variant and app_variant != server_env:
+        log.warning("notifications: refused %s app token on %s backend", app_variant, server_env)
+        if existing:
+            db.delete(existing)
+            safe_commit(db)
+        return None
     if existing:
         existing.user_id = user_id
         existing.platform = platform
+        existing.app_variant = app_variant
     else:
-        existing = PushToken(user_id=user_id, token=token, platform=platform)
+        existing = PushToken(user_id=user_id, token=token, platform=platform, app_variant=app_variant)
         db.add(existing)
     safe_commit(db)
     db.refresh(existing)
@@ -80,12 +98,17 @@ def update_user_prefs(db: Session, user: User, fields: dict) -> User:
 
 # ── sending ───────────────────────────────────────────────────────────────────
 
+# Only tokens an app registered with its variant. Untagged rows may be copies
+# from another environment's database (they reached prod phones from dev).
+_REGISTERED_HERE = (PushToken.app_variant.isnot(None),)
+
+
 def _recipient_tokens_with_language(db: Session) -> List[Tuple[str, str]]:
     """(token, language) for every device whose owner hasn't opted out."""
     return (
         db.query(PushToken.token, User.language)
         .join(User, User.id == PushToken.user_id)
-        .filter(User.notifications_enabled.is_(True))
+        .filter(User.notifications_enabled.is_(True), *_REGISTERED_HERE)
         .all()
     )
 
@@ -139,7 +162,7 @@ def notify_user(db: Session, user_id: int, texts: dict, data: dict) -> None:
         recipients = (
             db.query(PushToken.token, User.language)
             .join(User, User.id == PushToken.user_id)
-            .filter(PushToken.user_id == user_id, User.notifications_enabled.is_(True))
+            .filter(PushToken.user_id == user_id, User.notifications_enabled.is_(True), *_REGISTERED_HERE)
             .all()
         )
         if not recipients:

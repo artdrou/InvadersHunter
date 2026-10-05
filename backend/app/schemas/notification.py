@@ -8,6 +8,7 @@ Language = Literal["fr", "en"]
 class PushTokenRegister(BaseModel):
     token: str
     platform: Optional[str] = None  # "ios" | "android"
+    app_variant: Optional[str] = None  # "development" | "staging" | "production"
 
 
 class PushTokenOut(BaseModel):

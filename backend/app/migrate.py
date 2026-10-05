@@ -184,6 +184,11 @@ MIGRATIONS = [
     )""",
     "CREATE INDEX IF NOT EXISTS idx_friendships_requester_id ON friendships (requester_id)",
     "CREATE INDEX IF NOT EXISTS idx_friendships_addressee_id ON friendships (addressee_id)",
+
+    # Push tokens: which app registered them. Existing rows stay NULL and are no
+    # longer pushed to — the 3 databases were copied from one original, so they
+    # all held the same devices (dev pushes reached prod phones).
+    "ALTER TABLE push_tokens ADD COLUMN IF NOT EXISTS app_variant VARCHAR",
 ]
 
 
