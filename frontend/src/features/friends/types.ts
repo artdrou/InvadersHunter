@@ -20,6 +20,16 @@ export type FriendRequestResult = {
   accepted: boolean;
 };
 
+/** Where I stand with a looked-up user. */
+export type FriendRelation = 'none' | 'friends' | 'sent' | 'received' | 'self';
+
+/** A typed username confirmed to exist, with its real capitalization. */
+export type FriendLookup = {
+  user_id: number;
+  username: string;
+  relation: FriendRelation;
+};
+
 /** A friend's game stats (no email / private settings). */
 export type FriendProfile = {
   id: number;

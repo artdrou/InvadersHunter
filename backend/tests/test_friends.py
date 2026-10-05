@@ -191,3 +191,28 @@ def test_deleting_user_removes_friendships(client, db, alice, bob):
     assert client.delete(f"/users/{bob.id}", headers=auth_headers(bob)).status_code == 200
     assert db.query(Friendship).count() == 0
     assert _overview(client, alice)["friends"] == []
+
+
+# ── lookup (suggestion while typing) ──────────────────────────────────────────
+
+def _lookup(client, user, username):
+    return client.get("/friends/lookup", params={"username": username}, headers=auth_headers(user))
+
+
+def test_lookup_returns_real_capitalization(client, alice, bob):
+    res = _lookup(client, alice, "bob")
+    assert res.status_code == 200
+    assert res.json() == {"user_id": bob.id, "username": "Bob", "relation": "none"}
+
+
+def test_lookup_is_exact_not_partial(client, alice, bob):
+    assert _lookup(client, alice, "Bo").status_code == 404
+
+
+def test_lookup_relations(client, alice, bob):
+    assert _lookup(client, alice, "alice").json()["relation"] == "self"
+    fid = _invite(client, alice, "Bob").json()["id"]
+    assert _lookup(client, alice, "Bob").json()["relation"] == "sent"
+    assert _lookup(client, bob, "alice").json()["relation"] == "received"
+    client.post(f"/friends/requests/{fid}/accept", headers=auth_headers(bob))
+    assert _lookup(client, alice, "Bob").json()["relation"] == "friends"

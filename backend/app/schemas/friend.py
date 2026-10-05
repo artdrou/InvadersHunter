@@ -31,6 +31,14 @@ class FriendRequestResult(BaseModel):
     accepted: bool
 
 
+class FriendLookupOut(BaseModel):
+    """A typed username confirmed to exist, with its real capitalization.
+    relation: "none" | "friends" | "sent" | "received" | "self"."""
+    user_id: int
+    username: str
+    relation: str
+
+
 class FriendProfileOut(BaseModel):
     """What a friend can see of you: game stats only (no email, language,
     notification setting or login date)."""

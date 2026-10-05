@@ -693,6 +693,13 @@
     "legendBoth": "Tous les deux",
     "legendMine": "Moi seul",
     "legendFriend": "{{username}} seul",
-    "legendNeither": "Personne"
+    "legendNeither": "Personne",
+    "relation": {
+      "none": "Touche pour sélectionner",
+      "friends": "Déjà ton ami",
+      "sent": "Invitation déjà envoyée",
+      "received": "T'a invité : touche pour accepter",
+      "self": "C'est toi !"
+    }
   }
 }

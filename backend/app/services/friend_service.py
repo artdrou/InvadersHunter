@@ -124,6 +124,26 @@ def overview(db: Session, me: User) -> dict:
     return result
 
 
+def lookup(db: Session, me: User, username: str) -> dict:
+    """Confirm a typed username exists (same exact / case-insensitive match as
+    send_request — no partial search) and tell where we stand with that user:
+    "none" | "friends" | "sent" (I invited them) | "received" (they invited me) | "self"."""
+    target = _find_user_by_username(db, username)
+    if target is None:
+        raise FriendUserMissing()
+    if target.id == me.id:
+        relation = "self"
+    else:
+        link = _pair(db, me.id, target.id)
+        if link is None:
+            relation = "none"
+        elif link.status == ACCEPTED:
+            relation = "friends"
+        else:
+            relation = "sent" if link.requester_id == me.id else "received"
+    return {"user_id": target.id, "username": target.username, "relation": relation}
+
+
 def send_request(db: Session, me: User, username: str) -> dict:
     target = _find_user_by_username(db, username)
     if target is None:

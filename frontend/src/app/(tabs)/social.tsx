@@ -11,9 +11,9 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@
 import { useAuthStore, useRequireAccount } from '@/features/auth';
 import { hapticTap, hapticSuccess } from '@/features/settings';
 import {
-  useFriendsStore, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
+  useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
 } from '@/features/friends';
-import type { FriendEntry } from '@/features/friends';
+import type { FriendEntry, FriendLookup } from '@/features/friends';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -34,6 +34,9 @@ export default function SocialScreen() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [username, setUsername] = useState('');
+  // The user picked from the suggestion — Send only works on a confirmed name.
+  const [confirmed, setConfirmed] = useState<FriendLookup | null>(null);
+  const lookup = useUsernameLookup(username, !isGuest && confirmed === null);
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   // Friendship id of the row whose button is busy (accept / decline / cancel).
@@ -51,9 +54,22 @@ export default function SocialScreen() {
     setRefreshing(false);
   }
 
+  function onTypeUsername(v: string) {
+    setUsername(v);
+    setConfirmed(null);
+    setFeedback(null);
+  }
+
+  // Tapping the suggestion fixes the capitals, closes it and unlocks Send.
+  function pickSuggestion(match: FriendLookup) {
+    hapticTap();
+    setUsername(match.username);
+    setConfirmed(match);
+  }
+
   async function send() {
-    const name = username.trim();
-    if (!name || sending) return;
+    if (!confirmed || sending) return;
+    const name = confirmed.username;
     hapticTap();
     setSending(true);
     setFeedback(null);
@@ -61,6 +77,7 @@ export default function SocialScreen() {
       const res = await sendFriendRequest(name);
       hapticSuccess();
       setUsername('');
+      setConfirmed(null);
       setFeedback({
         ok: true,
         text: res.accepted ? t('social.acceptedNow', { username: name }) : t('social.sent', { username: name }),
@@ -135,27 +152,52 @@ export default function SocialScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>{t('social.addTitle')}</Text>
           <View style={styles.addRow}>
-            <TextInput
-              value={username}
-              onChangeText={(v) => { setUsername(v); setFeedback(null); }}
-              placeholder={t('social.addPlaceholder')}
-              placeholderTextColor={theme.textMuted}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="send"
-              onSubmitEditing={send}
-              style={styles.input}
-            />
+            <View style={[styles.inputWrap, confirmed && { borderColor: theme.success }]}>
+              <TextInput
+                value={username}
+                onChangeText={onTypeUsername}
+                placeholder={t('social.addPlaceholder')}
+                placeholderTextColor={theme.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="send"
+                onSubmitEditing={send}
+                style={styles.input}
+              />
+              {confirmed ? <Ionicons name="checkmark-circle" size={18} color={theme.success} /> : null}
+              {lookup.status === 'checking' ? <ActivityIndicator size="small" color={theme.textMuted} /> : null}
+            </View>
             <Pressable
-              style={({ pressed }) => [styles.primaryBtn, styles.sendBtn, (!username.trim() || sending) && styles.disabled, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.primaryBtn, styles.sendBtn, (!confirmed || sending) && styles.disabled, pressed && styles.pressed]}
               onPress={send}
-              disabled={!username.trim() || sending}
+              disabled={!confirmed || sending}
             >
               {sending
                 ? <ActivityIndicator size="small" color={theme.bg} />
                 : <Text style={styles.primaryBtnText}>{t('social.addButton')}</Text>}
             </Pressable>
           </View>
+          {lookup.status === 'found' ? (() => {
+            const { match } = lookup;
+            const selectable = match.relation === 'none' || match.relation === 'received';
+            return (
+              <Pressable
+                style={({ pressed }) => [styles.card, styles.suggestion, !selectable && styles.disabled, pressed && selectable && styles.pressed]}
+                onPress={() => pickSuggestion(match)}
+                disabled={!selectable}
+              >
+                {avatar(match.username)}
+                <View style={styles.cardBody}>
+                  <Text style={styles.username} numberOfLines={1}>{match.username}</Text>
+                  <Text style={styles.meta}>{t(`social.relation.${match.relation}`)}</Text>
+                </View>
+                {selectable ? <Ionicons name="add-circle-outline" size={22} color={theme.accent} /> : null}
+              </Pressable>
+            );
+          })() : null}
+          {lookup.status === 'not_found' ? (
+            <Text style={[styles.feedback, { color: theme.textMuted }]}>{t('social.error.user_not_found')}</Text>
+          ) : null}
           {feedback ? (
             <Text style={[styles.feedback, { color: feedback.ok ? theme.success : theme.danger }]}>{feedback.text}</Text>
           ) : null}
@@ -254,12 +296,13 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
       letterSpacing: 1, textTransform: 'uppercase', paddingHorizontal: Spacing.two,
     },
     addRow: { flexDirection: 'row', gap: Spacing.two },
-    input: {
-      flex: 1,
-      color: t.text, fontFamily: font, fontSize: sz(FontSize.sm),
+    inputWrap: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.two,
       backgroundColor: t.bgElement, borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
-      paddingHorizontal: Spacing.three, paddingVertical: 10,
+      paddingHorizontal: Spacing.three,
     },
+    input: { flex: 1, color: t.text, fontFamily: font, fontSize: sz(FontSize.sm), paddingVertical: 10 },
+    suggestion: { borderColor: t.accent },
     primaryBtn: {
       backgroundColor: t.accent, borderRadius: BorderRadius.sm,
       paddingVertical: 10, paddingHorizontal: Spacing.four, alignItems: 'center', justifyContent: 'center',

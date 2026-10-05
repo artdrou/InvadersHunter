@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
-from app.schemas.friend import FriendRequestCreate, FriendRequestResult, FriendsOverview, FriendProfileOut
+from app.schemas.friend import (
+    FriendRequestCreate, FriendRequestResult, FriendsOverview, FriendProfileOut, FriendLookupOut,
+)
 from app.services import friend_service
 from app.services.friend_service import (
     FriendUserMissing, CannotFriendSelf, AlreadyFriends, InviteAlreadySent, FriendshipMissing, NotFriends,
@@ -16,6 +18,15 @@ router = APIRouter(prefix="/friends", tags=["Friends"])
 def get_overview(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Friends, invites received and invites sent."""
     return friend_service.overview(db, current_user)
+
+
+@router.get("/lookup", response_model=FriendLookupOut)
+def lookup(username: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Exact username (case-insensitive) → the user, so the app can suggest it while typing."""
+    try:
+        return friend_service.lookup(db, current_user, username)
+    except FriendUserMissing:
+        raise HTTPException(status_code=404, detail="user_not_found")
 
 
 @router.post("/requests", response_model=FriendRequestResult)
