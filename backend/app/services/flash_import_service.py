@@ -18,6 +18,7 @@ from ..models.user import User
 from ..models.space_invader import Invader
 from ..core.db_utils import safe_commit
 from ..core.name_utils import normalize_name
+from ..core.environment import environment_for_host
 
 
 class UserMissing(Exception): ...
@@ -105,7 +106,6 @@ def import_flashes(db: Session, user_id: int, raw_names: Iterable[str]) -> dict:
 
 # One exe per environment, each with its API URL baked in (see build_exes.ps1).
 _TOOL_BUILDS_DIR = Path(__file__).resolve().parents[2] / "static" / "flash_import" / "builds"
-_ENV_HOST_RE = re.compile(r"^invader-hunter-(development|staging|production)\.")
 
 
 def tool_exe_for_host(host: str) -> Path:
@@ -113,6 +113,5 @@ def tool_exe_for_host(host: str) -> Path:
 
     Unknown hosts (localhost, LAN IP) get the development build.
     """
-    match = _ENV_HOST_RE.match(host or "")
-    env = match.group(1) if match else "development"
+    env = environment_for_host(host) or "development"
     return _TOOL_BUILDS_DIR / f"InvadersHunter-FlashImport-{env}.exe"
