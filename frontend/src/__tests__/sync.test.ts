@@ -397,8 +397,20 @@ describe('syncAll', () => {
     await syncAll(mockDb, 42);
 
     expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_invaders_sync', expect.any(String));
-    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync', expect.any(String));
-    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_requests_sync', expect.any(String));
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync:42', expect.any(String));
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_requests_sync:42', expect.any(String));
+  });
+
+  it('keeps one progress / requests cursor per account', async () => {
+    // Account 42 already synced on this phone; account 7 logs in for the first time.
+    getMeta.mockImplementation(async (_db: unknown, key: string) =>
+      key.endsWith(':42') || key === 'last_invaders_sync' ? '2024-06-01T00:00:00Z' : null);
+
+    await syncAll(mockDb, 7);
+
+    expect(getMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync:7');
+    expect(fetchProgress).toHaveBeenCalledWith(7, undefined); // full download, not a delta
+    expect(replaceCaptures).toHaveBeenCalledWith(mockDb, 7, expect.anything());
   });
 
   it('does not save timestamp when a network error occurs', async () => {

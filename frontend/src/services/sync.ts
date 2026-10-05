@@ -168,11 +168,15 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
   // 1. Push any pending offline operations first
   await flushPendingSyncs(db, userId);
 
-  // 2. Read per-endpoint sync timestamps
+  // 2. Read per-endpoint sync timestamps. Invaders are public (one cursor per
+  // device); captures and requests are per account, so their cursors are too —
+  // a shared cursor made a second account on the phone skip its older flashes.
+  const progressKey = userSyncKey('last_progress_sync', userId);
+  const requestsKey = userSyncKey('last_requests_sync', userId);
   const [lastInvadersSync, lastProgressSync, lastRequestsSync] = await Promise.all([
     getMeta(db, 'last_invaders_sync'),
-    getMeta(db, 'last_progress_sync'),
-    getMeta(db, 'last_requests_sync'),
+    getMeta(db, progressKey),
+    getMeta(db, requestsKey),
   ]);
 
   // 3. Fetch from server in parallel — delta when we have a timestamp, full otherwise
@@ -209,7 +213,12 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
 
   await Promise.all([
     setMeta(db, 'last_invaders_sync', now),
-    setMeta(db, 'last_progress_sync', now),
-    setMeta(db, 'last_requests_sync', now),
+    setMeta(db, progressKey, now),
+    setMeta(db, requestsKey, now),
   ]);
+}
+
+/** Meta key of a per-account sync cursor (e.g. `last_progress_sync:42`). */
+export function userSyncKey(base: 'last_progress_sync' | 'last_requests_sync', userId: number): string {
+  return `${base}:${userId}`;
 }

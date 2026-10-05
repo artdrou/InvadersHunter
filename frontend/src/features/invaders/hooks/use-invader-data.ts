@@ -167,6 +167,8 @@ export function useInvaderData() {
         if (isNetworkError(err)) {
           await insertPendingSync(db, { type: 'flash', invader_id: invaderId, capture_id: tempId, user_id: userId });
         } else {
+          const res = (err as { response?: { status?: number; data?: unknown } })?.response;
+          logger.warn('[flash] server rejected, reverting:', res?.status, JSON.stringify(res?.data), `user=${userId} invader=${invaderId}`);
           await deleteCapture(db, tempId);
           setProgress((prev) => prev.filter((p) => p.id !== tempId));
         }
