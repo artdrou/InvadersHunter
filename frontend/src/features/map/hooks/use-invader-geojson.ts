@@ -15,15 +15,26 @@ function resolveRarity(points: number | null | undefined): number {
 
 function isDimmed(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): boolean {
   const isNonFlashable = isStateNonFlashable(invader.state);
+  const flashedByAnyone = invader.isCaptured || invader.friendCaptured === true;
   return (greyMode === "all" && isNonFlashable) ||
-    (greyMode === "unflashed" && colorMode === "flash" && isNonFlashable && !invader.isCaptured);
+    (greyMode === "unflashed" && colorMode === "flash" && isNonFlashable && !flashedByAnyone);
+}
+
+// Shared map: both flashed → captured (blue), neither → uncaptured (red),
+// only me → green, only my friend → orange.
+function flashSuffix(invader: InvaderWithState): string {
+  if (invader.friendCaptured === undefined) return invader.isCaptured ? "captured" : "uncaptured";
+  if (invader.isCaptured && invader.friendCaptured) return "captured";
+  if (invader.isCaptured) return "mine";
+  if (invader.friendCaptured) return "friend";
+  return "uncaptured";
 }
 
 export function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
   const rarity = resolveRarity(invader.points);
   if (isDimmed(invader, colorMode, greyMode)) return `marker-${rarity}pts-grey`;
   if (colorMode === "rarity") return `marker-${rarity}pts-rarity`;
-  return `marker-${rarity}pts-flash-${invader.isCaptured ? "captured" : "uncaptured"}`;
+  return `marker-${rarity}pts-flash-${flashSuffix(invader)}`;
 }
 
 // When building a multi-stop itinerary, tapped invaders are shown with a golden
@@ -53,7 +64,8 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
         },
         properties: {
           id: invader.id,
-          captured: invader.isCaptured ? 1 : 0,
+          // On the shared map a cluster turns blue only when both of us flashed everything in it.
+          captured: invader.isCaptured && invader.friendCaptured !== false ? 1 : 0,
           pending: !highlighted && invader.isPending ? 1 : 0,
           highlight: highlighted ? 1 : 0,
           grey,

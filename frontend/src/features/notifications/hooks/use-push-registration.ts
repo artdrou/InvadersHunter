@@ -5,7 +5,7 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { registerPushToken } from '../services/notifications.api';
-import { resolveNotificationTapScreen } from '../notification-handler';
+import { resolveNotificationTapScreen, appVariantFromPackage } from '../notification-handler';
 import { useNotificationsStore } from '../store';
 import type { NotificationTapData } from '../types';
 
@@ -58,7 +58,7 @@ export function usePushRegistration(enabled: boolean) {
 
         const projectId = Constants.expoConfig?.extra?.eas?.projectId;
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-        await registerPushToken(token, Platform.OS);
+        await registerPushToken(token, Platform.OS, appVariantFromPackage(Constants.expoConfig?.android?.package));
         useNotificationsStore.getState().setCurrentToken(token);
         logRegistrationOutcome(null); // clear any stale error from a previous failed attempt
       } catch (err) {

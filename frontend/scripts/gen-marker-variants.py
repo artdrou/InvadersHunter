@@ -1,13 +1,14 @@
 """
-Generate golden "highlighted" marker variants used when an invader is selected
-for a multi-stop itinerary.
+Generate hue-shifted marker variants from the red/pink *uncaptured* sprites:
 
-Each point tier (10/20/30/40/50/100) has its own invader silhouette, so we can't
-just reuse the 100pts gold sprite. Instead we take the red/pink *uncaptured*
-marker of every tier and hue-shift it to match the gold of marker-100pts-rarity,
-preserving the silhouette, shading and glow.
+- highlight (gold)  — invader picked for a multi-stop itinerary
+- flash-mine (green)   — shared map: only I flashed it
+- flash-friend (orange) — shared map: only my friend flashed it
 
-Run: backend/venv/Scripts/python.exe frontend/scripts/gen-highlight-markers.py
+Each point tier (10/20/30/40/50/100) has its own invader silhouette, so every
+tier is shifted separately, preserving the silhouette, shading and glow.
+
+Run: backend/venv/Scripts/python.exe frontend/scripts/gen-marker-variants.py
 """
 import os
 import colorsys
@@ -16,6 +17,10 @@ from PIL import Image
 TIERS = [10, 20, 30, 40, 50, 100]
 HERE = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(HERE, "..", "assets", "images")
+
+# Keep in sync with FriendMarkerColor in src/features/friends/constants.ts (legend).
+GREEN_HUE = 135 / 360
+ORANGE_HUE = 28 / 360
 
 
 def gold_hue_from_reference():
@@ -51,13 +56,15 @@ def hue_shift(src_path, dst_path, target_h):
 
 
 def main():
-    target_h = gold_hue_from_reference()
-    print(f"gold hue = {target_h * 360:.1f} deg")
+    gold = gold_hue_from_reference()
+    print(f"gold hue = {gold * 360:.1f} deg")
+    variants = {"highlight": gold, "flash-mine": GREEN_HUE, "flash-friend": ORANGE_HUE}
     for pts in TIERS:
         src = os.path.join(IMG_DIR, f"marker-{pts}pts-flash-uncaptured.png")
-        dst = os.path.join(IMG_DIR, f"marker-{pts}pts-highlight.png")
-        hue_shift(src, dst, target_h)
-        print(f"wrote {os.path.basename(dst)}")
+        for suffix, hue in variants.items():
+            dst = os.path.join(IMG_DIR, f"marker-{pts}pts-{suffix}.png")
+            hue_shift(src, dst, hue)
+            print(f"wrote {os.path.basename(dst)}")
 
 
 if __name__ == "__main__":

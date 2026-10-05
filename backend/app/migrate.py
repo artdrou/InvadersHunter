@@ -171,6 +171,24 @@ MIGRATIONS = [
         WHERE status = 'approved' AND proposed_state IS NOT NULL AND invader_id IS NOT NULL
     ) h
     WHERE a.id = h.id AND a.request_type = 'modify' AND a.previous_state IS NULL AND h.prev IS NOT NULL""",
+
+    # Friends — one row per pair: pending invite (requester → addressee) or accepted.
+    """CREATE TABLE IF NOT EXISTS friendships (
+        id           SERIAL PRIMARY KEY,
+        requester_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        addressee_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        status       VARCHAR NOT NULL DEFAULT 'pending',
+        created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+        accepted_at  TIMESTAMP WITHOUT TIME ZONE,
+        CONSTRAINT uq_friendship_pair UNIQUE (requester_id, addressee_id)
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_friendships_requester_id ON friendships (requester_id)",
+    "CREATE INDEX IF NOT EXISTS idx_friendships_addressee_id ON friendships (addressee_id)",
+
+    # Push tokens: which app registered them. Existing rows stay NULL and are no
+    # longer pushed to — the 3 databases were copied from one original, so they
+    # all held the same devices (dev pushes reached prod phones).
+    "ALTER TABLE push_tokens ADD COLUMN IF NOT EXISTS app_variant VARCHAR",
 ]
 
 

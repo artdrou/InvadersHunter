@@ -4,7 +4,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { FontSize, Spacing } from '@/constants/theme';
-import { SettingsShell, StatSection, StatCell, InfoCell } from '@/features/settings';
+import { SettingsShell, StatSection, StatCell, InfoCell, CollectionStatsSection } from '@/features/settings';
 import { computeCollectionStats } from '@/features/invaders';
 import { useInvaderStore } from '@/features/invaders/store';
 import { fetchUserProfile } from '@/features/admin/services/admin.api';
@@ -78,18 +78,7 @@ export default function AdminUserProfileScreen() {
         <InfoCell value={formatServerDate(profile.last_request_at, true)} label={t('adminUsers.dateLastRequest')} />
       </StatSection>
 
-      <StatSection title={t('settings.statsCollection')}>
-        <StatCell label={t('settings.statsInvadersFlashed')} value={stats.flashed} />
-        <StatCell label={t('settings.statsCitiesWithFlashes')} value={stats.citiesWithFlashes} />
-        <StatCell label={t('settings.statsCompleteCities')} value={stats.completeCities} />
-        <StatCell label={t('settings.statsRemaining')} value={stats.remaining} />
-        <StatCell label={t('settings.statsDestroyedFlashed')} value={stats.destroyedFlashed} />
-        <StatCell
-          label={t('settings.statsTopCity')}
-          value={stats.topCity?.name ?? t('settings.statsNone')}
-          sub={stats.topCity ? `${stats.topCity.captured}/${stats.topCity.total}` : undefined}
-        />
-      </StatSection>
+      <CollectionStatsSection stats={stats} />
 
       <StatSection title={t('settings.statsContributions')}>
         <StatCell label={t('settings.statsModificationsSent')} value={profile.requests_sent} />

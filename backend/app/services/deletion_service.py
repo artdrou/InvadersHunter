@@ -17,6 +17,7 @@ from ..core import r2
 from ..core.db_utils import safe_commit
 from ..models.admin_request import AdminRequest
 from ..models.comment_reaction import CommentReaction
+from ..models.friendship import Friendship
 from ..models.invader_comment import InvaderComment
 from ..models.notification_settings import NotificationSettings
 from ..models.push_token import PushToken
@@ -153,6 +154,9 @@ def delete_user(db: Session, user_id: int) -> DeletionReport:
     _delete_comments(db, report, [i for (i,) in db.query(InvaderComment.id)
                                   .filter(InvaderComment.user_id == user_id)])
 
+    report.add("friendships", db.query(Friendship)
+               .filter((Friendship.requester_id == user_id) | (Friendship.addressee_id == user_id))
+               .delete(synchronize_session=False))
     report.add("push_tokens", db.query(PushToken)
                .filter(PushToken.user_id == user_id).delete(synchronize_session=False))
     report.add("refresh_tokens", db.query(RefreshToken)

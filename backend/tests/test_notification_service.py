@@ -29,7 +29,7 @@ def user_with_token(db):
     user = User(username="u1", email="u1@test.com", hashed_password=hash_password("pw"))
     db.add(user)
     db.flush()
-    token = PushToken(user_id=user.id, token="ExponentPushToken[a]", platform="ios")
+    token = PushToken(user_id=user.id, token="ExponentPushToken[a]", platform="ios", app_variant="development")
     db.add(token)
     db.flush()
     return user, token
@@ -167,3 +167,50 @@ def test_send_expo_push_logs_other_errors_without_pruning(db, user_with_token, m
 
     assert db.query(PushToken).filter(PushToken.token == token.token).first() is not None
     assert any("MessageTooBig" in r.message for r in caplog.records)
+
+
+# ── environments (the 3 databases were copied from one original) ──────────────
+
+def test_untagged_token_is_never_pushed(db, user_with_token, monkeypatch):
+    """A token copied from another environment's database has no app_variant."""
+    user, token = user_with_token
+    token.app_variant = None
+    db.flush()
+    calls = []
+    monkeypatch.setattr(notification_service.requests, "post", lambda *a, **k: calls.append(1))
+
+    notification_service.notify_invader_event(db, "invader_added", TEXTS, 1)
+    notification_service.notify_user(db, user.id, TEXTS, {"screen": "/social"})
+
+    assert calls == []
+
+
+def test_register_tags_the_token(db, user_with_token):
+    user, token = user_with_token
+    token.app_variant = None
+    db.flush()
+    saved = notification_service.register_token(
+        db, user.id, "ExponentPushToken[a]", "android", app_variant="staging", server_env="staging")
+    assert saved.app_variant == "staging"
+
+
+def test_register_refuses_app_of_another_environment(db, user_with_token):
+    """A prod app pointed at the dev backend: refused, and its copied row dropped."""
+    user, _ = user_with_token
+    saved = notification_service.register_token(
+        db, user.id, "ExponentPushToken[a]", "android", app_variant="production", server_env="development")
+    assert saved is None
+    assert db.query(PushToken).count() == 0
+
+
+@pytest.mark.parametrize("host, env", [
+    ("invader-hunter-development.up.railway.app", "development"),
+    ("invader-hunter-staging.up.railway.app", "staging"),
+    ("invader-hunter-production.up.railway.app:443", "production"),
+    ("localhost:8000", None),
+    ("testserver", None),
+    (None, None),
+])
+def test_environment_for_host(host, env):
+    from app.core.environment import environment_for_host
+    assert environment_for_host(host) == env

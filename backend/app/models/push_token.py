@@ -12,5 +12,9 @@ class PushToken(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     token = Column(String, unique=True, index=True, nullable=False)
     platform = Column(String, nullable=True)  # "ios" | "android"
+    # Which app registered it: "development" | "staging" | "production". NULL =
+    # registered before this existed, possibly copied from another environment's
+    # database → never pushed to (the app re-registers with a value on launch).
+    app_variant = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

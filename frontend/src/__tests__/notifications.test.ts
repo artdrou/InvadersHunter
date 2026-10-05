@@ -1,4 +1,4 @@
-import { resolveNotificationTapScreen } from '../features/notifications/notification-handler';
+import { resolveNotificationTapScreen, appVariantFromPackage } from '../features/notifications/notification-handler';
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
@@ -49,18 +49,36 @@ describe('resolveNotificationTapScreen', () => {
   it('defaults to /news when screen is missing', () => {
     expect(resolveNotificationTapScreen({ invader_id: 5 })).toBe('/news');
   });
+
+  it('opens Social for friend notifications', () => {
+    expect(resolveNotificationTapScreen({ screen: '/social' })).toBe('/social');
+  });
+
+  it('ignores unknown screens', () => {
+    expect(resolveNotificationTapScreen({ screen: '/somewhere-else' })).toBe('/news');
+  });
 });
 
 // ── notifications.api ─────────────────────────────────────────────────────────
 
 describe('registerPushToken', () => {
-  it('posts the token and platform', async () => {
+  it('posts the token, platform and app variant', async () => {
     mockPost.mockResolvedValue({ data: {} });
-    await registerPushToken('ExponentPushToken[a]', 'ios');
+    await registerPushToken('ExponentPushToken[a]', 'ios', 'staging');
     expect(mockPost).toHaveBeenCalledWith('/notifications/push-token', {
       token: 'ExponentPushToken[a]',
       platform: 'ios',
+      app_variant: 'staging',
     });
+  });
+});
+
+describe('appVariantFromPackage', () => {
+  it('maps each app package to its environment', () => {
+    expect(appVariantFromPackage('com.invaderhunter.app.dev')).toBe('development');
+    expect(appVariantFromPackage('com.invaderhunter.app.stag')).toBe('staging');
+    expect(appVariantFromPackage('com.invaderhunter.app')).toBe('production');
+    expect(appVariantFromPackage(undefined)).toBe('production');
   });
 });
 

@@ -72,6 +72,7 @@
   "tabs": {
     "map": "Carte",
     "invaders": "Invaders",
+    "social": "Social",
     "profile": "Reglages",
     "admin": "Admin"
   },
@@ -654,5 +655,54 @@
     "whatsNewTitle": "Quoi de neuf ?",
     "versionLabel": "Version {{version}}",
     "gotIt": "Compris !"
+  },
+  "social": {
+    "title": "Social",
+    "addTitle": "Ajouter un ami",
+    "addPlaceholder": "Son nom d'utilisateur exact",
+    "addButton": "Envoyer",
+    "sent": "Invitation envoyée à {{username}}",
+    "acceptedNow": "{{username}} t'avait déjà invité : vous êtes maintenant amis !",
+    "error": {
+      "user_not_found": "Aucun utilisateur avec ce nom",
+      "self": "C'est toi !",
+      "already_friends": "Vous êtes déjà amis",
+      "already_sent": "Invitation déjà envoyée",
+      "network": "Envoi impossible, vérifie ta connexion"
+    },
+    "incoming": "Invitations reçues ({{count}})",
+    "outgoing": "Invitations envoyées",
+    "friends": "Amis ({{count}})",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "cancel": "Annuler",
+    "pending": "En attente de réponse",
+    "flashedCount": "Invaders flashés : {{count}}",
+    "noFriends": "Pas encore d'amis. Ajoute-en un avec son nom d'utilisateur ci-dessus.",
+    "loadFailed": "Chargement impossible. Touche pour réessayer.",
+    "guestMessage": "Crée un compte pour ajouter des amis et comparer vos cartes.",
+    "guestButton": "Créer un compte",
+    "profileTitle": "Ami",
+    "removeFriend": "Retirer des amis",
+    "removeConfirm": "Retirer {{username}} de tes amis ?",
+    "mapPickerTitle": "Cartes des amis",
+    "myMap": "Ma carte",
+    "theirMap": "Sa carte",
+    "compare": "Comparer",
+    "noFriendsMap": "Pas encore d'amis.",
+    "goToSocial": "Ajouter des amis",
+    "mapOf": "Carte de {{username}}",
+    "sharedWith": "Carte commune : moi & {{username}}",
+    "legendBoth": "Tous les deux",
+    "legendMine": "Moi seul",
+    "legendFriend": "{{username}} seul",
+    "legendNeither": "Personne",
+    "relation": {
+      "none": "Touche pour sélectionner",
+      "friends": "Déjà ton ami",
+      "sent": "Invitation déjà envoyée",
+      "received": "T'a invité : touche pour accepter",
+      "self": "C'est toi !"
+    }
   }
 }
