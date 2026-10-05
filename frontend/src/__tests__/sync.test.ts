@@ -4,7 +4,7 @@
  * The SQLite db and API calls are fully mocked so these run without a device.
  */
 
-import { isNetworkError, flushPendingSyncs, syncAll, syncInvadersOnly, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware } from '../services/sync';
+import { isNetworkError, flushPendingSyncs, syncAll, syncInvadersOnly, submitModifyRequestOfflineAware, submitCreateRequestOfflineAware, findStaleInvaderIds, resetReconciliationForTests } from '../services/sync';
 import * as db from '../services/db';
 import * as api from '../features/invaders/services/invaders.api';
 import * as accountApi from '../features/auth/services/account.api';
@@ -33,6 +33,7 @@ const replaceRequests  = db.replaceRequests  as jest.Mock;
 const upsertRequests   = db.upsertRequests   as jest.Mock;
 const getAllCaptures   = db.getAllCaptures   as jest.Mock;
 const deleteCapturesForUser = db.deleteCapturesForUser as jest.Mock;
+const getLocalInvaderIds = db.getLocalInvaderIds as jest.Mock;
 
 const claimCaptures    = accountApi.claimCaptures as jest.Mock;
 
@@ -44,6 +45,7 @@ const fetchInvaders         = api.fetchInvaders         as jest.Mock;
 const fetchProgress         = api.fetchProgress         as jest.Mock;
 const fetchDeletedInvaderIds = api.fetchDeletedInvaderIds as jest.Mock;
 const fetchUserRequests     = api.fetchUserRequests     as jest.Mock;
+const fetchInvaderIds       = api.fetchInvaderIds       as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -69,6 +71,9 @@ beforeEach(() => {
   fetchProgress.mockResolvedValue([]);
   fetchDeletedInvaderIds.mockResolvedValue([]);
   fetchUserRequests.mockResolvedValue([]);
+  fetchInvaderIds.mockResolvedValue([]);
+  getLocalInvaderIds.mockResolvedValue([]);
+  resetReconciliationForTests();
 });
 
 // ── isNetworkError ────────────────────────────────────────────────────────────
@@ -397,8 +402,20 @@ describe('syncAll', () => {
     await syncAll(mockDb, 42);
 
     expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_invaders_sync', expect.any(String));
-    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync', expect.any(String));
-    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_requests_sync', expect.any(String));
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync:42', expect.any(String));
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_requests_sync:42', expect.any(String));
+  });
+
+  it('keeps one progress / requests cursor per account', async () => {
+    // Account 42 already synced on this phone; account 7 logs in for the first time.
+    getMeta.mockImplementation(async (_db: unknown, key: string) =>
+      key.endsWith(':42') || key === 'last_invaders_sync' ? '2024-06-01T00:00:00Z' : null);
+
+    await syncAll(mockDb, 7);
+
+    expect(getMeta).toHaveBeenCalledWith(mockDb, 'last_progress_sync:7');
+    expect(fetchProgress).toHaveBeenCalledWith(7, undefined); // full download, not a delta
+    expect(replaceCaptures).toHaveBeenCalledWith(mockDb, 7, expect.anything());
   });
 
   it('does not save timestamp when a network error occurs', async () => {
@@ -483,5 +500,53 @@ describe('syncAll — guest → account claim', () => {
     await expect(syncAll(mockDb, 42)).rejects.toBeTruthy();
 
     expect(deleteCapturesForUser).not.toHaveBeenCalled();
+  });
+});
+
+// ── Cache reconciliation ──────────────────────────────────────────────────────
+
+describe('findStaleInvaderIds', () => {
+  it('returns local ids the server no longer has', () => {
+    expect(findStaleInvaderIds([1, 2, 3], [1, 3, 4])).toEqual([2]);
+  });
+
+  it('never wipes the cache when the server list is empty', () => {
+    expect(findStaleInvaderIds([1, 2, 3], [])).toEqual([]);
+  });
+});
+
+describe('reconciliation once per launch', () => {
+  it('deletes local invaders missing on the server (no tombstone)', async () => {
+    getLocalInvaderIds.mockResolvedValue([1, 2, 3]);
+    fetchInvaderIds.mockResolvedValue([1, 3]);
+    await syncAll(mockDb, 1);
+    expect(deleteInvadersByIds).toHaveBeenCalledWith(mockDb, [2]);
+  });
+
+  it('runs only once until the next cold start', async () => {
+    fetchInvaderIds.mockResolvedValue([1]);
+    await syncAll(mockDb, 1);
+    await syncAll(mockDb, 1);
+    await syncInvadersOnly(mockDb);
+    expect(fetchInvaderIds).toHaveBeenCalledTimes(1);
+
+    resetReconciliationForTests();
+    await syncAll(mockDb, 1);
+    expect(fetchInvaderIds).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on the next sync when the check failed, without aborting the sync', async () => {
+    fetchInvaderIds.mockRejectedValueOnce({ code: 'ERR_NETWORK' }).mockResolvedValue([1]);
+    await expect(syncAll(mockDb, 1)).resolves.toBeUndefined();
+    expect(setMeta).toHaveBeenCalledWith(mockDb, 'last_invaders_sync', expect.any(String));
+    await syncAll(mockDb, 1);
+    expect(fetchInvaderIds).toHaveBeenCalledTimes(2);
+  });
+
+  it('also runs in guest mode', async () => {
+    getLocalInvaderIds.mockResolvedValue([5, 6]);
+    fetchInvaderIds.mockResolvedValue([5]);
+    await syncInvadersOnly(mockDb);
+    expect(deleteInvadersByIds).toHaveBeenCalledWith(mockDb, [6]);
   });
 });

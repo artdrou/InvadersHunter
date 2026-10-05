@@ -20,6 +20,7 @@ import { useMapCreateFlow } from "@/features/map/hooks/use-map-create-flow";
 import { useHeadingStore } from "@/features/map/store";
 import { MapZoom } from "@/features/map/constants";
 import { useNewsUnreadCount } from "@/features/news";
+import { useFriendsStore, applyFriendView, FriendMapPicker, FriendMapBanner } from "@/features/friends";
 import { useInvaderData, mapInvadersWithProgress } from "@/features/invaders";
 import type { InvaderWithState } from "@/features/invaders";
 import { useAuthStore, useRequireAccount, GUEST_USER_ID } from "@/features/auth";
@@ -70,9 +71,17 @@ export default function MapScreen() {
     () => mapInvadersWithProgress(invaders, progress),
     [invaders, progress],
   );
+  // A friend's map / shared map only changes the markers' colors (and what the
+  // flashed filter means); taps resolve back to my own invader for the popup.
+  const friendMapView = useFriendsStore((s) => s.mapView);
+  const [friendPickerOpen, setFriendPickerOpen] = useState(false);
   const filteredInvaders = useMemo(
-    () => applyMapFilter(invadersWithState, filter),
-    [invadersWithState, filter],
+    () => applyMapFilter(applyFriendView(invadersWithState, friendMapView), filter),
+    [invadersWithState, friendMapView, filter],
+  );
+  const ownInvadersById = useMemo(
+    () => new Map(invadersWithState.map((i) => [i.id, i])),
+    [invadersWithState],
   );
 
   useEffect(() => {
@@ -121,12 +130,13 @@ export default function MapScreen() {
 
   const { sheetOpen: routingSheetOpen, toggleInvaderSelection } = routing;
   const creatingActive = create.anyActive;
-  const handleInvaderClick = useCallback((invader: InvaderWithState) => {
+  const handleInvaderClick = useCallback((tapped: InvaderWithState) => {
+    const invader = ownInvadersById.get(tapped.id) ?? tapped;
     if (routingSheetOpen) { toggleInvaderSelection(invader); return; }
     if (picking || creatingActive) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
-  }, [routingSheetOpen, toggleInvaderSelection, picking, creatingActive]);
+  }, [ownInvadersById, routingSheetOpen, toggleInvaderSelection, picking, creatingActive]);
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || create.modal || create.pickLoc) return;
@@ -265,6 +275,26 @@ export default function MapScreen() {
           </View>
         )}
       </TouchableOpacity>
+
+      {/* Friends' maps — below the News shortcut, account holders only */}
+      {user && !isGuest && !picking && !anyCreating && (
+        <TouchableOpacity
+          style={[styles.newsButton, { top: insets.top + Spacing.two + 48 + 6 }]}
+          onPress={() => { hapticTap(); setFriendPickerOpen(true); }}
+          activeOpacity={0.8}
+        >
+          <PixelButton size={48} fill={theme.bgElement} stroke={friendMapView ? theme.accent : theme.border} />
+          <MaterialCommunityIcons name="account-group" size={22} color={friendMapView ? theme.accent : theme.textMuted} />
+        </TouchableOpacity>
+      )}
+
+      {friendMapView && !picking && !anyCreating && (
+        <View style={[styles.friendBanner, { top: insets.top + Spacing.two }]}>
+          <FriendMapBanner />
+        </View>
+      )}
+
+      <FriendMapPicker visible={friendPickerOpen} onClose={() => setFriendPickerOpen(false)} />
 
       {selectedInvader && (
         <View style={styles.popupWrapper} pointerEvents="box-none">
@@ -448,6 +478,12 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: ZIndex.map,
+  },
+  friendBanner: {
+    position: "absolute",
+    left: Spacing.three,
+    right: Spacing.three + 48 + Spacing.two, // clear of the News / friends buttons
     zIndex: ZIndex.map,
   },
   newsBadge: {

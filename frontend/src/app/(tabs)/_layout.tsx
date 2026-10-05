@@ -3,10 +3,12 @@ import { Animated, View, Text, StyleSheet } from "react-native";
 import { Tabs } from "expo-router";
 import { Fontisto, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import NetInfo from "@react-native-community/netinfo";
+import * as Notifications from "expo-notifications";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
 import { useAuthStore } from "@/features/auth";
+import { useFriendsStore } from "@/features/friends/store";
 import { FontSize } from "@/constants/theme";
 
 export default function TabsLayout() {
@@ -15,6 +17,22 @@ export default function TabsLayout() {
   const isOnline = useConnectivityStore((s) => s.isOnline);
   const setOnline = useConnectivityStore((s) => s.setOnline);
   const isAdmin = useAuthStore((s) => s.user?.is_admin ?? false);
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const invitesCount = useFriendsStore((s) => s.overview.incoming.length);
+
+  // Fresh friends list (and invite badge) per account; cleared on logout / user switch.
+  useEffect(() => {
+    useFriendsStore.getState().reset();
+    if (userId != null) useFriendsStore.getState().load();
+  }, [userId]);
+
+  // A friend push received while the app is open: refresh so the badge updates now.
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener((n) => {
+      if (n.request.content.data?.screen === "/social") useFriendsStore.getState().load();
+    });
+    return () => sub.remove();
+  }, []);
 
   // Track previous online state to detect transitions
   const prevOnlineRef = useRef(isOnline);
@@ -90,6 +108,15 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.invaders'),
             tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="space-invaders" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="social"
+          options={{
+            title: t('tabs.social'),
+            tabBarBadge: invitesCount > 0 ? invitesCount : undefined,
+            tabBarBadgeStyle: { backgroundColor: theme.danger, fontSize: FontSize.xxs },
+            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account-group" size={size} color={color} />,
           }}
         />
         <Tabs.Screen

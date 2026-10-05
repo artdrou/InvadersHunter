@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from app.core.environment import environment_for_host
 from app.dependencies import get_db, get_current_user, require_admin
 from app.schemas.notification import (
     PushTokenRegister,
@@ -17,10 +18,17 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 @router.post("/push-token")
 def register_push_token(
     body: PushTokenRegister,
+    request: Request,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    notification_service.register_token(db, current_user.id, body.token, body.platform)
+    saved = notification_service.register_token(
+        db, current_user.id, body.token, body.platform,
+        app_variant=body.app_variant,
+        server_env=environment_for_host(request.headers.get("host")),
+    )
+    if saved is None:
+        return {"message": "Token ignored: app from another environment"}
     return {"message": "Token registered"}
 
 

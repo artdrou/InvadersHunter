@@ -11,6 +11,8 @@ import i18n, { initI18n, type LanguageCode } from '@/services/i18n';
 import {
   UpdateAvailableModal,
   useAppUpdateStore,
+  OtaReadyModal,
+  useOtaUpdateCheck,
   fetchVersionManifest,
   getCurrentVersion,
   isNewer,
@@ -68,6 +70,9 @@ export default function RootLayout() {
     if (token || isGuest) useNewsStore.getState().refreshRecent();
   }, [token, isGuest]);
 
+  // Offer OTAs on foreground for users who never cold-start the app.
+  useOtaUpdateCheck(true);
+
   usePushRegistration(!!token);
 
   // Keep the backend's copy of the user's language in sync so push
@@ -102,6 +107,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <Stack screenOptions={{ headerShown: false }} />
           <UpdateAvailableModal />
+          <OtaReadyModal />
           <AccountGateModal />
           <WhatsNewModal enabled={!!token || isGuest} />
         </ThemeProvider>

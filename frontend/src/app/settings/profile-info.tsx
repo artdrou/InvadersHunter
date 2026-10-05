@@ -7,7 +7,7 @@ import { useAuthStore, logoutUser } from '@/features/auth';
 import { EditableUsername } from '@/features/auth/components/EditableUsername';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
-import { SettingsShell, StatSection, StatCell, hapticTap } from '@/features/settings';
+import { SettingsShell, StatSection, StatCell, CollectionStatsSection, hapticTap } from '@/features/settings';
 import { useInvaderData, computeCollectionStats } from '@/features/invaders';
 import { unregisterPushToken, useNotificationsStore } from '@/features/notifications';
 
@@ -66,18 +66,7 @@ export default function ProfileInfoScreen() {
         </StatSection>
       )}
 
-      <StatSection title={t('settings.statsCollection')}>
-        <StatCell label={t('settings.statsInvadersFlashed')} value={stats.flashed} />
-        <StatCell label={t('settings.statsCitiesWithFlashes')} value={stats.citiesWithFlashes} />
-        <StatCell label={t('settings.statsCompleteCities')} value={stats.completeCities} />
-        <StatCell label={t('settings.statsRemaining')} value={stats.remaining} />
-        <StatCell label={t('settings.statsDestroyedFlashed')} value={stats.destroyedFlashed} />
-        <StatCell
-          label={t('settings.statsTopCity')}
-          value={stats.topCity?.name ?? t('settings.statsNone')}
-          sub={stats.topCity ? `${stats.topCity.captured}/${stats.topCity.total}` : undefined}
-        />
-      </StatSection>
+      <CollectionStatsSection stats={stats} />
 
       <StatSection title={t('settings.statsContributions')}>
         <StatCell label={t('settings.statsModificationsSent')} value={editsSent} />

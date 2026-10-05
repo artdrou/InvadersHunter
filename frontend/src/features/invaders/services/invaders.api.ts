@@ -84,6 +84,11 @@ export async function uploadRequestPhoto(requestId: number, uri: string): Promis
   return data.url;
 }
 
+export async function fetchInvaderIds(): Promise<number[]> {
+  const res = await api.get('/invaders/ids');
+  return res.data.ids;
+}
+
 export async function fetchDeletedInvaderIds(updatedSince?: string): Promise<number[]> {
   const params = updatedSince ? { updated_since: updatedSince } : {};
   const res = await api.get('/invaders/deleted', { params });

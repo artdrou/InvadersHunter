@@ -33,6 +33,12 @@ def list_deleted_ids(db: Session, updated_since: Optional[datetime] = None) -> L
     return [r[0] for r in rows]
 
 
+def list_ids(db: Session) -> List[int]:
+    """Every existing invader id. Clients diff it against their local cache to
+    drop invaders removed without a tombstone (e.g. deleted by hand in the DB)."""
+    return [r[0] for r in db.query(Invader.id).all()]
+
+
 def get_by_id(db: Session, invader_id: int) -> Invader:
     inv = db.query(Invader).filter(Invader.id == invader_id).first()
     if not inv:

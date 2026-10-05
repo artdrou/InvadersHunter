@@ -1,9 +1,10 @@
 import { api } from '@/services/api-client';
 import type { LanguageCode } from '@/services/i18n';
 import type { NotificationPrefs, GlobalNotificationSettings } from '../types';
+import type { AppVariant } from '../notification-handler';
 
-export async function registerPushToken(token: string, platform: string): Promise<void> {
-  await api.post('/notifications/push-token', { token, platform });
+export async function registerPushToken(token: string, platform: string, appVariant: AppVariant): Promise<void> {
+  await api.post('/notifications/push-token', { token, platform, app_variant: appVariant });
 }
 
 export async function unregisterPushToken(token: string): Promise<void> {
