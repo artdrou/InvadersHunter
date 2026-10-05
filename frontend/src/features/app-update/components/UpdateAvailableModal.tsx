@@ -1,8 +1,8 @@
-import { Modal, View, Text, Pressable, StyleSheet, Linking } from 'react-native';
+import { Modal, View, Text, Pressable, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAppUpdateStore } from '../store';
+import { makeUpdateModalStyles as makeStyles } from './update-modal-styles';
 import { resolveApkUrl, getCurrentVersion } from '../services/app-update.api';
 
 export function UpdateAvailableModal() {
@@ -46,69 +46,4 @@ export function UpdateAvailableModal() {
       </View>
     </Modal>
   );
-}
-
-function makeStyles(t: ThemeTokens, font: string, scale: number) {
-  const sz = (n: number) => Math.round(n * scale);
-  return StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: Spacing.four,
-    },
-    card: {
-      width: '100%',
-      maxWidth: 360,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
-      padding: Spacing.four,
-      gap: Spacing.two,
-    },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.lg),
-      fontFamily: font,
-      letterSpacing: 1,
-      marginBottom: Spacing.one,
-    },
-    body: {
-      color: t.text,
-      fontSize: sz(FontSize.sm),
-      fontFamily: font,
-      lineHeight: 20,
-    },
-    notes: {
-      color: t.textMuted,
-      fontSize: sz(FontSize.sm) - 1,
-      fontFamily: font,
-      fontStyle: 'italic',
-      marginTop: Spacing.one,
-    },
-    primaryBtn: {
-      backgroundColor: t.accent,
-      borderRadius: BorderRadius.sm,
-      paddingVertical: 14,
-      alignItems: 'center',
-      marginTop: Spacing.two,
-    },
-    primaryBtnText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xxl,
-    },
-    secondaryBtn: {
-      paddingVertical: 10,
-      alignItems: 'center',
-    },
-    secondaryBtnText: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xl,
-    },
-    pressed: { opacity: 0.7 },
-  });
 }
