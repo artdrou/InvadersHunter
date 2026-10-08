@@ -20,6 +20,7 @@ from ..schemas.news import NewsItemOut, AnnouncementCreate
 
 DEFAULT_WINDOW_DAYS = 30
 SCRAPER_LABEL = "invader-spotter.art"
+INVADERQUEST_LABEL = "InvaderQuest"
 ADMIN_LABEL = "Equipe"  # accent-free: the app's pixel font has no accented glyphs
 
 # Canonical state strings (see migrate.py's state-normalization migration).
@@ -70,6 +71,8 @@ def _credit_label(db: Session, admin_req: AdminRequest) -> Optional[str]:
     """Who to credit for an invader event, based on the *proposer* (`source`)."""
     if admin_req.source == "scraper":
         return SCRAPER_LABEL
+    if admin_req.source == "invaderquest":
+        return INVADERQUEST_LABEL
     if admin_req.source == "admin":
         return ADMIN_LABEL
     # community: whoever submitted the first UserRequest feeding this AdminRequest

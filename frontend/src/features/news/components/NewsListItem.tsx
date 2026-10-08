@@ -60,6 +60,12 @@ const CHANGE_KEYS: Record<string, string> = {
   description: 'news.changeDescription',
 };
 
+// Automated data sources get a pill (icon + site name) instead of "by <user>".
+const SOURCE_ICON: Partial<Record<NonNullable<NewsItem['source']>, React.ComponentProps<typeof MaterialCommunityIcons>['name']>> = {
+  scraper: 'web',
+  invaderquest: 'map-search-outline',
+};
+
 type Props = {
   item: NewsItem;
   onOpenInvader: (id: number) => void;
@@ -140,9 +146,9 @@ export function NewsListItem({ item, onOpenInvader }: Props) {
         ) : null}
 
         {isInvader && item.credit_label ? (
-          item.source === 'scraper' ? (
+          item.source && SOURCE_ICON[item.source] ? (
             <View style={[styles.sourcePill, { borderColor: theme.accent }]}>
-              <MaterialCommunityIcons name="web" size={11} color={theme.accent} />
+              <MaterialCommunityIcons name={SOURCE_ICON[item.source]} size={11} color={theme.accent} />
               <Text style={[styles.sourceText, { color: theme.accent, fontFamily: appFont, fontSize: sz(FontSize.xxs) }]}>
                 {item.credit_label}
               </Text>

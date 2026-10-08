@@ -14,6 +14,7 @@ from ..models.user_request import UserRequest
 from ..models.space_invader import Invader
 from ..models.user import User
 from ..core.db_utils import safe_commit
+from ..core.spotter_scraper import split_name
 from ..core import r2
 from . import news_service, notification_service
 
@@ -101,9 +102,11 @@ def approve(
     override_longitude: Optional[float] = None,
     override_image_url: Optional[str] = None,
     notify: bool = True,
+    notify_batch: Optional[notification_service.InvaderNotificationBatch] = None,
 ) -> AdminRequest:
     """`admin_user` is None for automated approvals (e.g. the invader-spotter sync job).
-    `notify=False` skips the push notification (the News feed entry is still created)."""
+    `notify=False` skips the push notification (the News feed entry is still created).
+    With `notify_batch`, the push is collected for the job to send (or group) at the end."""
     if admin_req.status != "pending":
         raise AdminRequestNotPending()
 
@@ -119,8 +122,12 @@ def approve(
     previous_lon: Optional[float] = None
 
     if admin_req.request_type == "create":
+        # city/number are what the sync jobs match on: derive them from the name
+        city_number = split_name(admin_req.proposed_name) if admin_req.proposed_name else None
         invader = Invader(
             name=admin_req.proposed_name,
+            city=city_number[0] if city_number else None,
+            number=city_number[1] if city_number else None,
             description=admin_req.proposed_description,
             latitude=final_lat,
             longitude=final_lon,
@@ -178,7 +185,10 @@ def approve(
             previous_latitude=previous_lat,
             previous_longitude=previous_lon,
         )
-        notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
+        if notify_batch is not None:
+            notify_batch.add(event_type, texts, admin_req.invader_id)
+        else:
+            notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
 
     _prune_photos(submission_urls, keep_url=final_image_url)
     return admin_req

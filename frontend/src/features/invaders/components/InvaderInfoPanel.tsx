@@ -46,6 +46,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   const seen = useCommentSeenStore((s) => s.seen);
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
+  const hasLocation = invader.latitude != null && invader.longitude != null;
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
   const lastModifier = contributors?.modified_by.length
@@ -94,6 +95,12 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         </View>
       )}
 
+      {!hasLocation && (
+        <Text style={[styles.contributorLine, styles.noLocation, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(12) }]}>
+          {t('popup.noLocation')}
+        </Text>
+      )}
+
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
       <View style={styles.btnRow}>
@@ -113,7 +120,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
           </Text>
         </Pressable>
 
-        {onLocate && (
+        {onLocate && hasLocation && (
           <Pressable
             style={({ pressed }) => [
               styles.actionBtn,
@@ -186,6 +193,7 @@ const styles = StyleSheet.create({
   infoValue: {},
   contributorsBlock: { gap: 4 },
   contributorLine: { textAlign: "center" },
+  noLocation: { marginTop: Spacing.two, paddingHorizontal: Spacing.three },
   btnRow: {
     flexDirection: "row",
     gap: Spacing.two,
