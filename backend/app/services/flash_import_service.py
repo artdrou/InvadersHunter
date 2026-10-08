@@ -11,6 +11,7 @@ Routers must delegate to import_flashes() and translate exceptions.
 import re
 from pathlib import Path
 from typing import Iterable, List
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..models.user_progress import UserProgress
@@ -25,8 +26,14 @@ class UserMissing(Exception): ...
 
 
 # Matches the canonical "CITYCODE_NUMBER" pattern after normalize_name(); used to
-# strip leading zeros from the number part so "FTBL_04" matches the DB's "FTBL_4".
+# strip leading zeros from the number part. The DB mixes both spellings
+# ("FTBL_4" but "ORLN_01"), so file names and DB names are compared on this key.
 _CANONICAL_RE = re.compile(r"^([A-Z]{2,6})_0*(\d+)$")
+
+
+def _match_key(normalized: str) -> str:
+    m = _CANONICAL_RE.match(normalized)
+    return f"{m.group(1)}_{m.group(2)}" if m else normalized
 
 
 def _extract_names(raw_names: Iterable[str]) -> List[str]:
@@ -38,10 +45,7 @@ def _extract_names(raw_names: Iterable[str]) -> List[str]:
         if not raw:
             continue
         stem = raw.rsplit(".", 1)[0] if "." in raw else raw
-        normalized = normalize_name(stem)
-        m = _CANONICAL_RE.match(normalized)
-        if m:
-            normalized = f"{m.group(1)}_{m.group(2)}"
+        normalized = _match_key(normalize_name(stem))
         if normalized and normalized not in seen:
             seen.add(normalized)
             out.append(normalized)
@@ -61,12 +65,18 @@ def import_flashes(db: Session, user_id: int, raw_names: Iterable[str]) -> dict:
     if not names:
         return {"imported": 0, "already_flashed": 0, "unknown": [], "total_submitted": 0}
 
+    # Fetch every invader of the submitted cities, then match on the
+    # zero-stripped key so "ORLN_1" finds the DB's "ORLN_01".
+    cities = {n.split("_", 1)[0] for n in names}
+    city_filters = [Invader.name.startswith(f"{c}_", autoescape=True) for c in cities]
     invaders = (
         db.query(Invader.id, Invader.name)
-        .filter(Invader.name.in_(names))
+        .filter(or_(Invader.name.in_(names), *city_filters))
         .all()
     )
-    name_to_id = {name: iid for iid, name in invaders}
+    name_to_id: dict[str, int] = {}
+    for iid, name in invaders:
+        name_to_id.setdefault(_match_key(name), iid)
 
     already = {
         row.invader_id
