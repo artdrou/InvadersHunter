@@ -1,5 +1,5 @@
 export type NewsType = 'invader_added' | 'invader_updated' | 'announcement' | 'release';
-export type NewsSource = 'community' | 'admin' | 'scraper';
+export type NewsSource = 'community' | 'admin' | 'scraper' | 'invaderquest';
 /** Nature of an invader event, computed by the backend (same rule as push notifications). */
 export type NewsKind = 'create' | 'destroyed' | 'hidden' | 'reactivated' | 'degraded' | 'moved' | 'updated';
 
@@ -10,7 +10,7 @@ export type NewsItem = {
 
   // Invader events
   source?: NewsSource | null;
-  credit_label?: string | null; // username | "Equipe" | "invader-spotter.art"
+  credit_label?: string | null; // username | "Equipe" | "invader-spotter.art" | "InvaderQuest"
   invader_id?: number | null;
   invader_name?: string | null;
   city?: string | null;

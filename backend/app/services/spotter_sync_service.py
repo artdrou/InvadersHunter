@@ -33,9 +33,9 @@ from sqlalchemy.orm import Session
 
 from ..core import spotter_scraper
 from ..core.invader_states import normalize_state
-from ..models.admin_request import AdminRequest
+from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.space_invader import Invader
-from . import admin_request_service
+from . import admin_request_service, notification_service
 
 log = logging.getLogger("spotter_sync")
 
@@ -76,7 +76,10 @@ class SyncReport:
         )
 
 
-def _apply_state(db: Session, invader_id: int, new_state: str, notify: bool) -> None:
+def _apply_state(
+    db: Session, invader_id: int, new_state: str,
+    notify_batch: Optional[notification_service.InvaderNotificationBatch],
+) -> None:
     """Record the change as an auto-approved scraper AdminRequest (News feed + delta sync)."""
     admin_req = AdminRequest(
         invader_id=invader_id,
@@ -90,7 +93,9 @@ def _apply_state(db: Session, invader_id: int, new_state: str, notify: bool) -> 
     )
     db.add(admin_req)
     db.flush()
-    admin_request_service.approve(db, admin_req, admin_user=None, notify=notify)
+    admin_request_service.approve(
+        db, admin_req, admin_user=None, notify=notify_batch is not None, notify_batch=notify_batch,
+    )
 
 
 def _last_app_state_validation(db: Session, invader_ids: List[int]) -> Dict[int, datetime]:
@@ -102,7 +107,7 @@ def _last_app_state_validation(db: Session, invader_ids: List[int]) -> Dict[int,
         .filter(
             AdminRequest.invader_id.in_(invader_ids),
             AdminRequest.status == "approved",
-            AdminRequest.source != "scraper",
+            AdminRequest.source.notin_(AUTOMATED_SOURCES),
             AdminRequest.proposed_state.isnot(None),
             AdminRequest.reviewed_at.isnot(None),
         )
@@ -162,8 +167,12 @@ def _reconcile(
 
     if report.dry_run:
         return
+    # Pushes go out at the end: one by one, or one summary past MAX_INDIVIDUAL_PUSHES
+    batch = notification_service.InvaderNotificationBatch() if notify else None
     for invader_id, new_state in pending:
-        _apply_state(db, invader_id, new_state, notify=notify)
+        _apply_state(db, invader_id, new_state, notify_batch=batch)
+    if batch is not None:
+        batch.flush(db)
 
 
 def _invader_ids_by_key(db: Session, keys: List[Tuple[str, int]]) -> Dict[Tuple[str, int], int]:

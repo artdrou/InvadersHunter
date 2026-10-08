@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 NewsType = Literal["invader_added", "invader_updated", "announcement", "release"]
-NewsSource = Literal["community", "admin", "scraper"]
+NewsSource = Literal["community", "admin", "scraper", "invaderquest"]
 
 
 class NewsItemOut(BaseModel):
@@ -18,7 +18,7 @@ class NewsItemOut(BaseModel):
 
     # Invader events
     source: Optional[NewsSource] = None
-    credit_label: Optional[str] = None   # username | "Équipe" | "invader-spotter.art"
+    credit_label: Optional[str] = None   # username | "Equipe" | "invader-spotter.art" | "InvaderQuest"
     invader_id: Optional[int] = None
     invader_name: Optional[str] = None
     city: Optional[str] = None

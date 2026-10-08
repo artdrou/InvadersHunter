@@ -189,6 +189,13 @@ MIGRATIONS = [
     # longer pushed to — the 3 databases were copied from one original, so they
     # all held the same devices (dev pushes reached prod phones).
     "ALTER TABLE push_tokens ADD COLUMN IF NOT EXISTS app_variant VARCHAR",
+
+    # Scheduled jobs' memory (e.g. InvaderQuest sync: last data versions seen).
+    """CREATE TABLE IF NOT EXISTS sync_state (
+        key        VARCHAR PRIMARY KEY,
+        value      TEXT,
+        updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+    )""",
 ]
 
 

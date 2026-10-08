@@ -2,6 +2,9 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKe
 from datetime import datetime
 from ..database import Base
 
+# Sources fed by scheduled jobs, not by a human: never count as an app validation.
+AUTOMATED_SOURCES = ("scraper", "invaderquest")
+
 
 class AdminRequest(Base):
     __tablename__ = "admin_requests"
@@ -33,7 +36,8 @@ class AdminRequest(Base):
     confidence = Column(Integer, nullable=False, default=0)
 
     # Who *proposed* this change — drives the News feed credit/badge.
-    # "community" (crowdsourced user) | "admin" (direct admin action) | "scraper" (invader-spotter.art)
+    # "community" (crowdsourced user) | "admin" (direct admin action)
+    # | "scraper" (invader-spotter.art) | "invaderquest" (InvaderQuest open data)
     source = Column(String, nullable=False, default="community")
     # Who *validated* it (traceability only, never displayed in the app).
     validated_by = Column(String, nullable=True)
