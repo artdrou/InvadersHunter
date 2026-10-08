@@ -113,13 +113,15 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
 
       {!isISS && (
         <View style={styles.linksRow}>
-          <Pressable
-            onPress={() => Linking.openURL(GOOGLE_MAPS_DIR_URL(invader.latitude, invader.longitude))}
-            style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
-            hitSlop={8}
-          >
-            <Ionicons name="navigate" size={20} color={theme.accent} />
-          </Pressable>
+          {invader.latitude != null && invader.longitude != null && (
+            <Pressable
+              onPress={() => Linking.openURL(GOOGLE_MAPS_DIR_URL(invader.latitude, invader.longitude))}
+              style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}
+              hitSlop={8}
+            >
+              <Ionicons name="navigate" size={20} color={theme.accent} />
+            </Pressable>
+          )}
           <Pressable
             onPress={() => Linking.openURL(INSTAGRAM_TAG_URL(invader.name))}
             style={({ pressed }) => [styles.linkIconBtn, pressed && styles.btnPressed]}

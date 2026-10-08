@@ -182,6 +182,14 @@ def notify_user(db: Session, user_id: int, texts: dict, data: dict) -> None:
         log.warning("notifications: notify_user failed for user_id=%s: %s", user_id, e)
 
 
+def _event_allowed(settings: NotificationSettings, event_type: str) -> bool:
+    if event_type == "invader_added":
+        return bool(settings.notify_on_create)
+    if event_type == "invader_updated":
+        return bool(settings.notify_on_update)
+    return True
+
+
 def notify_invader_event(
     db: Session,
     event_type: str,
@@ -198,11 +206,8 @@ def notify_invader_event(
         if not settings.enabled:
             log.info("notifications: skipped for invader_id=%s — globally disabled", invader_id)
             return
-        if event_type == "invader_added" and not settings.notify_on_create:
-            log.info("notifications: skipped invader_added for invader_id=%s — notify_on_create disabled", invader_id)
-            return
-        if event_type == "invader_updated" and not settings.notify_on_update:
-            log.info("notifications: skipped invader_updated for invader_id=%s — notify_on_update disabled", invader_id)
+        if not _event_allowed(settings, event_type):
+            log.info("notifications: skipped %s for invader_id=%s — disabled by admin switch", event_type, invader_id)
             return
         recipients = _recipient_tokens_with_language(db)
         if not recipients:
@@ -222,3 +227,74 @@ def notify_invader_event(
         _send_expo_push(db, messages)
     except Exception as e:
         log.warning("notifications: notify_invader_event failed: %s", e)
+
+
+# ── batched sends (scheduled jobs) ────────────────────────────────────────────
+
+# Above this many invader pushes in one run, send a single summary push instead.
+MAX_INDIVIDUAL_PUSHES = 10
+
+SUMMARY_TITLE = {"fr": "Du nouveau chez les invaders", "en": "Invader news"}
+SUMMARY_PARTS = {
+    "fr": ("{n} nouvel invader", "{n} nouveaux invaders", "{n} mise a jour", "{n} mises a jour"),
+    "en": ("{n} new invader", "{n} new invaders", "{n} update", "{n} updates"),
+}
+
+
+def summary_texts(added: int, updated: int) -> dict:
+    """{"fr": (title, body), "en": ...} for "x new, y updates" (zero parts left out)."""
+    out = {}
+    for lang, (one_new, many_new, one_upd, many_upd) in SUMMARY_PARTS.items():
+        parts = []
+        if added:
+            parts.append((one_new if added == 1 else many_new).format(n=added))
+        if updated:
+            parts.append((one_upd if updated == 1 else many_upd).format(n=updated))
+        out[lang] = (SUMMARY_TITLE[lang], ", ".join(parts) + ".")
+    return out
+
+
+class InvaderNotificationBatch:
+    """Collects the invader pushes of one job run (sync jobs), then flush() sends
+    them one by one — or, past MAX_INDIVIDUAL_PUSHES, as one "x new, y updates"
+    push, so a big sync never floods phones."""
+
+    def __init__(self) -> None:
+        self.events: List[Tuple[str, dict, Optional[int]]] = []
+
+    def add(self, event_type: str, texts: dict, invader_id: Optional[int]) -> None:
+        self.events.append((event_type, texts, invader_id))
+
+    def flush(self, db: Session) -> int:
+        """Send what was collected; returns how many distinct pushes went out. Never raises."""
+        events, self.events = self.events, []
+        if len(events) <= MAX_INDIVIDUAL_PUSHES:
+            for event_type, texts, invader_id in events:
+                notify_invader_event(db, event_type, texts, invader_id)
+            return len(events)
+        try:
+            settings = get_global_settings(db)
+            if not settings.enabled:
+                log.info("notifications: summary skipped — globally disabled")
+                return 0
+            allowed = [e for e in events if _event_allowed(settings, e[0])]
+            if not allowed:
+                return 0
+            added = sum(1 for e in allowed if e[0] == "invader_added")
+            texts = summary_texts(added, len(allowed) - added)
+            messages = [
+                {
+                    "to": token,
+                    "title": texts.get(language, texts["fr"])[0],
+                    "body": texts.get(language, texts["fr"])[1],
+                    "data": {"screen": "/news"},
+                }
+                for token, language in _recipient_tokens_with_language(db)
+            ]
+            log.info("notifications: summary push (%d new, %d updates) to %d device(s)",
+                     added, len(allowed) - added, len(messages))
+            _send_expo_push(db, messages)
+            return 1
+        except Exception as e:
+            log.warning("notifications: summary push failed: %s", e)
+            return 0

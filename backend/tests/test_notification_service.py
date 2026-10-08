@@ -214,3 +214,54 @@ def test_register_refuses_app_of_another_environment(db, user_with_token):
 def test_environment_for_host(host, env):
     from app.core.environment import environment_for_host
     assert environment_for_host(host) == env
+
+
+# ── batched sends (sync jobs) ─────────────────────────────────────────────────
+
+def _capture_posts(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        notification_service.requests, "post",
+        lambda url, json, timeout: calls.append(json) or FakeResponse([{"status": "ok"}] * len(json)),
+    )
+    return calls
+
+
+def _batch(added, updated):
+    batch = notification_service.InvaderNotificationBatch()
+    for i in range(added):
+        batch.add("invader_added", TEXTS, i)
+    for i in range(updated):
+        batch.add("invader_updated", TEXTS, 100 + i)
+    return batch
+
+
+def test_batch_up_to_limit_sends_each_push(db, user_with_token, monkeypatch):
+    calls = _capture_posts(monkeypatch)
+    sent = _batch(6, notification_service.MAX_INDIVIDUAL_PUSHES - 6).flush(db)
+    assert sent == notification_service.MAX_INDIVIDUAL_PUSHES
+    assert len(calls) == notification_service.MAX_INDIVIDUAL_PUSHES
+
+
+def test_batch_over_limit_sends_one_summary(db, user_with_token, monkeypatch):
+    calls = _capture_posts(monkeypatch)
+    assert _batch(8, 4).flush(db) == 1
+    assert len(calls) == 1
+    msg = calls[0][0]
+    assert msg["body"] == "8 nouveaux invaders, 4 mises a jour."   # default language fr
+    assert msg["data"] == {"screen": "/news"}
+
+
+def test_batch_summary_respects_per_type_switch(db, user_with_token, monkeypatch):
+    calls = _capture_posts(monkeypatch)
+    settings = notification_service.get_global_settings(db)
+    settings.notify_on_update = False
+    db.commit()
+    _batch(11, 5).flush(db)
+    assert calls[0][0]["body"] == "11 nouveaux invaders."
+
+
+def test_summary_texts_singular_and_english():
+    texts = notification_service.summary_texts(1, 1)
+    assert texts["fr"][1] == "1 nouvel invader, 1 mise a jour."
+    assert texts["en"][1] == "1 new invader, 1 update."
