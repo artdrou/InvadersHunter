@@ -171,6 +171,21 @@ MIGRATIONS = [
         WHERE status = 'approved' AND proposed_state IS NOT NULL AND invader_id IS NOT NULL
     ) h
     WHERE a.id = h.id AND a.request_type = 'modify' AND a.previous_state IS NULL AND h.prev IS NOT NULL""",
+    # News "discovered" — whether the invader already had a location before the change.
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS previous_located BOOLEAN",
+    # News: a degraded level that only makes InvaderQuest's coarse "damaged" (Degraded)
+    # precise is not a degradation / restoration. Back-fills past changes whose
+    # previous state-setting change came from InvaderQuest (no-op once done).
+    "ALTER TABLE admin_requests ADD COLUMN IF NOT EXISTS refines_state BOOLEAN",
+    """UPDATE admin_requests a SET refines_state = TRUE
+    FROM (
+        SELECT id, LAG(source) OVER (PARTITION BY invader_id ORDER BY reviewed_at, id) AS prev_source
+        FROM admin_requests
+        WHERE status = 'approved' AND proposed_state IS NOT NULL AND invader_id IS NOT NULL
+    ) h
+    WHERE a.id = h.id AND a.refines_state IS NULL AND h.prev_source = 'invaderquest'
+      AND a.source <> 'invaderquest' AND a.previous_state = 'Degraded'
+      AND a.proposed_state IN ('Slightly degraded', 'Badly degraded')""",
 
     # Friends — one row per pair: pending invite (requester → addressee) or accepted.
     """CREATE TABLE IF NOT EXISTS friendships (

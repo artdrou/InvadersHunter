@@ -4,7 +4,8 @@ Keeps invader states aligned with invader-spotter.art.
 Two modes, both run by app/jobs/spotter_sync.py on a Railway Cron schedule:
   - sync_from_news(): cheap, twice a day. Reads news.php, then re-fetches each
     invader mentioned in the last few days (the news text alone doesn't always
-    say the new state, e.g. "Mise à jour du statut de PA_1324").
+    say the new state, e.g. "Mise à jour du statut de PA_1324"). Also tags that
+    window's "Réactivation" news on past changes (see _backfill_reactivations).
   - sync_full():      weekly safety net. Scrapes every city listing and fixes any
     drift. Silent by default (--notify to push) so a large backlog doesn't spam users.
 
@@ -18,8 +19,11 @@ older site info: the site change applies only if its date is later than that
 validation. Site date = the news day (news mode) or the "Date et source" month
 (full mode, first day of the month, so the app wins ties within a month).
 
-Only `state` is synced. Invaders the site lists but the DB lacks (new ones:
-"Ajout de ...") are reported, not created: the site has no GPS coordinates.
+Only `state` is synced on known invaders. Invaders a news mentions that the DB
+lacks are created (news mode only) without location: the site has no GPS, the
+InvaderQuest sync fills it in later. Pushed only when the news says "Ajout de"
+(really new); others are catalogue catch-up (e.g. an old invader newly listed).
+Full mode only reports them, so a large catalogue gap doesn't flood the News feed.
 """
 import logging
 import time
@@ -35,7 +39,7 @@ from ..core import spotter_scraper
 from ..core.invader_states import normalize_state
 from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.space_invader import Invader
-from . import admin_request_service, notification_service
+from . import admin_request_service, invader_service, notification_service
 
 log = logging.getLogger("spotter_sync")
 
@@ -58,7 +62,8 @@ class SyncReport:
     dry_run: bool
     checked: int = 0
     changes: List[StateChange] = field(default_factory=list)
-    missing_in_db: List[str] = field(default_factory=list)      # on the site, not in our DB
+    created: List[str] = field(default_factory=list)            # news mode: was missing from our DB
+    missing_in_db: List[str] = field(default_factory=list)      # full mode: on the site, not in our DB
     missing_on_site: List[str] = field(default_factory=list)    # asked the site, got nothing
     unparsed_state: List[str] = field(default_factory=list)     # site label we can't map
     kept_app_state: List[str] = field(default_factory=list)     # app validation newer than site info
@@ -68,7 +73,7 @@ class SyncReport:
     def summary(self) -> str:
         return (
             f"[{self.mode}{' DRY-RUN' if self.dry_run else ''}] checked={self.checked} "
-            f"changed={len(self.changes)} missing_in_db={len(self.missing_in_db)} "
+            f"changed={len(self.changes)} created={len(self.created)} missing_in_db={len(self.missing_in_db)} "
             f"missing_on_site={len(self.missing_on_site)} unparsed_state={len(self.unparsed_state)} "
             f"kept_app_state={len(self.kept_app_state)} "
             f"backfilled_reactivations={len(self.backfilled_reactivations)} "
@@ -117,12 +122,47 @@ def _last_app_state_validation(db: Session, invader_ids: List[int]) -> Dict[int,
     return {invader_id: reviewed_at for invader_id, reviewed_at in rows}
 
 
+def _create(
+    db: Session, info: dict, state: Optional[str],
+    notify_batch: Optional[notification_service.InvaderNotificationBatch],
+) -> None:
+    """A news invader missing from the DB, as an auto-approved scraper creation (no location)."""
+    admin_req = AdminRequest(
+        request_type="create",
+        status="pending",
+        proposed_name=info["name"],
+        proposed_state=state or "Unknown",
+        proposed_points=info.get("points"),
+        proposed_image_url=info.get("picture_url"),
+        proposed_date_pose=spotter_scraper.parse_date_pose(info.get("date_pose")),
+        request_count=0,
+        confidence=100,
+        source="scraper",
+        validated_by=VALIDATED_BY,
+    )
+    db.add(admin_req)
+    db.flush()
+    admin_request_service.approve(
+        db, admin_req, admin_user=None, notify=notify_batch is not None, notify_batch=notify_batch,
+    )
+
+
+def _invader_key(invader: Invader) -> Optional[Tuple[str, int]]:
+    """city/number columns, else parsed from the name (invaders created in the app
+    before those columns were filled on creation)."""
+    if invader.city and invader.number is not None:
+        return (invader.city, invader.number)
+    return spotter_scraper.split_name(invader.name) if invader.name else None
+
+
 def _reconcile(
     db: Session,
     report: SyncReport,
     scraped: Dict[Tuple[str, int], dict],
     notify: bool,
     city: Optional[str] = None,
+    create_missing: bool = False,
+    push_creations: Optional[set] = None,
 ) -> None:
     """DB phase: diff scraped rows against the DB, then apply.
 
@@ -130,17 +170,28 @@ def _reconcile(
     transaction for minutes, so no transaction may stay open across network calls.
     Diffs are computed on plain values first because each approve() commits,
     which expires every loaded ORM object.
-    """
-    q = db.query(Invader).filter(Invader.city.isnot(None), Invader.number.isnot(None))
-    if city:
-        q = q.filter(Invader.city == city)
-    db_invaders = {(inv.city, inv.number): inv for inv in q.all()}
 
+    `create_missing` creates scraped invaders the DB lacks; `push_creations` holds
+    the keys whose creation is push-worthy ("Ajout de" news).
+    """
+    db_invaders: Dict[Tuple[str, int], Invader] = {}
+    for inv in db.query(Invader).all():
+        key = _invader_key(inv)
+        if key is not None and (city is None or key[0] == city):
+            db_invaders.setdefault(key, inv)
+
+    to_create: List[Tuple[Tuple[str, int], dict, Optional[str]]] = []
     candidates: List[Tuple[Invader, str, Optional[date]]] = []
     for key, info in sorted(scraped.items()):
         invader = db_invaders.get(key)
         if invader is None:
-            report.missing_in_db.append(info.get("name") or f"{key[0]}_{key[1]}")
+            name = info.get("name") or f"{key[0]}_{key[1]}"
+            if create_missing:
+                raw_state = info.get("state")
+                to_create.append((key, {**info, "name": name}, normalize_state(raw_state) if raw_state else None))
+                report.created.append(name)
+            else:
+                report.missing_in_db.append(name)
             continue
         report.checked += 1
         raw_state = info.get("state")
@@ -169,6 +220,13 @@ def _reconcile(
         return
     # Pushes go out at the end: one by one, or one summary past MAX_INDIVIDUAL_PUSHES
     batch = notification_service.InvaderNotificationBatch() if notify else None
+    for key, info, state in to_create:
+        try:
+            _create(db, info, state, notify_batch=batch if key in (push_creations or ()) else None)
+        except invader_service.InvaderAlreadyExists as e:   # safety net: matched above already
+            db.rollback()
+            report.created.remove(info["name"])
+            report.errors.append(f"{info['name']}: not created, {e}")
     for invader_id, new_state in pending:
         _apply_state(db, invader_id, new_state, notify_batch=batch)
     if batch is not None:
@@ -245,7 +303,12 @@ def sync_from_news(
 
     # Network phase
     log.info("news: fetching %s", spotter_scraper.NEWS_URL)
-    entries = spotter_scraper.fetch_news(spotter_scraper.new_session())
+    news_html = spotter_scraper.fetch_news_html(spotter_scraper.new_session())
+    entries = spotter_scraper.parse_news_html(news_html)
+    reactivations = [
+        (day, key) for day, key in spotter_scraper.parse_news_reactivations(news_html) if day >= cutoff
+    ]
+    additions = {key for day, key in spotter_scraper.parse_news_additions(news_html) if day >= cutoff}
     news_day: Dict[Tuple[str, int], date] = {}   # newest mention wins (entries are newest first)
     for day, invaders in entries:
         if day < cutoff:
@@ -276,7 +339,8 @@ def sync_from_news(
 
     # DB phase
     log.info("news: comparing %d scraped invaders with the DB", len(scraped))
-    _reconcile(db, report, scraped, notify=True)
+    _reconcile(db, report, scraped, notify=True, create_missing=True, push_creations=additions)
+    _backfill_reactivations(db, report, reactivations)
     return report
 
 
@@ -290,10 +354,10 @@ def sync_full(
     """`notify` defaults to False so a large drift backlog doesn't spam users."""
     report = SyncReport(mode="full", dry_run=dry_run)
 
-    q = db.query(Invader.city, Invader.number).filter(Invader.city.isnot(None), Invader.number.isnot(None))
-    if city:
-        q = q.filter(Invader.city == city)
-    db_keys = set(q.all())
+    db_keys = {
+        key for key in map(_invader_key, db.query(Invader).all())
+        if key is not None and (city is None or key[0] == city)
+    }
     log.info("full: %d invaders in DB across %d cities", len(db_keys), len({c for c, _ in db_keys}))
     db.rollback()  # release the connection before minutes of scraping
 

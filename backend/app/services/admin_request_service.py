@@ -16,7 +16,7 @@ from ..models.user import User
 from ..core.db_utils import safe_commit
 from ..core.spotter_scraper import split_name
 from ..core import r2
-from . import news_service, notification_service
+from . import invader_service, news_service, notification_service
 
 
 class AdminRequestNotPending(Exception):
@@ -109,6 +109,8 @@ def approve(
     With `notify_batch`, the push is collected for the job to send (or group) at the end."""
     if admin_req.status != "pending":
         raise AdminRequestNotPending()
+    if admin_req.request_type == "create":
+        invader_service.ensure_new(db, admin_req.proposed_name)   # InvaderAlreadyExists
 
     # Admin-picked values fall back to the aggregated proposal when None
     final_lat       = override_latitude   if override_latitude   is not None else admin_req.proposed_latitude
@@ -146,8 +148,12 @@ def approve(
             raise TargetInvaderMissing()
         previous_state = invader.state
         admin_req.previous_state = previous_state
+        admin_req.refines_state = news_service.is_state_refinement(
+            db, invader.id, admin_req.source, previous_state, admin_req.proposed_state,
+        )
         previous_lat = invader.latitude
         previous_lon = invader.longitude
+        admin_req.previous_located = previous_lat is not None and previous_lon is not None
         if admin_req.proposed_name is not None:
             invader.name = admin_req.proposed_name
         if admin_req.proposed_description is not None:
@@ -177,16 +183,17 @@ def approve(
 
     safe_commit(db)
 
-    if notify:
+    # A mere precision of InvaderQuest's coarse level isn't news worth a push
+    if notify and not admin_req.refines_state:
         event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
-        texts = news_service.notification_texts(
+        kind, texts = news_service.notification_event(
             admin_req, invader,
             previous_state=previous_state,
             previous_latitude=previous_lat,
             previous_longitude=previous_lon,
         )
         if notify_batch is not None:
-            notify_batch.add(event_type, texts, admin_req.invader_id)
+            notify_batch.add(event_type, kind, texts, admin_req.invader_id)
         else:
             notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
 

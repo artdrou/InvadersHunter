@@ -71,6 +71,7 @@ def main(argv=None) -> int:
     for c in report.changes:
         log.info("changed %s: %s -> %s", c.name, c.old_state, c.new_state)
     for label, items in (
+        ("created (no location yet)", report.created),
         ("not in DB", report.missing_in_db),
         ("not found on site", report.missing_on_site),
         ("unparsed state", report.unparsed_state),

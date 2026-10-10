@@ -11,6 +11,7 @@ from app.services.user_request_service import (
     InvalidRequestPayload, DuplicatePendingRequest,
     RequestMissing, NotRequestOwner, RequestNotPending,
 )
+from app.services.invader_service import InvaderAlreadyExists
 
 router = APIRouter(prefix="/requests", tags=["Requests"])
 
@@ -27,6 +28,8 @@ def submit_request(
         raise HTTPException(status_code=400, detail=e.detail)
     except DuplicatePendingRequest:
         raise HTTPException(status_code=409, detail="You already have a pending request for this invader")
+    except InvaderAlreadyExists as e:
+        raise HTTPException(status_code=409, detail=f"Invader {e.name} already exists")
 
 
 @router.get("/", response_model=List[UserRequestOut])
