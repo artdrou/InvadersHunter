@@ -214,9 +214,8 @@ def classify_event(
     if new_state == UNKNOWN_STATE:
         return "unknown"
     good = WEAR_ORDER[0]
-    # Only a fresh mosaic (back to Good) is a reactivation / restoration. "Destroyed ->
-    # Badly degraded" means it was still there, worn; "Degraded -> Slightly degraded"
-    # is a reclassification: invaders don't heal on their own.
+    # Only a fresh mosaic (back to Good) is a reactivation: "Destroyed -> Badly degraded"
+    # means it was still there, worn. Along the wear scale, worse = degraded, better = restored.
     if previous_state in (DESTROYED_STATE, HIDDEN_STATE) and new_state in WEAR_ORDER:
         return "reactivated" if new_state == good else "degraded"
     if previous_state == UNKNOWN_STATE and new_state in WEAR_ORDER:
@@ -224,7 +223,7 @@ def classify_event(
     if previous_state in WEAR_ORDER and new_state in WEAR_ORDER:
         if WEAR_ORDER.index(new_state) > WEAR_ORDER.index(previous_state):
             return "degraded"
-        return "restored" if new_state == good else "state_changed"
+        return "restored"
     return "state_changed"
 
 
