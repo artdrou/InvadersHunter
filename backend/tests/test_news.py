@@ -94,6 +94,25 @@ def test_approve_records_previous_state(db, client, users, invader):
     assert item["kind"] == "degraded"   # Good -> Degraded beats the location change
 
 
+def test_news_kind_first_location_is_discovered(db, client, invader):
+    for previous_located, kind in ((False, "discovered"), (True, "moved"), (None, "moved")):
+        db.query(AdminRequest).delete()
+        db.add(AdminRequest(
+            invader_id=invader.id, request_type="modify", status="approved", source="invaderquest",
+            previous_state="Good", previous_located=previous_located,
+            proposed_latitude=48.9, proposed_longitude=2.4, reviewed_at=datetime.utcnow(),
+        ))
+        db.commit()
+        assert client.get("/news/").json()[0]["kind"] == kind, previous_located
+
+
+def test_approve_records_previous_located(db, client, users, invader):
+    regular, admin = users
+    ar = _approve_modify(db, client, regular.id, admin, invader.id)
+    db.refresh(ar)
+    assert ar.previous_located is True
+
+
 @pytest.mark.parametrize("request_type, previous, new, located, kind", [
     ("create", None, "Good", True, "create"),            # green
     ("modify", "Good", "Destroyed", False, "destroyed"),  # red
@@ -102,8 +121,11 @@ def test_approve_records_previous_state(db, client, users, invader):
     ("modify", "Destroyed", "Good", False, "reactivated"),  # magenta
     ("modify", "Not visible", "Good", False, "reactivated"),
     ("modify", None, None, True, "moved"),                # blue: location-only change
-    ("modify", "Degraded", "Good", False, "updated"),     # restoration: no special colour
-    ("modify", None, "Good", False, "updated"),           # unknown previous: can't call it a reactivation
+    ("modify", "Degraded", "Good", False, "restored"),    # mustard
+    ("modify", None, "Good", False, "state_changed"),     # unknown previous: can't call it a reactivation
+    ("modify", "Good", "Unknown", False, "unknown"),        # grey
+    ("modify", "Unknown", "Good", False, "discovered"),     # green
+    ("modify", "Good", None, False, "updated"),           # photo/name/points edit
 ])
 def test_news_kind(db, client, invader, request_type, previous, new, located, kind):
     db.add(AdminRequest(

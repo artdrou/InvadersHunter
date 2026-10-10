@@ -15,7 +15,7 @@ Run once a day by app/jobs/invaderquest_sync.py. Steps:
   2. DB phase: diff, then one auto-approved `source="invaderquest"` AdminRequest
      per invader (News feed entry credited "InvaderQuest" + delta sync). Pushes
      (freshly added invaders only) go through notification_service.InvaderNotificationBatch:
-     one per invader, or a single "x new, y updates" push past 10.
+     one per invader, or a single "x new invaders, ..." push past 10.
   3. Remember the versions seen (sync_state table) for the next run.
 
 Never deletes: a city file can be skipped for a day by the maintainer's checks.
@@ -36,7 +36,7 @@ from ..core.spotter_scraper import split_name
 from ..models.admin_request import AdminRequest
 from ..models.space_invader import Invader
 from ..models.sync_state import SyncState
-from . import admin_request_service, notification_service
+from . import admin_request_service, invader_service, notification_service
 
 log = logging.getLogger("invaderquest_sync")
 
@@ -288,7 +288,12 @@ def sync(
     batch = notification_service.InvaderNotificationBatch()
     for rec in to_create:
         fresh = (rec["city"], rec["number"]) in recently_added
-        _create(db, rec, batch=batch if fresh else None)
+        try:
+            _create(db, rec, batch=batch if fresh else None)
+        except invader_service.InvaderAlreadyExists as e:   # safety net: matched above already
+            db.rollback()
+            report.created.remove(rec["name"])
+            report.errors.append(f"{rec['name']}: not created, {e}")
     for invader_id, _, fill in to_fill:
         _fill(db, invader_id, fill)
     report.pushes_sent = batch.flush(db)

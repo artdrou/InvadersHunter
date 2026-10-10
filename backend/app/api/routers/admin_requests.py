@@ -11,6 +11,7 @@ from app.services import admin_request_service as service
 from app.services.admin_request_service import (
     AdminRequestNotPending, TargetInvaderMissing,
 )
+from app.services.invader_service import InvaderAlreadyExists
 
 router = APIRouter(prefix="/admin-requests", tags=["Admin Requests"])
 
@@ -88,6 +89,12 @@ def approve_admin_request(
         raise HTTPException(status_code=400, detail="AdminRequest is not pending")
     except TargetInvaderMissing:
         raise HTTPException(status_code=404, detail="Target invader not found")
+    except InvaderAlreadyExists as e:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Invader {e.name} already exists (id {e.invader_id}): reject this request "
+                   "or propose the changes as a modification",
+        )
     return {"message": "AdminRequest approved", "invader_id": admin_req.invader_id}
 
 

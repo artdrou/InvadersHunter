@@ -11,7 +11,7 @@ Row parsing (`parse_row`) is shared with the offline scripts in backend/scripts/
 import logging
 import re
 import time
-from datetime import date
+from datetime import date, datetime
 from typing import Dict, List, Optional, Tuple
 
 import requests
@@ -109,13 +109,14 @@ def _iter_news_lines(html: str):
 
 _SENTENCE_SPLIT_RE = re.compile(r"\.\s+")
 _REACTIVATION_RE = re.compile(r"r[ée]activation", re.IGNORECASE)
+_ADDITION_RE = re.compile(r"\bajouts?\b", re.IGNORECASE)
 
 
-def parse_news_reactivations(html: str) -> List[Tuple[date, Tuple[str, int]]]:
-    """[(day, (city, number)), ...] for invaders named in a "Réactivation de ..." sentence.
+def _parse_news_sentences(html: str, keyword: "re.Pattern") -> List[Tuple[date, Tuple[str, int]]]:
+    """[(day, (city, number)), ...] for invaders named in a sentence matching `keyword`.
 
     A day's lines are joined, then split into sentences ("Réactivation de PA_207 et
-    PA_267. Destruction de PA_516" -> two sentences), so only reactivated names count.
+    PA_267. Destruction de PA_516" -> two sentences), so only that sentence's names count.
     """
     text_by_day: Dict[date, List[str]] = {}
     for day, p in _iter_news_lines(html):
@@ -123,11 +124,29 @@ def parse_news_reactivations(html: str) -> List[Tuple[date, Tuple[str, int]]]:
     out: List[Tuple[date, Tuple[str, int]]] = []
     for day, lines in text_by_day.items():
         for sentence in _SENTENCE_SPLIT_RE.split(" ".join(lines)):
-            if _REACTIVATION_RE.search(sentence):
+            if keyword.search(sentence):
                 for city, number in INVADER_NAME_RE.findall(sentence):
                     out.append((day, (city, int(number))))
     out.sort(key=lambda e: e[0])
     return out
+
+
+def parse_news_reactivations(html: str) -> List[Tuple[date, Tuple[str, int]]]:
+    """Invaders named in a "Réactivation de ..." sentence."""
+    return _parse_news_sentences(html, _REACTIVATION_RE)
+
+
+def parse_news_additions(html: str) -> List[Tuple[date, Tuple[str, int]]]:
+    """Invaders named in an "Ajout de ..." sentence (newly posted invaders)."""
+    return _parse_news_sentences(html, _ADDITION_RE)
+
+
+def parse_date_pose(text: Optional[str]) -> Optional[date]:
+    """'18/07/2005' -> date(2005, 7, 18); None if absent/unreadable."""
+    try:
+        return datetime.strptime((text or "").strip(), "%d/%m/%Y").date()
+    except ValueError:
+        return None
 
 
 def new_session() -> requests.Session:

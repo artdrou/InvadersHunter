@@ -7,7 +7,7 @@ import pytest
 from app.models.user import User
 from app.models.push_token import PushToken
 from app.core.security import hash_password
-from app.services import notification_service
+from app.services import news_service, notification_service
 
 
 TEXTS = {"fr": ("Titre", "Corps"), "en": ("Title", "Body")}
@@ -230,9 +230,9 @@ def _capture_posts(monkeypatch):
 def _batch(added, updated):
     batch = notification_service.InvaderNotificationBatch()
     for i in range(added):
-        batch.add("invader_added", TEXTS, i)
+        batch.add("invader_added", "create", TEXTS, i)
     for i in range(updated):
-        batch.add("invader_updated", TEXTS, 100 + i)
+        batch.add("invader_updated", "destroyed" if i % 2 else "reactivated", TEXTS, 100 + i)
     return batch
 
 
@@ -248,7 +248,7 @@ def test_batch_over_limit_sends_one_summary(db, user_with_token, monkeypatch):
     assert _batch(8, 4).flush(db) == 1
     assert len(calls) == 1
     msg = calls[0][0]
-    assert msg["body"] == "8 nouveaux invaders, 4 mises a jour."   # default language fr
+    assert msg["body"] == "8 nouveaux invaders, 2 detruits, 2 reactives."   # default language fr
     assert msg["data"] == {"screen": "/news"}
 
 
@@ -262,6 +262,16 @@ def test_batch_summary_respects_per_type_switch(db, user_with_token, monkeypatch
 
 
 def test_summary_texts_singular_and_english():
-    texts = notification_service.summary_texts(1, 1)
-    assert texts["fr"][1] == "1 nouvel invader, 1 mise a jour."
-    assert texts["en"][1] == "1 new invader, 1 update."
+    texts = notification_service.summary_texts({"create": 1, "state_changed": 1})
+    assert texts["fr"][1] == "1 nouvel invader, 1 changement d'etat."
+    assert texts["en"][1] == "1 new invader, 1 state change."
+
+
+def test_summary_texts_counts_each_kind_in_a_fixed_order():
+    texts = notification_service.summary_texts({"updated": 1, "destroyed": 3, "create": 2, "degraded": 0})
+    assert texts["fr"][1] == "2 nouveaux invaders, 3 detruits, 1 modifie."
+    assert texts["en"][1] == "2 new invaders, 3 destroyed, 1 updated."
+
+
+def test_summary_parts_cover_every_kind():
+    assert set(notification_service.SUMMARY_PARTS) == set(news_service.NOTIFICATION_COPY)

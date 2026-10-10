@@ -8,7 +8,7 @@ from app.schemas.admin_request import InvaderContributorsOut
 from app.schemas.comment import CommentSummaryOut, InvaderOverviewOut
 from app.dependencies import get_db, get_current_user_optional, require_admin
 from app.services import invader_service, admin_request_service, comment_service, deletion_service
-from app.services.invader_service import InvaderMissing
+from app.services.invader_service import InvaderAlreadyExists, InvaderMissing
 
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
 
@@ -77,7 +77,10 @@ def get_invader_overview(
 
 @router.post("/", response_model=InvaderOut)
 def create_invader(invader: InvaderCreate, db: Session = Depends(get_db), _admin=Depends(require_admin)):
-    return invader_service.create(db, invader.model_dump())
+    try:
+        return invader_service.create(db, invader.model_dump())
+    except InvaderAlreadyExists as e:
+        raise HTTPException(status_code=409, detail=f"Invader {e.name} already exists (id {e.invader_id})")
 
 
 @router.put("/{invader_id}", response_model=InvaderOut)

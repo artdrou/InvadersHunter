@@ -6,9 +6,11 @@ import { useInvaderStore } from "@/features/invaders/store";
 import { uploadRequestPhoto, cancelRequest } from "@/features/invaders/services/invaders.api";
 import type { CreateRequestPayload } from "@/features/invaders/services/invaders.api";
 import { isNetworkError } from "@/services/sync";
+import { apiErrorDetail } from "@/services/api-client";
+import { isAxiosError } from "axios";
 import { useTheme } from "@/contexts/theme-context";
 import { makeStyles } from "./styles";
-import { cityNumberPadding, buildProposedName } from "./name";
+import { cityNumberPadding, buildProposedName, findExistingInvader } from "./name";
 import { NameField } from "./NameField";
 import { StateGrid } from "@/features/invaders/components/StateGrid";
 import { PhotoField } from "@/features/invaders/components/PhotoField";
@@ -40,6 +42,8 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   const [offlineError, setOfflineError] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const [nameError, setNameError] = useState(false);
+  const [existingName, setExistingName] = useState<string | null>(null);
+  const [conflictError, setConflictError] = useState<string | null>(null);
 
   const allInvaders = useInvaderStore((s) => s.invaders);
   const cityPadding = cityNumberPadding(nameCity, allInvaders);
@@ -49,6 +53,9 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
   async function handleSend() {
     if (!isValid) { setNameError(true); return; }
     setNameError(false);
+    const existing = findExistingInvader(nameCity, nameNum, allInvaders);
+    if (existing) { setExistingName(existing.name); return; }
+    setConflictError(null);
     setSubmitting(true);
     setOfflineError(false);
     setUploadError(false);
@@ -75,9 +82,11 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
       }
       onRequestSent();
       onClose();
-    } catch {
+    } catch (e) {
       setSubmitting(false);
-      setUploadError(true);
+      // 409: the invader already exists, or this user already proposed it
+      if (isAxiosError(e) && e.response?.status === 409) setConflictError(apiErrorDetail(e) ?? t('popup.alreadyExists', { name: proposedName }));
+      else setUploadError(true);
     }
   }
 
@@ -100,8 +109,8 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
           num={nameNum}
           proposedName={proposedName}
           error={nameError}
-          onCityChange={(v) => { setNameCity(v); setNameError(false); }}
-          onNumChange={(v) => { setNameNum(v); setNameError(false); }}
+          onCityChange={(v) => { setNameCity(v); setNameError(false); setExistingName(null); }}
+          onNumChange={(v) => { setNameNum(v); setNameError(false); setExistingName(null); }}
           theme={theme}
           styles={styles}
         />
@@ -167,6 +176,8 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
 
       {offlineError && <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>}
       {uploadError && <Text style={styles.offlineMsg}>{t('popup.photoUploadFailed')}</Text>}
+      {existingName && <Text style={styles.offlineMsg}>{t('popup.alreadyExists', { name: existingName })}</Text>}
+      {conflictError && <Text style={styles.offlineMsg}>{conflictError}</Text>}
 
       <Pressable
         style={({ pressed }) => [styles.cancelBtn, pressed && styles.btnPressed]}

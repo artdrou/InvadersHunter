@@ -21,25 +21,31 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
   release: 'rocket-launch-outline',
 };
 
-// Colour-coded event kinds. Any other state change (degradation, restoration…)
-// is mustard; edits that don't touch the state (photo, name, points…) are blue like moves.
+// Colour-coded event kinds. Labels are the push notification titles
+// (backend news_service.NOTIFICATION_COPY), so a push and its News entry read the same.
+// Lost track of (Unknown) is grey like hidden; discovered (Unknown -> Good, or a
+// first location for an invader that had none) is green;
+// other state changes (wear, restoration…) are mustard; edits that don't touch the
+// state (photo, name, points…) are blue like moves.
 type KindStyle = { color: string; label: string };
-const STATE_CHANGE_STYLE: KindStyle = { color: '#D4A017', label: 'news.kindStateChanged' };
+const STATE_CHANGE_COLOR = '#D4A017';
 const MOVE_BLUE = '#2F80FF';
-const KIND_STYLE: Partial<Record<NewsKind, KindStyle>> = {
-  create: { color: '#2ECC40', label: 'news.typeAdded' },
+const KIND_STYLE: Record<NewsKind, KindStyle> = {
+  create: { color: '#2ECC40', label: 'news.kindCreate' },
   destroyed: { color: '#FF3B30', label: 'news.kindDestroyed' },
   hidden: { color: '#9A9A9A', label: 'news.kindHidden' },
-  moved: { color: MOVE_BLUE, label: 'news.kindMoved' },
+  unknown: { color: '#9A9A9A', label: 'news.kindUnknown' },
+  discovered: { color: '#2ECC40', label: 'news.kindDiscovered' },
   reactivated: { color: '#FF2BD6', label: 'news.kindReactivated' },
-  degraded: STATE_CHANGE_STYLE,
-  updated: { color: MOVE_BLUE, label: 'news.typeUpdated' },
+  degraded: { color: STATE_CHANGE_COLOR, label: 'news.kindDegraded' },
+  restored: { color: STATE_CHANGE_COLOR, label: 'news.kindRestored' },
+  state_changed: { color: STATE_CHANGE_COLOR, label: 'news.kindStateChanged' },
+  moved: { color: MOVE_BLUE, label: 'news.kindMoved' },
+  updated: { color: MOVE_BLUE, label: 'news.kindUpdated' },
 };
 
 function kindStyleOf(item: NewsItem): KindStyle | undefined {
-  if (!item.kind) return undefined;
-  if (item.kind === 'updated' && item.changes?.includes('state')) return STATE_CHANGE_STYLE;
-  return KIND_STYLE[item.kind];
+  return item.kind ? KIND_STYLE[item.kind] : undefined;
 }
 
 // Same canonical-state → i18n keys used by InvaderInfoPanel.

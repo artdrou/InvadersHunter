@@ -1,7 +1,18 @@
 export type NewsType = 'invader_added' | 'invader_updated' | 'announcement' | 'release';
 export type NewsSource = 'community' | 'admin' | 'scraper' | 'invaderquest';
 /** Nature of an invader event, computed by the backend (same rule as push notifications). */
-export type NewsKind = 'create' | 'destroyed' | 'hidden' | 'reactivated' | 'degraded' | 'moved' | 'updated';
+export type NewsKind =
+  | 'create'
+  | 'destroyed'
+  | 'hidden'
+  | 'unknown'
+  | 'discovered'
+  | 'reactivated'
+  | 'degraded'
+  | 'restored'
+  | 'state_changed'
+  | 'moved'
+  | 'updated';
 
 /** One entry in the unified News feed (mirror of the backend NewsItemOut). */
 export type NewsItem = {
