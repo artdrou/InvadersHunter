@@ -1,4 +1,4 @@
-import { cityNumberPadding, buildProposedName } from '../features/map/components/CreateInvaderModal/name'
+import { cityNumberPadding, buildProposedName, findExistingInvader } from '../features/map/components/CreateInvaderModal/name'
 
 const names = (...ns: string[]) => ns.map((name) => ({ name }))
 
@@ -47,5 +47,22 @@ describe('buildProposedName', () => {
 
   it('trims and uppercases the city', () => {
     expect(buildProposedName('  ldn ', '42', 0)).toBe('LDN_42')
+  })
+})
+
+describe('findExistingInvader', () => {
+  const known = names('PA_0010', 'LYO_3', 'SPACE2ISS')
+
+  it('finds the invader whatever the zero padding or case', () => {
+    expect(findExistingInvader('pa', '10', known)?.name).toBe('PA_0010')
+    expect(findExistingInvader('PA', '010', known)?.name).toBe('PA_0010')
+    expect(findExistingInvader('LYO', '03', known)?.name).toBe('LYO_3')
+  })
+
+  it('returns undefined for another invader or an incomplete name', () => {
+    expect(findExistingInvader('PA', '100', known)).toBeUndefined()
+    expect(findExistingInvader('PAR', '10', known)).toBeUndefined()
+    expect(findExistingInvader('PA', '', known)).toBeUndefined()
+    expect(findExistingInvader('', '10', known)).toBeUndefined()
   })
 })

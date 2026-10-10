@@ -20,6 +20,7 @@ from ..models.admin_request import AdminRequest
 from ..core.geo_utils import compute_barycenter, haversine_m, _simple_centroid
 from ..core.name_utils import normalize_name
 from ..core.db_utils import safe_commit
+from . import invader_service
 
 AGGREGATION_THRESHOLD = 1  # minimum number of similar requests to trigger an AdminRequest
 
@@ -223,6 +224,9 @@ def submit(db: Session, current_user: User, data) -> UserRequest:
         raise InvalidRequestPayload("invader_id must be null for a create request")
     if data.request_type == "create" and not data.proposed_name:
         raise InvalidRequestPayload("proposed_name is required for a create request")
+
+    if data.request_type == "create":
+        invader_service.ensure_new(db, data.proposed_name)   # InvaderAlreadyExists
 
     norm = normalize_name(data.proposed_name) if data.proposed_name else None
 

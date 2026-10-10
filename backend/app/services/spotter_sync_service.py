@@ -39,7 +39,7 @@ from ..core import spotter_scraper
 from ..core.invader_states import normalize_state
 from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.space_invader import Invader
-from . import admin_request_service, notification_service
+from . import admin_request_service, invader_service, notification_service
 
 log = logging.getLogger("spotter_sync")
 
@@ -221,7 +221,12 @@ def _reconcile(
     # Pushes go out at the end: one by one, or one summary past MAX_INDIVIDUAL_PUSHES
     batch = notification_service.InvaderNotificationBatch() if notify else None
     for key, info, state in to_create:
-        _create(db, info, state, notify_batch=batch if key in (push_creations or ()) else None)
+        try:
+            _create(db, info, state, notify_batch=batch if key in (push_creations or ()) else None)
+        except invader_service.InvaderAlreadyExists as e:   # safety net: matched above already
+            db.rollback()
+            report.created.remove(info["name"])
+            report.errors.append(f"{info['name']}: not created, {e}")
     for invader_id, new_state in pending:
         _apply_state(db, invader_id, new_state, notify_batch=batch)
     if batch is not None:

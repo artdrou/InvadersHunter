@@ -16,7 +16,7 @@ from ..models.user import User
 from ..core.db_utils import safe_commit
 from ..core.spotter_scraper import split_name
 from ..core import r2
-from . import news_service, notification_service
+from . import invader_service, news_service, notification_service
 
 
 class AdminRequestNotPending(Exception):
@@ -109,6 +109,8 @@ def approve(
     With `notify_batch`, the push is collected for the job to send (or group) at the end."""
     if admin_req.status != "pending":
         raise AdminRequestNotPending()
+    if admin_req.request_type == "create":
+        invader_service.ensure_new(db, admin_req.proposed_name)   # InvaderAlreadyExists
 
     # Admin-picked values fall back to the aggregated proposal when None
     final_lat       = override_latitude   if override_latitude   is not None else admin_req.proposed_latitude

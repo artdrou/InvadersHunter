@@ -1,4 +1,4 @@
-import { cityOf } from "@/features/invaders/utils/invader-list";
+import { cityOf, numOf } from "@/features/invaders/utils/invader-list";
 
 /**
  * Detect the zero-padding width used by existing invaders in a city (e.g. names
@@ -27,4 +27,22 @@ export function buildProposedName(city: string, num: string, padding: number): s
   const n = num.trim();
   const formatted = padding > 0 ? n.padStart(padding, "0") : n;
   return c + (c && n ? "_" + formatted : "");
+}
+
+/**
+ * The known invader the typed city + number designate, whatever its zero padding
+ * ("PA" + "10" finds PA_0010), so the user isn't sent to propose a duplicate.
+ */
+export function findExistingInvader<T extends { name: string }>(
+  city: string,
+  num: string,
+  invaders: T[],
+): T | undefined {
+  const c = city.trim().toUpperCase();
+  const n = num.trim();
+  if (!c || !/^\d+$/.test(n)) return undefined;
+  const target = parseInt(n, 10);
+  return invaders.find(
+    (inv) => /_\d+$/.test(inv.name) && cityOf(inv.name) === c && numOf(inv.name) === target,
+  );
 }

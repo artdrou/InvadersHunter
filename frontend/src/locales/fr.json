@@ -416,6 +416,7 @@
     "gallery": "Galerie",
     "removePhoto": "Retirer",
     "photoUploadFailed": "Échec de l'envoi de la photo, veuillez réessayer",
+    "alreadyExists": "Cet invader existe déjà ({{name}}) : proposez plutôt une modification",
     "submit": "Envoyer",
     "sendingShort": "Envoi…",
     "localiser": "Localiser",
