@@ -25,7 +25,8 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
 // (backend news_service.NOTIFICATION_COPY), so a push and its News entry read the same.
 // Lost track of (Unknown) is grey like hidden; discovered (Unknown -> Good, or a
 // first location for an invader that had none) is green;
-// other state changes (wear, restoration…) are mustard; edits that don't touch the
+// a repair (degraded -> Good) light pink, next to the magenta reactivation (fresh
+// mosaic after Destroyed / Not visible); other state changes (wear…) are mustard; edits that don't touch the
 // state (photo, name, points…) are blue like moves.
 type KindStyle = { color: string; label: string };
 const STATE_CHANGE_COLOR = '#D4A017';
@@ -38,7 +39,7 @@ const KIND_STYLE: Record<NewsKind, KindStyle> = {
   discovered: { color: '#2ECC40', label: 'news.kindDiscovered' },
   reactivated: { color: '#FF2BD6', label: 'news.kindReactivated' },
   degraded: { color: STATE_CHANGE_COLOR, label: 'news.kindDegraded' },
-  restored: { color: STATE_CHANGE_COLOR, label: 'news.kindRestored' },
+  restored: { color: '#FF9BE6', label: 'news.kindRestored' },
   state_changed: { color: STATE_CHANGE_COLOR, label: 'news.kindStateChanged' },
   moved: { color: MOVE_BLUE, label: 'news.kindMoved' },
   updated: { color: MOVE_BLUE, label: 'news.kindUpdated' },
