@@ -34,6 +34,9 @@ class AdminRequest(Base):
     # Whether the invader had a location just before (modify only; NULL on older rows):
     # False + a proposed location = first location found ("discovered").
     previous_located = Column(Boolean, nullable=True)
+    # True when this change only makes precise InvaderQuest's coarse "damaged" level
+    # (stored as Degraded): nothing happened on the site, so no News entry nor push.
+    refines_state = Column(Boolean, nullable=True)
 
     request_count = Column(Integer, nullable=False, default=0)
     confidence = Column(Integer, nullable=False, default=0)

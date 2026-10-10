@@ -9,6 +9,7 @@ small `announcements` table. Both are merged into one date-sorted feed.
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..models.admin_request import AdminRequest
@@ -29,6 +30,7 @@ WEAR_ORDER = ("Good", "Slightly degraded", "Degraded", "Badly degraded")
 DESTROYED_STATE = "Destroyed"
 HIDDEN_STATE = "Not visible"
 UNKNOWN_STATE = "Unknown"
+IQ_DAMAGED_STATE = "Degraded"   # InvaderQuest's single "damaged" level (invaderquest_client.STATUS_MAP)
 _MOVE_EPSILON = 1e-6  # ignore float round-trip noise, not real position changes
 
 # Push notification copy, one entry per supported app language (see
@@ -119,6 +121,8 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
         db.query(AdminRequest, Invader)
         .outerjoin(Invader, Invader.id == AdminRequest.invader_id)
         .filter(AdminRequest.status == "approved", AdminRequest.reviewed_at.isnot(None))
+        # internal precision of InvaderQuest's coarse level: nothing happened on the site
+        .filter(or_(AdminRequest.refines_state.is_(None), AdminRequest.refines_state.is_(False)))
     )
     ann_q = db.query(Announcement)
 
@@ -187,6 +191,32 @@ def _moved(previous_latitude: Optional[float], previous_longitude: Optional[floa
         abs(invader.latitude - previous_latitude) > _MOVE_EPSILON
         or abs(invader.longitude - previous_longitude) > _MOVE_EPSILON
     )
+
+
+def is_state_refinement(
+    db: Session, invader_id: Optional[int], source: Optional[str],
+    previous_state: Optional[str], new_state: Optional[str],
+) -> bool:
+    """Does this state change only make precise InvaderQuest's coarse "damaged" level?
+
+    InvaderQuest has a single "damaged" status, stored as Degraded. When the site later
+    gives the exact level (Slightly / Badly degraded), that's a precision, not the
+    invader wearing or being repaired: kept out of the News feed and pushes.
+    Call before the change is approved."""
+    if (invader_id is None or source == "invaderquest" or previous_state != IQ_DAMAGED_STATE
+            or new_state not in WEAR_ORDER[1:] or new_state == previous_state):
+        return False
+    last = (
+        db.query(AdminRequest.source)
+        .filter(
+            AdminRequest.invader_id == invader_id,
+            AdminRequest.status == "approved",
+            AdminRequest.proposed_state.isnot(None),
+        )
+        .order_by(AdminRequest.reviewed_at.desc(), AdminRequest.id.desc())
+        .first()
+    )
+    return last is not None and last[0] == "invaderquest"
 
 
 def classify_event(

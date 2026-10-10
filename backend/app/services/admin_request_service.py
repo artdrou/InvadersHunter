@@ -148,6 +148,9 @@ def approve(
             raise TargetInvaderMissing()
         previous_state = invader.state
         admin_req.previous_state = previous_state
+        admin_req.refines_state = news_service.is_state_refinement(
+            db, invader.id, admin_req.source, previous_state, admin_req.proposed_state,
+        )
         previous_lat = invader.latitude
         previous_lon = invader.longitude
         admin_req.previous_located = previous_lat is not None and previous_lon is not None
@@ -180,7 +183,8 @@ def approve(
 
     safe_commit(db)
 
-    if notify:
+    # A mere precision of InvaderQuest's coarse level isn't news worth a push
+    if notify and not admin_req.refines_state:
         event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
         kind, texts = news_service.notification_event(
             admin_req, invader,
