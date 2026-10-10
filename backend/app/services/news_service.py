@@ -54,8 +54,8 @@ NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
         "en": ("State unknown", "{label}'s state is now unknown."),
     },
     "discovered": {
-        "fr": ("Invader decouvert", "{label} a ete decouvert en bon etat."),
-        "en": ("Invader discovered", "{label} has been found in good condition."),
+        "fr": ("Invader decouvert", "{label} a ete decouvert."),
+        "en": ("Invader discovered", "{label} has been discovered."),
     },
     "reactivated": {
         "fr": ("Invader reactive", "{label} a ete reactive."),
@@ -159,6 +159,7 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
             kind=classify_event(
                 admin_req.request_type, admin_req.previous_state, admin_req.proposed_state,
                 moved="location" in changes,
+                located="location" in changes and admin_req.previous_located is False,
             ),
             new_state=admin_req.proposed_state,
             new_points=admin_req.proposed_points,
@@ -190,15 +191,20 @@ def _moved(previous_latitude: Optional[float], previous_longitude: Optional[floa
 
 def classify_event(
     request_type: str, previous_state: Optional[str], new_state: Optional[str], moved: bool,
+    located: bool = False,
 ) -> str:
     """Nature of an approved invader event — one of the NOTIFICATION_COPY keys.
 
     Shared by push notifications and the News feed `kind` (label + colour), so
     both always name an event the same way. `previous_state` is None for rows
     approved before it was recorded: any proposed state then counts as a change.
+    `located`: an invader without location just got its first one ("discovered",
+    unless it's at the same time destroyed / hidden / lost track of).
     """
     if request_type == "create":
         return "create"
+    if located and new_state not in (DESTROYED_STATE, HIDDEN_STATE, UNKNOWN_STATE):
+        return "discovered"
     if new_state is None or new_state == previous_state:
         return "moved" if moved else "updated"
     if new_state == DESTROYED_STATE:
@@ -226,11 +232,17 @@ def _classify_transition(
     previous_longitude: Optional[float],
 ) -> str:
     """Which NOTIFICATION_COPY entry describes this just-approved event."""
+    located = (
+        invader is not None
+        and (previous_latitude is None or previous_longitude is None)
+        and invader.latitude is not None and invader.longitude is not None
+    )
     return classify_event(
         admin_req.request_type,
         previous_state,
         invader.state if invader else None,
         invader is not None and _moved(previous_latitude, previous_longitude, invader),
+        located=located,
     )
 
 

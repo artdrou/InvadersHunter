@@ -150,6 +150,7 @@ def approve(
         admin_req.previous_state = previous_state
         previous_lat = invader.latitude
         previous_lon = invader.longitude
+        admin_req.previous_located = previous_lat is not None and previous_lon is not None
         if admin_req.proposed_name is not None:
             invader.name = admin_req.proposed_name
         if admin_req.proposed_description is not None:

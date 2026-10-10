@@ -23,7 +23,8 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
 
 // Colour-coded event kinds. Labels are the push notification titles
 // (backend news_service.NOTIFICATION_COPY), so a push and its News entry read the same.
-// Lost track of (Unknown) is grey like hidden, found again in good condition green;
+// Lost track of (Unknown) is grey like hidden; discovered (Unknown -> Good, or a
+// first location for an invader that had none) is green;
 // other state changes (wear, restoration…) are mustard; edits that don't touch the
 // state (photo, name, points…) are blue like moves.
 type KindStyle = { color: string; label: string };

@@ -22,6 +22,10 @@ def _invader(**overrides) -> Invader:
     return Invader(**defaults)
 
 
+# Same location as _invader's default: the invader was already located.
+WAS_LOCATED = dict(previous_latitude=48.8566, previous_longitude=2.3522)
+
+
 def _modify_request(**overrides) -> AdminRequest:
     defaults = dict(request_type="modify")
     defaults.update(overrides)
@@ -45,7 +49,7 @@ def test_create_event_without_name_uses_language_specific_fallback():
 def test_degradation_from_good():
     req = _modify_request()
     invader = _invader(state="Degraded")
-    texts = notification_texts(req, invader, previous_state="Good")
+    texts = notification_texts(req, invader, previous_state="Good", **WAS_LOCATED)
     assert texts["fr"] == ("Invader degrade", "PA_10 s'est degrade.")
     assert texts["en"] == ("Invader degraded", "PA_10 has degraded.")
 
@@ -76,7 +80,7 @@ def test_hiding_from_any_state():
 def test_reactivated_from_destroyed_to_good():
     req = _modify_request()
     invader = _invader(state="Good")
-    texts = notification_texts(req, invader, previous_state="Destroyed")
+    texts = notification_texts(req, invader, previous_state="Destroyed", **WAS_LOCATED)
     assert texts["fr"] == ("Invader reactive", "PA_10 a ete reactive.")
     assert texts["en"] == ("Invader reactivated", "PA_10 has been reactivated.")
 
@@ -106,7 +110,7 @@ def test_reappearing_from_hidden_counts_as_reactivated():
     invader is visible/flashable again either way."""
     req = _modify_request()
     invader = _invader(state="Good")
-    texts = notification_texts(req, invader, previous_state="Not visible")
+    texts = notification_texts(req, invader, previous_state="Not visible", **WAS_LOCATED)
     assert texts["fr"][0] == "Invader reactive"
 
 
@@ -159,13 +163,13 @@ def test_unchanged_state_with_move_is_a_move():
 
 
 def test_restoration_push():
-    texts = notification_texts(_modify_request(), _invader(state="Good"), previous_state="Degraded")
+    texts = notification_texts(_modify_request(), _invader(state="Good"), previous_state="Degraded", **WAS_LOCATED)
     assert texts["fr"] == ("Invader restaure", "PA_10 a ete restaure.")
     assert texts["en"] == ("Invader restored", "PA_10 has been restored.")
 
 
 def test_state_change_push():
-    texts = notification_texts(_modify_request(), _invader(state="Good"), previous_state=None)
+    texts = notification_texts(_modify_request(), _invader(state="Good"), previous_state=None, **WAS_LOCATED)
     assert texts["fr"] == ("Etat modifie", "PA_10 a change d'etat.")
     assert texts["en"] == ("State changed", "PA_10's state has changed.")
 
@@ -174,8 +178,21 @@ def test_unknown_and_discovered_pushes():
     lost = notification_texts(_modify_request(), _invader(state="Unknown"), previous_state="Good")
     assert lost["fr"] == ("Etat inconnu", "PA_10 n'a plus d'etat connu.")
     found = notification_texts(_modify_request(), _invader(state="Good"), previous_state="Unknown")
-    assert found["fr"] == ("Invader decouvert", "PA_10 a ete decouvert en bon etat.")
-    assert found["en"] == ("Invader discovered", "PA_10 has been found in good condition.")
+    assert found["fr"] == ("Invader decouvert", "PA_10 a ete decouvert.")
+    assert found["en"] == ("Invader discovered", "PA_10 has been discovered.")
+
+
+def test_first_location_is_a_discovery():
+    invader = _invader(state="Good", latitude=48.86, longitude=2.35)
+    texts = notification_texts(_modify_request(), invader, previous_state="Good",
+                               previous_latitude=None, previous_longitude=None)
+    assert texts["fr"][0] == "Invader decouvert"
+
+
+def test_first_location_with_destruction_stays_destroyed():
+    invader = _invader(state="Destroyed", latitude=48.86, longitude=2.35)
+    texts = notification_texts(_modify_request(), invader, previous_state="Good")
+    assert texts["fr"][0] == "Invader detruit"
 
 
 def _locale_key(kind: str) -> str:
