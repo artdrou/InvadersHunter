@@ -4,7 +4,8 @@ Keeps invader states aligned with invader-spotter.art.
 Two modes, both run by app/jobs/spotter_sync.py on a Railway Cron schedule:
   - sync_from_news(): cheap, twice a day. Reads news.php, then re-fetches each
     invader mentioned in the last few days (the news text alone doesn't always
-    say the new state, e.g. "Mise à jour du statut de PA_1324").
+    say the new state, e.g. "Mise à jour du statut de PA_1324"). Also tags that
+    window's "Réactivation" news on past changes (see _backfill_reactivations).
   - sync_full():      weekly safety net. Scrapes every city listing and fixes any
     drift. Silent by default (--notify to push) so a large backlog doesn't spam users.
 
@@ -245,7 +246,11 @@ def sync_from_news(
 
     # Network phase
     log.info("news: fetching %s", spotter_scraper.NEWS_URL)
-    entries = spotter_scraper.fetch_news(spotter_scraper.new_session())
+    news_html = spotter_scraper.fetch_news_html(spotter_scraper.new_session())
+    entries = spotter_scraper.parse_news_html(news_html)
+    reactivations = [
+        (day, key) for day, key in spotter_scraper.parse_news_reactivations(news_html) if day >= cutoff
+    ]
     news_day: Dict[Tuple[str, int], date] = {}   # newest mention wins (entries are newest first)
     for day, invaders in entries:
         if day < cutoff:
@@ -277,6 +282,7 @@ def sync_from_news(
     # DB phase
     log.info("news: comparing %d scraped invaders with the DB", len(scraped))
     _reconcile(db, report, scraped, notify=True)
+    _backfill_reactivations(db, report, reactivations)
     return report
 
 

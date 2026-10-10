@@ -15,7 +15,7 @@ Run once a day by app/jobs/invaderquest_sync.py. Steps:
   2. DB phase: diff, then one auto-approved `source="invaderquest"` AdminRequest
      per invader (News feed entry credited "InvaderQuest" + delta sync). Pushes
      (freshly added invaders only) go through notification_service.InvaderNotificationBatch:
-     one per invader, or a single "x new, y updates" push past 10.
+     one per invader, or a single "x new invaders, ..." push past 10.
   3. Remember the versions seen (sync_state table) for the next run.
 
 Never deletes: a city file can be skipped for a day by the maintainer's checks.

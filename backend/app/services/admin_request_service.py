@@ -179,14 +179,14 @@ def approve(
 
     if notify:
         event_type = "invader_added" if admin_req.request_type == "create" else "invader_updated"
-        texts = news_service.notification_texts(
+        kind, texts = news_service.notification_event(
             admin_req, invader,
             previous_state=previous_state,
             previous_latitude=previous_lat,
             previous_longitude=previous_lon,
         )
         if notify_batch is not None:
-            notify_batch.add(event_type, texts, admin_req.invader_id)
+            notify_batch.add(event_type, kind, texts, admin_req.invader_id)
         else:
             notification_service.notify_invader_event(db, event_type, texts, admin_req.invader_id)
 

@@ -24,8 +24,8 @@ INVADERQUEST_LABEL = "InvaderQuest"
 ADMIN_LABEL = "Equipe"  # accent-free: the app's pixel font has no accented glyphs
 
 # Canonical state strings (see migrate.py's state-normalization migration).
-GOOD_STATE = "Good"
-DEGRADED_STATES = {"Slightly degraded", "Degraded", "Badly degraded"}
+# Wear order: a move right is a degradation, a move left a restoration.
+WEAR_ORDER = ("Good", "Slightly degraded", "Degraded", "Badly degraded")
 DESTROYED_STATE = "Destroyed"
 HIDDEN_STATE = "Not visible"
 _MOVE_EPSILON = 1e-6  # ignore float round-trip noise, not real position changes
@@ -33,18 +33,20 @@ _MOVE_EPSILON = 1e-6  # ignore float round-trip noise, not real position changes
 # Push notification copy, one entry per supported app language (see
 # frontend/src/services/i18n.ts SUPPORTED_LANGUAGES). "{label}" is filled in
 # with the invader's name, or a language-appropriate fallback when unnamed.
+# Titles double as the News feed labels: frontend locales `news.kind<Kind>`
+# must match them (tests/test_notification_text.py checks it).
 NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
     "create": {
-        "fr": ("Nouvel Invader", "{label} a ete ajoute a la carte."),
-        "en": ("New Invader", "{label} was added to the map."),
+        "fr": ("Nouvel invader", "{label} a ete ajoute a la carte."),
+        "en": ("New invader", "{label} was added to the map."),
     },
     "destroyed": {
         "fr": ("Invader detruit", "{label} a ete detruit."),
         "en": ("Invader destroyed", "{label} has been destroyed."),
     },
     "hidden": {
-        "fr": ("Invader invisible", "{label} n'est plus visible."),
-        "en": ("Invader hidden", "{label} is no longer visible."),
+        "fr": ("Invader non visible", "{label} n'est plus visible."),
+        "en": ("Invader not visible", "{label} is no longer visible."),
     },
     "reactivated": {
         "fr": ("Invader reactive", "{label} a ete reactive."),
@@ -54,12 +56,20 @@ NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
         "fr": ("Invader degrade", "{label} s'est degrade."),
         "en": ("Invader degraded", "{label} has degraded."),
     },
+    "restored": {
+        "fr": ("Invader restaure", "{label} a ete restaure."),
+        "en": ("Invader restored", "{label} has been restored."),
+    },
+    "state_changed": {
+        "fr": ("Etat modifie", "{label} a change d'etat."),
+        "en": ("State changed", "{label}'s state has changed."),
+    },
     "moved": {
         "fr": ("Invader deplace", "{label} a change d'emplacement."),
         "en": ("Invader moved", "{label}'s location has changed."),
     },
     "updated": {
-        "fr": ("Invader mis a jour", "{label} a ete mis a jour."),
+        "fr": ("Invader modifie", "{label} a ete modifie."),
         "en": ("Invader updated", "{label} has been updated."),
     },
 }
@@ -174,21 +184,25 @@ def classify_event(
 ) -> str:
     """Nature of an approved invader event — one of the NOTIFICATION_COPY keys.
 
-    Shared by push notifications and the News feed `kind` (which drives its colours).
+    Shared by push notifications and the News feed `kind` (label + colour), so
+    both always name an event the same way. `previous_state` is None for rows
+    approved before it was recorded: any proposed state then counts as a change.
     """
     if request_type == "create":
         return "create"
-    if new_state == DESTROYED_STATE and previous_state != DESTROYED_STATE:
+    if new_state is None or new_state == previous_state:
+        return "moved" if moved else "updated"
+    if new_state == DESTROYED_STATE:
         return "destroyed"
-    if new_state == HIDDEN_STATE and previous_state != HIDDEN_STATE:
+    if new_state == HIDDEN_STATE:
         return "hidden"
-    if previous_state in (DESTROYED_STATE, HIDDEN_STATE) and new_state == GOOD_STATE:
+    if previous_state in (DESTROYED_STATE, HIDDEN_STATE) and new_state in WEAR_ORDER:
         return "reactivated"
-    if previous_state == GOOD_STATE and new_state in DEGRADED_STATES:
-        return "degraded"
-    if moved:
-        return "moved"
-    return "updated"
+    if previous_state in WEAR_ORDER and new_state in WEAR_ORDER:
+        if WEAR_ORDER.index(new_state) > WEAR_ORDER.index(previous_state):
+            return "degraded"
+        return "restored"
+    return "state_changed"
 
 
 def _classify_transition(
@@ -213,6 +227,29 @@ def _fallback_label(kind: str, lang: str) -> str:
     return "Un invader" if lang == "fr" else "An invader"
 
 
+def notification_event(
+    admin_req: AdminRequest,
+    invader: Optional[Invader],
+    previous_state: Optional[str] = None,
+    previous_latitude: Optional[float] = None,
+    previous_longitude: Optional[float] = None,
+) -> Tuple[str, Dict[str, Tuple[str, str]]]:
+    """(kind, {"fr": (title, body), "en": (title, body)}) for the push notification
+    tied to a just-approved invader event — the same event that will show up in
+    the News feed, one entry per supported app language.
+
+    For "modify" events, `previous_*` are the invader's values *before* this
+    approval applied its changes, so the specific transition can be called out.
+    """
+    name = invader.name if invader else admin_req.proposed_name
+    kind = _classify_transition(admin_req, invader, previous_state, previous_latitude, previous_longitude)
+    texts = {
+        lang: (title, body_template.format(label=name or _fallback_label(kind, lang)))
+        for lang, (title, body_template) in NOTIFICATION_COPY[kind].items()
+    }
+    return kind, texts
+
+
 def notification_texts(
     admin_req: AdminRequest,
     invader: Optional[Invader],
@@ -220,23 +257,8 @@ def notification_texts(
     previous_latitude: Optional[float] = None,
     previous_longitude: Optional[float] = None,
 ) -> Dict[str, Tuple[str, str]]:
-    """{"fr": (title, body), "en": (title, body)} for the push notification tied
-    to a just-approved invader event — the same event that will show up in the
-    News feed, one entry per supported app language.
-
-    For "modify" events, `previous_*` are the invader's values *before* this
-    approval applied its changes, so the specific transition (degraded,
-    destroyed, hidden, reactivated, moved) can be called out — falling back to
-    a generic "updated" message for anything else (name/photo/points-only edits).
-    """
-    name = invader.name if invader else admin_req.proposed_name
-    kind = _classify_transition(admin_req, invader, previous_state, previous_latitude, previous_longitude)
-    copy = NOTIFICATION_COPY[kind]
-
-    return {
-        lang: (title, body_template.format(label=name or _fallback_label(kind, lang)))
-        for lang, (title, body_template) in copy.items()
-    }
+    """Just the texts of notification_event()."""
+    return notification_event(admin_req, invader, previous_state, previous_latitude, previous_longitude)[1]
 
 
 def create_announcement(db: Session, data: AnnouncementCreate) -> Announcement:

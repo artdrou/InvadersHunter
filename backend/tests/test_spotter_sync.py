@@ -59,6 +59,15 @@ def _app_validation(db, invader, state, reviewed_at, source="community"):
     db.commit()
 
 
+def _news_html(entries):
+    """news.php markup for [(day, [(city, number), ...]), ...]."""
+    return "".join(
+        f"<div id='mois{day:%Y%m}'><p class='news'><b>{day.day} :</b> Mise a jour de "
+        + " , ".join(f"{city}_{number}" for city, number in keys) + "</p></div>"
+        for day, keys in entries
+    )
+
+
 @pytest.fixture()
 def fake_site(monkeypatch):
     """Site state keyed by (city, number); news entries configurable per test."""
@@ -71,8 +80,8 @@ def fake_site(monkeypatch):
                  ("PA", 267): _row("PA_267", "OK"),
                  ("PA", 999): _row("PA_999", "OK")},    # on site, not in DB
     }
-    monkeypatch.setattr(spotter_scraper, "fetch_news", lambda session: site["news"])
-    monkeypatch.setattr(spotter_scraper, "fetch_news_html", lambda session: site.get("news_html", ""))
+    monkeypatch.setattr(spotter_scraper, "fetch_news_html",
+                        lambda session: site.get("news_html") or _news_html(site["news"]))
     monkeypatch.setattr(spotter_scraper, "new_search_session", lambda: None)
     monkeypatch.setattr(spotter_scraper, "new_listing_session", lambda: None)
     monkeypatch.setattr(spotter_scraper, "fetch_single_invader",
@@ -302,3 +311,20 @@ def test_backfill_never_overrides_known_previous_state(db, invaders, fake_site):
     db.expire_all()
     assert db.get(AdminRequest, known.id).previous_state == "Degraded"
     assert report.backfilled_reactivations == []
+
+
+def test_news_sync_backfills_reactivations_of_its_window(db, invaders, fake_site):
+    recent = date.today() - timedelta(days=2)
+    old = date.today() - timedelta(days=30)
+    fake_site["news"] = []
+    fake_site["news_html"] = f"""
+    <div id='mois{recent:%Y%m}'><p class='news'><b>{recent.day} :</b> R&eacute;activation de PA_207</p></div>
+    <div id='mois{old:%Y%m}'><p class='news'><b>{old.day} :</b> R&eacute;activation de PA_267</p></div>"""
+    hit = _scraper_good(db, invaders["PA_207"], datetime.utcnow() - timedelta(days=1))
+    outside = _scraper_good(db, invaders["PA_267"], datetime.utcnow() - timedelta(days=20))
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_from_news(db, delay=0)
+    db.expire_all()
+    assert db.get(AdminRequest, hit.id).previous_state == "Destroyed"
+    assert db.get(AdminRequest, outside.id).previous_state is None   # left to the weekly full sync
+    assert report.backfilled_reactivations == [f"PA_207 (news {recent})"]

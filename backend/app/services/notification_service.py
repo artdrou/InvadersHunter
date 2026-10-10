@@ -7,7 +7,8 @@ external side effects): a slow or failing push must never break the caller's
 transaction (e.g. an admin approving a request).
 """
 import logging
-from typing import List, Optional, Tuple
+from collections import Counter
+from typing import Dict, List, Optional, Tuple
 
 import requests
 from sqlalchemy.orm import Session
@@ -235,41 +236,53 @@ def notify_invader_event(
 MAX_INDIVIDUAL_PUSHES = 10
 
 SUMMARY_TITLE = {"fr": "Du nouveau chez les invaders", "en": "Invader news"}
+# kind (news_service.classify_event) -> (singular, plural) per language, in display order.
 SUMMARY_PARTS = {
-    "fr": ("{n} nouvel invader", "{n} nouveaux invaders", "{n} mise a jour", "{n} mises a jour"),
-    "en": ("{n} new invader", "{n} new invaders", "{n} update", "{n} updates"),
+    "create": {"fr": ("{n} nouvel invader", "{n} nouveaux invaders"), "en": ("{n} new invader", "{n} new invaders")},
+    "destroyed": {"fr": ("{n} detruit", "{n} detruits"), "en": ("{n} destroyed", "{n} destroyed")},
+    "hidden": {"fr": ("{n} non visible", "{n} non visibles"), "en": ("{n} not visible", "{n} not visible")},
+    "reactivated": {"fr": ("{n} reactive", "{n} reactives"), "en": ("{n} reactivated", "{n} reactivated")},
+    "degraded": {"fr": ("{n} degrade", "{n} degrades"), "en": ("{n} degraded", "{n} degraded")},
+    "restored": {"fr": ("{n} restaure", "{n} restaures"), "en": ("{n} restored", "{n} restored")},
+    "state_changed": {"fr": ("{n} changement d'etat", "{n} changements d'etat"),
+                      "en": ("{n} state change", "{n} state changes")},
+    "moved": {"fr": ("{n} deplace", "{n} deplaces"), "en": ("{n} moved", "{n} moved")},
+    "updated": {"fr": ("{n} modifie", "{n} modifies"), "en": ("{n} updated", "{n} updated")},
 }
 
 
-def summary_texts(added: int, updated: int) -> dict:
-    """{"fr": (title, body), "en": ...} for "x new, y updates" (zero parts left out)."""
+def summary_texts(counts: Dict[str, int]) -> dict:
+    """{"fr": (title, body), "en": ...} for "x new invaders, y destroyed, ..." from
+    {kind: count} (zero counts left out, no names)."""
     out = {}
-    for lang, (one_new, many_new, one_upd, many_upd) in SUMMARY_PARTS.items():
+    for lang in SUMMARY_TITLE:
         parts = []
-        if added:
-            parts.append((one_new if added == 1 else many_new).format(n=added))
-        if updated:
-            parts.append((one_upd if updated == 1 else many_upd).format(n=updated))
+        for kind, forms in SUMMARY_PARTS.items():
+            n = counts.get(kind, 0)
+            if n:
+                one, many = forms[lang]
+                parts.append((one if n == 1 else many).format(n=n))
         out[lang] = (SUMMARY_TITLE[lang], ", ".join(parts) + ".")
     return out
 
 
 class InvaderNotificationBatch:
     """Collects the invader pushes of one job run (sync jobs), then flush() sends
-    them one by one — or, past MAX_INDIVIDUAL_PUSHES, as one "x new, y updates"
+    them one by one — or, past MAX_INDIVIDUAL_PUSHES, as one "x new, y destroyed, ..."
     push, so a big sync never floods phones."""
 
     def __init__(self) -> None:
-        self.events: List[Tuple[str, dict, Optional[int]]] = []
+        self.events: List[Tuple[str, str, dict, Optional[int]]] = []
 
-    def add(self, event_type: str, texts: dict, invader_id: Optional[int]) -> None:
-        self.events.append((event_type, texts, invader_id))
+    def add(self, event_type: str, kind: str, texts: dict, invader_id: Optional[int]) -> None:
+        """`kind` is news_service.classify_event's, counted in the summary push."""
+        self.events.append((event_type, kind, texts, invader_id))
 
     def flush(self, db: Session) -> int:
         """Send what was collected; returns how many distinct pushes went out. Never raises."""
         events, self.events = self.events, []
         if len(events) <= MAX_INDIVIDUAL_PUSHES:
-            for event_type, texts, invader_id in events:
+            for event_type, _, texts, invader_id in events:
                 notify_invader_event(db, event_type, texts, invader_id)
             return len(events)
         try:
@@ -280,8 +293,8 @@ class InvaderNotificationBatch:
             allowed = [e for e in events if _event_allowed(settings, e[0])]
             if not allowed:
                 return 0
-            added = sum(1 for e in allowed if e[0] == "invader_added")
-            texts = summary_texts(added, len(allowed) - added)
+            counts = Counter(e[1] for e in allowed)
+            texts = summary_texts(counts)
             messages = [
                 {
                     "to": token,
@@ -291,8 +304,7 @@ class InvaderNotificationBatch:
                 }
                 for token, language in _recipient_tokens_with_language(db)
             ]
-            log.info("notifications: summary push (%d new, %d updates) to %d device(s)",
-                     added, len(allowed) - added, len(messages))
+            log.info("notifications: summary push (%s) to %d device(s)", dict(counts), len(messages))
             _send_expo_push(db, messages)
             return 1
         except Exception as e:
