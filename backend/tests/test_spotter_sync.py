@@ -399,8 +399,8 @@ def _invader_with_state_from(db, source, state="Degraded"):
 
 
 @pytest.mark.parametrize("source, kind, pushed", [
-    ("invaderquest", "state_changed", False),   # only a precision of "damaged"
-    ("community", "restored", True),            # a real change seen on the site
+    ("invaderquest", None, False),     # only a precision of "damaged": not in the feed
+    ("community", "restored", True),   # a real change seen on the site
 ])
 def test_precise_level_after_invaderquest_is_not_a_restoration(db, client, fake_site, source, kind, pushed):
     inv = _invader_with_state_from(db, source)
@@ -411,4 +411,5 @@ def test_precise_level_after_invaderquest_is_not_a_restoration(db, client, fake_
     assert [(c.old_state, c.new_state) for c in report.changes] == [("Degraded", "Slightly degraded")]
     assert db.get(Invader, inv.id).state == "Slightly degraded"
     assert notify.called is pushed
-    assert client.get("/news/").json()[0]["kind"] == kind
+    feed = [item["kind"] for item in client.get("/news/").json() if item["invader_name"] == "MUN_15"]
+    assert feed[0] == kind if kind else feed == ["create"]   # just InvaderQuest's creation
