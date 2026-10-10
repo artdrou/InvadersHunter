@@ -537,7 +537,7 @@
     "step3Title": "Enable USB debugging",
     "step3Body": "Settings → About → tap 7 times on \"Build number\" to enable developer options, then enable \"USB debugging\". Accept the prompt on your phone.",
     "step4Title": "Download and launch the app",
-    "step4Body": "On your Windows PC, double-click the downloaded .exe. Windows SmartScreen will show a warning (unsigned app): click \"More info\" → \"Run anyway\". Enter your InvadersHunter credentials when prompted.",
+    "step4Body": "On your Windows PC, double-click the downloaded .exe. Windows SmartScreen will show a warning (unsigned app): click \"More info\" → \"Run anyway\". Enter your InvadersHunter credentials when prompted. Then choose [1] to only add the missing flashes, or [2] for a full sync that also removes the flashes the phone doesn't have (preview of the account and totals, then confirmation).",
     "step5Title": "IMPORTANT: sync the app",
     "step5Body": "Once the import is done, return to the Profile screen and tap \"Sync now\" to pull the imported flashes into the app.",
     "downloadBtn": "Download the app (Windows)",

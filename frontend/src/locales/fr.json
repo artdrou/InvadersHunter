@@ -537,7 +537,7 @@
     "step3Title": "Activez le débogage USB",
     "step3Body": "Réglages → À propos → tapez 7 fois sur \"Numéro de build\" pour activer les options développeur, puis activez \"Débogage USB\". Acceptez la demande sur le téléphone.",
     "step4Title": "Téléchargez et lancez l'application",
-    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants InvadersHunter quand demandé.",
+    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants InvadersHunter quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).",
     "step5Title": "IMPORTANT : synchronisez l'app",
     "step5Body": "Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur \"Synchroniser\" pour récupérer les flashes importés dans l'application.",
     "downloadBtn": "Télécharger l'application (Windows)",

@@ -3,10 +3,10 @@ import {
   getMeta, setMeta,
   upsertInvaders, deleteInvadersByIds, replaceCaptures, upsertCaptures, replaceRequests, upsertRequests,
   getPendingSyncs, deletePendingSync, deleteCapture, insertCapture, insertPendingSync,
-  getAllCaptures, deleteCapturesForUser, getLocalInvaderIds,
+  getAllCaptures, deleteCapturesForUser, getLocalInvaderIds, getSyncedCaptureIds, deleteCapturesByIds,
 } from './db';
 import {
-  fetchInvaders, fetchDeletedInvaderIds, fetchInvaderIds, fetchProgress, fetchUserRequests,
+  fetchInvaders, fetchDeletedInvaderIds, fetchInvaderIds, fetchProgress, fetchProgressIds, fetchUserRequests,
   flashInvader as apiFlash, unflashInvader as apiUnflash,
   submitModifyRequest as apiSubmitModify, submitCreateRequest as apiSubmitCreate,
   type ModifyRequestPayload, type CreateRequestPayload,
@@ -149,6 +149,21 @@ async function reconcileInvadersOncePerLaunch(db: SQLiteDatabase): Promise<void>
   }
 }
 
+/**
+ * Delta sync only reports created / updated captures: drop the local ones the server
+ * no longer has (unflashed on another device, removed by a full flash import).
+ * Best-effort — offline or an older backend just skips it until the next sync.
+ */
+async function reconcileCaptures(db: SQLiteDatabase, userId: number): Promise<void> {
+  try {
+    const [serverIds, localIds] = await Promise.all([fetchProgressIds(userId), getSyncedCaptureIds(db, userId)]);
+    const server = new Set(serverIds);
+    await deleteCapturesByIds(db, localIds.filter((id) => !server.has(id)));
+  } catch {
+    // retry on the next sync
+  }
+}
+
 // ── Guest mode ────────────────────────────────────────────────────────────────
 
 /**
@@ -240,6 +255,7 @@ export async function syncAll(db: SQLiteDatabase, userId: number): Promise<void>
 
   if (lastProgressSync) {
     await upsertCaptures(db, captures);
+    await reconcileCaptures(db, userId);
   } else {
     await replaceCaptures(db, userId, captures);
   }

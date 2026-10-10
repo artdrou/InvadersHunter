@@ -142,12 +142,64 @@ try {
 $token = $login.access_token
 if (-not $token) { Write-Err "login response missing access_token."; Pause-And-Exit 1 }
 
-Write-Step "Sending $($names.Count) names to $apiUrl/flash-import/ ..."
-try {
-  $res = Invoke-RestMethod -Method Post -Uri "$apiUrl/flash-import/" `
+function Send-Import([bool]$mirror, [bool]$confirm) {
+  return Invoke-RestMethod -Method Post -Uri "$apiUrl/flash-import/" `
     -Headers @{ Authorization = "Bearer $token" } `
     -ContentType 'application/json' `
-    -Body (@{ names = $names } | ConvertTo-Json)
+    -Body (@{ names = $names; mirror = $mirror; confirm = $confirm } | ConvertTo-Json)
+}
+
+function Show-List($label, $items) {
+  if (-not $items -or $items.Count -eq 0) { return }
+  $preview = ($items | Select-Object -First 20) -join ', '
+  $more = if ($items.Count -gt 20) { " (+$($items.Count - 20) more)" } else { '' }
+  Write-Host "  $label : $preview$more"
+}
+
+Write-Host ""
+Write-Host "What do you want to do?"
+Write-Host "  [1] Add the missing flashes only (safe, default)"
+Write-Host "  [2] Full sync: add the missing flashes AND remove the ones the phone doesn't have"
+$mode = Read-Host "Choice [1/2]"
+$mirror = ($mode.Trim() -eq '2')
+
+if ($mirror) {
+  Write-Step "Comparing the phone with your InvadersHunter account (nothing is changed yet)..."
+  try { $preview = Send-Import $true $false } catch { Write-Err "comparison failed: $($_.Exception.Message)"; Pause-And-Exit 1 }
+
+  Write-Host ""
+  Write-Host ("  Account                 : {0}" -f $preview.username)
+  Write-Host ("  Flashes in the account  : {0}" -f $preview.app_total)
+  Write-Host ("  Invaders on the phone   : {0}" -f $preview.phone_total)
+  Write-Host ("  To add                  : {0}" -f $preview.imported)
+  Write-Host ("  To REMOVE               : {0}" -f $preview.to_remove.Count)
+  Write-Host ("  After the sync          : {0} flashes" -f ($preview.app_total + $preview.imported - $preview.to_remove.Count))
+  Show-List "Removed would be" $preview.to_remove
+  Show-List "Unknown names   " $preview.unknown
+
+  if ($preview.refused) {
+    Write-Host ""
+    Write-Host "Full sync REFUSED: $($preview.refused)." -ForegroundColor Red
+    Write-Host "Nothing was removed. Check that FlashInvaders shows all your flashes on the phone," -ForegroundColor Yellow
+    Write-Host "or run again with [1] to only add the missing ones." -ForegroundColor Yellow
+    Pause-And-Exit 1
+  }
+
+  if ($preview.to_remove.Count -gt 0) {
+    Write-Host ""
+    Write-Host "WARNING: $($preview.to_remove.Count) flash(es) will be permanently removed from the account '$($preview.username)'." -ForegroundColor Red
+    Write-Host "Check that the totals above are right: the phone must list ALL your flashes." -ForegroundColor Red
+    $answer = Read-Host "Type YES to confirm (anything else cancels)"
+    if ($answer.Trim() -cne 'YES') {
+      Write-Host "Cancelled: nothing was changed." -ForegroundColor Yellow
+      Pause-And-Exit 0
+    }
+  }
+}
+
+Write-Step "Sending $($names.Count) names to $apiUrl/flash-import/ ..."
+try {
+  $res = Send-Import $mirror $mirror
 } catch {
   Write-Err "import failed: $($_.Exception.Message)"
   Pause-And-Exit 1
@@ -155,17 +207,16 @@ try {
 
 Write-Host ""
 Write-Host "Done!" -ForegroundColor Green
+Write-Host ("  Account        : {0}" -f $res.username)
 Write-Host ("  Imported       : {0}" -f $res.imported)
 Write-Host ("  Already flashed: {0}" -f $res.already_flashed)
+if ($mirror) { Write-Host ("  Removed        : {0}" -f $res.removed) }
+Write-Host ("  Total flashes  : {0}" -f ($res.app_total + $res.imported - $res.removed))
 Write-Host ("  Unknown        : {0}" -f $res.unknown.Count)
-if ($res.unknown.Count -gt 0) {
-  $preview = ($res.unknown | Select-Object -First 10) -join ', '
-  $more = if ($res.unknown.Count -gt 10) { " (+$($res.unknown.Count - 10) more)" } else { '' }
-  Write-Host "  Unknown names  : $preview$more"
-}
+Show-List "Unknown names " $res.unknown
 Write-Host ""
-Write-Host "Flashes imported. Re-run this whenever you want to sync new flashes." -ForegroundColor Green
+Write-Host "Flashes synced. Re-run this whenever you want to sync new flashes." -ForegroundColor Green
 Write-Host ""
 Write-Host "IMPORTANT: open the InvadersHunter app on your phone and tap 'Sync now'" -ForegroundColor Yellow
-Write-Host "           on the Profile page to pull your new flashes into the app." -ForegroundColor Yellow
+Write-Host "           on the Profile page to pull the changes into the app." -ForegroundColor Yellow
 Pause-And-Exit 0
