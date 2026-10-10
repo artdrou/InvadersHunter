@@ -198,6 +198,24 @@ export async function insertCapture(db: SQLiteDatabase, capture: Capture): Promi
   );
 }
 
+/** Ids of the user's captures already on the server (pending offline ones excluded). */
+export async function getSyncedCaptureIds(db: SQLiteDatabase, userId: number): Promise<number[]> {
+  const rows = await db.getAllAsync<{ id: number }>(
+    'SELECT id FROM captures WHERE user_id = ? AND is_pending = 0',
+    [userId],
+  );
+  return rows.map((r) => r.id);
+}
+
+export async function deleteCapturesByIds(db: SQLiteDatabase, ids: number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const id of ids) {
+      await db.runAsync('DELETE FROM captures WHERE id = ?', [id]);
+    }
+  });
+}
+
 export async function deleteCapture(db: SQLiteDatabase, progressId: number): Promise<void> {
   await db.runAsync('DELETE FROM captures WHERE id = ?', [progressId]);
 }
