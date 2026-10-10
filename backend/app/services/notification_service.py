@@ -241,6 +241,8 @@ SUMMARY_PARTS = {
     "create": {"fr": ("{n} nouvel invader", "{n} nouveaux invaders"), "en": ("{n} new invader", "{n} new invaders")},
     "destroyed": {"fr": ("{n} detruit", "{n} detruits"), "en": ("{n} destroyed", "{n} destroyed")},
     "hidden": {"fr": ("{n} non visible", "{n} non visibles"), "en": ("{n} not visible", "{n} not visible")},
+    "unknown": {"fr": ("{n} etat inconnu", "{n} etats inconnus"), "en": ("{n} state unknown", "{n} states unknown")},
+    "discovered": {"fr": ("{n} decouvert", "{n} decouverts"), "en": ("{n} discovered", "{n} discovered")},
     "reactivated": {"fr": ("{n} reactive", "{n} reactives"), "en": ("{n} reactivated", "{n} reactivated")},
     "degraded": {"fr": ("{n} degrade", "{n} degrades"), "en": ("{n} degraded", "{n} degraded")},
     "restored": {"fr": ("{n} restaure", "{n} restaures"), "en": ("{n} restored", "{n} restored")},

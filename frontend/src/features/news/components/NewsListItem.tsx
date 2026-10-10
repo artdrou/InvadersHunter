@@ -23,8 +23,9 @@ const FALLBACK_ICON: Record<NewsItem['type'], React.ComponentProps<typeof Materi
 
 // Colour-coded event kinds. Labels are the push notification titles
 // (backend news_service.NOTIFICATION_COPY), so a push and its News entry read the same.
-// Other state changes (wear, restoration, unknown) are mustard; edits that don't
-// touch the state (photo, name, points…) are blue like moves.
+// Lost track of (Unknown) is grey like hidden, found again in good condition green;
+// other state changes (wear, restoration…) are mustard; edits that don't touch the
+// state (photo, name, points…) are blue like moves.
 type KindStyle = { color: string; label: string };
 const STATE_CHANGE_COLOR = '#D4A017';
 const MOVE_BLUE = '#2F80FF';
@@ -32,6 +33,8 @@ const KIND_STYLE: Record<NewsKind, KindStyle> = {
   create: { color: '#2ECC40', label: 'news.kindCreate' },
   destroyed: { color: '#FF3B30', label: 'news.kindDestroyed' },
   hidden: { color: '#9A9A9A', label: 'news.kindHidden' },
+  unknown: { color: '#9A9A9A', label: 'news.kindUnknown' },
+  discovered: { color: '#2ECC40', label: 'news.kindDiscovered' },
   reactivated: { color: '#FF2BD6', label: 'news.kindReactivated' },
   degraded: { color: STATE_CHANGE_COLOR, label: 'news.kindDegraded' },
   restored: { color: STATE_CHANGE_COLOR, label: 'news.kindRestored' },

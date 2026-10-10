@@ -104,7 +104,8 @@ def test_approve_records_previous_state(db, client, users, invader):
     ("modify", None, None, True, "moved"),                # blue: location-only change
     ("modify", "Degraded", "Good", False, "restored"),    # mustard
     ("modify", None, "Good", False, "state_changed"),     # unknown previous: can't call it a reactivation
-    ("modify", "Good", "Unknown", False, "state_changed"),
+    ("modify", "Good", "Unknown", False, "unknown"),        # grey
+    ("modify", "Unknown", "Good", False, "discovered"),     # green
     ("modify", "Good", None, False, "updated"),           # photo/name/points edit
 ])
 def test_news_kind(db, client, invader, request_type, previous, new, located, kind):

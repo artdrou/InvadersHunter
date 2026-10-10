@@ -87,6 +87,8 @@
     "kindCreate": "Nouvel invader",
     "kindDestroyed": "Invader detruit",
     "kindHidden": "Invader non visible",
+    "kindUnknown": "Etat inconnu",
+    "kindDiscovered": "Invader decouvert",
     "kindReactivated": "Invader reactive",
     "kindDegraded": "Invader degrade",
     "kindRestored": "Invader restaure",

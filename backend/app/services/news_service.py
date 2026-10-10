@@ -28,6 +28,7 @@ ADMIN_LABEL = "Equipe"  # accent-free: the app's pixel font has no accented glyp
 WEAR_ORDER = ("Good", "Slightly degraded", "Degraded", "Badly degraded")
 DESTROYED_STATE = "Destroyed"
 HIDDEN_STATE = "Not visible"
+UNKNOWN_STATE = "Unknown"
 _MOVE_EPSILON = 1e-6  # ignore float round-trip noise, not real position changes
 
 # Push notification copy, one entry per supported app language (see
@@ -47,6 +48,14 @@ NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
     "hidden": {
         "fr": ("Invader non visible", "{label} n'est plus visible."),
         "en": ("Invader not visible", "{label} is no longer visible."),
+    },
+    "unknown": {
+        "fr": ("Etat inconnu", "{label} n'a plus d'etat connu."),
+        "en": ("State unknown", "{label}'s state is now unknown."),
+    },
+    "discovered": {
+        "fr": ("Invader decouvert", "{label} a ete decouvert en bon etat."),
+        "en": ("Invader discovered", "{label} has been found in good condition."),
     },
     "reactivated": {
         "fr": ("Invader reactive", "{label} a ete reactive."),
@@ -196,8 +205,12 @@ def classify_event(
         return "destroyed"
     if new_state == HIDDEN_STATE:
         return "hidden"
+    if new_state == UNKNOWN_STATE:
+        return "unknown"
     if previous_state in (DESTROYED_STATE, HIDDEN_STATE) and new_state in WEAR_ORDER:
         return "reactivated"
+    if previous_state == UNKNOWN_STATE and new_state in WEAR_ORDER:
+        return "discovered" if new_state == WEAR_ORDER[0] else "degraded"
     if previous_state in WEAR_ORDER and new_state in WEAR_ORDER:
         if WEAR_ORDER.index(new_state) > WEAR_ORDER.index(previous_state):
             return "degraded"

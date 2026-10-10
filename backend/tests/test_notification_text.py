@@ -139,9 +139,13 @@ def test_tiny_float_drift_is_not_a_move():
     ("Not visible", "Good", "reactivated"),
     ("Destroyed", "Not visible", "hidden"),
     ("Not visible", "Destroyed", "destroyed"),
-    ("Good", "Unknown", "state_changed"),
-    ("Unknown", "Good", "state_changed"),
-    ("Destroyed", "Unknown", "state_changed"),
+    ("Good", "Unknown", "unknown"),            # grey
+    ("Destroyed", "Unknown", "unknown"),
+    ("Unknown", "Good", "discovered"),         # green
+    ("Unknown", "Destroyed", "destroyed"),     # red
+    ("Unknown", "Badly degraded", "degraded"),  # mustard
+    ("Unknown", "Not visible", "hidden"),
+    ("active", "Good", "state_changed"),       # legacy non-canonical state
     (None, "Good", "state_changed"),     # News rows from before previous_state was recorded
     ("Good", "Good", "updated"),         # state re-proposed unchanged
     ("Good", None, "updated"),
@@ -161,9 +165,17 @@ def test_restoration_push():
 
 
 def test_state_change_push():
-    texts = notification_texts(_modify_request(), _invader(state="Unknown"), previous_state="Good")
+    texts = notification_texts(_modify_request(), _invader(state="Good"), previous_state=None)
     assert texts["fr"] == ("Etat modifie", "PA_10 a change d'etat.")
     assert texts["en"] == ("State changed", "PA_10's state has changed.")
+
+
+def test_unknown_and_discovered_pushes():
+    lost = notification_texts(_modify_request(), _invader(state="Unknown"), previous_state="Good")
+    assert lost["fr"] == ("Etat inconnu", "PA_10 n'a plus d'etat connu.")
+    found = notification_texts(_modify_request(), _invader(state="Good"), previous_state="Unknown")
+    assert found["fr"] == ("Invader decouvert", "PA_10 a ete decouvert en bon etat.")
+    assert found["en"] == ("Invader discovered", "PA_10 has been found in good condition.")
 
 
 def _locale_key(kind: str) -> str:

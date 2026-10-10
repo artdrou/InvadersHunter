@@ -5,6 +5,8 @@ export type NewsKind =
   | 'create'
   | 'destroyed'
   | 'hidden'
+  | 'unknown'
+  | 'discovered'
   | 'reactivated'
   | 'degraded'
   | 'restored'
