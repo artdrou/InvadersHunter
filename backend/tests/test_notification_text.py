@@ -139,7 +139,8 @@ def test_tiny_float_drift_is_not_a_move():
     ("Degraded", "Badly degraded", "degraded"),
     ("Badly degraded", "Good", "restored"),
     ("Degraded", "Slightly degraded", "restored"),
-    ("Destroyed", "Degraded", "reactivated"),
+    ("Destroyed", "Degraded", "degraded"),                # still there after all, worn
+    ("Not visible", "Badly degraded", "degraded"),
     ("Not visible", "Good", "reactivated"),
     ("Destroyed", "Not visible", "hidden"),
     ("Not visible", "Destroyed", "destroyed"),
