@@ -29,6 +29,7 @@ WEAR_ORDER = ("Good", "Slightly degraded", "Degraded", "Badly degraded")
 DESTROYED_STATE = "Destroyed"
 HIDDEN_STATE = "Not visible"
 UNKNOWN_STATE = "Unknown"
+IQ_DAMAGED_STATE = "Degraded"   # InvaderQuest's single "damaged" level (invaderquest_client.STATUS_MAP)
 _MOVE_EPSILON = 1e-6  # ignore float round-trip noise, not real position changes
 
 # Push notification copy, one entry per supported app language (see
@@ -160,6 +161,7 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
                 admin_req.request_type, admin_req.previous_state, admin_req.proposed_state,
                 moved="location" in changes,
                 located="location" in changes and admin_req.previous_located is False,
+                refined=admin_req.refines_state is True,
             ),
             new_state=admin_req.proposed_state,
             new_points=admin_req.proposed_points,
@@ -189,9 +191,34 @@ def _moved(previous_latitude: Optional[float], previous_longitude: Optional[floa
     )
 
 
+def is_state_refinement(
+    db: Session, invader_id: Optional[int], source: Optional[str],
+    previous_state: Optional[str], new_state: Optional[str],
+) -> bool:
+    """Does this state change only make precise InvaderQuest's coarse "damaged" level?
+
+    InvaderQuest has a single "damaged" status, stored as Degraded. When the site later
+    gives the exact level (Slightly / Badly degraded), that's a precision, not the
+    invader wearing or being repaired. Call before the change is approved."""
+    if (invader_id is None or source == "invaderquest" or previous_state != IQ_DAMAGED_STATE
+            or new_state not in WEAR_ORDER[1:] or new_state == previous_state):
+        return False
+    last = (
+        db.query(AdminRequest.source)
+        .filter(
+            AdminRequest.invader_id == invader_id,
+            AdminRequest.status == "approved",
+            AdminRequest.proposed_state.isnot(None),
+        )
+        .order_by(AdminRequest.reviewed_at.desc(), AdminRequest.id.desc())
+        .first()
+    )
+    return last is not None and last[0] == "invaderquest"
+
+
 def classify_event(
     request_type: str, previous_state: Optional[str], new_state: Optional[str], moved: bool,
-    located: bool = False,
+    located: bool = False, refined: bool = False,
 ) -> str:
     """Nature of an approved invader event — one of the NOTIFICATION_COPY keys.
 
@@ -200,6 +227,7 @@ def classify_event(
     approved before it was recorded: any proposed state then counts as a change.
     `located`: an invader without location just got its first one ("discovered",
     unless it's at the same time destroyed / hidden / lost track of).
+    `refined`: see is_state_refinement — neither a degradation nor a restoration.
     """
     if request_type == "create":
         return "create"
@@ -213,6 +241,8 @@ def classify_event(
         return "hidden"
     if new_state == UNKNOWN_STATE:
         return "unknown"
+    if refined:
+        return "state_changed"
     good = WEAR_ORDER[0]
     # Only a fresh mosaic (back to Good) is a reactivation: "Destroyed -> Badly degraded"
     # means it was still there, worn. Along the wear scale, worse = degraded, better = restored.
@@ -246,6 +276,7 @@ def _classify_transition(
         invader.state if invader else None,
         invader is not None and _moved(previous_latitude, previous_longitude, invader),
         located=located,
+        refined=admin_req.refines_state is True,
     )
 
 

@@ -382,3 +382,33 @@ def test_news_sync_backfills_reactivations_of_its_window(db, invaders, fake_site
     assert db.get(AdminRequest, hit.id).previous_state == "Destroyed"
     assert db.get(AdminRequest, outside.id).previous_state is None   # left to the weekly full sync
     assert report.backfilled_reactivations == [f"PA_207 (news {recent})"]
+
+
+# ── InvaderQuest's coarse "damaged" level made precise ───────────────────────
+
+def _invader_with_state_from(db, source, state="Degraded"):
+    """MUN_15-like: state last set by `source` (InvaderQuest's damaged -> Degraded)."""
+    inv = Invader(name="MUN_15", city="MUN", number=15, state=state)
+    db.add(inv)
+    db.flush()
+    db.add(AdminRequest(invader_id=inv.id, request_type="create" if source == "invaderquest" else "modify",
+                        status="approved", source=source, proposed_state=state,
+                        reviewed_at=datetime(2026, 10, 1), request_count=0, confidence=100))
+    db.commit()
+    return inv
+
+
+@pytest.mark.parametrize("source, kind, pushed", [
+    ("invaderquest", "state_changed", False),   # only a precision of "damaged"
+    ("community", "restored", True),            # a real change seen on the site
+])
+def test_precise_level_after_invaderquest_is_not_a_restoration(db, client, fake_site, source, kind, pushed):
+    inv = _invader_with_state_from(db, source)
+    fake_site["news"] = [(date(2026, 10, 10), [("MUN", 15)])]
+    fake_site["rows"] = {("MUN", 15): _row("MUN_15", "Un peu dégradé", "octobre 2026 (report)")}
+    with patch("app.services.notification_service.notify_invader_event") as notify:
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 10, 10))
+    assert [(c.old_state, c.new_state) for c in report.changes] == [("Degraded", "Slightly degraded")]
+    assert db.get(Invader, inv.id).state == "Slightly degraded"
+    assert notify.called is pushed
+    assert client.get("/news/").json()[0]["kind"] == kind
