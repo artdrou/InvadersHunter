@@ -5,6 +5,7 @@ Key invariants:
 - news.php parsing yields (date, [(city, number)]) filtered by the day window
 - a state mismatch becomes an approved source="scraper" AdminRequest and updates the invader
 - news mode notifies, full mode is silent
+- news mode creates the invaders it mentions that the DB lacks (pushed only for "Ajout de")
 - matching states / dry runs write nothing
 - a state validated in the app is kept unless the site info is more recent
 """
@@ -135,34 +136,37 @@ def test_news_sync_applies_changes_as_approved_scraper_requests(db, invaders, fa
         ("PA_207", "Destroyed", "Good"),
     }
     assert report.checked == 3                 # PA_267 already aligned
-    assert report.missing_in_db == ["PA_999"]  # mentioned in news, unknown to us
+    assert report.created == ["PA_999"]        # mentioned in news, unknown to us
+    assert report.missing_in_db == []
     # PA_1 is older than the 7-day window: never fetched
-    assert "PA_1" not in report.missing_in_db
+    assert "PA_1" not in report.created
 
     db.expire_all()
     assert db.get(Invader, invaders["PA_516"].id).state == "Destroyed"
     assert db.get(Invader, invaders["PA_207"].id).state == "Good"
 
     reqs = db.query(AdminRequest).all()
-    assert len(reqs) == 2
+    assert len(reqs) == 3
     assert all(r.source == "scraper" and r.status == "approved" and r.reviewed_at for r in reqs)
     assert all(r.reviewed_by is None for r in reqs)
-    assert notify.call_count == 2
+    assert notify.call_count == 2              # PA_999 isn't an "Ajout de" news: silent catch-up
 
 
 def test_news_sync_is_idempotent(db, invaders, fake_site):
     with patch("app.services.notification_service.notify_invader_event"):
         spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 9, 27))
         second = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 9, 27))
-    assert second.changes == []
-    assert db.query(AdminRequest).count() == 2
+    assert second.changes == [] and second.created == []
+    assert db.query(AdminRequest).count() == 3
 
 
 def test_dry_run_writes_nothing(db, invaders, fake_site):
     with patch("app.services.notification_service.notify_invader_event") as notify:
         report = spotter_sync_service.sync_from_news(db, dry_run=True, delay=0, today=date(2026, 9, 27))
     assert len(report.changes) == 2
+    assert report.created == ["PA_999"]
     assert db.query(AdminRequest).count() == 0
+    assert db.query(Invader).count() == 3
     assert db.get(Invader, invaders["PA_516"].id).state == "Good"
     notify.assert_not_called()
 
@@ -173,6 +177,56 @@ def test_unmapped_site_state_is_skipped(db, invaders, fake_site):
         report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 9, 27))
     assert report.unparsed_state == ["PA_516: 'Quelque chose de nouveau'"]
     assert db.get(Invader, invaders["PA_516"].id).state == "Good"
+
+
+def test_news_sync_creates_missing_invader_without_location(db, invaders, fake_site):
+    """e.g. BGK_46: an old invader newly listed, in no catalogue yet."""
+    fake_site["news"] = [(date(2026, 10, 9), [("BGK", 46)])]
+    fake_site["rows"][("BGK", 46)] = {
+        "name": "BGK_46", "state": "Détruit", "points": 20, "date_pose": "20/07/2005",
+        "state_date": "octobre 2026 (report)", "picture_url": "https://x/BGK_46-grosplan.png",
+    }
+    with patch("app.services.notification_service.notify_invader_event") as notify:
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 10, 10))
+    assert report.created == ["BGK_46"]
+    inv = db.query(Invader).filter(Invader.name == "BGK_46").one()
+    assert (inv.city, inv.number, inv.state, inv.points) == ("BGK", 46, "Destroyed", 20)
+    assert inv.date_pose == date(2005, 7, 20)
+    assert inv.image_url == "https://x/BGK_46-grosplan.png"
+    assert inv.latitude is None and inv.longitude is None
+    notify.assert_not_called()
+
+
+def test_news_sync_pushes_creations_announced_as_added(db, invaders, fake_site):
+    day = date(2026, 10, 9)
+    fake_site["news"] = []
+    fake_site["news_html"] = (f"<div id='mois{day:%Y%m}'><p class='news'><b>{day.day} :</b> "
+                              "Ajout de PA_999 . Destruction de PA_516</p></div>")
+    with patch("app.services.notification_service.notify_invader_event") as notify:
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 10, 10))
+    assert report.created == ["PA_999"]
+    assert sorted(call.args[1] for call in notify.call_args_list) == ["invader_added", "invader_updated"]
+
+
+def test_news_sync_matches_invaders_by_name_when_city_number_are_empty(db, invaders, fake_site):
+    legacy = Invader(name="PA_999", state="Good")    # created in the app, no city/number columns
+    db.add(legacy)
+    db.commit()
+    fake_site["rows"][("PA", 999)] = _row("PA_999", "Détruit")
+    with patch("app.services.notification_service.notify_invader_event"):
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 9, 27))
+    assert report.created == []
+    assert ("PA_999", "Good", "Destroyed") in {(c.name, c.old_state, c.new_state) for c in report.changes}
+    assert db.query(Invader).filter(Invader.name == "PA_999").count() == 1
+
+
+def test_parse_news_additions_and_date_pose():
+    html = """<div id='mois202610'><p class='news'><b>9 :</b> Ajout de LAP_20 et LAP_21 .
+    Mise &agrave; jour de BGK_46</p></div>"""
+    assert [k for _, k in spotter_scraper.parse_news_additions(html)] == [("LAP", 20), ("LAP", 21)]
+    assert spotter_scraper.parse_date_pose("20/07/2005") == date(2005, 7, 20)
+    assert spotter_scraper.parse_date_pose(None) is None
+    assert spotter_scraper.parse_date_pose("2005") is None
 
 
 # ── full mode ─────────────────────────────────────────────────────────────────
