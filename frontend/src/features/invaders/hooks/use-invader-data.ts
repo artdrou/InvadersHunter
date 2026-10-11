@@ -13,6 +13,7 @@ import { logger } from '@/services/logger';
 import { useNetworkConnectivity } from '@/hooks/use-network-connectivity';
 import { flashInvader as apiFlash, unflashInvader as apiUnflash, type ModifyRequestPayload, type CreateRequestPayload } from '../services/invaders.api';
 import { useInvaderStore } from '../store';
+import { createSingleFlight } from '@/services/single-flight';
 import type { Capture } from '../types';
 
 export type SyncError = 'network' | 'other' | null;
@@ -25,6 +26,17 @@ let lastSyncAt = 0;
 const SYNC_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between foreground syncs
 const RETRY_BASE_MS    = 30_000;
 const RETRY_MAX_MS     = 5 * 60_000;    // cap backoff at 5 minutes
+
+// App-wide, shared by every screen using this hook (map, list, community page…):
+// - one sync at a time: overlapping syncs made a screen read the captures table
+//   while another rewrote it (one SQLite connection sees the open transaction):
+//   empty progress, all invaders red, then fixed by the next read
+// - whose data the shared store holds: a screen mounting later reuses it instead
+//   of re-reading SQLite (and of starting yet another sync)
+const sync = createSingleFlight();
+let loadedForUser: number | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let retryDelay = RETRY_BASE_MS;
 
 export function useInvaderData() {
   const db = useSQLiteContext();
@@ -44,14 +56,10 @@ export function useInvaderData() {
   const userId = user?.id ?? (isGuest ? GUEST_USER_ID : null);
   const setOnline = useConnectivityStore((s) => s.setOnline);
   const syncTrigger = useInvaderStore((s) => s.syncTrigger);
-  const syncingRef     = useRef(false);
-  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryDelayRef  = useRef<number>(RETRY_BASE_MS);
-
   const clearRetry = useCallback(() => {
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
     }
   }, []);
 
@@ -62,12 +70,11 @@ export function useInvaderData() {
     ]);
     setInvaders(inv);
     setProgress(prog);
+    loadedForUser = userId;
   }, [db, setInvaders, setProgress]);
 
-  const runSync = useCallback(async (userId: number) => {
-    if (syncingRef.current) return;
+  const runSync = useCallback((userId: number): Promise<void> => sync.run(async () => {
     clearRetry();
-    syncingRef.current = true;
     setIsSyncing(true);
     try {
       // Guests only pull the public invader list; their captures never sync
@@ -78,7 +85,7 @@ export function useInvaderData() {
       }
       await loadFromDb(userId);
       lastSyncAt = Date.now();
-      retryDelayRef.current = RETRY_BASE_MS;
+      retryDelay = RETRY_BASE_MS;
       setSyncError(null);
       setOnline(true);
     } catch (err) {
@@ -87,20 +94,20 @@ export function useInvaderData() {
       if (isNetworkError(err)) {
         setSyncError('network');
         setOnline(false);
-        const delay = retryDelayRef.current;
-        retryDelayRef.current = Math.min(delay * 2, RETRY_MAX_MS);
-        retryTimerRef.current = setTimeout(() => {
-          retryTimerRef.current = null;
+        const delay = retryDelay;
+        retryDelay = Math.min(delay * 2, RETRY_MAX_MS);
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
           runSync(userId);
         }, delay);
       } else {
         setSyncError('other');
       }
     } finally {
-      syncingRef.current = false;
       setIsSyncing(false);
     }
-  }, [db, loadFromDb, clearRetry, setOnline, setIsSyncing, setSyncError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [db, loadFromDb, clearRetry, setOnline, setIsSyncing, setSyncError]);
 
   // Trigger a sync whenever NetInfo detects an offline → online transition
   useNetworkConnectivity(useCallback(() => {
@@ -110,13 +117,15 @@ export function useInvaderData() {
     }
   }, [userId, runSync]));
 
-  // On mount: load from SQLite instantly, then sync in background
+  // On mount: the first screen (or another account) shows the local data at once,
+  // then syncs; a screen mounting later reuses the shared store, and only syncs if
+  // the data is stale. The retry timer is app-wide: one screen unmounting keeps it.
   useEffect(() => {
     if (userId == null) return;
-    loadFromDb(userId);
-    runSync(userId);
-    return () => { clearRetry(); };
-  }, [userId, loadFromDb, runSync, clearRetry]);
+    const otherAccount = loadedForUser !== userId;
+    if (otherAccount && !sync.running) loadFromDb(userId);
+    if (otherAccount || Date.now() - lastSyncAt >= SYNC_COOLDOWN_MS) runSync(userId);
+  }, [userId, loadFromDb, runSync]);
 
   // On app foreground: sync only if data is stale (> 5 min since last sync)
   useEffect(() => {
