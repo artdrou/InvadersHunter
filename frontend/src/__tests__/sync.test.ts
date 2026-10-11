@@ -34,6 +34,8 @@ const upsertRequests   = db.upsertRequests   as jest.Mock;
 const getAllCaptures   = db.getAllCaptures   as jest.Mock;
 const deleteCapturesForUser = db.deleteCapturesForUser as jest.Mock;
 const getLocalInvaderIds = db.getLocalInvaderIds as jest.Mock;
+const getSyncedCaptureIds = db.getSyncedCaptureIds as jest.Mock;
+const deleteCapturesByIds = db.deleteCapturesByIds as jest.Mock;
 
 const claimCaptures    = accountApi.claimCaptures as jest.Mock;
 
@@ -46,6 +48,7 @@ const fetchProgress         = api.fetchProgress         as jest.Mock;
 const fetchDeletedInvaderIds = api.fetchDeletedInvaderIds as jest.Mock;
 const fetchUserRequests     = api.fetchUserRequests     as jest.Mock;
 const fetchInvaderIds       = api.fetchInvaderIds       as jest.Mock;
+const fetchProgressIds      = api.fetchProgressIds      as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -73,6 +76,9 @@ beforeEach(() => {
   fetchUserRequests.mockResolvedValue([]);
   fetchInvaderIds.mockResolvedValue([]);
   getLocalInvaderIds.mockResolvedValue([]);
+  getSyncedCaptureIds.mockResolvedValue([]);
+  deleteCapturesByIds.mockResolvedValue(undefined);
+  fetchProgressIds.mockResolvedValue([]);
   resetReconciliationForTests();
 });
 
@@ -365,6 +371,27 @@ describe('submitCreateRequestOfflineAware', () => {
 // ── syncAll ───────────────────────────────────────────────────────────────────
 
 describe('syncAll', () => {
+  it('drops local captures removed on the server during a delta sync', async () => {
+    getMeta.mockResolvedValue('2024-06-01T00:00:00Z');
+    getSyncedCaptureIds.mockResolvedValue([1, 2, 3]);
+    fetchProgressIds.mockResolvedValue([1, 3, 9]);
+
+    await syncAll(mockDb, 42);
+
+    expect(fetchProgressIds).toHaveBeenCalledWith(42);
+    expect(deleteCapturesByIds).toHaveBeenCalledWith(mockDb, [2]);
+  });
+
+  it('keeps syncing when the capture ids endpoint fails', async () => {
+    getMeta.mockResolvedValue('2024-06-01T00:00:00Z');
+    fetchProgressIds.mockRejectedValue(new Error('404'));
+
+    await syncAll(mockDb, 42);
+
+    expect(deleteCapturesByIds).not.toHaveBeenCalled();
+    expect(setMeta).toHaveBeenCalled();
+  });
+
   it('flushes pending syncs before fetching from server', async () => {
     const callOrder: string[] = [];
     getPendingSyncs.mockImplementation(async () => { callOrder.push('flush'); return []; });

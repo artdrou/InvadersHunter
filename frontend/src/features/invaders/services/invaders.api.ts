@@ -20,6 +20,12 @@ export async function fetchProgress(userId: number, updatedSince?: string): Prom
   return res.data;
 }
 
+/** Every capture id of the user: lets the app drop captures removed elsewhere. */
+export async function fetchProgressIds(userId: number): Promise<number[]> {
+  const res = await api.get(`/progress/user/${userId}/ids`);
+  return res.data.ids;
+}
+
 export async function flashInvader(userId: number, invaderId: number): Promise<Capture> {
   const res = await api.post('/progress/', { user_id: userId, invader_id: invaderId });
   return res.data;
