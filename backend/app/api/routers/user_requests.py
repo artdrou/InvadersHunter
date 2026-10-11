@@ -27,7 +27,7 @@ def submit_request(
     except InvalidRequestPayload as e:
         raise HTTPException(status_code=400, detail=e.detail)
     except DuplicatePendingRequest:
-        raise HTTPException(status_code=409, detail="You already have a pending request for this invader")
+        raise HTTPException(status_code=409, detail="You already have a pending proposal for this detail of this invader")
     except InvaderAlreadyExists as e:
         raise HTTPException(status_code=409, detail=f"Invader {e.name} already exists")
 

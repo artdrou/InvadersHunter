@@ -57,6 +57,11 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(FontSize.lg),
       fontFamily: font,
     },
+    pendingTag: {
+      color: t.textMuted,
+      fontSize: sz(FontSize.xxs),
+      fontFamily: font,
+    },
     valueWithChip: {
       flexDirection: "row",
       alignItems: "center",
@@ -150,10 +155,6 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       color: t.accent,
       fontSize: FontSize.md,
       fontFamily: ButtonFont,
-    },
-    modifyLinkDisabledText: {
-      color: t.textMuted,
-      opacity: 0.6,
     },
     form: {
       // maxHeight is applied inline from the window height so the photo field

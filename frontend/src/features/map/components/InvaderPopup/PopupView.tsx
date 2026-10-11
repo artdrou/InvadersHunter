@@ -23,7 +23,8 @@ import type { PopupStyles } from "./styles";
 type Props = {
   invader: InvaderWithState;
   isISS: boolean;
-  alreadySent: boolean;
+  /** Details this user already proposed (pending review): no "+ Add" for them. */
+  pendingFields: Set<EditField>;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
   onModify: () => void;
@@ -35,7 +36,7 @@ type Props = {
 };
 
 /** Read-only popup: details, external links, flash/unflash, and the modify link. */
-export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onAddMissing, onClose, theme, styles }: Props) {
+export function PopupView({ invader, isISS, pendingFields, onFlash, onUnflash, onModify, onAddMissing, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -49,9 +50,11 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
   const seen = useCommentSeenStore((s) => s.seen);
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
-  // Missing details get a "+ Add" (not for the ISS, nor while a proposal is pending)
-  const missing = isISS || alreadySent ? new Set<EditField>() : missingFields(invader);
-  const chip = (field: EditField) => missing.has(field) && <MissingChip onPress={() => onAddMissing(field)} />;
+  // Missing details get a "+ Add" (not for the ISS); a detail already proposed shows "pending"
+  const missing = isISS ? new Set<EditField>() : missingFields(invader);
+  const chip = (field: EditField) => missing.has(field) && (pendingFields.has(field)
+    ? <Text style={styles.pendingTag}>{t('popup.pendingDetail')}</Text>
+    : <MissingChip onPress={() => onAddMissing(field)} />);
 
   return (
     <>
@@ -194,12 +197,11 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
 
       {!isISS && (
         <Pressable
-          onPress={() => { if (!alreadySent) onModify(); }}
-          disabled={alreadySent}
+          onPress={onModify}
           style={({ pressed }) => [styles.modifyLink, pressed && styles.btnPressed]}
         >
-          <Text style={[styles.modifyLinkText, alreadySent && styles.modifyLinkDisabledText]}>
-            {alreadySent ? t('popup.updateSent') : t('popup.update')}
+          <Text style={styles.modifyLinkText}>
+            {t('popup.update')}
           </Text>
         </Pressable>
       )}

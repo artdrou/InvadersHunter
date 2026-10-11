@@ -429,7 +429,8 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
     "discoveredByLabel": "Discovered by",
-    "updatedByLabel": "Updated by"
+    "updatedByLabel": "Updated by",
+    "pendingDetail": "pending"
   },
   "comments": {
     "title": "Comments",

@@ -429,7 +429,8 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
     "discoveredByLabel": "Découvert par",
-    "updatedByLabel": "Mis à jour par"
+    "updatedByLabel": "Mis à jour par",
+    "pendingDetail": "en attente"
   },
   "comments": {
     "title": "Commentaires",

@@ -1,6 +1,7 @@
 """
 One pending proposal per user and target, so nobody can stack votes:
-- a modification: one per invader, whatever name it carries
+- a modification: one per invader and detail (location, state…), whatever name it
+  carries; different details from one user merge into one AdminRequest
 - a creation: one per invader name, whatever its spelling (padding, case, separator)
 - the votes / confidence count distinct users, even if a duplicate slips through
 """
@@ -49,6 +50,31 @@ def test_one_pending_modification_per_invader_whatever_the_name(client, db, user
         assert _post(client, u, {"request_type": "modify", "invader_id": invader.id,
                                  "proposed_name": name, "proposed_state": "Destroyed"}) == 409
     assert db.query(AdminRequest).count() == 1
+
+
+def test_same_user_can_propose_other_details_merged_into_one_admin_request(client, db, users, invader):
+    u = users[0]
+    assert _post(client, u, {"request_type": "modify", "invader_id": invader.id,
+                             "proposed_latitude": 48.86, "proposed_longitude": 2.35}) == 200
+    # the form sends the current state with it: not a proposal, no conflict
+    assert _post(client, u, {"request_type": "modify", "invader_id": invader.id,
+                             "proposed_state": "Good", "proposed_points": 30}) == 200
+    assert _post(client, u, {"request_type": "modify", "invader_id": invader.id, "proposed_state": "Destroyed"}) == 200
+    # a detail already pending: refused
+    assert _post(client, u, {"request_type": "modify", "invader_id": invader.id,
+                             "proposed_latitude": 48.9, "proposed_longitude": 2.4}) == 409
+    assert _post(client, u, {"request_type": "modify", "invader_id": invader.id, "proposed_state": "Hidden"}) == 409
+    ar = db.query(AdminRequest).one()
+    assert (ar.proposed_latitude, ar.proposed_points, ar.proposed_state) == (48.86, 30, "Destroyed")
+    assert ar.request_count == 1          # one person
+
+
+def test_votes_add_up_per_detail_across_users(client, db, users, invader):
+    assert _post(client, users[0], {"request_type": "modify", "invader_id": invader.id, "proposed_state": "Destroyed"}) == 200
+    assert _post(client, users[1], {"request_type": "modify", "invader_id": invader.id, "proposed_state": "Destroyed",
+                                    "proposed_latitude": 48.86, "proposed_longitude": 2.35}) == 200
+    ar = db.query(AdminRequest).one()
+    assert (ar.request_count, ar.proposed_state, ar.proposed_latitude) == (2, "Destroyed", 48.86)
 
 
 def test_one_pending_creation_per_name_whatever_the_spelling(client, db, users):
