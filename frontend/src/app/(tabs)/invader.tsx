@@ -1,20 +1,18 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
   mapInvadersWithProgress, buildGroups,
-  InvaderInfoPanel, CityHeader, InvaderListRow, InvaderGridCell,
+  CityHeader, InvaderListRow, InvaderGridCell,
   MosaicToolbar, DEFAULT_TOOLBAR_STATE,
 } from "@/features/invaders";
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
 import { applyMapFilter, useLocateStore } from "@/features/map";
-import { PopupEdit } from "@/features/map/components/InvaderPopup/PopupEdit";
-import { makeStyles as makePopupStyles } from "@/features/map/components/InvaderPopup/styles";
-import type { EditField } from "@/features/invaders/edit-fields";
+import { useListEditing } from "@/features/invaders/hooks/use-list-editing";
 import { useNewsUnreadCount } from "@/features/news";
-import { useAuthStore, GUEST_USER_ID, useRequireAccount } from "@/features/auth";
+import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
@@ -43,21 +41,11 @@ export default function InvadersScreen() {
 
   const user = useAuthStore((s) => s.user);
   const isGuest = useAuthStore((s) => s.isGuest);
-  const { theme, appFont, fontScale } = useTheme();
-  const popupStyles = useMemo(() => makePopupStyles(theme, appFont, fontScale), [theme, appFont, fontScale]);
+  const { theme, appFont } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
-  const requireAccount = useRequireAccount();
-  const setPickForList = useLocateStore((s) => s.setPickForList);
-  const pickedForList = useLocateStore((s) => s.pickedForList);
-  const setPickedForList = useLocateStore((s) => s.setPickedForList);
-  // Edit form shown in place of an expanded invader's info panel
-  const [editing, setEditing] = useState<{
-    invaderId: number;
-    field: EditField | null;
-    coords: { lat: number; lon: number } | null;
-  } | null>(null);
+
   const newsUnread = useNewsUnreadCount();
 
   // ── derived data ─────────────────────────────────────────────────────────
@@ -165,66 +153,16 @@ export default function InvadersScreen() {
     router.push("/(tabs)/map");
   }, [setPendingInvader, router]);
 
-  // A location is picked on the map: the map comes back here with it (pickedForList)
-  const pickLocation = useCallback((invader: InvaderWithState) => {
-    setPickForList(invader.id);
-    router.navigate("/(tabs)/map");
-  }, [setPickForList, router]);
-
-  // "Modify" (field null) or "+ Add" on a missing detail: the edit form opens in the
-  // list; a missing location goes straight to the map picker
-  const handleModify = useCallback((invader: InvaderWithState, field: EditField | null) => {
-    requireAccount(() => {
-      if (field === "location") { pickLocation(invader); return; }
-      setEditing({ invaderId: invader.id, field, coords: null });
-    });
-  }, [requireAccount, pickLocation]);
-
-  useEffect(() => {
-    if (!pickedForList) return;
-    const { invaderId, lat, lon } = pickedForList;
-    setPickedForList(null);
-    setExpandedInvaderId(invaderId);
-    setEditing((prev) => ({
-      invaderId,
-      field: prev?.invaderId === invaderId ? prev.field : null,
-      coords: { lat, lon },
-    }));
-  }, [pickedForList, setPickedForList]);
-
-  // Collapsing / switching invaders drops an open edit form
-  useEffect(() => {
-    setEditing((prev) => (prev && prev.invaderId !== expandedInvaderId ? null : prev));
-  }, [expandedInvaderId]);
-
-  const renderPanel = useCallback((invader: InvaderWithState, containerStyle: object) => {
-    if (editing?.invaderId === invader.id) {
-      return (
-        <View style={[styles.editPanel, { backgroundColor: theme.bgElement }, containerStyle]}>
-          <PopupEdit
-            invader={invader}
-            pendingCoords={editing.coords}
-            initialField={editing.field}
-            onClose={() => setEditing(null)}
-            onPickLocation={pickLocation}
-            onRequestSent={() => hapticSuccess()}
-            onSubmitModifyRequest={submitModifyRequest}
-            styles={popupStyles}
-          />
-        </View>
-      );
-    }
-    return (
-      <InvaderInfoPanel
-        invader={invader}
-        onFlash={handleFlash}
-        onUnflash={handleUnflash}
-        onLocate={handleLocate}
-        onModify={handleModify}
-        containerStyle={containerStyle}
-      />
-    );
-  }, [editing, theme, popupStyles, pickLocation, submitModifyRequest, handleFlash, handleUnflash, handleLocate, handleModify]);
+  const expandInvader = useCallback((id: number) => setExpandedInvaderId(id), []);
+  const { renderPanel } = useListEditing({
+    target: "invaders",
+    expandedInvaderId,
+    expandInvader,
+    onSubmitModifyRequest: submitModifyRequest,
+    onFlash: handleFlash,
+    onUnflash: handleUnflash,
+    onLocate: handleLocate,
+  });
 
   // ── render item ──────────────────────────────────────────────────────────
 
@@ -322,7 +260,6 @@ export default function InvadersScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scrollContent: { paddingBottom: Spacing.six },
-  editPanel: { padding: Spacing.three, gap: Spacing.two },
   gridRow: { flexDirection: "row" },
   emptyState: { flex: 1, justifyContent: "center", alignItems: "center", gap: 8 },
   emptyText: { fontSize: FontSize.sm },

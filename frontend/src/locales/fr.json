@@ -714,6 +714,15 @@
       "sent": "Invitation déjà envoyée",
       "received": "T'a invité : touche pour accepter",
       "self": "C'est toi !"
-    }
+    },
+    "communityTitle": "Communauté",
+    "incompleteSub": "{{count}} invaders ont des infos manquantes"
+  },
+  "incomplete": {
+    "title": "Invaders à compléter",
+    "intro": "Aidez la communauté : proposez les infos manquantes (position, photo, points…). Chaque proposition est validée avant publication.",
+    "all": "Tout",
+    "count": "{{count}} à compléter",
+    "empty": "Rien à compléter avec ce filtre."
   }
 }
