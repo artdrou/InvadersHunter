@@ -14,6 +14,9 @@ import {
   useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
 } from '@/features/friends';
 import type { FriendEntry, FriendLookup } from '@/features/friends';
+import { useInvaderStore } from '@/features/invaders';
+import { missingFields } from '@/features/invaders/edit-fields';
+import { ISS_INVADER_NAME } from '@/features/iss/constants';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -26,6 +29,13 @@ export default function SocialScreen() {
   const styles = useMemo(() => makeStyles(theme, appFont, fontScale), [theme, appFont, fontScale]);
   const isGuest = useAuthStore((s) => s.isGuest);
   const requireAccount = useRequireAccount();
+
+  // Community: invaders with missing details, completed by the players
+  const allInvaders = useInvaderStore((s) => s.invaders);
+  const incompleteCount = useMemo(
+    () => allInvaders.filter((i) => i.name !== ISS_INVADER_NAME && missingFields(i).size > 0).length,
+    [allInvaders],
+  );
 
   const overview = useFriendsStore((s) => s.overview);
   const loaded = useFriendsStore((s) => s.loaded);
@@ -148,6 +158,22 @@ export default function SocialScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={theme.accent} />}
       >
+        {/* ── Community: complete the catalogue ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('social.communityTitle')}</Text>
+          <Pressable
+            style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+            onPress={() => { hapticTap(); router.push('/incomplete'); }}
+          >
+            <Ionicons name="construct-outline" size={22} color={theme.accent} />
+            <View style={styles.cardBody}>
+              <Text style={styles.username}>{t('incomplete.title')}</Text>
+              <Text style={styles.meta}>{t('social.incompleteSub', { count: incompleteCount })}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+          </Pressable>
+        </View>
+
         {/* ── Add a friend ── */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>{t('social.addTitle')}</Text>

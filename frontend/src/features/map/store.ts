@@ -1,14 +1,22 @@
 import { create } from 'zustand';
 
-type PickedLocation = { invaderId: number; lat: number; lon: number };
+/** Screens whose invader list can open the map's location picker and get the result back. */
+export type PickReturnTarget = "invaders" | "incomplete";
+export const PICK_RETURN_ROUTES: Record<PickReturnTarget, "/(tabs)/invader" | "/incomplete"> = {
+  invaders: "/(tabs)/invader",
+  incomplete: "/incomplete",
+};
+
+type PickRequest = { invaderId: number; target: PickReturnTarget };
+type PickedLocation = PickRequest & { lat: number; lon: number };
 
 type LocateStore = {
   pendingInvaderId: number | null;
   setPendingInvader: (id: number | null) => void;
-  /** List view: open the map's location picker for this invader, then go back to the list. */
-  pickForList: number | null;
-  setPickForList: (id: number | null) => void;
-  /** Location picked for the list's edit form (consumed by the list). */
+  /** A list asks the map to open its location picker for this invader, then go back to it. */
+  pickForList: PickRequest | null;
+  setPickForList: (req: PickRequest | null) => void;
+  /** Location picked for a list's edit form (consumed by the list of `target` only). */
   pickedForList: PickedLocation | null;
   setPickedForList: (picked: PickedLocation | null) => void;
 };
@@ -17,7 +25,7 @@ export const useLocateStore = create<LocateStore>()((set) => ({
   pendingInvaderId: null,
   setPendingInvader: (id) => set({ pendingInvaderId: id }),
   pickForList: null,
-  setPickForList: (id) => set({ pickForList: id }),
+  setPickForList: (req) => set({ pickForList: req }),
   pickedForList: null,
   setPickedForList: (picked) => set({ pickedForList: picked }),
 }));

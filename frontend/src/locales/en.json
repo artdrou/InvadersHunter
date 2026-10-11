@@ -714,6 +714,15 @@
       "sent": "Invite already sent",
       "received": "Invited you: tap to accept",
       "self": "That's you!"
-    }
+    },
+    "communityTitle": "Community",
+    "incompleteSub": "{{count}} invaders have missing details"
+  },
+  "incomplete": {
+    "title": "Invaders to complete",
+    "intro": "Help the community: propose the missing details (location, photo, points…). Every proposal is reviewed before it goes live.",
+    "all": "All",
+    "count": "{{count}} to complete",
+    "empty": "Nothing to complete with this filter."
   }
 }
