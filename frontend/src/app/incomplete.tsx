@@ -155,7 +155,12 @@ export default function IncompleteInvadersScreen() {
         <Text style={styles.intro}>{t('incomplete.intro')}</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersBar}
+        contentContainerStyle={styles.filters}
+      >
         <FilterChip label={`${t('incomplete.all')} ${counts.all}`} selected={fields.length === 0} onPress={clearFields} styles={styles} />
         {EDIT_FIELDS.map((f) => (
           <FilterChip
@@ -202,7 +207,10 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     backText: { fontFamily: ButtonFont, fontSize: FontSize.md, color: t.textMuted },
     title: { fontSize: FontSize.xxl, letterSpacing: 1, color: t.accent, fontFamily: font },
     intro: { fontSize: sz(FontSize.xs), color: t.textMuted, fontFamily: font },
-    filters: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three, gap: Spacing.two },
+    // A horizontal ScrollView in a column otherwise stretches with a short list
+    // (giant chips) or gets squeezed by a long one (clipped labels): keep its height.
+    filtersBar: { flexGrow: 0, flexShrink: 0 },
+    filters: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three, gap: Spacing.two, alignItems: 'center' },
     chip: {
       borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
       paddingHorizontal: Spacing.two, paddingVertical: 6,
