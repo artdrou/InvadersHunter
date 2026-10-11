@@ -403,6 +403,7 @@
     "flash": "Flash",
     "unflash": "Déflasher",
     "update": "Modifier",
+    "pendingDetail": "en attente",
     "updateSent": "Demande envoyée",
     "validate": "Valider",
     "sending": "Envoi…",
@@ -429,8 +430,7 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
     "discoveredByLabel": "Découvert par",
-    "updatedByLabel": "Mis à jour par",
-    "pendingDetail": "en attente"
+    "updatedByLabel": "Mis à jour par"
   },
   "comments": {
     "title": "Commentaires",

@@ -403,6 +403,7 @@
     "flash": "Flash",
     "unflash": "Unflash",
     "update": "Update",
+    "pendingDetail": "pending",
     "updateSent": "Update sent",
     "validate": "Validate",
     "sending": "Sending…",
@@ -429,8 +430,7 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
     "discoveredByLabel": "Discovered by",
-    "updatedByLabel": "Updated by",
-    "pendingDetail": "pending"
+    "updatedByLabel": "Updated by"
   },
   "comments": {
     "title": "Comments",
