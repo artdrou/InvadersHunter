@@ -7,7 +7,8 @@ source brings what the site lacks:
     No coordinates is normal for new ones: they show in the list, not on the map.
   - empty fields on existing invaders (location, points, pose date, photo) -> filled.
     A value already set (by a human or a previous import) is never overwritten:
-    a location far from InvaderQuest's is only reported (`far_locations`).
+    a location far from InvaderQuest's (`far_locations`) or other points / pose date
+    (`differences`) are only reported — see sync_fields.
 
 Run once a day by app/jobs/invaderquest_sync.py. Steps:
   1. Network phase: index.json; skip everything if its version is unchanged.
@@ -37,6 +38,7 @@ from ..models.admin_request import AdminRequest
 from ..models.space_invader import Invader
 from ..models.sync_state import SyncState
 from . import admin_request_service, invader_service, notification_service
+from .sync_fields import fill_and_differences
 
 log = logging.getLogger("invaderquest_sync")
 
@@ -61,6 +63,7 @@ class SyncReport:
     created_without_location: List[str] = field(default_factory=list)
     filled: List[str] = field(default_factory=list)            # "PA_12: latitude, longitude"
     far_locations: List[str] = field(default_factory=list)
+    differences: List[str] = field(default_factory=list)     # points / pose date differ (app kept)
     errors: List[str] = field(default_factory=list)
     pushes_sent: int = 0
 
@@ -71,7 +74,7 @@ class SyncReport:
             f"[invaderquest{' DRY-RUN' if self.dry_run else ''}] cities={len(self.cities_fetched)} "
             f"checked={self.checked} created={len(self.created)} "
             f"(without location={len(self.created_without_location)}) filled={len(self.filled)} "
-            f"far_locations={len(self.far_locations)} pushes={self.pushes_sent} errors={len(self.errors)}"
+            f"far_locations={len(self.far_locations)} differences={len(self.differences)} pushes={self.pushes_sent} errors={len(self.errors)}"
         )
 
 
@@ -161,14 +164,12 @@ def _fill(db: Session, invader_id: int, values: dict) -> None:
     ), None)
 
 
-def _missing_fields(current: dict, rec: dict) -> dict:
-    fill = {}
+def _missing_fields(current: dict, rec: dict) -> Tuple[dict, List[str]]:
+    """(empty fields to fill, differences on points / pose date) — see sync_fields."""
+    fill, differences = fill_and_differences(current["name"], current, rec, "InvaderQuest")
     if current["latitude"] is None and current["longitude"] is None and rec["latitude"] is not None:
         fill["latitude"], fill["longitude"] = rec["latitude"], rec["longitude"]
-    for f in ("points", "date_pose", "image_url"):
-        if current[f] is None and rec[f] is not None:
-            fill[f] = rec[f]
-    return fill
+    return fill, differences
 
 
 # ── main entry ────────────────────────────────────────────────────────────────
@@ -264,7 +265,8 @@ def sync(
             to_create.append(rec)
             continue
         report.checked += 1
-        fill = _missing_fields(current, rec)
+        fill, differences = _missing_fields(current, rec)
+        report.differences.extend(differences)
         if fill:
             to_fill.append((current["id"], current["name"], fill))
         if (current["latitude"] is not None and current["longitude"] is not None

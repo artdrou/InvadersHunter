@@ -74,7 +74,7 @@ def test_approved_modify_appears_in_news_credited_to_community(db, client, users
 def test_scraper_source_credited_to_invader_spotter(db, client, invader):
     ar = AdminRequest(
         invader_id=invader.id, request_type="modify", status="approved",
-        source="scraper", reviewed_at=datetime.utcnow(),
+        source="scraper", proposed_state="Destroyed", reviewed_at=datetime.utcnow(),
     )
     db.add(ar)
     db.commit()
@@ -129,7 +129,7 @@ def test_approve_records_previous_located(db, client, users, invader):
 ])
 def test_news_kind(db, client, invader, request_type, previous, new, located, kind):
     db.add(AdminRequest(
-        invader_id=invader.id, request_type=request_type, status="approved", source="scraper",
+        invader_id=invader.id, request_type=request_type, status="approved", source="community",
         previous_state=previous, proposed_state=new,
         proposed_latitude=48.9 if located else None, proposed_longitude=2.4 if located else None,
         reviewed_at=datetime.utcnow(),

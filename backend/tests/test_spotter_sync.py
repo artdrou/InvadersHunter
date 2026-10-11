@@ -413,3 +413,38 @@ def test_precise_level_after_invaderquest_is_not_a_restoration(db, client, fake_
     assert notify.called is pushed
     feed = [item["kind"] for item in client.get("/news/").json() if item["invader_name"] == "MUN_15"]
     assert feed[0] == kind if kind else feed == ["create"]   # just InvaderQuest's creation
+
+
+# ── empty fields filled from the site, differences reported ─────────────────
+
+def test_sync_fills_empty_points_date_photo_and_reports_differences(db, client, invaders, fake_site):
+    """LAP_8-like: created empty by the InvaderQuest job; the site has the data."""
+    lap = Invader(name="LAP_8", city="LAP", number=8, state="Good")
+    db.add(lap)
+    db.commit()
+    fake_site["news"] = [(date(2026, 10, 10), [("LAP", 8), ("PA", 207)])]
+    fake_site["rows"][("LAP", 8)] = {"name": "LAP_8", "state": "OK", "points": 30, "date_pose": "10/01/2026",
+                                     "state_date": "octobre 2026", "picture_url": "https://x/LAP_8.png"}
+    with patch("app.services.notification_service.notify_invader_event") as notify:
+        report = spotter_sync_service.sync_from_news(db, delay=0, today=date(2026, 10, 10))
+
+    assert report.filled == ["LAP_8: points, date_pose, image_url"]
+    lap = db.get(Invader, lap.id)
+    assert (lap.points, lap.date_pose, lap.image_url) == (30, date(2026, 1, 10), "https://x/LAP_8.png")
+    # PA_207 has 20 points in the app, 10 on the site: reported, kept
+    assert report.differences == ["PA_207: points app 20 vs invader-spotter 10"]
+    assert db.get(Invader, invaders["PA_207"].id).points == 20
+    # filling isn't news: no push, no feed entry for LAP_8
+    assert all(call.args[2] != lap.id for call in notify.call_args_list)
+    assert "LAP_8" not in [i["invader_name"] for i in client.get("/news/").json()]
+
+
+def test_dry_run_reports_fills_without_writing(db, invaders, fake_site):
+    lap = Invader(name="LAP_8", city="LAP", number=8, state="Good")
+    db.add(lap)
+    db.commit()
+    fake_site["news"] = [(date(2026, 10, 10), [("LAP", 8)])]
+    fake_site["rows"][("LAP", 8)] = _row("LAP_8", "OK")
+    report = spotter_sync_service.sync_from_news(db, dry_run=True, delay=0, today=date(2026, 10, 10))
+    assert report.filled == ["LAP_8: points"]
+    assert db.get(Invader, lap.id).points is None

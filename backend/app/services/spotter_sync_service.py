@@ -19,7 +19,9 @@ older site info: the site change applies only if its date is later than that
 validation. Site date = the news day (news mode) or the "Date et source" month
 (full mode, first day of the month, so the app wins ties within a month).
 
-Only `state` is synced on known invaders. Invaders a news mentions that the DB
+On known invaders, `state` is synced; points, pose date and photo are only filled
+when empty (same rule as the InvaderQuest sync, see sync_fields): a different
+known value is reported in `differences`, never overwritten. Invaders a news mentions that the DB
 lacks are created (news mode only) without location: the site has no GPS, the
 InvaderQuest sync fills it in later. Pushed only when the news says "Ajout de"
 (really new); others are catalogue catch-up (e.g. an old invader newly listed).
@@ -40,6 +42,7 @@ from ..core.invader_states import normalize_state
 from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.space_invader import Invader
 from . import admin_request_service, invader_service, notification_service
+from .sync_fields import fill_and_differences
 
 log = logging.getLogger("spotter_sync")
 
@@ -63,6 +66,8 @@ class SyncReport:
     checked: int = 0
     changes: List[StateChange] = field(default_factory=list)
     created: List[str] = field(default_factory=list)            # news mode: was missing from our DB
+    filled: List[str] = field(default_factory=list)             # "LAP_8: points, date_pose, image_url"
+    differences: List[str] = field(default_factory=list)        # points / pose date differ (app kept)
     missing_in_db: List[str] = field(default_factory=list)      # full mode: on the site, not in our DB
     missing_on_site: List[str] = field(default_factory=list)    # asked the site, got nothing
     unparsed_state: List[str] = field(default_factory=list)     # site label we can't map
@@ -73,7 +78,8 @@ class SyncReport:
     def summary(self) -> str:
         return (
             f"[{self.mode}{' DRY-RUN' if self.dry_run else ''}] checked={self.checked} "
-            f"changed={len(self.changes)} created={len(self.created)} missing_in_db={len(self.missing_in_db)} "
+            f"changed={len(self.changes)} created={len(self.created)} filled={len(self.filled)} "
+            f"differences={len(self.differences)} missing_in_db={len(self.missing_in_db)} "
             f"missing_on_site={len(self.missing_on_site)} unparsed_state={len(self.unparsed_state)} "
             f"kept_app_state={len(self.kept_app_state)} "
             f"backfilled_reactivations={len(self.backfilled_reactivations)} "
@@ -147,6 +153,34 @@ def _create(
     )
 
 
+def _fill(db: Session, invader_id: int, values: dict) -> None:
+    """Empty points / pose date / photo, from the site; silent (not push-worthy)."""
+    admin_req = AdminRequest(
+        invader_id=invader_id,
+        request_type="modify",
+        status="pending",
+        proposed_points=values.get("points"),
+        proposed_date_pose=values.get("date_pose"),
+        proposed_image_url=values.get("image_url"),
+        request_count=0,
+        confidence=100,
+        source="scraper",
+        validated_by=VALIDATED_BY,
+    )
+    db.add(admin_req)
+    db.flush()
+    admin_request_service.approve(db, admin_req, admin_user=None, notify=False)
+
+
+def _site_fields(info: dict) -> dict:
+    """A scraped row as sync_fields values."""
+    return {
+        "points": info.get("points"),
+        "date_pose": spotter_scraper.parse_date_pose(info.get("date_pose")),
+        "image_url": info.get("picture_url"),
+    }
+
+
 def _invader_key(invader: Invader) -> Optional[Tuple[str, int]]:
     """city/number columns, else parsed from the name (invaders created in the app
     before those columns were filled on creation)."""
@@ -181,6 +215,7 @@ def _reconcile(
             db_invaders.setdefault(key, inv)
 
     to_create: List[Tuple[Tuple[str, int], dict, Optional[str]]] = []
+    to_fill: List[Tuple[int, dict]] = []
     candidates: List[Tuple[Invader, str, Optional[date]]] = []
     for key, info in sorted(scraped.items()):
         invader = db_invaders.get(key)
@@ -194,6 +229,12 @@ def _reconcile(
                 report.missing_in_db.append(name)
             continue
         report.checked += 1
+        current = {"points": invader.points, "date_pose": invader.date_pose, "image_url": invader.image_url}
+        fill, differences = fill_and_differences(invader.name, current, _site_fields(info), "invader-spotter")
+        report.differences.extend(differences)
+        if fill:
+            to_fill.append((invader.id, fill))
+            report.filled.append(f"{invader.name}: {', '.join(fill)}")
         raw_state = info.get("state")
         new_state = normalize_state(raw_state) if raw_state else None
         if new_state is None:
@@ -220,6 +261,8 @@ def _reconcile(
         return
     # Pushes go out at the end: one by one, or one summary past MAX_INDIVIDUAL_PUSHES
     batch = notification_service.InvaderNotificationBatch() if notify else None
+    for invader_id, fill in to_fill:
+        _fill(db, invader_id, fill)
     for key, info, state in to_create:
         try:
             _create(db, info, state, notify_batch=batch if key in (push_creations or ()) else None)

@@ -56,6 +56,7 @@ def main(argv=None) -> int:
         ("created without location (list only)", report.created_without_location),
         ("filled empty fields", report.filled),
         (f"app location > {invaderquest_sync_service.FAR_LOCATION_M} m from InvaderQuest (kept)", report.far_locations),
+        ("differs from InvaderQuest (app value kept, check by hand)", report.differences),
         ("error", report.errors),
     ):
         if items:
