@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +14,9 @@ import {
 } from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
 import { useInvaderOverview } from "../hooks/use-invader-overview";
+import { usePendingModify } from "../hooks/use-pending-modify";
+import { missingFields, type EditField } from "../edit-fields";
+import { MissingChip } from "./MissingChip";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -21,6 +24,8 @@ type Props = {
   onFlash: (inv: InvaderWithState) => void;
   onUnflash: (inv: InvaderWithState) => void;
   onLocate?: (inv: InvaderWithState) => void;
+  /** Propose changes: `field` is the missing detail whose "+ Add" was tapped, null for "Modify". */
+  onModify?: (inv: InvaderWithState, field: EditField | null) => void;
   containerStyle?: object;
 };
 
@@ -34,7 +39,7 @@ const STATE_KEYS: Record<string, string> = {
   "Unknown": "states.Unknown",
 };
 
-export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
+export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModify, containerStyle }: Props) {
   const { t } = useTranslation();
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
@@ -47,6 +52,11 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
   const hasLocation = invader.latitude != null && invader.longitude != null;
+  const [alreadySent] = usePendingModify(invader.id);
+  // Missing details get a "+ Add" (not while a proposal is pending)
+  const missing = onModify && !alreadySent ? missingFields(invader) : new Set<EditField>();
+  const chip = (field: EditField) =>
+    missing.has(field) ? <MissingChip onPress={() => onModify?.(invader, field)} /> : undefined;
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
   const lastModifier = contributors?.modified_by.length
@@ -69,9 +79,15 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
       <View style={styles.infoBlock}>
-        <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} sz={sz} />
-        <InfoRow label={t('popup.state')}  value={stateLabel} sz={sz} />
-        <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} sz={sz} />
+        <InfoRow label={t('popup.points')} value={String(invader.points ?? "--")} chip={chip("points")} sz={sz} />
+        <InfoRow label={t('popup.state')}  value={stateLabel} chip={chip("state")} sz={sz} />
+        <InfoRow label={t('popup.posed')}  value={formatDate(invader.date_pose)} chip={chip("posed")} sz={sz} />
+        {missing.has("location") && (
+          <InfoRow label={t('popup.position')} value="--" chip={chip("location")} sz={sz} />
+        )}
+        {missing.has("photo") && (
+          <InfoRow label={t('popup.photo')} value="--" chip={chip("photo")} sz={sz} />
+        )}
         <InfoRow
           label={t('popup.flashed')}
           value={formatDate(invader.capturedAt)}
@@ -137,6 +153,18 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         )}
       </View>
 
+      {onModify && (
+        <Pressable
+          style={({ pressed }) => [styles.updateLink, pressed && styles.btnPressed]}
+          onPress={() => { hapticTap(); onModify(invader, null); }}
+          disabled={alreadySent}
+        >
+          <Text style={[styles.updateLinkText, { color: alreadySent ? theme.textMuted : theme.accent, fontFamily: appFont, fontSize: sz(14) }]}>
+            {alreadySent ? t('popup.updateSent') : t('popup.update')}
+          </Text>
+        </Pressable>
+      )}
+
       <Pressable
         style={({ pressed }) => [styles.commentsBtn, pressed && styles.btnPressed]}
         onPress={() => { hapticTap(); setCommentsOpen(true); }}
@@ -162,12 +190,17 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
 
 // ─── internal helper ─────────────────────────────────────────────────────────
 
-function InfoRow({ label, value, valueColor, sz }: { label: string; value: string; valueColor?: string; sz: (n: number) => number }) {
+function InfoRow({ label, value, valueColor, chip, sz }: {
+  label: string; value: string; valueColor?: string; chip?: ReactNode; sz: (n: number) => number;
+}) {
   const { theme, appFont } = useTheme();
   return (
     <View style={styles.infoRow}>
       <Text style={[styles.infoLabel, { color: theme.textMuted, fontFamily: appFont, fontSize: sz(13) }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color: valueColor ?? theme.text, fontFamily: appFont, fontSize: sz(13) }]}>{value}</Text>
+      <View style={styles.valueWithChip}>
+        {chip}
+        <Text style={[styles.infoValue, { color: valueColor ?? theme.text, fontFamily: appFont, fontSize: sz(13) }]}>{value}</Text>
+      </View>
     </View>
   );
 }
@@ -190,6 +223,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   infoLabel: {},
+  valueWithChip: { flexDirection: "row", alignItems: "center", gap: 6 },
   infoValue: {},
   contributorsBlock: { gap: 4 },
   contributorLine: { textAlign: "center" },
@@ -208,6 +242,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: {},
+  updateLink: { alignItems: "center", paddingVertical: Spacing.one },
+  updateLinkText: {},
   commentsBtn: {
     flexDirection: "row",
     alignItems: "center",

@@ -132,6 +132,8 @@ def test_fills_only_empty_fields_and_never_touches_state(db, invaders, fake_iq):
     assert (pa11.latitude, pa11.points, pa11.state, pa11.image_url) == (48.0, 30, "Good", "https://mine.png")
     assert pa11.date_pose == date(2026, 9, 17)  # was empty
     assert any(f.startswith("PA_11:") for f in report.far_locations)
+    # 30 in the app, 50 at InvaderQuest: reported for a human, app value kept
+    assert report.differences == ["PA_11: points app 30 vs InvaderQuest 50"]
 
 
 def test_news_credits_invaderquest(db, client, invaders, fake_iq):
@@ -194,8 +196,9 @@ def test_many_new_invaders_get_one_push_but_each_its_news_entry(db, client, inva
     assert send.call_args.args[1][0]["body"] == f"{n} new invaders."
 
     items = client.get("/news/").json()
-    filled = [f.split(":")[0] for f in report.filled]
-    assert sorted(i["invader_name"] for i in items) == sorted(report.created + filled)   # one entry each
+    # a location fill is a "discovered" entry; points / date / photo-only fills aren't news
+    located = [f.split(":")[0] for f in report.filled if "latitude" in f]
+    assert sorted(i["invader_name"] for i in items) == sorted(report.created + located)   # one entry each
     assert all(i["credit_label"] == "InvaderQuest" for i in items)
 
 

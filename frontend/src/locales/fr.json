@@ -423,6 +423,9 @@
     "sendingShort": "Envoi…",
     "localiser": "Localiser",
     "noLocation": "Emplacement pas encore connu : cet invader est dans la liste mais pas sur la carte.",
+    "addMissing": "+ Ajouter",
+    "photo": "Photo",
+    "locationUnknown": "Pas encore connue",
     "spotter": "InvaderSpotter",
     "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
     "discoveredByLabel": "Découvert par",
@@ -537,7 +540,7 @@
     "step3Title": "Activez le débogage USB",
     "step3Body": "Réglages → À propos → tapez 7 fois sur \"Numéro de build\" pour activer les options développeur, puis activez \"Débogage USB\". Acceptez la demande sur le téléphone.",
     "step4Title": "Téléchargez et lancez l'application",
-    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants InvadersHunter quand demandé.",
+    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants InvadersHunter quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).",
     "step5Title": "IMPORTANT : synchronisez l'app",
     "step5Body": "Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur \"Synchroniser\" pour récupérer les flashes importés dans l'application.",
     "downloadBtn": "Télécharger l'application (Windows)",
@@ -711,6 +714,15 @@
       "sent": "Invitation déjà envoyée",
       "received": "T'a invité : touche pour accepter",
       "self": "C'est toi !"
-    }
+    },
+    "communityTitle": "Communauté",
+    "incompleteSub": "{{count}} invaders ont des infos manquantes"
+  },
+  "incomplete": {
+    "title": "Invaders à compléter",
+    "intro": "Aidez la communauté : proposez les infos manquantes (position, photo, points…). Chaque proposition est validée avant publication.",
+    "all": "Tout",
+    "count": "{{count}} à compléter",
+    "empty": "Rien à compléter avec ce filtre."
   }
 }

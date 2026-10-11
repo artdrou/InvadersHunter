@@ -17,7 +17,7 @@ import { MapToast } from "@/features/map/components/MapToast";
 import { useToast } from "@/features/map/hooks/use-toast";
 import { useMapRouting } from "@/features/map/hooks/use-map-routing";
 import { useMapCreateFlow } from "@/features/map/hooks/use-map-create-flow";
-import { useHeadingStore } from "@/features/map/store";
+import { useHeadingStore, PICK_RETURN_ROUTES, type PickReturnTarget } from "@/features/map/store";
 import { MapZoom } from "@/features/map/constants";
 import { useNewsUnreadCount } from "@/features/news";
 import { useFriendsStore, applyFriendView, FriendMapPicker, FriendMapBanner } from "@/features/friends";
@@ -58,6 +58,11 @@ export default function MapScreen() {
   const toast = useToast();
 
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
+  const pickForList = useLocateStore((s) => s.pickForList);
+  const setPickForList = useLocateStore((s) => s.setPickForList);
+  const setPickedForList = useLocateStore((s) => s.setPickedForList);
+  // The current location pick was started from a list: hand the result back there
+  const pickReturnRef = useRef<PickReturnTarget | null>(null);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
   const selectedInvaderRef = useRef<InvaderWithState | null>(null);
@@ -120,6 +125,19 @@ export default function MapScreen() {
     }, [pendingInvaderId, invadersWithState]),
   );
 
+  // "+ Add" location from the list: open the picker straight away (same focus rule as above)
+  useFocusEffect(
+    useCallback(() => {
+      if (pickForList == null) return;
+      const inv = invadersWithState.find((i) => i.id === pickForList.invaderId);
+      if (!inv) return;
+      setPickForList(null);
+      pickReturnRef.current = pickForList.target;
+      startPickingLocation(inv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pickForList, invadersWithState]),
+  );
+
   // Cancel any pending locate re-assert on unmount.
   useEffect(() => () => { if (locateTimerRef.current) clearTimeout(locateTimerRef.current); }, []);
 
@@ -177,10 +195,18 @@ export default function MapScreen() {
   }
 
   // ── Modify-invader location picker ────────────────────────────────────────
-  function startPickingLocation(invader: InvaderWithState) {
-    if (invader.latitude == null || invader.longitude == null) return;
-    const startLat = pendingCoords?.invaderId === invader.id ? pendingCoords.lat : invader.latitude;
-    const startLon = pendingCoords?.invaderId === invader.id ? pendingCoords.lon : invader.longitude;
+  async function startPickingLocation(invader: InvaderWithState) {
+    // Start from the proposal in progress, else the known location; an invader
+    // without one (in the list, not on the map) starts from the user, else the map center.
+    let start: [number, number] | null = null;   // [lat, lon]
+    if (pendingCoords?.invaderId === invader.id) start = [pendingCoords.lat, pendingCoords.lon];
+    else if (invader.latitude != null && invader.longitude != null) start = [invader.latitude, invader.longitude];
+    else {
+      const lonLat = mapRef.current?.getUserCoords() ?? await mapRef.current?.getCenter();
+      if (lonLat) start = [lonLat[1], lonLat[0]];
+    }
+    if (!start) return;
+    const [startLat, startLon] = start;
     setSelectedInvader(null);
     selectedInvaderRef.current = null;
     setPicking({ invader, startLat, startLon });
@@ -191,11 +217,18 @@ export default function MapScreen() {
     if (!picking) return;
     hapticTap();
     const c = await mapRef.current?.getCenter();
-    if (c) {
-      setPendingCoords({ invaderId: picking.invader.id, lon: c[0], lat: c[1] });
-    }
     const inv = picking.invader;
     setPicking(null);
+    const target = pickReturnRef.current;
+    if (target) {
+      pickReturnRef.current = null;
+      if (c) setPickedForList({ invaderId: inv.id, target, lon: c[0], lat: c[1] });
+      router.navigate(PICK_RETURN_ROUTES[target]);
+      return;
+    }
+    if (c) {
+      setPendingCoords({ invaderId: inv.id, lon: c[0], lat: c[1] });
+    }
     selectInvader(inv);
   }
 
@@ -204,6 +237,12 @@ export default function MapScreen() {
     hapticTap();
     const inv = picking.invader;
     setPicking(null);
+    const target = pickReturnRef.current;
+    if (target) {
+      pickReturnRef.current = null;
+      router.navigate(PICK_RETURN_ROUTES[target]);
+      return;
+    }
     selectInvader(inv);
   }
 

@@ -1,8 +1,9 @@
 """
 Flash Import feature — HTTP router.
 
-POST /flash-import/  — bulk-create user progress from a list of invader names.
-Authenticated; uses the JWT subject as the user_id.
+POST /flash-import/  — bulk-create user progress from a list of invader names
+(with `mirror`, also remove the flashes the phone doesn't list: preview, then
+`confirm`). Authenticated; uses the JWT subject as the user_id.
 
 GET /static/flash_import/InvadersHunter-FlashImport.exe — the PC tool built for
 this backend's environment. Registered before the /static mount in main.py so
@@ -15,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db, get_current_user
 from app.schemas.flash_import import FlashImportRequest, FlashImportResponse
 from app.services import flash_import_service
-from app.services.flash_import_service import UserMissing
+from app.services.flash_import_service import MirrorRefused, UserMissing
 
 router = APIRouter(prefix="/flash-import", tags=["Flash Import"])
 
@@ -27,9 +28,13 @@ def import_flashes(
     db: Session = Depends(get_db),
 ):
     try:
-        return flash_import_service.import_flashes(db, current_user.id, payload.names)
+        return flash_import_service.import_flashes(
+            db, current_user.id, payload.names, mirror=payload.mirror, confirm=payload.confirm,
+        )
     except UserMissing:
         raise HTTPException(status_code=404, detail="User not found")
+    except MirrorRefused as e:
+        raise HTTPException(status_code=409, detail=f"Full sync refused: {e.reason}")
 
 
 tool_router = APIRouter(tags=["Flash Import"])

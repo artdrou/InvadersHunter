@@ -5,11 +5,12 @@ import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
   mapInvadersWithProgress, buildGroups,
-  InvaderInfoPanel, CityHeader, InvaderListRow, InvaderGridCell,
+  CityHeader, InvaderListRow, InvaderGridCell,
   MosaicToolbar, DEFAULT_TOOLBAR_STATE,
 } from "@/features/invaders";
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
 import { applyMapFilter, useLocateStore } from "@/features/map";
+import { useListEditing } from "@/features/invaders/hooks/use-list-editing";
 import { useNewsUnreadCount } from "@/features/news";
 import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
@@ -31,7 +32,7 @@ type FlatItem =
 
 export default function InvadersScreen() {
   const { t } = useTranslation();
-  const { invaders, progress, syncError, flash, unflash } = useInvaderData();
+  const { invaders, progress, syncError, flash, unflash, submitModifyRequest } = useInvaderData();
   const isOfflineEmpty = invaders.length === 0 && syncError === 'network';
 
   const [expandedCities, setExpandedCities]       = useState<Set<string>>(new Set());
@@ -44,6 +45,7 @@ export default function InvadersScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
+
   const newsUnread = useNewsUnreadCount();
 
   // ── derived data ─────────────────────────────────────────────────────────
@@ -151,6 +153,17 @@ export default function InvadersScreen() {
     router.push("/(tabs)/map");
   }, [setPendingInvader, router]);
 
+  const expandInvader = useCallback((id: number) => setExpandedInvaderId(id), []);
+  const { renderPanel } = useListEditing({
+    target: "invaders",
+    expandedInvaderId,
+    expandInvader,
+    onSubmitModifyRequest: submitModifyRequest,
+    onFlash: handleFlash,
+    onUnflash: handleUnflash,
+    onLocate: handleLocate,
+  });
+
   // ── render item ──────────────────────────────────────────────────────────
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
@@ -178,15 +191,9 @@ export default function InvadersScreen() {
         );
 
       case "info":
-        return (
-          <InvaderInfoPanel
-            invader={item.invader}
-            onFlash={handleFlash}
-            onUnflash={handleUnflash}
-            onLocate={handleLocate}
-            containerStyle={{ borderTopWidth: 1, borderTopColor: theme.bgDivider, borderBottomWidth: 1, borderBottomColor: theme.bgDivider }}
-          />
-        );
+        return renderPanel(item.invader, {
+          borderTopWidth: 1, borderTopColor: theme.bgDivider, borderBottomWidth: 1, borderBottomColor: theme.bgDivider,
+        });
 
       case "grid-row":
         return (
@@ -204,23 +211,15 @@ export default function InvadersScreen() {
         );
 
       case "grid-info":
-        return (
-          <InvaderInfoPanel
-            invader={item.invader}
-            onFlash={handleFlash}
-            onUnflash={handleUnflash}
-            onLocate={handleLocate}
-            containerStyle={{
-              marginHorizontal: GRID_GAP,
-              marginBottom: GRID_GAP,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: theme.border,
-            }}
-          />
-        );
+        return renderPanel(item.invader, {
+          marginHorizontal: GRID_GAP,
+          marginBottom: GRID_GAP,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: theme.border,
+        });
     }
-  }, [toggleCity, toggleInvader, handleFlash, handleUnflash, handleLocate, theme, cellSize, expandedInvaderId]);
+  }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);
 
   // ── render ───────────────────────────────────────────────────────────────
 

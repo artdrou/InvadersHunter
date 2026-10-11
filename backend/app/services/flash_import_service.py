@@ -10,7 +10,7 @@ Routers must delegate to import_flashes() and translate exceptions.
 """
 import re
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -23,6 +23,19 @@ from ..core.environment import environment_for_host
 
 
 class UserMissing(Exception): ...
+
+
+class MirrorRefused(Exception):
+    """A full sync (mirror) would remove flashes from a phone list that looks incomplete."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
+# Mirror mode removes flashes the phone doesn't list: refused when the phone lists
+# fewer than this share of the account's flashes (a partial folder, e.g. the cache).
+MIRROR_MIN_RATIO = 0.5
 
 
 # Matches the canonical "CITYCODE_NUMBER" pattern after normalize_name(); used to
@@ -52,18 +65,52 @@ def _extract_names(raw_names: Iterable[str]) -> List[str]:
     return out
 
 
-def import_flashes(db: Session, user_id: int, raw_names: Iterable[str]) -> dict:
+def _mirror_refusal(app_total: int, phone_total: int) -> Optional[str]:
+    """Why removing the flashes the phone doesn't list would be unsafe, if it would."""
+    if phone_total == 0:
+        return "the phone lists none of the known invaders"
+    if phone_total < MIRROR_MIN_RATIO * app_total:
+        return (f"the phone lists {phone_total} known invaders but the account has {app_total} flashes "
+                f"(less than {MIRROR_MIN_RATIO:.0%}): the phone folder looks incomplete")
+    return None
+
+
+def import_flashes(
+    db: Session, user_id: int, raw_names: Iterable[str], mirror: bool = False, confirm: bool = False,
+) -> dict:
     """Bulk-create UserProgress rows for the given invader names.
 
-    Returns a summary: imported / already_flashed / unknown.
-    Idempotent: re-running with the same names is a no-op.
+    Returns a summary: imported / already_flashed / unknown, plus the account and
+    phone totals. Idempotent: re-running with the same names is a no-op.
+
+    `mirror` also removes the account's flashes the phone doesn't list. It is a
+    two-step operation: without `confirm` nothing is written (preview: what would be
+    added / removed); with `confirm` it is applied, unless the phone list looks
+    incomplete (MirrorRefused, see MIRROR_MIN_RATIO).
     """
-    if not db.query(User).filter(User.id == user_id).first():
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         raise UserMissing()
+    app_flashes = dict(
+        db.query(UserProgress.invader_id, Invader.name)
+        .join(Invader, Invader.id == UserProgress.invader_id)
+        .filter(UserProgress.user_id == user_id)
+        .all()
+    )
+    summary = {
+        "username": user.username,
+        "app_total": len(app_flashes),
+        "mirror": mirror,
+        "applied": not mirror or confirm,
+    }
 
     names = _extract_names(raw_names)
     if not names:
-        return {"imported": 0, "already_flashed": 0, "unknown": [], "total_submitted": 0}
+        if mirror and confirm:
+            raise MirrorRefused(_mirror_refusal(len(app_flashes), 0))
+        return {**summary, "imported": 0, "already_flashed": 0, "unknown": [], "total_submitted": 0,
+                "phone_total": 0, "to_remove": [], "removed": 0,
+                "refused": _mirror_refusal(len(app_flashes), 0) if mirror else None}
 
     # Fetch every invader of the submitted cities, then match on the
     # zero-stripped key so "ORLN_1" finds the DB's "ORLN_01".
@@ -78,37 +125,50 @@ def import_flashes(db: Session, user_id: int, raw_names: Iterable[str]) -> dict:
     for iid, name in invaders:
         name_to_id.setdefault(_match_key(name), iid)
 
-    already = {
-        row.invader_id
-        for row in db.query(UserProgress.invader_id)
-        .filter(UserProgress.user_id == user_id)
-        .filter(UserProgress.invader_id.in_(name_to_id.values()))
-        .all()
-    }
+    already = set(app_flashes)
 
-    imported = 0
+    to_add: List[int] = []
     already_flashed = 0
     unknown: List[str] = []
+    on_phone: set[int] = set()
 
     for name in names:
         invader_id = name_to_id.get(name)
         if invader_id is None:
             unknown.append(name)
             continue
+        on_phone.add(invader_id)
         if invader_id in already:
             already_flashed += 1
             continue
-        db.add(UserProgress(user_id=user_id, invader_id=invader_id))
+        to_add.append(invader_id)
         already.add(invader_id)
-        imported += 1
 
-    safe_commit(db)
+    to_remove = sorted(iid for iid in app_flashes if iid not in on_phone) if mirror else []
+    if mirror:
+        refusal = _mirror_refusal(len(app_flashes), len(on_phone))
+        if refusal and confirm:
+            raise MirrorRefused(refusal)
+        summary["refused"] = refusal
+
+    if summary["applied"]:
+        for invader_id in to_add:
+            db.add(UserProgress(user_id=user_id, invader_id=invader_id))
+        if to_remove:
+            db.query(UserProgress).filter(
+                UserProgress.user_id == user_id, UserProgress.invader_id.in_(to_remove),
+            ).delete(synchronize_session=False)
+        safe_commit(db)
 
     return {
-        "imported": imported,
+        **summary,
+        "imported": len(to_add),
         "already_flashed": already_flashed,
         "unknown": unknown,
         "total_submitted": len(names),
+        "phone_total": len(on_phone),
+        "to_remove": sorted(app_flashes[iid] for iid in to_remove),
+        "removed": len(to_remove) if summary["applied"] else 0,
     }
 
 

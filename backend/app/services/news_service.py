@@ -9,10 +9,10 @@ small `announcements` table. Both are merged into one date-sorted feed.
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import or_
+from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import Session
 
-from ..models.admin_request import AdminRequest
+from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.user_request import UserRequest
 from ..models.user import User
 from ..models.space_invader import Invader
@@ -84,6 +84,11 @@ NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
         "en": ("Invader updated", "{label} has been updated."),
     },
 }
+# Body of "create" when the new invader has no location yet: it's in the list, not on the map.
+CREATE_WITHOUT_LOCATION_BODY: Dict[str, str] = {
+    "fr": "{label} a ete ajoute a la liste (position a venir).",
+    "en": "{label} was added to the list (location to come).",
+}
 NOTIFICATION_LANGUAGES = ("fr", "en")
 DEFAULT_NOTIFICATION_LANGUAGE = "fr"
 
@@ -123,6 +128,16 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
         .filter(AdminRequest.status == "approved", AdminRequest.reviewed_at.isnot(None))
         # internal precision of InvaderQuest's coarse level: nothing happened on the site
         .filter(or_(AdminRequest.refines_state.is_(None), AdminRequest.refines_state.is_(False)))
+        # a sync job only filling empty points / pose date / photo: catalogue completion,
+        # not news (a filled location stays: it's a "discovered")
+        .filter(not_(and_(
+            AdminRequest.source.in_(AUTOMATED_SOURCES),
+            AdminRequest.request_type == "modify",
+            AdminRequest.proposed_state.is_(None),
+            AdminRequest.proposed_latitude.is_(None),
+            AdminRequest.proposed_longitude.is_(None),
+            AdminRequest.proposed_name.is_(None),
+        )))
     )
     ann_q = db.query(Announcement)
 
@@ -301,10 +316,12 @@ def notification_event(
     """
     name = invader.name if invader else admin_req.proposed_name
     kind = _classify_transition(admin_req, invader, previous_state, previous_latitude, previous_longitude)
-    texts = {
-        lang: (title, body_template.format(label=name or _fallback_label(kind, lang)))
-        for lang, (title, body_template) in NOTIFICATION_COPY[kind].items()
-    }
+    unlocated = invader is None or invader.latitude is None or invader.longitude is None
+    texts = {}
+    for lang, (title, body_template) in NOTIFICATION_COPY[kind].items():
+        if kind == "create" and unlocated:
+            body_template = CREATE_WITHOUT_LOCATION_BODY[lang]
+        texts[lang] = (title, body_template.format(label=name or _fallback_label(kind, lang)))
     return kind, texts
 
 

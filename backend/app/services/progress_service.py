@@ -41,6 +41,13 @@ def list_for_user(
     return query.all()
 
 
+def list_ids_for_user(db: Session, user_id: int) -> List[int]:
+    """Every capture id of a user. Clients diff it against their local cache to drop
+    captures removed elsewhere (another device, a full flash import) — delta sync
+    only reports created / updated rows."""
+    return [r[0] for r in db.query(UserProgress.id).filter(UserProgress.user_id == user_id).all()]
+
+
 def flash(db: Session, user_id: int, invader_id: int) -> UserProgress:
     """Record that `user_id` has flashed `invader_id`. Idempotency is enforced:
     a second flash for the same pair raises CaptureAlreadyExists."""

@@ -36,6 +36,16 @@ def get_user_captures(
     return progress_service.list_for_user(db, user_id, updated_since)
 
 
+@router.get("/user/{user_id}/ids")
+def get_user_capture_ids(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    _check_owner_or_admin(user_id, current_user)
+    return {"ids": progress_service.list_ids_for_user(db, user_id)}
+
+
 @router.post("/", response_model=UserProgressOut)
 def add_capture(
     progress: UserProgressCreate,
