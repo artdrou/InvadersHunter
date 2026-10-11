@@ -429,7 +429,11 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Impossible de charger InvaderSpotter. Vérifiez votre connexion.",
     "discoveredByLabel": "Découvert par",
-    "updatedByLabel": "Mis à jour par"
+    "updatedByLabel": "Mis à jour par",
+    "alreadyPending": "Tu as déjà une proposition en attente pour cet invader : elle doit être validée avant d'en envoyer une autre.",
+    "sendFailed": "Envoi impossible, réessaie plus tard.",
+    "queuedTitle": "Hors ligne",
+    "queuedBody": "Ta proposition est enregistrée : elle sera envoyée à la prochaine synchronisation."
   },
   "comments": {
     "title": "Commentaires",

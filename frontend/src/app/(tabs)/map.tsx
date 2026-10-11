@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { isAxiosError } from "axios";
+import { apiErrorDetail } from "@/services/api-client";
 import { useTranslation } from "react-i18next";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -63,6 +65,8 @@ export default function MapScreen() {
   const setPickedForList = useLocateStore((s) => s.setPickedForList);
   // The current location pick was started from a list: hand the result back there
   const pickReturnRef = useRef<PickReturnTarget | null>(null);
+  // The pick comes from a missing location's "+ Add": validating proposes it directly
+  const pickSendRef = useRef(false);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
   const selectedInvaderRef = useRef<InvaderWithState | null>(null);
@@ -133,6 +137,7 @@ export default function MapScreen() {
       if (!inv) return;
       setPickForList(null);
       pickReturnRef.current = pickForList.target;
+      pickSendRef.current = !!pickForList.send;
       startPickingLocation(inv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pickForList, invadersWithState]),
@@ -195,7 +200,8 @@ export default function MapScreen() {
   }
 
   // ── Modify-invader location picker ────────────────────────────────────────
-  async function startPickingLocation(invader: InvaderWithState) {
+  async function startPickingLocation(invader: InvaderWithState, send?: boolean) {
+    if (send !== undefined) pickSendRef.current = send;
     // Start from the proposal in progress, else the known location; an invader
     // without one (in the list, not on the map) starts from the user, else the map center.
     let start: [number, number] | null = null;   // [lat, lon]
@@ -219,22 +225,44 @@ export default function MapScreen() {
     const c = await mapRef.current?.getCenter();
     const inv = picking.invader;
     setPicking(null);
+    const send = pickSendRef.current && c != null;
+    pickSendRef.current = false;
+    if (send) await proposeLocation(inv, c![1], c![0]);
     const target = pickReturnRef.current;
     if (target) {
       pickReturnRef.current = null;
-      if (c) setPickedForList({ invaderId: inv.id, target, lon: c[0], lat: c[1] });
+      if (c) setPickedForList({ invaderId: inv.id, target, lon: c[0], lat: c[1], sent: send });
       router.navigate(PICK_RETURN_ROUTES[target]);
       return;
     }
+    if (send) { selectInvader(inv); return; }   // popup back, showing the proposal as sent
     if (c) {
       setPendingCoords({ invaderId: inv.id, lon: c[0], lat: c[1] });
     }
     selectInvader(inv);
   }
 
+  /** "+ Add" a missing location: the picked point is proposed as is, no form. */
+  async function proposeLocation(invader: InvaderWithState, lat: number, lon: number) {
+    try {
+      const req = await submitModifyRequest({ invader_id: invader.id, proposed_latitude: lat, proposed_longitude: lon });
+      if (req === null) {
+        Alert.alert(t("popup.queuedTitle"), t("popup.queuedBody"));
+      } else {
+        hapticSuccess();
+        toast.show();
+      }
+    } catch (e) {
+      Alert.alert(t("popup.update"), isAxiosError(e) && e.response?.status === 409
+        ? t("popup.alreadyPending")
+        : apiErrorDetail(e) ?? t("popup.sendFailed"));
+    }
+  }
+
   function cancelPicking() {
     if (!picking) return;
     hapticTap();
+    pickSendRef.current = false;
     const inv = picking.invader;
     setPicking(null);
     const target = pickReturnRef.current;

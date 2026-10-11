@@ -7,8 +7,10 @@ export const PICK_RETURN_ROUTES: Record<PickReturnTarget, "/(tabs)/invader" | "/
   incomplete: "/incomplete",
 };
 
-type PickRequest = { invaderId: number; target: PickReturnTarget };
-type PickedLocation = PickRequest & { lat: number; lon: number };
+/** `send`: the "+ Add" of a missing location — validating the picker proposes it right away. */
+type PickRequest = { invaderId: number; target: PickReturnTarget; send?: boolean };
+/** `sent`: the map already proposed it (the list just reopens the invader), else fill the form. */
+type PickedLocation = { invaderId: number; target: PickReturnTarget; lat: number; lon: number; sent?: boolean };
 
 type LocateStore = {
   pendingInvaderId: number | null;

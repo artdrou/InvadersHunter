@@ -18,7 +18,8 @@ type Props = {
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
-  onPickLocation?: (invader: InvaderWithState) => void;
+  /** `send`: the "+ Add" of a missing location — validating the picker proposes it directly. */
+  onPickLocation?: (invader: InvaderWithState, send?: boolean) => void;
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
   onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<UserRequest | null>;
@@ -45,7 +46,7 @@ export function InvaderPopup({
   // anything else opens the edit form (photo also asks for the photo)
   function addMissing(field: EditField) {
     requireAccount(() => {
-      if (field === "location") { onPickLocation?.(invader); return; }
+      if (field === "location") { onPickLocation?.(invader, true); return; }
       setEditField(field);
       setMode("edit");
     });

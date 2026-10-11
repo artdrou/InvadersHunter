@@ -307,6 +307,16 @@ describe('submitModifyRequestOfflineAware', () => {
     expect(insertPendingSync).not.toHaveBeenCalled();
   });
 
+  it('stores the created request locally, so the panel shows it as sent', async () => {
+    const created = { id: 77, invader_id: 5, request_type: 'modify', status: 'pending' }
+    apiSubmitModify.mockResolvedValue(created);
+
+    const res = await submitModifyRequestOfflineAware(mockDb, 42, modifyPayload);
+
+    expect(res).toBe(created);
+    expect(upsertRequests).toHaveBeenCalledWith(mockDb, [created]);
+  });
+
   it('queues as modify_request when offline (network error)', async () => {
     apiSubmitModify.mockRejectedValue({ code: 'ERR_NETWORK' });
 
