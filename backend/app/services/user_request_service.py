@@ -19,6 +19,7 @@ from ..models.user_request import UserRequest
 from ..models.admin_request import AdminRequest
 from ..core.geo_utils import compute_barycenter, haversine_m, _simple_centroid
 from ..core.name_utils import normalize_name
+from ..core.spotter_scraper import split_name
 from ..core.db_utils import safe_commit
 from . import invader_service
 
@@ -87,12 +88,29 @@ def compute_confidence(siblings: list) -> int:
     return round(sum(factors) / len(factors) * 100)
 
 
+def canonical_name(name: str) -> str:
+    """Name key of a proposal: normalized, zero padding dropped ("pa 0099" -> "PA_99"),
+    so spelling variants of one invader are one proposal (duplicate check + votes)."""
+    norm = normalize_name(name)
+    key = split_name(norm)
+    return f"{key[0]}_{key[1]}" if key else norm
+
+
+def _one_per_user(requests: list) -> list:
+    """Each user's latest submission only: votes count people, not requests."""
+    latest: dict = {}
+    for r in sorted(requests, key=lambda r: (r.created_at or datetime.min, r.id or 0)):
+        latest[r.user_id] = r
+    return list(latest.values())
+
+
 def aggregate_request(db: Session, new_request: UserRequest) -> None:
     """Called right after a new UserRequest is added (and flushed) to the session."""
 
-    named = new_request.normalized_name is not None
+    # Creations are grouped by (canonical) name; modifications by target invader,
+    # whatever name they carry — one pending AdminRequest per invader.
+    named = new_request.request_type == "create"
 
-    # Group by normalized_name when present; by invader_id for nameless modify requests.
     if named:
         siblings = (
             db.query(UserRequest)
@@ -108,7 +126,6 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             db.query(UserRequest)
             .filter(
                 UserRequest.invader_id == new_request.invader_id,
-                UserRequest.normalized_name.is_(None),
                 UserRequest.request_type == "modify",
                 UserRequest.status == "pending",
             )
@@ -117,6 +134,10 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
 
     if len(siblings) < AGGREGATION_THRESHOLD:
         return
+    all_siblings = siblings
+    # One vote per user: a duplicate that slipped through (e.g. two simultaneous
+    # sends) must not inflate the count, the confidence or the aggregated values.
+    siblings = _one_per_user(siblings)
 
     # Compute aggregated coordinates from siblings that have coordinates
     coords = [
@@ -158,7 +179,6 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             db.query(AdminRequest)
             .filter(
                 AdminRequest.invader_id == new_request.invader_id,
-                AdminRequest.normalized_name.is_(None),
                 AdminRequest.request_type == "modify",
                 AdminRequest.status == "pending",
             )
@@ -208,8 +228,8 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
         admin_req.request_count = len(siblings)
         admin_req.confidence = confidence
 
-    # Link every sibling to this AdminRequest
-    for req in siblings:
+    # Link every submission (duplicates included) to this AdminRequest
+    for req in all_siblings:
         req.admin_request_id = admin_req.id
 
 
@@ -228,16 +248,17 @@ def submit(db: Session, current_user: User, data) -> UserRequest:
     if data.request_type == "create":
         invader_service.ensure_new(db, data.proposed_name)   # InvaderAlreadyExists
 
-    norm = normalize_name(data.proposed_name) if data.proposed_name else None
+    norm = canonical_name(data.proposed_name) if data.proposed_name else None
 
-    # Duplicate check: by normalized name when present, otherwise by invader_id
-    if norm:
+    # One pending proposal per user and target: a creation by (canonical) name, a
+    # modification by invader whatever name it carries — so nobody can stack votes
+    if data.request_type == "create":
         duplicate = (
             db.query(UserRequest)
             .filter(
                 UserRequest.user_id == current_user.id,
                 UserRequest.normalized_name == norm,
-                UserRequest.request_type == data.request_type,
+                UserRequest.request_type == "create",
                 UserRequest.status == "pending",
             )
             .first()
