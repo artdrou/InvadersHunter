@@ -65,6 +65,13 @@ export type UserRequest = {
   status: string;
   proposed_name: string | null;
   updated_at: string | null;
+  // Proposed details (sent by the API): which ones a pending proposal covers
+  proposed_state?: string | null;
+  proposed_latitude?: number | null;
+  proposed_longitude?: number | null;
+  proposed_points?: number | null;
+  proposed_date_pose?: string | null;
+  proposed_image_url?: string | null;
 };
 
 export type Contributor = {

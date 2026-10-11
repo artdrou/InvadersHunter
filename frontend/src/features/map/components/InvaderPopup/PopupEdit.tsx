@@ -66,7 +66,8 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
     try {
       const req = await onSubmitModifyRequest({
         invader_id: invader.id,
-        proposed_state: invaderState || undefined,
+        // Only a changed state is a proposal (one pending proposal per detail)
+        proposed_state: invaderState && invaderState !== (invader.state ?? "") ? invaderState : undefined,
         proposed_latitude: pendingCoords?.lat,
         proposed_longitude: pendingCoords?.lon,
         proposed_points: pointsChanged ? points : undefined,

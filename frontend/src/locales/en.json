@@ -403,6 +403,7 @@
     "flash": "Flash",
     "unflash": "Unflash",
     "update": "Update",
+    "pendingDetail": "pending",
     "updateSent": "Update sent",
     "validate": "Validate",
     "sending": "Sending…",

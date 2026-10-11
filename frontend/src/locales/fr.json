@@ -403,6 +403,7 @@
     "flash": "Flash",
     "unflash": "Déflasher",
     "update": "Modifier",
+    "pendingDetail": "en attente",
     "updateSent": "Demande envoyée",
     "validate": "Valider",
     "sending": "Envoi…",

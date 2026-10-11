@@ -11,14 +11,17 @@ Public API:
 """
 
 from datetime import datetime
+from types import SimpleNamespace
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from ..models.user import User
 from ..models.user_request import UserRequest
 from ..models.admin_request import AdminRequest
+from ..models.space_invader import Invader
 from ..core.geo_utils import compute_barycenter, haversine_m, _simple_centroid
 from ..core.name_utils import normalize_name
+from ..core.spotter_scraper import split_name
 from ..core.db_utils import safe_commit
 from . import invader_service
 
@@ -87,12 +90,53 @@ def compute_confidence(siblings: list) -> int:
     return round(sum(factors) / len(factors) * 100)
 
 
+def canonical_name(name: str) -> str:
+    """Name key of a proposal: normalized, zero padding dropped ("pa 0099" -> "PA_99"),
+    so spelling variants of one invader are one proposal (duplicate check + votes)."""
+    norm = normalize_name(name)
+    key = split_name(norm)
+    return f"{key[0]}_{key[1]}" if key else norm
+
+
+def proposed_fields(req) -> set:
+    """Details a modify proposal touches. The photo isn't one: it's uploaded onto the
+    request after it is created (and several photos are fine)."""
+    fields = set()
+    if req.proposed_state is not None:
+        fields.add("state")
+    if req.proposed_latitude is not None or req.proposed_longitude is not None:
+        fields.add("location")
+    for name in ("points", "date_pose", "name", "description"):
+        if getattr(req, f"proposed_{name}") is not None:
+            fields.add(name)
+    return fields
+
+
+def _latest_per_user(requests: list, value) -> dict:
+    """user_id -> that user's latest non-null `value(request)`: one vote per person."""
+    latest: dict = {}
+    for r in sorted(requests, key=lambda r: (r.created_at or datetime.min, r.id or 0)):
+        v = value(r)
+        if v is not None:
+            latest[r.user_id] = v
+    return latest
+
+
+def _most_common(votes: dict):
+    """Most voted value (first proposed wins a tie), None without votes."""
+    if not votes:
+        return None
+    values = list(votes.values())
+    return max(values, key=values.count)
+
+
 def aggregate_request(db: Session, new_request: UserRequest) -> None:
     """Called right after a new UserRequest is added (and flushed) to the session."""
 
-    named = new_request.normalized_name is not None
+    # Creations are grouped by (canonical) name; modifications by target invader,
+    # whatever name they carry — one pending AdminRequest per invader.
+    named = new_request.request_type == "create"
 
-    # Group by normalized_name when present; by invader_id for nameless modify requests.
     if named:
         siblings = (
             db.query(UserRequest)
@@ -108,7 +152,6 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             db.query(UserRequest)
             .filter(
                 UserRequest.invader_id == new_request.invader_id,
-                UserRequest.normalized_name.is_(None),
                 UserRequest.request_type == "modify",
                 UserRequest.status == "pending",
             )
@@ -117,30 +160,34 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
 
     if len(siblings) < AGGREGATION_THRESHOLD:
         return
-
-    # Compute aggregated coordinates from siblings that have coordinates
-    coords = [
-        (r.proposed_latitude, r.proposed_longitude)
-        for r in siblings
-        if r.proposed_latitude is not None and r.proposed_longitude is not None
-    ]
-    center = compute_barycenter(coords) if coords else None
+    all_siblings = siblings
+    # One vote per user and per detail: each user's latest value of each proposed
+    # detail counts once. A user may propose the location, then the state (both
+    # merged into this AdminRequest), but repeating a detail never adds votes.
+    states = _latest_per_user(siblings, lambda r: r.proposed_state)
+    coords = _latest_per_user(
+        siblings,
+        lambda r: (r.proposed_latitude, r.proposed_longitude)
+        if r.proposed_latitude is not None and r.proposed_longitude is not None else None,
+    )
+    center = compute_barycenter(list(coords.values())) if coords else None
     agg_lat = center[0] if center else None
     agg_lon = center[1] if center else None
-
-    # Pick most common proposed_state across siblings (for nameless modify requests)
-    state_counts: dict[str, int] = {}
-    for r in siblings:
-        if r.proposed_state:
-            state_counts[r.proposed_state] = state_counts.get(r.proposed_state, 0) + 1
-    best_state = max(state_counts, key=lambda k: state_counts[k]) if state_counts else new_request.proposed_state
-
-    # Pick the most common proposed_name (or the first one as fallback)
-    name_counts: dict[str, int] = {}
-    for r in siblings:
-        if r.proposed_name:
-            name_counts[r.proposed_name] = name_counts.get(r.proposed_name, 0) + 1
-    best_name = max(name_counts, key=lambda k: name_counts[k]) if name_counts else new_request.proposed_name
+    best_state = _most_common(states) or new_request.proposed_state
+    best_name = _most_common(_latest_per_user(siblings, lambda r: r.proposed_name)) or new_request.proposed_name
+    agg_description = _most_common(_latest_per_user(siblings, lambda r: r.proposed_description))
+    agg_points = _most_common(_latest_per_user(siblings, lambda r: r.proposed_points))
+    agg_image_url = _most_common(_latest_per_user(siblings, lambda r: r.proposed_image_url))
+    agg_date_pose = _most_common(_latest_per_user(siblings, lambda r: r.proposed_date_pose))
+    voters = {r.user_id for r in siblings}
+    confidence = compute_confidence([
+        SimpleNamespace(
+            proposed_state=states.get(uid),
+            proposed_latitude=coords[uid][0] if uid in coords else None,
+            proposed_longitude=coords[uid][1] if uid in coords else None,
+        )
+        for uid in voters
+    ])
 
     # Find existing pending AdminRequest for the same target
     if named:
@@ -158,24 +205,11 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             db.query(AdminRequest)
             .filter(
                 AdminRequest.invader_id == new_request.invader_id,
-                AdminRequest.normalized_name.is_(None),
                 AdminRequest.request_type == "modify",
                 AdminRequest.status == "pending",
             )
             .first()
         )
-
-    # For fields without a meaningful aggregation strategy, use the first non-null value
-    first = next((r for r in siblings if r.proposed_description is not None), None)
-    agg_description = first.proposed_description if first else new_request.proposed_description
-    first_pts = next((r for r in siblings if r.proposed_points is not None), None)
-    agg_points = first_pts.proposed_points if first_pts else new_request.proposed_points
-    first_img = next((r for r in siblings if r.proposed_image_url is not None), None)
-    agg_image_url = first_img.proposed_image_url if first_img else new_request.proposed_image_url
-    first_date = next((r for r in siblings if r.proposed_date_pose is not None), None)
-    agg_date_pose = first_date.proposed_date_pose if first_date else new_request.proposed_date_pose
-
-    confidence = compute_confidence(siblings)
 
     if admin_req is None:
         admin_req = AdminRequest(
@@ -191,7 +225,7 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
             proposed_state=best_state,
             proposed_image_url=agg_image_url,
             proposed_date_pose=agg_date_pose,
-            request_count=len(siblings),
+            request_count=len(voters),
             confidence=confidence,
         )
         db.add(admin_req)
@@ -205,11 +239,11 @@ def aggregate_request(db: Session, new_request: UserRequest) -> None:
         admin_req.proposed_state = best_state
         admin_req.proposed_image_url = agg_image_url
         admin_req.proposed_date_pose = agg_date_pose
-        admin_req.request_count = len(siblings)
+        admin_req.request_count = len(voters)
         admin_req.confidence = confidence
 
-    # Link every sibling to this AdminRequest
-    for req in siblings:
+    # Link every submission (duplicates included) to this AdminRequest
+    for req in all_siblings:
         req.admin_request_id = admin_req.id
 
 
@@ -228,22 +262,29 @@ def submit(db: Session, current_user: User, data) -> UserRequest:
     if data.request_type == "create":
         invader_service.ensure_new(db, data.proposed_name)   # InvaderAlreadyExists
 
-    norm = normalize_name(data.proposed_name) if data.proposed_name else None
+    norm = canonical_name(data.proposed_name) if data.proposed_name else None
 
-    # Duplicate check: by normalized name when present, otherwise by invader_id
-    if norm:
+    # One pending proposal per user and target: a creation by (canonical) name; a
+    # modification per invader AND detail (location, state…): the same user may
+    # propose the location, then the state — both merged into one AdminRequest —
+    # but never stack votes on one detail
+    if data.request_type == "modify":
+        invader = db.query(Invader).filter(Invader.id == data.invader_id).first()
+        if invader is not None and data.proposed_state == invader.state:
+            data.proposed_state = None   # unchanged state (forms send it): not a proposal
+    if data.request_type == "create":
         duplicate = (
             db.query(UserRequest)
             .filter(
                 UserRequest.user_id == current_user.id,
                 UserRequest.normalized_name == norm,
-                UserRequest.request_type == data.request_type,
+                UserRequest.request_type == "create",
                 UserRequest.status == "pending",
             )
             .first()
         )
     else:
-        duplicate = (
+        mine = (
             db.query(UserRequest)
             .filter(
                 UserRequest.user_id == current_user.id,
@@ -251,8 +292,10 @@ def submit(db: Session, current_user: User, data) -> UserRequest:
                 UserRequest.request_type == "modify",
                 UserRequest.status == "pending",
             )
-            .first()
+            .all()
         )
+        already = set().union(*(proposed_fields(r) for r in mine)) if mine else set()
+        duplicate = bool(proposed_fields(data) & already)
     if duplicate:
         raise DuplicatePendingRequest()
 

@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react";
 import { useSQLiteContext } from "expo-sqlite";
+import { EDIT_FIELDS, type EditField } from "../edit-fields";
 
-/** Whether this user already has a pending modify request for the invader (local
- *  SQLite — works offline). `refresh` re-reads it, e.g. after sending one. */
-export function usePendingModify(invaderId: number): [boolean, () => void] {
+/**
+ * Details of the invader this user already proposed and that are still pending
+ * (local SQLite — works offline). One pending proposal per user, invader and
+ * detail: those details can't be proposed again until reviewed; the others can.
+ */
+export function usePendingFields(invaderId: number): Set<EditField> {
   const db = useSQLiteContext();
-  const [sent, setSent] = useState(false);
-  const [tick, setTick] = useState(0);
+  const [pending, setPending] = useState<Set<EditField>>(new Set());
   useEffect(() => {
-    db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM user_requests WHERE invader_id = ? AND request_type = ? AND status = ?',
+    db.getAllAsync<{ pending_fields: string | null }>(
+      'SELECT pending_fields FROM user_requests WHERE invader_id = ? AND request_type = ? AND status = ?',
       [invaderId, 'modify', 'pending'],
-    ).then((row) => setSent(!!row)).catch(() => {});
-  }, [invaderId, db, tick]);
-  return [sent, () => setTick((n) => n + 1)];
+    ).then((rows) => {
+      const fields = new Set<EditField>();
+      for (const row of rows) {
+        // Stored before the column existed: unknown, assume it covers everything
+        const list = row.pending_fields == null ? EDIT_FIELDS : row.pending_fields.split(',').filter(Boolean);
+        list.forEach((f) => fields.add(f as EditField));
+      }
+      setPending(fields);
+    }).catch(() => {});
+  }, [invaderId, db]);
+  return pending;
 }

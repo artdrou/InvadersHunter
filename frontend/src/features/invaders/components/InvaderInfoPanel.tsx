@@ -14,7 +14,7 @@ import {
 } from "@/features/comments";
 import { formatDate } from "../utils/invader-list";
 import { useInvaderOverview } from "../hooks/use-invader-overview";
-import { usePendingModify } from "../hooks/use-pending-modify";
+import { usePendingFields } from "../hooks/use-pending-modify";
 import { missingFields, type EditField } from "../edit-fields";
 import { MissingChip } from "./MissingChip";
 import type { InvaderWithState } from "../types";
@@ -52,11 +52,16 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
   const hasLocation = invader.latitude != null && invader.longitude != null;
-  const [alreadySent] = usePendingModify(invader.id);
-  // Missing details get a "+ Add" (not while a proposal is pending)
-  const missing = onModify && !alreadySent ? missingFields(invader) : new Set<EditField>();
-  const chip = (field: EditField) =>
-    missing.has(field) ? <MissingChip onPress={() => onModify?.(invader, field)} /> : undefined;
+  const pendingFields = usePendingFields(invader.id);
+  // Missing details get a "+ Add"; a detail already proposed shows "pending"
+  const missing = onModify ? missingFields(invader) : new Set<EditField>();
+  const chip = (field: EditField) => {
+    if (!missing.has(field)) return undefined;
+    if (pendingFields.has(field)) {
+      return <Text style={{ color: theme.textMuted, fontFamily: appFont, fontSize: sz(11) }}>{t('popup.pendingDetail')}</Text>;
+    }
+    return <MissingChip onPress={() => onModify?.(invader, field)} />;
+  };
   const stateLabel = invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--";
   // Full-form attribution: discoverer + most recent updater
   const lastModifier = contributors?.modified_by.length
@@ -157,10 +162,9 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
         <Pressable
           style={({ pressed }) => [styles.updateLink, pressed && styles.btnPressed]}
           onPress={() => { hapticTap(); onModify(invader, null); }}
-          disabled={alreadySent}
         >
-          <Text style={[styles.updateLinkText, { color: alreadySent ? theme.textMuted : theme.accent, fontFamily: appFont, fontSize: sz(14) }]}>
-            {alreadySent ? t('popup.updateSent') : t('popup.update')}
+          <Text style={[styles.updateLinkText, { color: theme.accent, fontFamily: appFont, fontSize: sz(14) }]}>
+            {t('popup.update')}
           </Text>
         </Pressable>
       )}
