@@ -423,6 +423,7 @@
     "sendingShort": "Sending…",
     "localiser": "Locate",
     "noLocation": "Location not known yet: this invader is in the list but not on the map.",
+    "proposeLocation": "Propose location",
     "spotter": "InvaderSpotter",
     "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
     "discoveredByLabel": "Discovered by",

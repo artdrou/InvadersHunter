@@ -11,7 +11,7 @@ import {
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
 import { applyMapFilter, useLocateStore } from "@/features/map";
 import { useNewsUnreadCount } from "@/features/news";
-import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
+import { useAuthStore, GUEST_USER_ID, useRequireAccount } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
@@ -44,6 +44,7 @@ export default function InvadersScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const router = useRouter();
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
+  const requireAccount = useRequireAccount();
   const newsUnread = useNewsUnreadCount();
 
   // ── derived data ─────────────────────────────────────────────────────────
@@ -151,6 +152,14 @@ export default function InvadersScreen() {
     router.push("/(tabs)/map");
   }, [setPendingInvader, router]);
 
+  // The edit form lives on the map (it picks locations there): open it straight away
+  const handleUpdate = useCallback((invader: InvaderWithState) => {
+    requireAccount(() => {
+      setPendingInvader(invader.id, true);
+      router.push("/(tabs)/map");
+    });
+  }, [requireAccount, setPendingInvader, router]);
+
   // ── render item ──────────────────────────────────────────────────────────
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
@@ -184,6 +193,7 @@ export default function InvadersScreen() {
             onFlash={handleFlash}
             onUnflash={handleUnflash}
             onLocate={handleLocate}
+            onUpdate={handleUpdate}
             containerStyle={{ borderTopWidth: 1, borderTopColor: theme.bgDivider, borderBottomWidth: 1, borderBottomColor: theme.bgDivider }}
           />
         );
@@ -210,6 +220,7 @@ export default function InvadersScreen() {
             onFlash={handleFlash}
             onUnflash={handleUnflash}
             onLocate={handleLocate}
+            onUpdate={handleUpdate}
             containerStyle={{
               marginHorizontal: GRID_GAP,
               marginBottom: GRID_GAP,
@@ -220,7 +231,7 @@ export default function InvadersScreen() {
           />
         );
     }
-  }, [toggleCity, toggleInvader, handleFlash, handleUnflash, handleLocate, theme, cellSize, expandedInvaderId]);
+  }, [toggleCity, toggleInvader, handleFlash, handleUnflash, handleLocate, handleUpdate, theme, cellSize, expandedInvaderId]);
 
   // ── render ───────────────────────────────────────────────────────────────
 

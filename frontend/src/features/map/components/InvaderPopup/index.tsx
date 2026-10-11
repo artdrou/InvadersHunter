@@ -14,6 +14,8 @@ import { PopupEdit } from "./PopupEdit";
 type Props = {
   invader: InvaderWithState;
   pendingCoords?: { lat: number; lon: number } | null;
+  /** Open in the edit form (Update from the list) instead of the read-only view. */
+  startInEdit?: boolean;
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
@@ -29,7 +31,7 @@ type Props = {
  * Both render inside the shared {@link PopupShell}.
  */
 export function InvaderPopup({
-  invader, pendingCoords, onClose, onFlash, onUnflash,
+  invader, pendingCoords, startInEdit, onClose, onFlash, onUnflash,
   onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest,
 }: Props) {
   const db = useSQLiteContext();
@@ -37,7 +39,7 @@ export function InvaderPopup({
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
-  const [mode, setMode] = useState<"view" | "edit">(pendingCoords ? "edit" : "view");
+  const [mode, setMode] = useState<"view" | "edit">(pendingCoords || startInEdit ? "edit" : "view");
   const [alreadySent, setAlreadySent] = useState(false);
 
   // Read from local SQLite — works offline, no network call.

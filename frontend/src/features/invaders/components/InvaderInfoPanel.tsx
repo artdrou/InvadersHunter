@@ -21,6 +21,8 @@ type Props = {
   onFlash: (inv: InvaderWithState) => void;
   onUnflash: (inv: InvaderWithState) => void;
   onLocate?: (inv: InvaderWithState) => void;
+  /** Propose changes (state, photo, location) — opens the map's edit form. */
+  onUpdate?: (inv: InvaderWithState) => void;
   containerStyle?: object;
 };
 
@@ -34,7 +36,7 @@ const STATE_KEYS: Record<string, string> = {
   "Unknown": "states.Unknown",
 };
 
-export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, containerStyle }: Props) {
+export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onUpdate, containerStyle }: Props) {
   const { t } = useTranslation();
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
@@ -137,6 +139,17 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, contai
         )}
       </View>
 
+      {onUpdate && (
+        <Pressable
+          style={({ pressed }) => [styles.updateLink, pressed && styles.btnPressed]}
+          onPress={() => { hapticTap(); onUpdate(invader); }}
+        >
+          <Text style={[styles.updateLinkText, { color: theme.accent, fontFamily: appFont, fontSize: sz(14) }]}>
+            {hasLocation ? t('popup.update') : t('popup.proposeLocation')}
+          </Text>
+        </Pressable>
+      )}
+
       <Pressable
         style={({ pressed }) => [styles.commentsBtn, pressed && styles.btnPressed]}
         onPress={() => { hapticTap(); setCommentsOpen(true); }}
@@ -208,6 +221,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: {},
+  updateLink: { alignItems: "center", paddingVertical: Spacing.one },
+  updateLinkText: {},
   commentsBtn: {
     flexDirection: "row",
     alignItems: "center",
