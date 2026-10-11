@@ -14,6 +14,8 @@ import {
 } from "@/features/comments";
 import { GOOGLE_MAPS_DIR_URL, INSTAGRAM_TAG_URL } from "@/constants/config";
 import { STATE_KEYS } from "@/features/invaders/state-options";
+import { missingFields, type EditField } from "@/features/invaders/edit-fields";
+import { MissingChip } from "@/features/invaders/components/MissingChip";
 import { formatDate } from "./format";
 import { InvaderSpotterModal } from "./InvaderSpotterModal";
 import type { PopupStyles } from "./styles";
@@ -25,13 +27,15 @@ type Props = {
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
   onModify: () => void;
+  /** "+ Add" on a missing detail. */
+  onAddMissing: (field: EditField) => void;
   onClose: () => void;
   theme: ThemeTokens;
   styles: PopupStyles;
 };
 
 /** Read-only popup: details, external links, flash/unflash, and the modify link. */
-export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onClose, theme, styles }: Props) {
+export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onModify, onAddMissing, onClose, theme, styles }: Props) {
   const { t } = useTranslation();
   const [spotterOpen, setSpotterOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -45,6 +49,9 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
   const seen = useCommentSeenStore((s) => s.seen);
   const commentCount = summary?.count ?? 0;
   const commentsHaveNew = hasNewComments(seen, invader.id, commentCount);
+  // Missing details get a "+ Add" (not for the ISS, nor while a proposal is pending)
+  const missing = isISS || alreadySent ? new Set<EditField>() : missingFields(invader);
+  const chip = (field: EditField) => missing.has(field) && <MissingChip onPress={() => onAddMissing(field)} />;
 
   return (
     <>
@@ -64,18 +71,41 @@ export function PopupView({ invader, isISS, alreadySent, onFlash, onUnflash, onM
       <View style={styles.infoBlock}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('popup.points')}</Text>
-          <Text style={styles.value}>{invader.points ?? "--"}</Text>
+          <View style={styles.valueWithChip}>
+            {chip("points")}
+            <Text style={styles.value}>{invader.points ?? "--"}</Text>
+          </View>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>{t('popup.state')}</Text>
-          <Text style={styles.value}>{invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--"}</Text>
+          <View style={styles.valueWithChip}>
+            {chip("state")}
+            <Text style={styles.value}>{invader.state ? t(STATE_KEYS[invader.state] ?? invader.state) : "--"}</Text>
+          </View>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>{t('popup.posed')}</Text>
-          <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
+          <View style={styles.valueWithChip}>
+            {chip("posed")}
+            <Text style={styles.value}>{formatDate(invader.date_pose ?? undefined)}</Text>
+          </View>
         </View>
+
+        {missing.has("location") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('popup.position')}</Text>
+            <View style={styles.valueWithChip}>{chip("location")}<Text style={styles.value}>--</Text></View>
+          </View>
+        )}
+
+        {missing.has("photo") && (
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('popup.photo')}</Text>
+            <View style={styles.valueWithChip}>{chip("photo")}<Text style={styles.value}>--</Text></View>
+          </View>
+        )}
 
         <View style={styles.row}>
           <Text style={styles.label}>{t('popup.flashed')}</Text>

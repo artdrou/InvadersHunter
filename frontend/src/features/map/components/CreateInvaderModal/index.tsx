@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { UserRequest } from "@/features/invaders/types";
 import { useInvaderStore } from "@/features/invaders/store";
@@ -12,10 +12,11 @@ import { useTheme } from "@/contexts/theme-context";
 import { makeStyles } from "./styles";
 import { cityNumberPadding, buildProposedName, findExistingInvader } from "./name";
 import { NameField } from "./NameField";
+import { PointsPicker } from "@/features/invaders/components/PointsPicker";
+import { YearInput, yearToDatePose } from "@/features/invaders/components/YearInput";
 import { StateGrid } from "@/features/invaders/components/StateGrid";
 import { PhotoField } from "@/features/invaders/components/PhotoField";
 
-const POINT_OPTIONS = [10, 20, 30, 40, 50, 100] as const;
 
 type Props = {
   lat: number;
@@ -66,7 +67,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         proposed_longitude: lon,
         proposed_state: invaderState || null,
         proposed_points: points,
-        proposed_date_pose: year.length === 4 ? `${year}-01-01` : null,
+        proposed_date_pose: yearToDatePose(year),
       });
       // req is null when queued offline — skip photo upload (no req id yet)
       if (req && imageUri) {
@@ -116,31 +117,10 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
         />
 
         <Text style={styles.fieldLabel}>{t('popup.points')}</Text>
-        <View style={styles.pointsRow}>
-          {POINT_OPTIONS.map((p) => {
-            const selected = points === p;
-            return (
-              <Pressable
-                key={p}
-                style={[styles.pointOption, selected && styles.stateOptionSelected]}
-                onPress={() => setPoints(selected ? null : p)}
-              >
-                <Text style={[styles.pointOptionText, selected && styles.stateOptionTextSelected]}>{p}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <PointsPicker value={points} onChange={setPoints} />
 
         <Text style={styles.fieldLabel}>{t('popup.yearOptional')}</Text>
-        <TextInput
-          style={[styles.input, styles.yearInput]}
-          placeholder={t('popup.yearPlaceholder')}
-          placeholderTextColor={theme.textMuted}
-          value={year}
-          onChangeText={(v) => setYear(v.replace(/\D/g, ""))}
-          keyboardType="numeric"
-          maxLength={4}
-        />
+        <YearInput value={year} onChange={setYear} />
 
         <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
         <StateGrid value={invaderState} onSelect={(s) => setInvaderState(invaderState === s ? "" : s)} />

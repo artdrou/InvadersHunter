@@ -58,9 +58,11 @@ export default function MapScreen() {
   const toast = useToast();
 
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
-  const pendingEdit = useLocateStore((s) => s.pendingEdit);
-  // Invader whose popup opens in the edit form (Update from the list)
-  const [editInvaderId, setEditInvaderId] = useState<number | null>(null);
+  const pickForList = useLocateStore((s) => s.pickForList);
+  const setPickForList = useLocateStore((s) => s.setPickForList);
+  const setPickedForList = useLocateStore((s) => s.setPickedForList);
+  // The current location pick was started from the list: hand the result back there
+  const pickReturnsToListRef = useRef(false);
   const setPendingInvader = useLocateStore((s) => s.setPendingInvader);
   const popupHeightRef = useRef<number>(0);
   const selectedInvaderRef = useRef<InvaderWithState | null>(null);
@@ -108,10 +110,8 @@ export default function MapScreen() {
       if (invadersWithState.length === 0) return;
       const inv = invadersWithState.find((i) => i.id === pendingInvaderId);
       if (!inv) return;
-      const edit = pendingEdit;
       setPendingInvader(null);
       pendingZoomRef.current = MapZoom.detail;
-      setEditInvaderId(edit ? inv.id : null);
       selectInvader(inv);
       // The camera move (via handlePopupHeight) fires during the tab/focus
       // transition and can be dropped or clobbered by the map's initial camera.
@@ -122,7 +122,20 @@ export default function MapScreen() {
       if (locateTimerRef.current) clearTimeout(locateTimerRef.current);
       locateTimerRef.current = setTimeout(() => centerOnInvader(inv, popupHeightRef.current || 0, MapZoom.detail), Motion.reassert);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingInvaderId, pendingEdit, invadersWithState]),
+    }, [pendingInvaderId, invadersWithState]),
+  );
+
+  // "+ Add" location from the list: open the picker straight away (same focus rule as above)
+  useFocusEffect(
+    useCallback(() => {
+      if (pickForList == null) return;
+      const inv = invadersWithState.find((i) => i.id === pickForList);
+      if (!inv) return;
+      setPickForList(null);
+      pickReturnsToListRef.current = true;
+      startPickingLocation(inv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pickForList, invadersWithState]),
   );
 
   // Cancel any pending locate re-assert on unmount.
@@ -204,11 +217,17 @@ export default function MapScreen() {
     if (!picking) return;
     hapticTap();
     const c = await mapRef.current?.getCenter();
-    if (c) {
-      setPendingCoords({ invaderId: picking.invader.id, lon: c[0], lat: c[1] });
-    }
     const inv = picking.invader;
     setPicking(null);
+    if (pickReturnsToListRef.current) {
+      pickReturnsToListRef.current = false;
+      if (c) setPickedForList({ invaderId: inv.id, lon: c[0], lat: c[1] });
+      router.navigate("/(tabs)/invader");
+      return;
+    }
+    if (c) {
+      setPendingCoords({ invaderId: inv.id, lon: c[0], lat: c[1] });
+    }
     selectInvader(inv);
   }
 
@@ -217,6 +236,11 @@ export default function MapScreen() {
     hapticTap();
     const inv = picking.invader;
     setPicking(null);
+    if (pickReturnsToListRef.current) {
+      pickReturnsToListRef.current = false;
+      router.navigate("/(tabs)/invader");
+      return;
+    }
     selectInvader(inv);
   }
 
@@ -316,12 +340,11 @@ export default function MapScreen() {
               key={selectedInvader.id}
               invader={selectedInvader}
               pendingCoords={pendingCoords?.invaderId === selectedInvader.id ? { lat: pendingCoords.lat, lon: pendingCoords.lon } : null}
-              startInEdit={editInvaderId === selectedInvader.id}
-              onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); setEditInvaderId(null); }}
+              onClose={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); }}
               onFlash={handleFlash}
               onUnflash={handleUnflash}
               onPickLocation={startPickingLocation}
-              onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); setEditInvaderId(null); toast.show(); }}
+              onRequestSent={() => { selectedInvaderRef.current = null; setSelectedInvader(null); setPendingCoords(null); toast.show(); }}
               onSubmitModifyRequest={submitModifyRequest}
             />
           </View>

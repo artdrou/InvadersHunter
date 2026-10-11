@@ -37,6 +37,7 @@ export type ModifyRequestPayload = {
   proposed_longitude?: number | null;
   proposed_points?: number | null;
   proposed_state?: string | null;
+  proposed_date_pose?: string | null;   // "YYYY-01-01"
 };
 
 export async function submitModifyRequest(payload: ModifyRequestPayload): Promise<UserRequest> {

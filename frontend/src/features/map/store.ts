@@ -1,16 +1,25 @@
 import { create } from 'zustand';
 
+type PickedLocation = { invaderId: number; lat: number; lon: number };
+
 type LocateStore = {
   pendingInvaderId: number | null;
-  /** Open the invader's popup straight in edit mode (Update from the list). */
-  pendingEdit: boolean;
-  setPendingInvader: (id: number | null, edit?: boolean) => void;
+  setPendingInvader: (id: number | null) => void;
+  /** List view: open the map's location picker for this invader, then go back to the list. */
+  pickForList: number | null;
+  setPickForList: (id: number | null) => void;
+  /** Location picked for the list's edit form (consumed by the list). */
+  pickedForList: PickedLocation | null;
+  setPickedForList: (picked: PickedLocation | null) => void;
 };
 
 export const useLocateStore = create<LocateStore>()((set) => ({
   pendingInvaderId: null,
-  pendingEdit: false,
-  setPendingInvader: (id, edit = false) => set({ pendingInvaderId: id, pendingEdit: id != null && edit }),
+  setPendingInvader: (id) => set({ pendingInvaderId: id }),
+  pickForList: null,
+  setPickForList: (id) => set({ pickForList: id }),
+  pickedForList: null,
+  setPickedForList: (picked) => set({ pickedForList: picked }),
 }));
 
 type HeadingStore = {

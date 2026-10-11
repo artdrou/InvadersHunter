@@ -1,21 +1,21 @@
 import { useLocateStore } from '../features/map/store'
 
-describe('useLocateStore', () => {
-  beforeEach(() => useLocateStore.getState().setPendingInvader(null))
-
-  it('opens the popup in view mode by default (Locate)', () => {
-    useLocateStore.getState().setPendingInvader(12)
-    expect(useLocateStore.getState()).toMatchObject({ pendingInvaderId: 12, pendingEdit: false })
+describe('useLocateStore — list ↔ map location picking', () => {
+  beforeEach(() => {
+    const s = useLocateStore.getState()
+    s.setPickForList(null)
+    s.setPickedForList(null)
   })
 
-  it('can open it straight in the edit form (Update from the list)', () => {
-    useLocateStore.getState().setPendingInvader(12, true)
-    expect(useLocateStore.getState()).toMatchObject({ pendingInvaderId: 12, pendingEdit: true })
+  it('asks the map to open the picker for an invader of the list', () => {
+    useLocateStore.getState().setPickForList(12)
+    expect(useLocateStore.getState().pickForList).toBe(12)
   })
 
-  it('clearing the pending invader also clears the edit flag', () => {
-    useLocateStore.getState().setPendingInvader(12, true)
-    useLocateStore.getState().setPendingInvader(null, true)
-    expect(useLocateStore.getState()).toMatchObject({ pendingInvaderId: null, pendingEdit: false })
+  it('hands the picked location back to the list, which consumes it', () => {
+    useLocateStore.getState().setPickedForList({ invaderId: 12, lat: 65.58, lon: 22.15 })
+    expect(useLocateStore.getState().pickedForList).toEqual({ invaderId: 12, lat: 65.58, lon: 22.15 })
+    useLocateStore.getState().setPickedForList(null)
+    expect(useLocateStore.getState().pickedForList).toBeNull()
   })
 })
