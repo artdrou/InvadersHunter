@@ -84,6 +84,11 @@ NOTIFICATION_COPY: Dict[str, Dict[str, Tuple[str, str]]] = {
         "en": ("Invader updated", "{label} has been updated."),
     },
 }
+# Body of "create" when the new invader has no location yet: it's in the list, not on the map.
+CREATE_WITHOUT_LOCATION_BODY: Dict[str, str] = {
+    "fr": "{label} a ete ajoute a la liste (position a venir).",
+    "en": "{label} was added to the list (location to come).",
+}
 NOTIFICATION_LANGUAGES = ("fr", "en")
 DEFAULT_NOTIFICATION_LANGUAGE = "fr"
 
@@ -301,10 +306,12 @@ def notification_event(
     """
     name = invader.name if invader else admin_req.proposed_name
     kind = _classify_transition(admin_req, invader, previous_state, previous_latitude, previous_longitude)
-    texts = {
-        lang: (title, body_template.format(label=name or _fallback_label(kind, lang)))
-        for lang, (title, body_template) in NOTIFICATION_COPY[kind].items()
-    }
+    unlocated = invader is None or invader.latitude is None or invader.longitude is None
+    texts = {}
+    for lang, (title, body_template) in NOTIFICATION_COPY[kind].items():
+        if kind == "create" and unlocated:
+            body_template = CREATE_WITHOUT_LOCATION_BODY[lang]
+        texts[lang] = (title, body_template.format(label=name or _fallback_label(kind, lang)))
     return kind, texts
 
 

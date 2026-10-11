@@ -39,9 +39,17 @@ def test_create_event():
     assert texts["en"] == ("New invader", "NY_42 was added to the map.")
 
 
+def test_create_event_without_location_is_not_on_the_map():
+    """e.g. LAP_50, created from a news without GPS: in the list, not on the map."""
+    req = AdminRequest(request_type="create", proposed_name="LAP_50")
+    texts = notification_texts(req, _invader(name="LAP_50", latitude=None, longitude=None))
+    assert texts["fr"] == ("Nouvel invader", "LAP_50 a ete ajoute a la liste (position a venir).")
+    assert texts["en"] == ("New invader", "LAP_50 was added to the list (location to come).")
+
+
 def test_create_event_without_name_uses_language_specific_fallback():
     req = AdminRequest(request_type="create", proposed_name=None)
-    texts = notification_texts(req, None)
+    texts = notification_texts(req, _invader(name=None))
     assert texts["fr"] == ("Nouvel invader", "Un nouvel invader a ete ajoute a la carte.")
     assert texts["en"] == ("New invader", "A new invader was added to the map.")
 
