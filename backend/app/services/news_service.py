@@ -9,10 +9,10 @@ small `announcements` table. Both are merged into one date-sorted feed.
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import or_
+from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import Session
 
-from ..models.admin_request import AdminRequest
+from ..models.admin_request import AUTOMATED_SOURCES, AdminRequest
 from ..models.user_request import UserRequest
 from ..models.user import User
 from ..models.space_invader import Invader
@@ -128,6 +128,16 @@ def list_news(db: Session, before: Optional[datetime], limit: int) -> List[NewsI
         .filter(AdminRequest.status == "approved", AdminRequest.reviewed_at.isnot(None))
         # internal precision of InvaderQuest's coarse level: nothing happened on the site
         .filter(or_(AdminRequest.refines_state.is_(None), AdminRequest.refines_state.is_(False)))
+        # a sync job only filling empty points / pose date / photo: catalogue completion,
+        # not news (a filled location stays: it's a "discovered")
+        .filter(not_(and_(
+            AdminRequest.source.in_(AUTOMATED_SOURCES),
+            AdminRequest.request_type == "modify",
+            AdminRequest.proposed_state.is_(None),
+            AdminRequest.proposed_latitude.is_(None),
+            AdminRequest.proposed_longitude.is_(None),
+            AdminRequest.proposed_name.is_(None),
+        )))
     )
     ann_q = db.query(Announcement)
 
