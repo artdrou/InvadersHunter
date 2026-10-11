@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { InvaderWithState } from "@/features/invaders";
@@ -6,7 +6,10 @@ import type { ModifyRequestPayload } from "@/features/invaders/services/invaders
 import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
 import { StateGrid } from "@/features/invaders/components/StateGrid";
-import { PhotoField } from "@/features/invaders/components/PhotoField";
+import { PhotoField, usePhotoPrompt } from "@/features/invaders/components/PhotoField";
+import { PointsPicker } from "@/features/invaders/components/PointsPicker";
+import { YearInput, yearToDatePose } from "@/features/invaders/components/YearInput";
+import type { EditField } from "@/features/invaders/edit-fields";
 import { DeleteInvaderButton } from "@/features/admin/components/DeleteInvaderButton";
 import type { PopupStyles } from "./styles";
 
@@ -22,11 +25,13 @@ type Props = {
   onPickLocation?: (invader: InvaderWithState) => void;
   onRequestSent?: () => void;
   onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<UserRequest | null>;
+  /** Opened from a missing detail's "+ Add": "photo" asks for the photo right away. */
+  initialField?: EditField | null;
   styles: PopupStyles;
 };
 
 /** Edit form: propose a new condition, position, and/or photo for an invader. */
-export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onRequestSent, onSubmitModifyRequest, styles }: Props) {
+export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onRequestSent, onSubmitModifyRequest, initialField, styles }: Props) {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
   const formMaxHeight = Math.max(FORM_MIN_HEIGHT, windowHeight - POPUP_CHROME_HEIGHT);
@@ -36,8 +41,21 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
   const [uploadError, setUploadError] = useState(false);
   const [invaderState, setInvaderState] = useState<string>(invader.state ?? "");
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [points, setPoints] = useState<number | null>(invader.points ?? null);
+  const knownYear = invader.date_pose ? invader.date_pose.slice(0, 4) : "";
+  const [year, setYear] = useState(knownYear);
+  const promptPhoto = usePhotoPrompt(setImageUri);
 
-  const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords && !imageUri;
+  // "+ Add" on a missing photo: straight to camera / gallery
+  useEffect(() => {
+    if (initialField === "photo") promptPhoto();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pointsChanged = points !== (invader.points ?? null);
+  const yearChanged = year !== knownYear && yearToDatePose(year) !== null;
+  const isUnchanged = invaderState === (invader.state ?? "") && !pendingCoords && !imageUri
+    && !pointsChanged && !yearChanged;
 
   async function handleSend() {
     setSubmitting(true);
@@ -49,6 +67,8 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
         proposed_state: invaderState || undefined,
         proposed_latitude: pendingCoords?.lat,
         proposed_longitude: pendingCoords?.lon,
+        proposed_points: pointsChanged ? points : undefined,
+        proposed_date_pose: yearChanged ? yearToDatePose(year) : undefined,
       });
       if (req && imageUri) {
         try {
@@ -89,6 +109,12 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
         <Text style={styles.fieldLabel}>{t('popup.state')}</Text>
         <StateGrid value={invaderState} onSelect={setInvaderState} />
 
+        <Text style={styles.fieldLabel}>{t('popup.points')}</Text>
+        <PointsPicker value={points} onChange={setPoints} />
+
+        <Text style={styles.fieldLabel}>{t('popup.yearOptional')}</Text>
+        <YearInput value={year} onChange={setYear} />
+
         <Text style={styles.fieldLabel}>{t('popup.position')}</Text>
         <Pressable
           style={({ pressed }) => [styles.positionRow, pressed && styles.btnPressed]}
@@ -97,7 +123,9 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
           <Text style={styles.positionValue}>
             {pendingCoords
               ? `${pendingCoords.lat.toFixed(6)}, ${pendingCoords.lon.toFixed(6)}`
-              : `${invader.latitude?.toFixed(6) ?? '—'}, ${invader.longitude?.toFixed(6) ?? '—'}`}
+              : invader.latitude != null && invader.longitude != null
+                ? `${invader.latitude.toFixed(6)}, ${invader.longitude.toFixed(6)}`
+                : t('popup.locationUnknown')}
           </Text>
           <Text style={styles.positionEdit}>{t('popup.edit')}</Text>
         </Pressable>

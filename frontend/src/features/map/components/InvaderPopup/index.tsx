@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { useSQLiteContext } from "expo-sqlite";
+import { useState } from "react";
 import { useTheme } from "@/contexts/theme-context";
 import { useRequireAccount } from "@/features/auth";
 import type { InvaderWithState } from "@/features/invaders";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
+import type { EditField } from "@/features/invaders/edit-fields";
+import { usePendingModify } from "@/features/invaders/hooks/use-pending-modify";
 import { makeStyles } from "./styles";
 import { PopupShell } from "./PopupShell";
 import { PopupView } from "./PopupView";
@@ -32,21 +33,23 @@ export function InvaderPopup({
   invader, pendingCoords, onClose, onFlash, onUnflash,
   onPickLocation, onHeightChange, onRequestSent, onSubmitModifyRequest,
 }: Props) {
-  const db = useSQLiteContext();
   const requireAccount = useRequireAccount();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
   const [mode, setMode] = useState<"view" | "edit">(pendingCoords ? "edit" : "view");
-  const [alreadySent, setAlreadySent] = useState(false);
+  const [editField, setEditField] = useState<EditField | null>(null);
+  const [alreadySent] = usePendingModify(invader.id);
 
-  // Read from local SQLite — works offline, no network call.
-  useEffect(() => {
-    db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM user_requests WHERE invader_id = ? AND request_type = ? AND status = ?',
-      [invader.id, 'modify', 'pending'],
-    ).then((row) => setAlreadySent(!!row)).catch(() => {});
-  }, [invader.id, db]);
+  // "+ Add" on a missing detail: location goes straight to the map picker,
+  // anything else opens the edit form (photo also asks for the photo)
+  function addMissing(field: EditField) {
+    requireAccount(() => {
+      if (field === "location") { onPickLocation?.(invader); return; }
+      setEditField(field);
+      setMode("edit");
+    });
+  }
 
   const isISS = invader.name === ISS_INVADER_NAME;
 
@@ -60,6 +63,7 @@ export function InvaderPopup({
           onPickLocation={onPickLocation}
           onRequestSent={onRequestSent}
           onSubmitModifyRequest={onSubmitModifyRequest}
+          initialField={editField}
           styles={styles}
         />
       ) : (
@@ -69,7 +73,8 @@ export function InvaderPopup({
           alreadySent={alreadySent}
           onFlash={onFlash}
           onUnflash={onUnflash}
-          onModify={() => requireAccount(() => setMode("edit"))}
+          onModify={() => requireAccount(() => { setEditField(null); setMode("edit"); })}
+          onAddMissing={addMissing}
           onClose={onClose}
           theme={theme}
           styles={styles}

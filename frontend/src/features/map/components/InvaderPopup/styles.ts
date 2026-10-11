@@ -57,6 +57,11 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(FontSize.lg),
       fontFamily: font,
     },
+    valueWithChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
     value: {
       color: t.text,
       fontSize: sz(FontSize.lg),

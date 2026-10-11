@@ -15,10 +15,9 @@ type Props = {
  * camera/gallery, previews the picked image, and clears it. Self-contained so
  * both forms share one implementation (and the picker logic lives in one place).
  */
-export function PhotoField({ imageUri, onChange }: Props) {
+/** Returns a function that asks camera / gallery, then calls `onPicked` with the photo. */
+export function usePhotoPrompt(onPicked: (uri: string) => void): () => void {
   const { t } = useTranslation();
-  const { theme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
 
   async function pickImage(source: "camera" | "library") {
     const opts: ImagePicker.ImagePickerOptions = {
@@ -30,16 +29,23 @@ export function PhotoField({ imageUri, onChange }: Props) {
     const result = source === "camera"
       ? await ImagePicker.launchCameraAsync(opts)
       : await ImagePicker.launchImageLibraryAsync(opts);
-    if (!result.canceled) onChange(result.assets[0].uri);
+    if (!result.canceled) onPicked(result.assets[0].uri);
   }
 
-  function handleAddPhoto() {
+  return () => {
     Alert.alert(t("popup.addPhotoTitle"), undefined, [
       { text: t("popup.camera"), onPress: () => pickImage("camera") },
       { text: t("popup.gallery"), onPress: () => pickImage("library") },
       { text: t("common.cancel"), style: "cancel" },
     ]);
-  }
+  };
+}
+
+export function PhotoField({ imageUri, onChange }: Props) {
+  const { t } = useTranslation();
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
+  const handleAddPhoto = usePhotoPrompt(onChange);
 
   if (imageUri) {
     return (

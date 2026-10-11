@@ -98,35 +98,6 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: font,
       marginTop: 2,
     },
-    pointsRow: {
-      flexDirection: "row",
-      gap: 5,
-    },
-    pointOption: {
-      flex: 1,
-      paddingVertical: 8,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.border,
-      alignItems: "center",
-    },
-    pointOptionText: {
-      color: t.textMuted,
-      fontSize: sz(13),
-      fontFamily: font,
-    },
-    yearInput: {
-      width: 90,
-    },
-    // Shared by the points row to mark the selected point value.
-    stateOptionSelected: {
-      borderColor: t.accent,
-      backgroundColor: t.bg,
-    },
-    stateOptionTextSelected: {
-      color: t.accent,
-      fontFamily: font,
-    },
     positionRow: {
       flexDirection: "row",
       justifyContent: "space-between",
