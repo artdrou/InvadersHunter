@@ -12,6 +12,7 @@ import {
   type ModifyRequestPayload, type CreateRequestPayload,
 } from '@/features/invaders/services/invaders.api';
 import { GUEST_USER_ID } from '@/features/auth/guest';
+import { logger } from '@/services/logger';
 import { claimCaptures } from '@/features/auth/services/account.api';
 import type { UserRequest } from '@/features/invaders/types';
 
@@ -52,7 +53,8 @@ export async function flushPendingSyncs(db: SQLiteDatabase, userId: number): Pro
       }
     } catch (err) {
       if (isNetworkError(err)) break; // still offline — try again later
-      // Server rejected it (conflict, 404, etc.) — drop and move on
+      // Server rejected it (conflict, 404, etc.) — drop and move on, but leave a trace
+      logger.warn(`pending ${item.type} dropped: rejected by the server`, err);
       await deletePendingSync(db, item.id);
     }
   }
@@ -70,7 +72,10 @@ export async function submitModifyRequestOfflineAware(
   payload: ModifyRequestPayload,
 ): Promise<UserRequest | null> {
   try {
-    return await apiSubmitModify(payload);
+    const req = await apiSubmitModify(payload);
+    // Known locally right away: the panel shows "sent" instead of offering "+ Add" again
+    try { await upsertRequests(db, [req]); } catch { /* next sync brings it anyway */ }
+    return req;
   } catch (err) {
     if (isNetworkError(err)) {
       await insertPendingSync(db, {

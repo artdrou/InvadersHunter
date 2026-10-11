@@ -429,7 +429,11 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
     "discoveredByLabel": "Discovered by",
-    "updatedByLabel": "Updated by"
+    "updatedByLabel": "Updated by",
+    "alreadyPending": "You already have a pending proposal for this invader: it must be reviewed before you send another one.",
+    "sendFailed": "Could not send, try again later.",
+    "queuedTitle": "Offline",
+    "queuedBody": "Your proposal is saved: it will be sent at the next sync."
   },
   "comments": {
     "title": "Comments",
