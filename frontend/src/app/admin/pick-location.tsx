@@ -11,6 +11,11 @@ import { ButtonFont, FontSize } from '@/constants/theme';
 import { useAdminPickerStore } from '@/features/admin/store';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { resolveMapStyle } from '@/features/map/styles';
+import { AimIcon } from '@/features/map/components/AimIcon';
+import { CoordinateInput } from '@/features/map/components/CoordinateInput';
+import { PICKER_BAR_HEIGHT } from '@/features/map/components/MapLocationPicker';
+import { locateOnce } from '@/features/map/locate-once';
+import { MapZoom } from '@/features/map/constants';
 
 import type { AdminSubmission } from '@/features/admin/types';
 
@@ -84,6 +89,15 @@ export default function AdminPickLocationScreen() {
       setPickedCoords({ lon: center[0], lat: center[1] });
     }
     router.back();
+  }
+
+  function goTo(lat: number, lon: number) {
+    cameraRef.current?.setCamera({ centerCoordinate: [lon, lat], zoomLevel: MapZoom.detail, animationDuration: 350 });
+  }
+
+  async function handleLocate() {
+    const pos = await locateOnce();
+    if (pos) goTo(pos.lat, pos.lon);
   }
 
   function handleCancel() {
@@ -165,8 +179,13 @@ export default function AdminPickLocationScreen() {
         <View style={[styles.pinStem, { backgroundColor: theme.accent }]} />
       </View>
 
+      {/* Type / paste a position */}
+      <View style={[styles.coords, { top: insets.top + 8 }]}>
+        <CoordinateInput onGoTo={goTo} />
+      </View>
+
       {/* Legend */}
-      <View style={[styles.legend, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+      <View style={[styles.legend, { top: insets.top + 64, backgroundColor: theme.bgElement, borderColor: theme.border }]}>
         {hasCurrentPos && (
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: theme.danger }]} />
@@ -181,6 +200,18 @@ export default function AdminPickLocationScreen() {
           <View style={[styles.legendDot, { backgroundColor: theme.accent }]} />
           <Text style={[styles.legendText, { fontFamily: appFont, color: theme.textMuted }]}>{t('admin.legendBarycenter')}</Text>
         </View>
+      </View>
+
+      {/* Center on me — same button as the main map */}
+      <View style={[styles.locate, { bottom: 32 + insets.bottom + PICKER_BAR_HEIGHT + 8 }]}>
+        <AimIcon
+          locked={false}
+          size={48}
+          colorCircle={theme.bgElement}
+          colorRing={theme.accent}
+          colorRingLocked={theme.bgElement}
+          onPress={handleLocate}
+        />
       </View>
 
       {/* Buttons */}
@@ -215,8 +246,14 @@ const styles = StyleSheet.create({
   pinStem: {
     position: 'absolute', width: 2, height: 10, top: '50%', marginTop: -1,
   },
+  coords: {
+    position: 'absolute', left: 16, right: 16, zIndex: 20,
+  },
+  locate: {
+    position: 'absolute', right: 16, width: 48, height: 48, zIndex: 20,
+  },
   legend: {
-    position: 'absolute', top: 20, right: 16,
+    position: 'absolute', right: 16,
     borderRadius: 8, borderWidth: 1, padding: 10, gap: 6, zIndex: 10,
   },
   legendRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -227,7 +264,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 12, zIndex: 20,
   },
   btn: {
-    flex: 1, paddingVertical: 14, borderRadius: 10,
+    flex: 1, height: PICKER_BAR_HEIGHT, justifyContent: 'center', borderRadius: 10,
     borderWidth: 1, borderColor: 'transparent', alignItems: 'center',
   },
   btnText:  { fontSize: FontSize.xl },

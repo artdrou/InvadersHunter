@@ -320,7 +320,15 @@
   "map": {
     "modificationSent": "Demande de modification envoyée",
     "createHere": "Créer un invader ici ?",
-    "createBtn": "Créer"
+    "createBtn": "Créer",
+    "addLocationBtn": "Invader existant",
+    "missingLocationTitle": "Ajouter un emplacement",
+    "missingLocationHint": "Invaders pas encore sur la carte. Choisis-en un pour proposer cet endroit comme emplacement.",
+    "missingLocationSearch": "Rechercher (PA_1234…)",
+    "missingLocationNoMatch": "Aucun invader sans emplacement ne correspond.",
+    "missingLocationEmpty": "Tous les invaders ont déjà un emplacement.",
+    "coordsPlaceholder": "Coordonnées ou lien de carte",
+    "coordsInvalid": "Coordonnées non reconnues"
   },
   "routing": {
     "modeAB": "Chasse",
