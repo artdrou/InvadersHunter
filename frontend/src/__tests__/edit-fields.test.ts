@@ -1,4 +1,4 @@
-import { missingFields, groupIncomplete } from '../features/invaders/edit-fields'
+import { missingFields, groupIncomplete, requestFields } from '../features/invaders/edit-fields'
 
 const complete = {
   points: 30, state: 'Good', date_pose: '2026-01-10', latitude: 65.58, longitude: 22.15,
@@ -44,5 +44,15 @@ describe('groupIncomplete', () => {
     const { groups, counts } = groupIncomplete(invaders, new Set(['photo', 'points']), cityOf)
     expect(groups.flatMap((g: any) => g.items.map((i: any) => i.invader.name))).toEqual(['BGK_46', 'LAP_8'])
     expect(counts).toEqual({ all: 3, location: 2, photo: 1, points: 1, state: 0, posed: 0 })
+  })
+})
+
+describe('requestFields', () => {
+  it('lists the details a proposal covers', () => {
+    expect(requestFields({ proposed_latitude: 65.8, proposed_longitude: 23.1 })).toEqual(['location'])
+    expect(requestFields({ proposed_state: 'Destroyed', proposed_points: 30, proposed_date_pose: '2026-01-01' }))
+      .toEqual(['points', 'state', 'posed'])
+    expect(requestFields({ proposed_image_url: 'https://r2/x.jpg' })).toEqual(['photo'])
+    expect(requestFields({})).toEqual([])
   })
 })

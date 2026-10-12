@@ -320,7 +320,15 @@
   "map": {
     "modificationSent": "Modification request sent",
     "createHere": "Create an invader here?",
-    "createBtn": "Create"
+    "createBtn": "Create",
+    "addLocationBtn": "Place a known invader",
+    "missingLocationTitle": "Add a location",
+    "missingLocationHint": "Invaders not on the map yet. Pick one to suggest this spot as its location.",
+    "missingLocationSearch": "Search (PA_1234…)",
+    "missingLocationNoMatch": "No invader without location matches this search.",
+    "missingLocationEmpty": "Every invader already has a location.",
+    "coordsPlaceholder": "Coordinates or map link",
+    "coordsInvalid": "Coordinates not recognised"
   },
   "routing": {
     "modeAB": "Hunt",
@@ -403,6 +411,7 @@
     "flash": "Flash",
     "unflash": "Unflash",
     "update": "Update",
+    "pendingDetail": "pending",
     "updateSent": "Update sent",
     "validate": "Validate",
     "sending": "Sending…",
@@ -429,7 +438,11 @@
     "spotter": "InvaderSpotter",
     "spotterError": "Couldn't load InvaderSpotter. Check your connection.",
     "discoveredByLabel": "Discovered by",
-    "updatedByLabel": "Updated by"
+    "updatedByLabel": "Updated by",
+    "alreadyPending": "You already have a pending proposal for this invader: it must be reviewed before you send another one.",
+    "sendFailed": "Could not send, try again later.",
+    "queuedTitle": "Offline",
+    "queuedBody": "Your proposal is saved: it will be sent at the next sync."
   },
   "comments": {
     "title": "Comments",

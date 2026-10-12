@@ -48,9 +48,13 @@ export function useListEditing({
   const pickedForList = useLocateStore((s) => s.pickedForList);
   const setPickedForList = useLocateStore((s) => s.setPickedForList);
   const [editing, setEditing] = useState<Editing | null>(null);
+  // Bumped to re-mount the info panel (re-reads "proposal pending") after a direct send
+  const [panelVersion, setPanelVersion] = useState(0);
 
-  const pickLocation = useCallback((invader: InvaderWithState) => {
-    setPickForList({ invaderId: invader.id, target });
+  // `send`: from the "+ Add" of a missing location, the picker's validate proposes it;
+  // from the edit form's Position field, the coordinates come back to the form
+  const pickLocation = useCallback((invader: InvaderWithState, send = false) => {
+    setPickForList({ invaderId: invader.id, target, send });
     router.navigate("/(tabs)/map");
   }, [setPickForList, target, router]);
 
@@ -58,7 +62,7 @@ export function useListEditing({
   // location goes straight to the map picker
   const handleModify = useCallback((invader: InvaderWithState, field: EditField | null) => {
     requireAccount(() => {
-      if (field === "location") { pickLocation(invader); return; }
+      if (field === "location") { pickLocation(invader, true); return; }
       setEditing({ invaderId: invader.id, field, coords: null });
     });
   }, [requireAccount, pickLocation]);
@@ -66,9 +70,14 @@ export function useListEditing({
   // Back from the map picker (only the list that asked consumes it)
   useEffect(() => {
     if (!pickedForList || pickedForList.target !== target) return;
-    const { invaderId, lat, lon } = pickedForList;
+    const { invaderId, lat, lon, sent } = pickedForList;
     setPickedForList(null);
     expandInvader(invaderId);
+    if (sent) {
+      setEditing(null);
+      setPanelVersion((v) => v + 1);
+      return;
+    }
     setEditing((prev) => ({
       invaderId,
       field: prev?.invaderId === invaderId ? prev.field : null,
@@ -89,7 +98,7 @@ export function useListEditing({
             pendingCoords={editing.coords}
             initialField={editing.field}
             onClose={() => setEditing(null)}
-            onPickLocation={pickLocation}
+            onPickLocation={(inv) => pickLocation(inv)}
             onRequestSent={() => hapticSuccess()}
             onSubmitModifyRequest={onSubmitModifyRequest}
             styles={popupStyles}
@@ -99,6 +108,7 @@ export function useListEditing({
     }
     return (
       <InvaderInfoPanel
+        key={`${invader.id}-${panelVersion}`}
         invader={invader}
         onFlash={onFlash}
         onUnflash={onUnflash}
@@ -107,7 +117,7 @@ export function useListEditing({
         containerStyle={containerStyle}
       />
     );
-  }, [editing, theme, popupStyles, pickLocation, onSubmitModifyRequest, onFlash, onUnflash, onLocate, handleModify]);
+  }, [editing, panelVersion, theme, popupStyles, pickLocation, onSubmitModifyRequest, onFlash, onUnflash, onLocate, handleModify]);
 
   return { renderPanel };
 }

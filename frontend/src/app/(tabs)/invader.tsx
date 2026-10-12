@@ -150,7 +150,9 @@ export default function InvadersScreen() {
 
   const handleLocate = useCallback((invader: InvaderWithState) => {
     setPendingInvader(invader.id);
-    router.push("/(tabs)/map");
+    // `navigate` switches to the existing map tab; `push` stacked a whole new tabs
+    // instance (a second map) on every "Localiser" — see app/news.tsx
+    router.navigate("/(tabs)/map");
   }, [setPendingInvader, router]);
 
   const expandInvader = useCallback((id: number) => setExpandedInvaderId(id), []);

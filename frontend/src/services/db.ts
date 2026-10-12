@@ -7,6 +7,7 @@
  */
 
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { requestFields } from '@/features/invaders/edit-fields';
 import type { Invader, Capture, UserRequest } from '@/features/invaders/types';
 
 export type PendingSync = {
@@ -83,6 +84,12 @@ export async function initDb(db: SQLiteDatabase): Promise<void> {
   const pendingSyncCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(pending_syncs)');
   if (!pendingSyncCols.some((c) => c.name === 'payload')) {
     await db.runAsync('ALTER TABLE pending_syncs ADD COLUMN payload TEXT');
+  }
+
+  const requestCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(user_requests)');
+  if (!requestCols.some((c) => c.name === 'pending_fields')) {
+    // Details a proposal covers, comma-separated (NULL on rows stored before: unknown)
+    await db.runAsync('ALTER TABLE user_requests ADD COLUMN pending_fields TEXT');
   }
 
   const captureCols = await db.getAllAsync<{ name: string }>('PRAGMA table_info(captures)');
@@ -263,12 +270,12 @@ export async function replaceRequests(db: SQLiteDatabase, userId: number, reques
     for (const r of requests) {
       await db.runAsync(
         `INSERT INTO user_requests
-          (id, user_id, invader_id, request_type, status, proposed_name, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          (id, user_id, invader_id, request_type, status, proposed_name, updated_at, pending_fields)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           r.id, r.user_id, r.invader_id ?? null,
           r.request_type, r.status, r.proposed_name ?? null,
-          r.updated_at ?? null,
+          r.updated_at ?? null, requestFields(r).join(','),
         ],
       );
     }
@@ -281,12 +288,12 @@ export async function upsertRequests(db: SQLiteDatabase, requests: UserRequest[]
     for (const r of requests) {
       await db.runAsync(
         `INSERT OR REPLACE INTO user_requests
-          (id, user_id, invader_id, request_type, status, proposed_name, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          (id, user_id, invader_id, request_type, status, proposed_name, updated_at, pending_fields)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           r.id, r.user_id, r.invader_id ?? null,
           r.request_type, r.status, r.proposed_name ?? null,
-          r.updated_at ?? null,
+          r.updated_at ?? null, requestFields(r).join(','),
         ],
       );
     }

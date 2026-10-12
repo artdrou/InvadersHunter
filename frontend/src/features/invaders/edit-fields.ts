@@ -50,3 +50,17 @@ export function groupIncomplete<T extends Incompletable>(
     }));
   return { groups, counts };
 }
+
+/** Details a proposal covers (one pending proposal per user, invader and detail). */
+export function requestFields(r: {
+  proposed_state?: string | null; proposed_latitude?: number | null; proposed_longitude?: number | null;
+  proposed_points?: number | null; proposed_date_pose?: string | null; proposed_image_url?: string | null;
+}): EditField[] {
+  const out: EditField[] = [];
+  if (r.proposed_latitude != null || r.proposed_longitude != null) out.push("location");
+  if (r.proposed_image_url) out.push("photo");
+  if (r.proposed_points != null) out.push("points");
+  if (r.proposed_state) out.push("state");
+  if (r.proposed_date_pose) out.push("posed");
+  return out;
+}

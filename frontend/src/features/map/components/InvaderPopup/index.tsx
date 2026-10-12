@@ -6,7 +6,7 @@ import { ISS_INVADER_NAME } from "@/features/iss/constants";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import type { UserRequest } from "@/features/invaders/types";
 import type { EditField } from "@/features/invaders/edit-fields";
-import { usePendingModify } from "@/features/invaders/hooks/use-pending-modify";
+import { usePendingFields } from "@/features/invaders/hooks/use-pending-modify";
 import { makeStyles } from "./styles";
 import { PopupShell } from "./PopupShell";
 import { PopupView } from "./PopupView";
@@ -18,7 +18,8 @@ type Props = {
   onClose: () => void;
   onFlash: (invader: InvaderWithState) => void;
   onUnflash: (invader: InvaderWithState) => void;
-  onPickLocation?: (invader: InvaderWithState) => void;
+  /** `send`: the "+ Add" of a missing location — validating the picker proposes it directly. */
+  onPickLocation?: (invader: InvaderWithState, send?: boolean) => void;
   onHeightChange?: (height: number) => void;
   onRequestSent?: () => void;
   onSubmitModifyRequest: (payload: ModifyRequestPayload) => Promise<UserRequest | null>;
@@ -39,13 +40,13 @@ export function InvaderPopup({
 
   const [mode, setMode] = useState<"view" | "edit">(pendingCoords ? "edit" : "view");
   const [editField, setEditField] = useState<EditField | null>(null);
-  const [alreadySent] = usePendingModify(invader.id);
+  const pendingFields = usePendingFields(invader.id);
 
   // "+ Add" on a missing detail: location goes straight to the map picker,
   // anything else opens the edit form (photo also asks for the photo)
   function addMissing(field: EditField) {
     requireAccount(() => {
-      if (field === "location") { onPickLocation?.(invader); return; }
+      if (field === "location") { onPickLocation?.(invader, true); return; }
       setEditField(field);
       setMode("edit");
     });
@@ -70,7 +71,7 @@ export function InvaderPopup({
         <PopupView
           invader={invader}
           isISS={isISS}
-          alreadySent={alreadySent}
+          pendingFields={pendingFields}
           onFlash={onFlash}
           onUnflash={onUnflash}
           onModify={() => requireAccount(() => { setEditField(null); setMode("edit"); })}

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, ScrollView, Alert, useWindowDimensions } from "react-native";
+import { isAxiosError } from "axios";
+import { apiErrorDetail } from "@/services/api-client";
 import { useTranslation } from "react-i18next";
 import type { InvaderWithState } from "@/features/invaders";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
@@ -37,7 +39,7 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
   const formMaxHeight = Math.max(FORM_MIN_HEIGHT, windowHeight - POPUP_CHROME_HEIGHT);
 
   const [submitting, setSubmitting] = useState(false);
-  const [offlineError, setOfflineError] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState(false);
   const [invaderState, setInvaderState] = useState<string>(invader.state ?? "");
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -59,12 +61,13 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
 
   async function handleSend() {
     setSubmitting(true);
-    setOfflineError(false);
+    setSendError(null);
     setUploadError(false);
     try {
       const req = await onSubmitModifyRequest({
         invader_id: invader.id,
-        proposed_state: invaderState || undefined,
+        // Only a changed state is a proposal (one pending proposal per detail)
+        proposed_state: invaderState && invaderState !== (invader.state ?? "") ? invaderState : undefined,
         proposed_latitude: pendingCoords?.lat,
         proposed_longitude: pendingCoords?.lon,
         proposed_points: pointsChanged ? points : undefined,
@@ -80,12 +83,16 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
           return;
         }
       }
+      // null = no network: queued, sent at the next sync — say so instead of a silent success
+      if (req === null) Alert.alert(t('popup.queuedTitle'), t('popup.queuedBody'));
       onRequestSent?.();
       onClose();
-    } catch {
-      // Only non-network errors reach here (offline is queued silently)
+    } catch (e) {
+      // Only server rejections reach here (no network is queued above)
       setSubmitting(false);
-      setOfflineError(true);
+      setSendError(isAxiosError(e) && e.response?.status === 409
+        ? t('popup.alreadyPending')
+        : apiErrorDetail(e) ?? t('popup.sendFailed'));
     }
   }
 
@@ -151,12 +158,12 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
         </Text>
       </Pressable>
 
-      {offlineError && <Text style={styles.offlineMsg}>{t('common.noInternet')}</Text>}
+      {sendError && <Text style={styles.offlineMsg}>{sendError}</Text>}
       {uploadError && <Text style={styles.offlineMsg}>{t('popup.photoUploadFailed')}</Text>}
 
       <Pressable
         style={({ pressed }) => [styles.cancelBtn, pressed && styles.btnPressed]}
-        onPress={() => { setOfflineError(false); onClose(); }}
+        onPress={() => { setSendError(null); onClose(); }}
       >
         <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
       </Pressable>
