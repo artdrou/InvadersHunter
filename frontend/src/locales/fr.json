@@ -321,7 +321,7 @@
     "modificationSent": "Demande de modification envoyée",
     "createHere": "Créer un invader ici ?",
     "createBtn": "Créer",
-    "addLocationBtn": "Invader existant",
+    "addLocationBtn": "Placer un invader connu",
     "missingLocationTitle": "Ajouter un emplacement",
     "missingLocationHint": "Invaders pas encore sur la carte. Choisis-en un pour proposer cet endroit comme emplacement.",
     "missingLocationSearch": "Rechercher (PA_1234…)",

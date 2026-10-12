@@ -9,6 +9,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { useConnectivityStore } from "@/services/connectivity";
 import { useAuthStore } from "@/features/auth";
 import { useFriendsStore } from "@/features/friends/store";
+import { usePickerChromeStore } from "@/features/map/store";
 import { FontSize } from "@/constants/theme";
 
 export default function TabsLayout() {
@@ -19,6 +20,7 @@ export default function TabsLayout() {
   const isAdmin = useAuthStore((s) => s.user?.is_admin ?? false);
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const invitesCount = useFriendsStore((s) => s.overview.incoming.length);
+  const pickerActive = usePickerChromeStore((s) => s.pickerActive);
 
   // Fresh friends list (and invite badge) per account; cleared on logout / user switch.
   useEffect(() => {
@@ -93,7 +95,10 @@ export default function TabsLayout() {
           tabBarLabelStyle: { fontFamily: appFont, fontSize: FontSize.xxs },
           tabBarActiveTintColor: theme.accent,
           tabBarInactiveTintColor: theme.textMuted,
-          tabBarStyle: { backgroundColor: theme.bg, borderTopColor: theme.border },
+          tabBarStyle: [
+            { backgroundColor: theme.bg, borderTopColor: theme.border },
+            pickerActive && { display: "none" },   // full-screen map location picker
+          ],
         }}
       >
         <Tabs.Screen

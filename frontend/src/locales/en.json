@@ -321,7 +321,7 @@
     "modificationSent": "Modification request sent",
     "createHere": "Create an invader here?",
     "createBtn": "Create",
-    "addLocationBtn": "Existing invader",
+    "addLocationBtn": "Place a known invader",
     "missingLocationTitle": "Add a location",
     "missingLocationHint": "Invaders not on the map yet. Pick one to suggest this spot as its location.",
     "missingLocationSearch": "Search (PA_1234…)",
