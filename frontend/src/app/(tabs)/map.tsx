@@ -13,8 +13,9 @@ import {
 } from "@/features/map";
 import type { MapFilter } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/WebMap.native";
-import { MapLocationPicker } from "@/features/map/components/MapLocationPicker";
+import { MapLocationPicker, PICKER_BAR_HEIGHT } from "@/features/map/components/MapLocationPicker";
 import { CreateHerePopup } from "@/features/map/components/CreateHerePopup";
+import { MissingLocationList } from "@/features/map/components/MissingLocationList";
 import { MapToast } from "@/features/map/components/MapToast";
 import { useToast } from "@/features/map/hooks/use-toast";
 import { useMapRouting } from "@/features/map/hooks/use-map-routing";
@@ -45,6 +46,8 @@ export default function MapScreen() {
   // Modify-invader location picker
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
   const [pendingCoords, setPendingCoords] = useState<{ invaderId: number; lat: number; lon: number } | null>(null);
+  // Long-press → "add a location to an existing invader" list
+  const [missingListOpen, setMissingListOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const isGuest = useAuthStore((s) => s.isGuest);
   const requireAccount = useRequireAccount();
@@ -203,20 +206,22 @@ export default function MapScreen() {
   async function startPickingLocation(invader: InvaderWithState, send?: boolean) {
     if (send !== undefined) pickSendRef.current = send;
     // Start from the proposal in progress, else the known location; an invader
-    // without one (in the list, not on the map) starts from the user, else the map center.
-    let start: [number, number] | null = null;   // [lat, lon]
-    if (pendingCoords?.invaderId === invader.id) start = [pendingCoords.lat, pendingCoords.lon];
-    else if (invader.latitude != null && invader.longitude != null) start = [invader.latitude, invader.longitude];
-    else {
-      const lonLat = mapRef.current?.getUserCoords() ?? await mapRef.current?.getCenter();
-      if (lonLat) start = [lonLat[1], lonLat[0]];
+    // without one (in the list, not on the map) starts right where the map was left.
+    const pending = pendingCoords?.invaderId === invader.id ? { lat: pendingCoords.lat, lon: pendingCoords.lon } : null;
+    const known = invader.latitude != null && invader.longitude != null
+      ? { lat: invader.latitude, lon: invader.longitude }
+      : null;
+    let start = pending ?? known;
+    if (!start) {
+      const c = await mapRef.current?.getCenter();
+      if (!c) return;
+      start = { lat: c[1], lon: c[0] };
     }
-    if (!start) return;
-    const [startLat, startLon] = start;
     setSelectedInvader(null);
     selectedInvaderRef.current = null;
-    setPicking({ invader, startLat, startLon });
-    mapRef.current?.centerOn(startLat, startLon, 0, MapZoom.detail);
+    setPicking({ invader, startLat: start.lat, startLon: start.lon });
+    // Zoom in only when jumping to the invader; otherwise keep the user's framing.
+    mapRef.current?.centerOn(start.lat, start.lon, 0, known && !pending ? MapZoom.detail : undefined);
   }
 
   async function validatePicking() {
@@ -274,7 +279,29 @@ export default function MapScreen() {
     selectInvader(inv);
   }
 
+  // ── Long-press → add a location to an existing invader ─────────────────────
+  // The chosen invader opens in its edit form with the pin's spot as proposed position.
+  async function placeExistingInvader(invader: InvaderWithState) {
+    const c = await mapRef.current?.getCenter();
+    setMissingListOpen(false);
+    if (!c) return;
+    hapticTap();
+    create.cancel();
+    setPendingCoords({ invaderId: invader.id, lat: c[1], lon: c[0] });
+    selectInvader(invader);
+  }
+
+  // Shared by every map picker: move onto a typed / pasted position.
+  function goToCoords(lat: number, lon: number) {
+    setIsFollowing(false);
+    mapRef.current?.centerOn(lat, lon, 0, MapZoom.detail);
+  }
+
   const anyCreating = create.anyActive || routing.pickerTarget !== null;
+  // Locate / compass buttons move above the pickers' Cancel / Validate bar.
+  const pickerBarShown = picking !== null || create.pickLoc !== null || routing.pickerTarget !== null;
+  const pickerLift = pickerBarShown ? { transform: [{ translateY: -(PICKER_BAR_HEIGHT + Spacing.two) }] } : null;
+  const pickerTopInset = 48 + Spacing.two; // clear of the News button
 
   return (
     <View style={styles.container}>
@@ -305,7 +332,7 @@ export default function MapScreen() {
         </View>
       )}
 
-      <View style={styles.locateButton} pointerEvents="box-none">
+      <View style={[styles.locateButton, pickerLift]} pointerEvents="box-none">
         <AimIcon
           locked={isFollowing}
           size={48}
@@ -318,7 +345,7 @@ export default function MapScreen() {
         />
       </View>
 
-      <View style={styles.compassButton} pointerEvents="box-none">
+      <View style={[styles.compassButton, pickerLift]} pointerEvents="box-none">
         <BoussoleIcon
           onPress={() => mapRef.current?.resetNorth()}
           size={48}
@@ -398,8 +425,20 @@ export default function MapScreen() {
 
       {/* ── Create-invader: initial pin + "create here" card ── */}
       {create.pickerOpen && (
-        <CreateHerePopup onCreate={() => requireAccount(create.openModal)} onCancel={create.cancel} />
+        <CreateHerePopup
+          onCreate={() => requireAccount(create.openModal)}
+          onAddLocation={() => requireAccount(() => setMissingListOpen(true))}
+          onCancel={create.cancel}
+        />
       )}
+
+      {/* ── Long-press: pick an existing invader that has no position yet ── */}
+      <MissingLocationList
+        visible={missingListOpen}
+        invaders={invadersWithState}
+        onSelect={placeExistingInvader}
+        onClose={() => setMissingListOpen(false)}
+      />
 
       {/* ── Create-invader: full form modal ── */}
       {create.modal && (
@@ -417,7 +456,7 @@ export default function MapScreen() {
 
       {/* ── Create-invader: location picker ── */}
       {create.pickLoc && (
-        <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} />
+        <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} onGoTo={goToCoords} topRightInset={pickerTopInset} />
       )}
 
       {/* ── Routing FAB ── */}
@@ -451,12 +490,12 @@ export default function MapScreen() {
 
       {/* ── Routing map picker ── */}
       {routing.pickerTarget && (
-        <MapLocationPicker onCancel={routing.cancelPicker} onValidate={routing.validatePicker} />
+        <MapLocationPicker onCancel={routing.cancelPicker} onValidate={routing.validatePicker} onGoTo={goToCoords} topRightInset={pickerTopInset} />
       )}
 
       {/* ── Modify-invader: location picker ── */}
       {picking && (
-        <MapLocationPicker onCancel={cancelPicking} onValidate={validatePicking} />
+        <MapLocationPicker onCancel={cancelPicking} onValidate={validatePicking} onGoTo={goToCoords} topRightInset={pickerTopInset} />
       )}
     </View>
   );

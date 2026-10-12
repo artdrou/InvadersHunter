@@ -320,7 +320,15 @@
   "map": {
     "modificationSent": "Modification request sent",
     "createHere": "Create an invader here?",
-    "createBtn": "Create"
+    "createBtn": "Create",
+    "addLocationBtn": "Existing invader",
+    "missingLocationTitle": "Add a location",
+    "missingLocationHint": "Invaders not on the map yet. Pick one to suggest this spot as its location.",
+    "missingLocationSearch": "Search (PA_1234…)",
+    "missingLocationNoMatch": "No invader without location matches this search.",
+    "missingLocationEmpty": "Every invader already has a location.",
+    "coordsPlaceholder": "Coordinates or map link",
+    "coordsInvalid": "Coordinates not recognised"
   },
   "routing": {
     "modeAB": "Hunt",

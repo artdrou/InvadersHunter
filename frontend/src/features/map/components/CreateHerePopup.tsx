@@ -6,14 +6,17 @@ import { CenterPin } from "./CenterPin";
 
 type Props = {
   onCreate: () => void;
+  /** Place an existing invader that has no position yet on this spot. */
+  onAddLocation: () => void;
   onCancel: () => void;
 };
 
 /**
  * First step of the create-invader flow: a {@link CenterPin} the user drops on
- * the spot, plus a small "Create here" card offering to open the full form.
+ * the spot, plus a small "Create here" card offering to open the full form — or
+ * to give this spot to an existing invader that isn't on the map yet.
  */
-export function CreateHerePopup({ onCreate, onCancel }: Props) {
+export function CreateHerePopup({ onCreate, onAddLocation, onCancel }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   return (
@@ -24,6 +27,9 @@ export function CreateHerePopup({ onCreate, onCancel }: Props) {
           <Text style={[styles.label, { color: theme.text }]}>{t("map.createHere")}</Text>
           <TouchableOpacity style={[styles.btn, { backgroundColor: theme.accent }]} onPress={onCreate}>
             <Text style={[styles.btnText, { color: theme.bg }]}>{t("map.createBtn")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, { borderColor: theme.accent, borderWidth: 1 }]} onPress={onAddLocation}>
+            <Text style={[styles.btnText, { color: theme.accent }]}>{t("map.addLocationBtn")}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, { borderColor: theme.border, borderWidth: 1 }]} onPress={onCancel}>
             <Text style={[styles.btnText, { color: theme.textMuted }]}>{t("common.cancel")}</Text>
