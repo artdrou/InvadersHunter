@@ -20,7 +20,7 @@ import { MapToast } from "@/features/map/components/MapToast";
 import { useToast } from "@/features/map/hooks/use-toast";
 import { useMapRouting } from "@/features/map/hooks/use-map-routing";
 import { useMapCreateFlow } from "@/features/map/hooks/use-map-create-flow";
-import { useHeadingStore, PICK_RETURN_ROUTES, type PickReturnTarget } from "@/features/map/store";
+import { useHeadingStore, usePickerChromeStore, PICK_RETURN_ROUTES, type PickReturnTarget } from "@/features/map/store";
 import { MapZoom } from "@/features/map/constants";
 import { useNewsUnreadCount } from "@/features/news";
 import { useFriendsStore, applyFriendView, FriendMapPicker, FriendMapBanner } from "@/features/friends";
@@ -301,7 +301,11 @@ export default function MapScreen() {
   // Locate / compass buttons move above the pickers' Cancel / Validate bar.
   const pickerBarShown = picking !== null || create.pickLoc !== null || routing.pickerTarget !== null;
   const pickerLift = pickerBarShown ? { transform: [{ translateY: -(PICKER_BAR_HEIGHT + Spacing.two) }] } : null;
-  const pickerTopInset = 48 + Spacing.two; // clear of the News button
+
+  // Pickers take the full screen: no tab bar (the News button is hidden below).
+  const setPickerActive = usePickerChromeStore((s) => s.setPickerActive);
+  useEffect(() => { setPickerActive(pickerBarShown); }, [pickerBarShown, setPickerActive]);
+  useEffect(() => () => setPickerActive(false), [setPickerActive]);
 
   return (
     <View style={styles.container}>
@@ -355,20 +359,22 @@ export default function MapScreen() {
         />
       </View>
 
-      {/* News shortcut — top-right, routes to the shared /news screen */}
-      <TouchableOpacity
-        style={[styles.newsButton, { top: insets.top + Spacing.two }]}
-        onPress={() => { hapticTap(); router.push("/news"); }}
-        activeOpacity={0.8}
-      >
-        <PixelButton size={48} fill={theme.bgElement} stroke={newsUnread > 0 ? theme.accent : theme.border} />
-        <MaterialCommunityIcons name="newspaper-variant-outline" size={22} color={newsUnread > 0 ? theme.accent : theme.textMuted} />
-        {newsUnread > 0 && (
-          <View style={[styles.newsBadge, { backgroundColor: theme.danger, borderColor: theme.bg }]}>
-            <Text style={styles.newsBadgeText}>{newsUnread > 9 ? "9+" : String(newsUnread)}</Text>
-          </View>
+      {/* News shortcut — top-right, routes to the shared /news screen (hidden while picking) */}
+      {!pickerBarShown && (
+        <TouchableOpacity
+          style={[styles.newsButton, { top: insets.top + Spacing.two }]}
+          onPress={() => { hapticTap(); router.push("/news"); }}
+          activeOpacity={0.8}
+        >
+          <PixelButton size={48} fill={theme.bgElement} stroke={newsUnread > 0 ? theme.accent : theme.border} />
+          <MaterialCommunityIcons name="newspaper-variant-outline" size={22} color={newsUnread > 0 ? theme.accent : theme.textMuted} />
+          {newsUnread > 0 && (
+            <View style={[styles.newsBadge, { backgroundColor: theme.danger, borderColor: theme.bg }]}>
+              <Text style={styles.newsBadgeText}>{newsUnread > 9 ? "9+" : String(newsUnread)}</Text>
+            </View>
         )}
       </TouchableOpacity>
+      )}
 
       {/* Friends' maps — below the News shortcut, account holders only */}
       {user && !isGuest && !picking && !anyCreating && (
@@ -456,7 +462,7 @@ export default function MapScreen() {
 
       {/* ── Create-invader: location picker ── */}
       {create.pickLoc && (
-        <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} onGoTo={goToCoords} topRightInset={pickerTopInset} />
+        <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} onGoTo={goToCoords} />
       )}
 
       {/* ── Routing FAB ── */}
@@ -490,12 +496,12 @@ export default function MapScreen() {
 
       {/* ── Routing map picker ── */}
       {routing.pickerTarget && (
-        <MapLocationPicker onCancel={routing.cancelPicker} onValidate={routing.validatePicker} onGoTo={goToCoords} topRightInset={pickerTopInset} />
+        <MapLocationPicker onCancel={routing.cancelPicker} onValidate={routing.validatePicker} onGoTo={goToCoords} />
       )}
 
       {/* ── Modify-invader: location picker ── */}
       {picking && (
-        <MapLocationPicker onCancel={cancelPicking} onValidate={validatePicking} onGoTo={goToCoords} topRightInset={pickerTopInset} />
+        <MapLocationPicker onCancel={cancelPicking} onValidate={validatePicking} onGoTo={goToCoords} />
       )}
     </View>
   );

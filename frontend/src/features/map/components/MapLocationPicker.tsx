@@ -14,8 +14,6 @@ type Props = {
   onValidate: () => void;
   /** Moves the map to a typed / pasted position (shows the coordinate field). */
   onGoTo?: (lat: number, lon: number) => void;
-  /** Right inset of the coordinate field, to clear buttons pinned top-right. */
-  topRightInset?: number;
 };
 
 /**
@@ -23,7 +21,7 @@ type Props = {
  * plus a bottom Cancel / Validate bar and an optional coordinate field on top. Shared by the modify-location,
  * create-invader, and routing-endpoint flows (previously duplicated inline).
  */
-export function MapLocationPicker({ onCancel, onValidate, onGoTo, topRightInset = 0 }: Props) {
+export function MapLocationPicker({ onCancel, onValidate, onGoTo }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -31,7 +29,7 @@ export function MapLocationPicker({ onCancel, onValidate, onGoTo, topRightInset 
     <>
       <CenterPin />
       {onGoTo && (
-        <View style={[styles.coords, { top: insets.top + Spacing.two, right: Spacing.three + topRightInset }]}>
+        <View style={[styles.coords, { top: insets.top + Spacing.two }]}>
           <CoordinateInput onGoTo={onGoTo} />
         </View>
       )}
@@ -66,6 +64,7 @@ const styles = StyleSheet.create({
   coords: {
     position: "absolute",
     left: Spacing.three,
+    right: Spacing.three,
     zIndex: ZIndex.overlay,
   },
   btn: {

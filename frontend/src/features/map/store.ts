@@ -32,6 +32,17 @@ export const useLocateStore = create<LocateStore>()((set) => ({
   setPickedForList: (picked) => set({ pickedForList: picked }),
 }));
 
+/** A map location picker is open: the tab bar hides so the picker gets the full screen. */
+type PickerChromeStore = {
+  pickerActive: boolean;
+  setPickerActive: (active: boolean) => void;
+};
+
+export const usePickerChromeStore = create<PickerChromeStore>()((set) => ({
+  pickerActive: false,
+  setPickerActive: (pickerActive) => set({ pickerActive }),
+}));
+
 type HeadingStore = {
   heading: number;
   setHeading: (h: number) => void;
