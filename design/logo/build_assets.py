@@ -6,6 +6,7 @@
 - logo-trio.png        the 3 invaders with their halo, no streets / dust
 - invader-<name>.png   one invader per file, with halo, square 512 (gold / cyan / red)
 - invader-<name>.svg   same invader, flat (no halo), crisp at any size
+- shapes/invader-<points>-<color>.png  every point shape (10..100) in cyan / red / gold, with halo, 256
 - duo-flat.png / .svg  cyan + red only, tilted and overlapping like in the logo, no effects
 - favicon.svg, favicon-32.png, favicon-48.png, apple-touch-icon.png (180): from the flat duo
 - sheet.png            contact sheet of everything (dark / light / checkerboard)
@@ -44,12 +45,11 @@ trio, _, _ = C.compose(None)
 trim(trio).save(OUT / "logo-trio.png")
 
 # Invader pixel data, straight from the sources compose.py uses.
-logo_svg = (ROOT / "backend/static/site/img/logo.svg").read_text(encoding="utf-8")
 GOLD = {"#808080": "#FFCA2A", "#4F4F4F": "#D49F00", "#121212": "#0A0F1E"}
 INVADERS = {
     "gold": ([(x, y, GOLD.get(c.upper(), c)) for x, y, c in C.rects((ROOT / "dev/markers/src/shape-100.svg").read_text(encoding="utf-8"))], (212, 120, 0)),
-    "cyan": (C.rects(logo_svg, 0, 120), (0, 47, 167)),
-    "red": (C.rects(logo_svg, 150, 260), (163, 0, 179)),
+    "cyan": (C.CYAN_RECTS, (0, 47, 167)),
+    "red": (C.RED_RECTS, (163, 0, 179)),
 }
 
 def cells(rs):
@@ -99,6 +99,24 @@ for name, (rs, glow) in INVADERS.items():
     square(with_halo(sprite, glow, cell * 0.5), 512).save(OUT / f"invader-{name}.png")
     pad = 1
     (OUT / f"invader-{name}.svg").write_text(svg_of([(cl, w, h, pad, pad, 1, 0)], w + 2 * pad, h + 2 * pad), encoding="utf-8")
+
+# ── Every point shape (10 → 100) in cyan / red / gold, with halo ───────────────
+# Source shapes use one grey for the body, a darker one for shading, near-black
+# pupils and white eyes: the same mapping as the logo invaders.
+PALETTES = {
+    "cyan": ({"#808080": "#1CF0FF", "#4F4F4F": "#0FA8B8"}, (0, 47, 167)),
+    "red": ({"#808080": "#FF0062", "#4F4F4F": "#C2004A"}, (163, 0, 179)),
+    "gold": ({"#808080": "#FFCA2A", "#4F4F4F": "#D49F00"}, (212, 120, 0)),
+}
+DARK = {"#121212", "#000000", "#0F0F0F"}
+(OUT / "shapes").mkdir(exist_ok=True)
+for pts in (10, 20, 30, 40, 50, 100):
+    src = C.rects((ROOT / f"dev/markers/src/shape-{pts}.svg").read_text(encoding="utf-8"))
+    for color, (mapping, glow) in PALETTES.items():
+        rs = [(x, y, "#0A0F1E" if c.upper() in DARK else mapping.get(c.upper(), c)) for x, y, c in src]
+        _, (w, h) = cells(rs)
+        cell = int(256 * 0.62 / max(w, h))
+        square(with_halo(pixel_sprite(rs, cell), glow, cell * 0.5), 256).save(OUT / "shapes" / f"invader-{pts}-{color}.png")
 
 # ── Duo: cyan + red, tilted and overlapping like in the logo, no effects ────────
 def duo_layout(cell):

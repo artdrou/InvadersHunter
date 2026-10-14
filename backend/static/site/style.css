@@ -260,11 +260,8 @@ figure.shot.phone.missing::before { border-radius: 36px; }
 
 /* ── Scattered invaders (decoration) ────────────────────── */
 .section { position: relative; }
-.deco { position: absolute; width: 120px; height: auto; pointer-events: none; opacity: 0.9; }
-.deco-a { top: 48px; right: 6%; transform: rotate(12deg); }
-.deco-b { top: 32px; left: 3%; width: 96px; transform: rotate(-10deg); }
-.deco-c { top: 56px; right: 7%; width: 108px; transform: rotate(-14deg); }
-.deco-d { top: 52px; right: 9%; width: 84px; transform: rotate(18deg); opacity: 0.75; }
+/* Position, size and angle are set per invader in index.html. */
+.deco { position: absolute; height: auto; pointer-events: none; opacity: 0.9; transform: rotate(var(--r, 0deg)); }
 @media (max-width: 960px) { .deco { display: none; } }
 
 /* ── Footer ─────────────────────────────────────────────── */

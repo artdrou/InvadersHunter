@@ -37,9 +37,21 @@ def glow(im, color, radius):
     big.alpha_composite(im, (pad, pad))
     return big
 
-logo = open(f"{ROOT}/backend/static/site/img/logo.svg", encoding="utf-8").read()
-cyan = sprite(rects(logo, 0, 120), s=int(cfg["scale"]))
-red = sprite(rects(logo, 150, 260), s=int(cfg["scale"]))
+def shape(points, body, shade=None, mirror=False):
+    """Pixel rects of dev/markers/src/shape-<points>.svg recolored: grey body / shade,
+    near-black pupils → navy, white eyes kept. `mirror` flips it horizontally."""
+    src = rects(open(f"{ROOT}/dev/markers/src/shape-{points}.svg", encoding="utf-8").read())
+    tone = {"#808080": body, "#4F4F4F": shade or body}
+    out = [(x, y, "#0A0F1E" if c.upper() in ("#121212", "#000000", "#0F0F0F") else tone.get(c.upper(), c)) for x, y, c in src]
+    if mirror:
+        mx = max(x for x, _, _ in out)
+        out = [(mx - x, y, c) for x, y, c in out]
+    return out
+
+CYAN_RECTS = shape(50, "#1CF0FF", "#0FA8B8")
+RED_RECTS = shape(40, "#FF0062", mirror=True)
+cyan = sprite(CYAN_RECTS, s=int(cfg["scale"]))
+red = sprite(RED_RECTS, s=int(cfg["scale"]))
 gold_map = {"#808080": "#FFCA2A", "#4F4F4F": "#D49F00", "#121212": "#0A0F1E"} if cfg["gold_main"] == "#808080" else \
            {"#4F4F4F": "#FFCA2A", "#808080": "#D49F00", "#121212": "#0A0F1E"}
 gold = sprite(rects(open(f"{ROOT}/dev/markers/src/shape-100.svg", encoding="utf-8").read()), gold_map, s=int(cfg["scale"]))
