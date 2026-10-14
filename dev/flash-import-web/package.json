@@ -1,0 +1,17 @@
+{
+  "name": "flash-import-web",
+  "private": true,
+  "type": "module",
+  "description": "Builds the WebUSB adb bundle used by the Flash Import web page (backend/static/flash_import/web).",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@yume-chan/adb": "2.6.4",
+    "@yume-chan/adb-credential-web": "2.1.0",
+    "@yume-chan/adb-daemon-webusb": "2.3.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

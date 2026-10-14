@@ -9,6 +9,7 @@ feature isolated and easy to remove/refactor.
 Routers must delegate to import_flashes() and translate exceptions.
 """
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Iterable, List, Optional
 from sqlalchemy import or_
@@ -108,7 +109,7 @@ def import_flashes(
     if not names:
         if mirror and confirm:
             raise MirrorRefused(_mirror_refusal(len(app_flashes), 0))
-        return {**summary, "imported": 0, "already_flashed": 0, "unknown": [], "total_submitted": 0,
+        return {**summary, "imported": 0, "to_add": [], "already_flashed": 0, "unknown": [], "total_submitted": 0,
                 "phone_total": 0, "to_remove": [], "removed": 0,
                 "refused": _mirror_refusal(len(app_flashes), 0) if mirror else None}
 
@@ -122,8 +123,10 @@ def import_flashes(
         .all()
     )
     name_to_id: dict[str, int] = {}
+    id_to_name: dict[int, str] = {}
     for iid, name in invaders:
         name_to_id.setdefault(_match_key(name), iid)
+        id_to_name[iid] = name
 
     already = set(app_flashes)
 
@@ -163,6 +166,7 @@ def import_flashes(
     return {
         **summary,
         "imported": len(to_add),
+        "to_add": sorted(id_to_name[iid] for iid in to_add),
         "already_flashed": already_flashed,
         "unknown": unknown,
         "total_submitted": len(names),
@@ -170,6 +174,52 @@ def import_flashes(
         "to_remove": sorted(app_flashes[iid] for iid in to_remove),
         "removed": len(to_remove) if summary["applied"] else 0,
     }
+
+
+# --- Backup / restore --------------------------------------------------------
+# Used by the web importer: snapshot the account's flashes before a sync, and
+# put them back exactly if the sync fails or doesn't land as previewed.
+
+def snapshot(db: Session, user_id: int) -> dict:
+    """Every flash of the account, with its original found_at (a restorable backup)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise UserMissing()
+    rows = (
+        db.query(UserProgress.invader_id, Invader.name, UserProgress.found_at)
+        .join(Invader, Invader.id == UserProgress.invader_id)
+        .filter(UserProgress.user_id == user_id)
+        .order_by(Invader.name)
+        .all()
+    )
+    return {
+        "username": user.username,
+        "taken_at": datetime.utcnow(),
+        "total": len(rows),
+        "flashes": [{"invader_id": iid, "name": name, "found_at": found_at} for iid, name, found_at in rows],
+    }
+
+
+def restore(db: Session, user_id: int, flashes: Iterable[dict]) -> dict:
+    """Make the account's flashes exactly `flashes` (a snapshot()), in one transaction.
+
+    Original found_at dates are kept; updated_at is refreshed so the app's
+    incremental sync picks the restored rows up. Invaders deleted since the
+    backup are skipped.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise UserMissing()
+    wanted: dict[int, Optional[datetime]] = {}
+    for f in flashes:
+        wanted.setdefault(f["invader_id"], f.get("found_at"))
+    existing = {iid for (iid,) in db.query(Invader.id).filter(Invader.id.in_(wanted)).all()} if wanted else set()
+
+    db.query(UserProgress).filter(UserProgress.user_id == user_id).delete(synchronize_session=False)
+    for iid in existing:
+        db.add(UserProgress(user_id=user_id, invader_id=iid, found_at=wanted[iid] or datetime.utcnow()))
+    safe_commit(db)
+    return {**snapshot(db, user_id), "skipped": sorted(set(wanted) - existing)}
 
 
 # --- PC tool download --------------------------------------------------------

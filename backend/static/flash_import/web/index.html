@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InvadersHunter · Flash Import</title>
+  <meta name="description" content="Sync your FlashInvaders flashes into InvadersHunter, straight from your browser.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" shape-rendering="crispEdges">
+  <g class="inv inv-cyan">
+  <rect x="10" y="0" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="0" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="0" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="60" y="0" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="10" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="20" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="80" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="0" y="30" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="10" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="50" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="60" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="80" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="90" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="100" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="10" y="40" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="50" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="60" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="80" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="90" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="50" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="80" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="60" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="40" y="60" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="60" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="70" y="60" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="70" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="70" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="70" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="60" y="70" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="10" y="80" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="80" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="80" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="50" y="80" width="10" height="10" fill="#1CF0FF"/>
+  </g>
+  <g class="inv inv-red">
+  <rect x="220" y="0" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="0" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="10" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="10" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="190" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="200" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="190" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="170" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="160" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="200" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="190" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="170" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="160" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="150" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="190" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="150" y="70" width="10" height="10" fill="#FF0062"/>
+  </g>
+</svg>
+    <h1 class="brand">InvadersHunter</h1>
+    <p class="subtitle" data-i18n="subtitle"></p>
+    <button id="lang" class="lang" type="button" aria-label="Language"></button>
+  </header>
+
+  <p class="intro" data-i18n="intro"></p>
+
+  <div id="unsupported" class="banner danger" hidden>
+    <strong data-i18n="unsupported.title"></strong>
+    <p data-i18n="unsupported.body"></p>
+  </div>
+
+  <div class="steps">
+
+    <!-- 1. Connect ------------------------------------------------------- -->
+    <section class="step" id="step-connect" data-state="active">
+      <div class="badge"><span class="n">1</span><span class="check">✓</span></div>
+      <div class="step-body">
+        <h2 data-i18n="connect.title"></h2>
+        <p data-i18n="connect.body"></p>
+        <figure class="shot wide" data-file="img/usb-file-transfer.png">
+          <img src="img/usb-file-transfer.png" alt="">
+          <figcaption data-i18n="shot.usbMode"></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 2. Detect -------------------------------------------------------- -->
+    <section class="step" id="step-detect" data-state="active">
+      <div class="badge"><span class="n">2</span><span class="check">✓</span></div>
+      <div class="step-body">
+        <h2 data-i18n="detect.title"></h2>
+        <p data-i18n="detect.body"></p>
+        <div class="btn-row"><button class="btn" id="btn-detect" type="button" data-i18n="detect.btn"></button></div>
+        <div class="status" id="detect-status" role="status" aria-live="polite"></div>
+
+        <details class="help" id="detect-help">
+          <summary data-i18n="help.summary"></summary>
+
+          <h3 data-i18n="help.debugTitle"></h3>
+          <ol class="howto">
+            <li data-i18n="help.debug1"></li>
+            <li data-i18n="help.debug2"></li>
+            <li data-i18n="help.debug3"></li>
+            <li data-i18n="help.debug4"></li>
+          </ol>
+          <div class="shots">
+            <figure class="shot" data-file="img/build-number.png">
+              <img src="img/build-number.png" alt=""><figcaption data-i18n="shot.buildNumber"></figcaption>
+            </figure>
+            <figure class="shot" data-file="img/developer-options.png">
+              <img src="img/developer-options.png" alt=""><figcaption data-i18n="shot.devOptions"></figcaption>
+            </figure>
+            <figure class="shot" data-file="img/usb-debugging.png">
+              <img src="img/usb-debugging.png" alt=""><figcaption data-i18n="shot.usbDebugging"></figcaption>
+            </figure>
+            <figure class="shot" data-file="img/allow-usb-debugging.png">
+              <img src="img/allow-usb-debugging.png" alt=""><figcaption data-i18n="shot.allowPrompt"></figcaption>
+            </figure>
+          </div>
+
+          <h3 data-i18n="help.pickerTitle"></h3>
+          <p data-i18n="help.pickerBody"></p>
+          <figure class="shot wide" data-file="img/browser-picker.png">
+            <img src="img/browser-picker.png" alt=""><figcaption data-i18n="shot.picker"></figcaption>
+          </figure>
+
+          <h3 data-i18n="help.busyTitle"></h3>
+          <p data-i18n="help.busyBody"></p>
+
+          <h3 data-i18n="help.cableTitle"></h3>
+          <p data-i18n="help.cableBody"></p>
+
+          <h3 data-i18n="help.windowsTitle"></h3>
+          <p data-i18n="help.windowsBody"></p>
+        </details>
+      </div>
+    </section>
+
+    <!-- 3. Login --------------------------------------------------------- -->
+    <section class="step" id="step-login" data-state="active">
+      <div class="badge"><span class="n">3</span><span class="check">✓</span></div>
+      <div class="step-body">
+        <h2 data-i18n="login.title"></h2>
+        <p data-i18n="login.body"></p>
+        <form class="login" id="login-form" autocomplete="on">
+          <label class="field"><span data-i18n="login.username"></span>
+            <input type="text" name="username" id="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          </label>
+          <label class="field"><span data-i18n="login.password"></span>
+            <input type="password" name="password" id="password" autocomplete="current-password" required>
+          </label>
+          <button class="btn" type="submit" id="btn-login" data-i18n="login.btn"></button>
+        </form>
+        <div class="btn-row" id="logged-in" hidden>
+          <button class="btn link" type="button" id="btn-logout" data-i18n="login.switch"></button>
+        </div>
+        <div class="status" id="login-status" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- 4. Analyse ------------------------------------------------------- -->
+    <section class="step" id="step-analyse" data-state="locked">
+      <div class="badge"><span class="n">4</span><span class="check">✓</span></div>
+      <div class="step-body">
+        <h2 data-i18n="analyse.title"></h2>
+        <p data-i18n="analyse.body"></p>
+        <div class="btn-row"><button class="btn" id="btn-analyse" type="button" data-i18n="analyse.btn"></button></div>
+        <ol class="log" id="log" aria-live="polite" hidden></ol>
+
+        <div id="report" hidden>
+          <div class="tiles" id="tiles"></div>
+
+          <div class="chart" id="chart-overall">
+            <h3 data-i18n="chart.overallTitle"></h3>
+            <div class="legend" id="legend-overall"></div>
+            <div class="stack" id="stack-overall"></div>
+            <div class="stack-labels"><span>0</span><span id="overall-max"></span></div>
+          </div>
+
+          <div class="chart" id="chart-cities">
+            <h3 data-i18n="chart.citiesTitle"></h3>
+            <div class="cities" id="cities"></div>
+            <details class="help" style="margin-top:10px">
+              <summary data-i18n="chart.table"></summary>
+              <table class="data" id="cities-table"></table>
+            </details>
+          </div>
+
+          <div class="banner warn" id="warn-remove" hidden>
+            <strong id="warn-remove-title"></strong>
+            <p data-i18n="warn.body"></p>
+            <div class="names" id="warn-remove-names"></div>
+          </div>
+
+          <div class="banner warn" id="warn-unknown" hidden>
+            <strong id="warn-unknown-title"></strong>
+            <p data-i18n="warn.unknownBody"></p>
+            <div class="names" id="warn-unknown-names"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Sync ---------------------------------------------------------- -->
+    <section class="step" id="step-sync" data-state="locked">
+      <div class="badge"><span class="n">5</span><span class="check">✓</span></div>
+      <div class="step-body">
+        <h2 data-i18n="sync.title"></h2>
+        <p data-i18n="sync.body"></p>
+        <div class="banner ok" id="in-sync" hidden><strong data-i18n="sync.inSyncTitle"></strong><p data-i18n="sync.inSyncBody"></p></div>
+        <div class="btn-col" id="sync-actions">
+          <button class="btn tall" id="btn-sync-add" type="button">
+            <span id="sync-add-label" data-i18n="sync.add"></span><small id="sync-add-hint"></small>
+          </button>
+          <label class="check" id="mirror-confirm-row" hidden>
+            <input type="checkbox" id="mirror-confirm"><span id="mirror-confirm-label"></span>
+          </label>
+          <button class="btn tall danger" id="btn-sync-mirror" type="button">
+            <span id="sync-mirror-label" data-i18n="sync.mirror"></span><small id="sync-mirror-hint"></small>
+          </button>
+          <p class="muted" id="mirror-refused" hidden></p>
+        </div>
+        <ul class="progress" id="progress" hidden>
+          <li data-k="backup"><span class="ico"></span><span data-i18n="progress.backup"></span></li>
+          <li data-k="write"><span class="ico"></span><span data-i18n="progress.write"></span></li>
+          <li data-k="verify"><span class="ico"></span><span data-i18n="progress.verify"></span></li>
+          <li data-k="revert" hidden><span class="ico"></span><span data-i18n="progress.revert"></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 6. Result -------------------------------------------------------- -->
+    <section id="result-ok" class="result ok" hidden>
+      <svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" shape-rendering="crispEdges">
+  <g class="inv inv-cyan">
+  <rect x="10" y="0" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="0" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="0" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="60" y="0" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="10" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="10" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="20" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="80" y="20" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="0" y="30" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="10" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="50" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="60" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="80" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="90" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="100" y="30" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="10" y="40" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="50" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="60" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="80" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="90" y="40" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="50" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="70" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="80" y="50" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="30" y="60" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="40" y="60" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="60" y="60" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="70" y="60" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="20" y="70" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="30" y="70" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="50" y="70" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="60" y="70" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="10" y="80" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="20" y="80" width="10" height="10" fill="#1CF0FF"/>
+  <rect x="40" y="80" width="10" height="10" fill="#0FA8B8"/>
+  <rect x="50" y="80" width="10" height="10" fill="#1CF0FF"/>
+  </g>
+  <g class="inv inv-red">
+  <rect x="220" y="0" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="0" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="10" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="10" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="190" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="20" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="200" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="190" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="170" y="30" width="10" height="10" fill="#ffffff"/>
+  <rect x="160" y="30" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="200" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="190" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="40" width="10" height="10" fill="#ffffff"/>
+  <rect x="170" y="40" width="10" height="10" fill="#0a0f1e"/>
+  <rect x="160" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="150" y="40" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="210" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="190" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="170" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="50" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="200" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="180" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="60" width="10" height="10" fill="#FF0062"/>
+  <rect x="230" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="220" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="160" y="70" width="10" height="10" fill="#FF0062"/>
+  <rect x="150" y="70" width="10" height="10" fill="#FF0062"/>
+  </g>
+</svg>
+      <h2 data-i18n="done.title"></h2>
+      <p id="done-summary"></p>
+      <div class="tiles" id="done-tiles"></div>
+      <div class="callout"><strong data-i18n="done.appTitle"></strong><br><span data-i18n="done.appBody"></span></div>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn secondary" type="button" data-action="download-backup" data-i18n="backup.download"></button>
+        <button class="btn link" type="button" id="btn-undo" data-i18n="done.undo"></button>
+      </div>
+      <div class="status" id="undo-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="result-err" class="result err" hidden>
+      <h2 data-i18n="fail.title"></h2>
+      <p id="fail-error"></p>
+      <p id="fail-revert"></p>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn secondary" type="button" data-action="download-backup" data-i18n="backup.download"></button>
+        <button class="btn danger" type="button" id="btn-retry-restore" hidden data-i18n="fail.retryRestore"></button>
+        <button class="btn" type="button" id="btn-restart" data-i18n="fail.restart"></button>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p data-i18n="footer.fallback"></p>
+    <p data-i18n="footer.credits"></p>
+  </footer>
+</div>
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+</body>
+</html>
