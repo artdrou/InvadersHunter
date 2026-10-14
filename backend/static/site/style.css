@@ -102,7 +102,7 @@ p { margin: 0; }
 .nav-inner { display: flex; align-items: center; gap: 24px; height: 64px; }
 .nav-brand { display: flex; align-items: center; gap: 10px; color: var(--text); }
 .nav-brand:hover { text-decoration: none; }
-.nav-logo { width: 44px; height: auto; }
+.nav-logo { width: 46px; height: auto; }
 .wordmark { font: 800 18px var(--body); letter-spacing: -0.02em; color: var(--text); }
 .wordmark span { color: var(--accent); }
 .nav-links { display: flex; gap: 22px; margin-left: auto; }
@@ -119,6 +119,7 @@ p { margin: 0; }
     radial-gradient(35% 45% at 15% 70%, var(--glow-red), transparent 70%);
 }
 .hero-inner { position: relative; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
+.hero-logo { width: 220px; height: auto; margin: 0 0 18px -14px; display: block; }
 .pill {
   display: inline-block; font-size: 13px; font-weight: 600; color: var(--text-soft);
   border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; margin-bottom: 22px;
@@ -221,7 +222,7 @@ p { margin: 0; }
 .link-card .arrow { position: absolute; top: 22px; right: 22px; color: var(--text-muted); }
 
 .thanks { text-align: center; max-width: 640px; margin: 0 auto 72px; }
-.thanks-logo { width: 120px; margin: 0 auto 24px; }
+.thanks-logo { width: min(560px, 100%); margin: -24px auto 8px; }
 .thanks h2 { margin-bottom: 16px; }
 .thanks p { color: var(--text-soft); font-size: 17px; margin-bottom: 26px; }
 .credits-title { font-size: 15px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
@@ -256,6 +257,15 @@ figure.shot.missing::before {
   background: repeating-linear-gradient(45deg, transparent 0 12px, color-mix(in srgb, var(--border) 25%, transparent) 12px 13px);
 }
 figure.shot.phone.missing::before { border-radius: 36px; }
+
+/* ── Scattered invaders (decoration) ────────────────────── */
+.section { position: relative; }
+.deco { position: absolute; width: 120px; height: auto; pointer-events: none; opacity: 0.9; }
+.deco-a { top: 48px; right: 6%; transform: rotate(12deg); }
+.deco-b { top: 32px; left: 3%; width: 96px; transform: rotate(-10deg); }
+.deco-c { top: 56px; right: 7%; width: 108px; transform: rotate(-14deg); }
+.deco-d { top: 52px; right: 9%; width: 84px; transform: rotate(18deg); opacity: 0.75; }
+@media (max-width: 960px) { .deco { display: none; } }
 
 /* ── Footer ─────────────────────────────────────────────── */
 .footer { border-top: 1px solid var(--border); padding: 32px 0 40px; }
