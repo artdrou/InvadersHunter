@@ -5,16 +5,24 @@ POST /flash-import/  — bulk-create user progress from a list of invader names
 (with `mirror`, also remove the flashes the phone doesn't list: preview, then
 `confirm`). Authenticated; uses the JWT subject as the user_id.
 
+GET  /flash-import/snapshot — the account's flashes (backup before a sync).
+POST /flash-import/restore  — put a snapshot back exactly (revert a failed sync).
+
+GET /flash-import/web — the browser importer (WebUSB, no install), served from
+static/flash_import/web.
+
 GET /static/flash_import/InvadersHunter-FlashImport.exe — the PC tool built for
 this backend's environment. Registered before the /static mount in main.py so
 it shadows the static path the app already links to.
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
-from app.schemas.flash_import import FlashImportRequest, FlashImportResponse
+from app.schemas.flash_import import (
+    FlashImportRequest, FlashImportResponse, FlashRestoreRequest, FlashRestoreResponse, FlashSnapshot,
+)
 from app.services import flash_import_service
 from app.services.flash_import_service import MirrorRefused, UserMissing
 
@@ -37,7 +45,32 @@ def import_flashes(
         raise HTTPException(status_code=409, detail=f"Full sync refused: {e.reason}")
 
 
+@router.get("/snapshot", response_model=FlashSnapshot)
+def snapshot(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    try:
+        return flash_import_service.snapshot(db, current_user.id)
+    except UserMissing:
+        raise HTTPException(status_code=404, detail="User not found")
+
+
+@router.post("/restore", response_model=FlashRestoreResponse)
+def restore(
+    payload: FlashRestoreRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        return flash_import_service.restore(db, current_user.id, [f.model_dump() for f in payload.flashes])
+    except UserMissing:
+        raise HTTPException(status_code=404, detail="User not found")
+
+
 tool_router = APIRouter(tags=["Flash Import"])
+
+
+@tool_router.get("/flash-import/web", include_in_schema=False)
+def web_importer():
+    return RedirectResponse("/static/flash_import/web/index.html")
 
 
 @tool_router.get("/static/flash_import/InvadersHunter-FlashImport.exe", include_in_schema=False)
