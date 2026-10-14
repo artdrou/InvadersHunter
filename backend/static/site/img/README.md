@@ -1,18 +1,13 @@
 # Site images
 
-Drop these PNGs here (same names). Until a file exists, the page shows a dashed
-placeholder with its name.
+App screenshots were taken on a Pixel 10 (dev app, demo account `demo_hunter`
+on the dev backend), then cropped and compressed:
 
-| File | Shows | Ratio |
-|---|---|---|
-| `hero-map.png` | the app's map screen, full phone screenshot | 9:16 |
-| `feature-map.png` | the map with filters open | 4:3 (cropped) |
-| `feature-progress.png` | the profile / stats screen | 4:3 (cropped) |
-| `feature-news.png` | the News feed | 4:3 (cropped) |
-| `feature-friends.png` | the friends map comparison | 4:3 (cropped) |
-| `feature-requests.png` | the "report a change" screen | 4:3 (cropped) |
-| `feature-offline.png` | the map with the offline indicator | 4:3 (cropped) |
-| `sync-tool.png` | the flash sync web page (`/flash-import/web`) | 16:10 |
-| `qr-download.png` | QR code pointing to `/apk/download` | 1:1 |
+- `hero-map.jpg`, `hero-list.jpg`: full screen minus status bar and gesture bar, 720 wide
+- `feature-*.jpg`: a 1080×1500 window of the screen, resized to 720×1000
+- `feature-route.jpg`: GPS coordinates of start / end blurred
+- `sync-tool.jpg`: the flash import page (`/flash-import/web`), headless Chrome 960×600 @1.5×
+- `qr-download.png`: QR code to `https://invader-hunter-production.up.railway.app/apk/download`
 
-`logo.svg` is the same as the flash import page's.
+A missing file shows a dashed placeholder with its name. `logo.svg` is the same
+as the flash import page's.

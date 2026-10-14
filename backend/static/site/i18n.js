@@ -3,6 +3,7 @@
 export const STRINGS = {
   fr: {
     'common.soon': 'Bientôt',
+    'common.new': 'Nouveau',
 
     'nav.concept': 'Le concept',
     'nav.features': 'L’app',
@@ -31,6 +32,10 @@ export const STRINGS = {
 
     'features.eyebrow': 'L’app',
     'features.title': 'Tout pour préparer votre prochaine chasse',
+    'features.route.title': 'Préparez votre parcours de chasse',
+    'features.route.body': 'Choisissez un départ et une arrivée : l’app trace un itinéraire à pied qui passe par les invaders qu’il vous manque, avec la durée, la distance et le détour. Ajoutez ou retirez des invaders d’un simple tap.',
+    'features.custom.title': 'Une carte à votre image',
+    'features.custom.body': 'Choisissez la silhouette de chaque valeur de points, les couleurs des invaders flashés, à flasher ou mis en avant, leur halo et leur opacité. Thème clair ou sombre, en français ou en anglais.',
     'features.map.title': 'La carte',
     'features.map.body': 'Filtrez par état, flashés ou non, et repérez d’un coup d’œil ce qu’il vous reste à trouver.',
     'features.progress.title': 'Votre progression',
@@ -41,8 +46,8 @@ export const STRINGS = {
     'features.friends.body': 'Ajoutez vos amis et comparez vos cartes pour voir qui a flashé quoi.',
     'features.requests.title': 'Signaler un changement',
     'features.requests.body': 'Proposez une position, un état ou un nouvel invader. Chaque proposition est relue.',
-    'features.offline.title': 'Même sans réseau',
-    'features.offline.body': 'La carte et vos flashs restent disponibles hors ligne, et se synchronisent au retour du réseau.',
+    'features.popup.title': 'Chaque invader en détail',
+    'features.popup.body': 'Photo, points, état, date de pose : toute la fiche en un tap, avec l’itinéraire pour s’y rendre.',
 
     'sync.eyebrow': 'Synchro des flashs',
     'sync.title': 'Récupérez vos flashs FlashInvaders',
@@ -103,6 +108,7 @@ export const STRINGS = {
 
   en: {
     'common.soon': 'Soon',
+    'common.new': 'New',
 
     'nav.concept': 'Concept',
     'nav.features': 'The app',
@@ -131,6 +137,10 @@ export const STRINGS = {
 
     'features.eyebrow': 'The app',
     'features.title': 'Everything to plan your next hunt',
+    'features.route.title': 'Plan your hunting route',
+    'features.route.body': 'Pick a start and an end: the app draws a walking route through the invaders you’re missing, with time, distance and detour. Add or remove invaders with a tap.',
+    'features.custom.title': 'A map that looks like you',
+    'features.custom.body': 'Pick the silhouette for each point value, the colors of flashed, unflashed and highlighted invaders, their glow and opacity. Light or dark theme, in French or English.',
     'features.map.title': 'The map',
     'features.map.body': 'Filter by state, flashed or not, and see at a glance what’s left to find.',
     'features.progress.title': 'Your progress',
@@ -141,8 +151,8 @@ export const STRINGS = {
     'features.friends.body': 'Add friends and compare maps to see who flashed what.',
     'features.requests.title': 'Report a change',
     'features.requests.body': 'Suggest a location, a state or a new invader. Every suggestion is reviewed.',
-    'features.offline.title': 'Even offline',
-    'features.offline.body': 'The map and your flashes stay available offline, and sync when you’re back online.',
+    'features.popup.title': 'Every invader in detail',
+    'features.popup.body': 'Photo, points, state, pose date: the full record in one tap, with directions to get there.',
 
     'sync.eyebrow': 'Flash sync',
     'sync.title': 'Bring your FlashInvaders flashes along',

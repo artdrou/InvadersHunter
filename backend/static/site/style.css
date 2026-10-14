@@ -169,6 +169,23 @@ p { margin: 0; }
 .callout p { color: var(--text-soft); }
 
 .features { gap: 28px; }
+.feature-hero {
+  display: grid; grid-template-columns: 300px 1fr; gap: 48px; align-items: center;
+  margin-bottom: 48px; padding: 32px; border-radius: 24px; border: 1px solid var(--border);
+  background:
+    radial-gradient(60% 100% at 100% 0%, var(--glow-cyan), transparent 70%),
+    var(--bg-element);
+}
+.feature-hero figure.shot { --ratio: 18 / 25; }
+.feature-hero.reverse { grid-template-columns: 1fr 300px; margin: 48px 0 0; }
+.feature-hero.reverse figure.shot { order: 2; }
+.feature-hero.reverse {
+  background:
+    radial-gradient(60% 100% at 0% 100%, var(--glow-red), transparent 70%),
+    var(--bg-element);
+}
+.feature-hero h3 { font-size: clamp(22px, 3vw, 30px); margin: 14px 0 12px; }
+.feature-hero p:not(.tag) { color: var(--text-soft); font-size: 17px; max-width: 32em; }
 .feature .shot { margin-bottom: 18px; }
 
 .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center; }
@@ -219,10 +236,17 @@ figure.shot img {
   border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-element);
 }
 figure.shot.wide { --ratio: 16 / 10; }
-figure.shot.phone { max-width: 340px; justify-self: center; width: 100%; }
+figure.shot.phone { --ratio: 720 / 1487; width: 100%; }
+.phones { position: relative; justify-self: center; width: 100%; max-width: 420px; padding: 0 0 40px 90px; }
+.phones .phone-front { position: relative; z-index: 1; max-width: 300px; }
+.phones .phone-back {
+  position: absolute; left: 0; top: 60px; max-width: 260px;
+  transform: rotate(-6deg); opacity: 0.9;
+}
 figure.shot.phone img { border-radius: 36px; box-shadow: var(--shadow); }
 figure.shot.qr { --ratio: 1; width: 160px; }
-.features figure.shot { --ratio: 4 / 3; }
+.features figure.shot { --ratio: 18 / 25; }
+.features figure.shot img { object-position: top; }
 figure.shot.missing img { display: none; }
 figure.shot.missing::before {
   content: attr(data-file);
@@ -243,7 +267,10 @@ figure.shot.phone.missing::before { border-radius: 36px; }
 @media (max-width: 960px) {
   .nav-links { display: none; }
   .nav-actions { margin-left: auto; }
-  .hero-inner, .split { grid-template-columns: 1fr; gap: 40px; }
+  .hero-inner, .split, .feature-hero, .feature-hero.reverse { grid-template-columns: 1fr; gap: 32px; }
+  .feature-hero.reverse figure.shot { order: 0; }
+  .feature-hero figure.shot { max-width: 320px; }
+  .phones { max-width: 360px; padding-left: 70px; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
