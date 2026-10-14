@@ -15,3 +15,11 @@ two marked *wide* are shown landscape.
 
 `logo.svg` is generated from `dev/markers/src/shape-50.svg` (cyan) and
 `shape-40.svg` (red, mirrored); it's also inlined in `index.html`.
+
+## Sources
+
+| File | Source |
+|---|---|
+| `developer-options.png`, `usb-debugging.png` | [Android Developers](https://developer.android.com/studio/debug/dev-options), CC BY 2.5 (credited in the page footer) |
+| `allow-usb-debugging.png` | [FIRST Tech Challenge wiki](https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki/Enabling-Developer-Options) (credited in the page footer) |
+| `build-number.png`, `usb-file-transfer.png` | our own mockups: `src/*.html`, rendered with headless Chrome at 2× (`--window-size=360,640` and `720,405`) |
