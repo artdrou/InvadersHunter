@@ -22,3 +22,16 @@ def test_matches_names_regardless_of_leading_zeros(db):
     assert res["imported"] == 4
     assert res["unknown"] == ["PA_1"]
     assert db.query(UserProgress).filter_by(user_id=user.id).count() == 4
+
+
+def test_s_duplicate_images_fold_onto_their_flash(db):
+    user = User(username="u2", email="u2@test.com", hashed_password=hash_password("pw"))
+    db.add_all([user, Invader(name="PA_12", latitude=0, longitude=0, state="Good", points=10)])
+    db.flush()
+
+    # The official app stores two images per flash: CITY_NUMBER and CITY_NUMBER_S.
+    res = import_flashes(db, user.id, ["PA_12.jpg", "PA_12_S.jpg", "PA_99_S.jpg"])
+
+    assert res["imported"] == 1
+    assert res["unknown"] == ["PA_99"]
+    assert db.query(UserProgress).filter_by(user_id=user.id).count() == 1

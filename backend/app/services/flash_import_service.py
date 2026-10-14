@@ -42,7 +42,10 @@ MIRROR_MIN_RATIO = 0.5
 # Matches the canonical "CITYCODE_NUMBER" pattern after normalize_name(); used to
 # strip leading zeros from the number part. The DB mixes both spellings
 # ("FTBL_4" but "ORLN_01"), so file names and DB names are compared on this key.
-_CANONICAL_RE = re.compile(r"^([A-Z]{2,6})_0*(\d+)$")
+# The official app stores a second image per flash named "CITY_NUMBER_S": the
+# optional "_S" folds it onto the same key, so it dedupes instead of showing up
+# as an unknown name.
+_CANONICAL_RE = re.compile(r"^([A-Z]{2,6})_0*(\d+)(?:_S)?$")
 
 
 def _match_key(normalized: str) -> str:
