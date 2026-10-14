@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InvadersHunter</title>
+  <meta name="description" content="La carte communautaire des Space Invaders : retrouvez les mosaïques d'Invader, suivez vos flashs et leur état à jour.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="#top">
+      <img src="img/logo.svg" alt="" class="nav-logo">
+      <span class="wordmark">Invaders<span>Hunter</span></span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#concept" data-i18n="nav.concept"></a>
+      <a href="#features" data-i18n="nav.features"></a>
+      <a href="#sync" data-i18n="nav.sync"></a>
+      <a href="#support" data-i18n="nav.support"></a>
+      <a href="#credits" data-i18n="nav.credits"></a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn-ghost lang" id="lang" type="button" aria-label="Language"></button>
+      <!-- Espace compte web : issue #59 -->
+      <a class="btn btn-secondary btn-sm is-soon" href="#account" data-i18n="nav.account"></a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ── Hero ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="pill" data-i18n="hero.badge"></p>
+        <h1 data-i18n="hero.title"></h1>
+        <p class="lead" data-i18n="hero.lead"></p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/apk/download" data-i18n="hero.download"></a>
+          <a class="btn btn-secondary is-soon" href="#account">
+            <span data-i18n="hero.map"></span><span class="tag" data-i18n="common.soon"></span>
+          </a>
+        </div>
+        <p class="note" data-i18n="hero.note"></p>
+      </div>
+      <figure class="shot phone" data-file="img/hero-map.png">
+        <img src="img/hero-map.png" alt="">
+      </figure>
+    </div>
+  </section>
+
+  <!-- ── Concept ──────────────────────────────────────────── -->
+  <section id="concept" class="section">
+    <div class="container">
+      <p class="eyebrow" data-i18n="concept.eyebrow"></p>
+      <h2 data-i18n="concept.title"></h2>
+      <div class="grid grid-3">
+        <article class="card">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          </div>
+          <h3 data-i18n="concept.map.title"></h3>
+          <p data-i18n="concept.map.body"></p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-6 6.5-6s5.9 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.4 0 4.2 1.8 4.6 4.5"/></svg>
+          </div>
+          <h3 data-i18n="concept.community.title"></h3>
+          <p data-i18n="concept.community.body"></p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+          </div>
+          <h3 data-i18n="concept.open.title"></h3>
+          <p data-i18n="concept.open.body"></p>
+        </article>
+      </div>
+      <div class="callout">
+        <strong data-i18n="concept.unofficial.title"></strong>
+        <p data-i18n="concept.unofficial.body"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ─────────────────────────────────────────── -->
+  <section id="features" class="section section-alt">
+    <div class="container">
+      <p class="eyebrow" data-i18n="features.eyebrow"></p>
+      <h2 data-i18n="features.title"></h2>
+      <div class="grid grid-3 features">
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-map.png"><img src="img/feature-map.png" alt=""></figure>
+          <h3 data-i18n="features.map.title"></h3>
+          <p data-i18n="features.map.body"></p>
+        </article>
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-progress.png"><img src="img/feature-progress.png" alt=""></figure>
+          <h3 data-i18n="features.progress.title"></h3>
+          <p data-i18n="features.progress.body"></p>
+        </article>
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-news.png"><img src="img/feature-news.png" alt=""></figure>
+          <h3 data-i18n="features.news.title"></h3>
+          <p data-i18n="features.news.body"></p>
+        </article>
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-friends.png"><img src="img/feature-friends.png" alt=""></figure>
+          <h3 data-i18n="features.friends.title"></h3>
+          <p data-i18n="features.friends.body"></p>
+        </article>
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-requests.png"><img src="img/feature-requests.png" alt=""></figure>
+          <h3 data-i18n="features.requests.title"></h3>
+          <p data-i18n="features.requests.body"></p>
+        </article>
+        <article class="feature">
+          <figure class="shot" data-file="img/feature-offline.png"><img src="img/feature-offline.png" alt=""></figure>
+          <h3 data-i18n="features.offline.title"></h3>
+          <p data-i18n="features.offline.body"></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Flash sync ───────────────────────────────────────── -->
+  <section id="sync" class="section">
+    <div class="container split">
+      <div>
+        <p class="eyebrow" data-i18n="sync.eyebrow"></p>
+        <h2 data-i18n="sync.title"></h2>
+        <p class="lead-sm" data-i18n="sync.body"></p>
+        <ul class="checks">
+          <li data-i18n="sync.point1"></li>
+          <li data-i18n="sync.point2"></li>
+          <li data-i18n="sync.point3"></li>
+        </ul>
+        <a class="btn btn-primary" href="/flash-import/web" data-i18n="sync.cta"></a>
+      </div>
+      <figure class="shot wide" data-file="img/sync-tool.png"><img src="img/sync-tool.png" alt=""></figure>
+    </div>
+  </section>
+
+  <!-- ── Web account (issue #59) ──────────────────────────── -->
+  <section id="account" class="section section-alt">
+    <div class="container">
+      <p class="eyebrow"><span data-i18n="account.eyebrow"></span> <span class="tag" data-i18n="common.soon"></span></p>
+      <h2 data-i18n="account.title"></h2>
+      <p class="lead-sm" data-i18n="account.body"></p>
+      <div class="grid grid-4">
+        <div class="mini"><h3 data-i18n="account.stats.title"></h3><p data-i18n="account.stats.body"></p></div>
+        <div class="mini"><h3 data-i18n="account.map.title"></h3><p data-i18n="account.map.body"></p></div>
+        <div class="mini"><h3 data-i18n="account.sync.title"></h3><p data-i18n="account.sync.body"></p></div>
+        <div class="mini"><h3 data-i18n="account.manage.title"></h3><p data-i18n="account.manage.body"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Download band ────────────────────────────────────── -->
+  <section id="download" class="section">
+    <div class="container">
+      <div class="band">
+        <div>
+          <h2 data-i18n="download.title"></h2>
+          <p data-i18n="download.body"></p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="/apk/download" data-i18n="download.android"></a>
+            <span class="btn btn-secondary is-disabled" data-i18n="download.ios"></span>
+          </div>
+        </div>
+        <figure class="shot qr" data-file="img/qr-download.png"><img src="img/qr-download.png" alt=""></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Support & contact ────────────────────────────────── -->
+  <section id="support" class="section section-alt">
+    <div class="container">
+      <p class="eyebrow" data-i18n="support.eyebrow"></p>
+      <h2 data-i18n="support.title"></h2>
+      <div class="grid grid-2">
+        <article class="card">
+          <h3 data-i18n="support.kofi.title"></h3>
+          <p data-i18n="support.kofi.body"></p>
+          <a class="btn btn-primary" href="https://ko-fi.com/drouuu" target="_blank" rel="noopener" data-i18n="support.kofi.cta"></a>
+        </article>
+        <article class="card">
+          <h3 data-i18n="support.contact.title"></h3>
+          <p data-i18n="support.contact.body"></p>
+          <a class="btn btn-secondary" href="mailto:invaderhunter.app+contact@gmail.com" data-i18n="support.contact.cta"></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Inspirations ─────────────────────────────────────── -->
+  <section id="inspirations" class="section">
+    <div class="container">
+      <p class="eyebrow" data-i18n="inspi.eyebrow"></p>
+      <h2 data-i18n="inspi.title"></h2>
+      <p class="lead-sm" data-i18n="inspi.body"></p>
+      <div class="grid grid-4">
+        <a class="link-card" href="https://www.invader-spotter.art" target="_blank" rel="noopener">
+          <h3>invader-spotter</h3><p data-i18n="inspi.spotter"></p><span class="arrow" aria-hidden="true">↗</span>
+        </a>
+        <!-- TODO: URL de Findvaders -->
+        <a class="link-card is-todo" href="#" target="_blank" rel="noopener">
+          <h3>Findvaders</h3><p data-i18n="inspi.findvaders"></p><span class="arrow" aria-hidden="true">↗</span>
+        </a>
+        <!-- TODO: URL de MapInvader -->
+        <a class="link-card is-todo" href="#" target="_blank" rel="noopener">
+          <h3>MapInvader</h3><p data-i18n="inspi.mapinvader"></p><span class="arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card" href="https://github.com/marcoclsn-bit/invader-map" target="_blank" rel="noopener">
+          <h3>InvaderQuest</h3><p data-i18n="inspi.invaderquest"></p><span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Credits & thanks ─────────────────────────────────── -->
+  <section id="credits" class="section section-alt">
+    <div class="container">
+      <div class="thanks">
+        <img src="img/logo.svg" alt="" class="thanks-logo">
+        <h2 data-i18n="thanks.title"></h2>
+        <p data-i18n="thanks.body"></p>
+        <a class="btn btn-secondary" href="https://www.space-invaders.com" target="_blank" rel="noopener" data-i18n="thanks.cta"></a>
+      </div>
+      <h3 class="credits-title" data-i18n="credits.title"></h3>
+      <ul class="credits">
+        <li data-i18n="credits.data"></li>
+        <li data-i18n="credits.spotter"></li>
+        <li data-i18n="credits.map"></li>
+        <li data-i18n="credits.community"></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p data-i18n="footer.disclaimer"></p>
+    <p><span data-i18n="footer.by"></span> · <a href="#top" data-i18n="footer.top"></a></p>
+  </div>
+</footer>
+
+</body>
+</html>
