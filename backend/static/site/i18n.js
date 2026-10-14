@@ -57,6 +57,14 @@ export const STRINGS = {
     'sync.point3': 'Sauvegarde automatique et retour en arrière en un clic.',
     'sync.cta': 'Ouvrir l’outil de synchro',
 
+    'admin.eyebrow': 'Rejoindre l’équipe',
+    'admin.title': 'Vous êtes un chasseur impliqué ? Devenez admin',
+    'admin.body': 'Chaque signalement de la communauté est relu avant d’apparaître sur la carte. Les admins sont ceux qui font ce tri : si vous arpentez les rues et connaissez vos invaders, votre aide est précieuse.',
+    'admin.point1': 'Validez ou refusez les propositions : états, positions, nouveaux invaders.',
+    'admin.point2': 'Un score de confiance vous aide à décider (votes, accord entre chasseurs, GPS).',
+    'admin.point3': 'Corrigez une position directement sur la carte avant de valider.',
+    'admin.cta': 'Proposer mon aide',
+
     'account.eyebrow': 'Votre compte sur le web',
     'account.title': 'Bientôt, votre chasse dans le navigateur',
     'account.body': 'Connectez-vous avec votre compte de l’app pour retrouver tout ça sur grand écran.',
@@ -161,6 +169,14 @@ export const STRINGS = {
     'sync.point2': 'Preview before anything changes, city by city.',
     'sync.point3': 'Automatic backup and one-click undo.',
     'sync.cta': 'Open the sync tool',
+
+    'admin.eyebrow': 'Join the team',
+    'admin.title': 'A dedicated hunter? Become an admin',
+    'admin.body': 'Every community report is reviewed before it shows up on the map. Admins do that review: if you walk the streets and know your invaders, your help is precious.',
+    'admin.point1': 'Approve or reject suggestions: states, locations, new invaders.',
+    'admin.point2': 'A confidence score helps you decide (votes, agreement between hunters, GPS).',
+    'admin.point3': 'Fix a location right on the map before approving.',
+    'admin.cta': 'Offer my help',
 
     'account.eyebrow': 'Your account on the web',
     'account.title': 'Soon, your hunt in the browser',

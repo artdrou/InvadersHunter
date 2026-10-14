@@ -189,6 +189,7 @@ p { margin: 0; }
 .feature .shot { margin-bottom: 18px; }
 
 .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center; }
+.split-reverse { grid-template-columns: 0.9fr 1.1fr; gap: 64px; }
 .checks { list-style: none; padding: 0; margin: 0 0 30px; display: grid; gap: 10px; }
 .checks li { padding-left: 30px; position: relative; color: var(--text-soft); }
 .checks li::before {
@@ -265,7 +266,8 @@ figure.shot.phone.missing::before { border-radius: 36px; }
 @media (max-width: 960px) {
   .nav-links { display: none; }
   .nav-actions { margin-left: auto; }
-  .hero-inner, .split, .feature-hero, .feature-hero.reverse { grid-template-columns: 1fr; gap: 32px; }
+  .hero-inner, .split, .split-reverse, .feature-hero, .feature-hero.reverse { grid-template-columns: 1fr; gap: 32px; }
+  .admin-phones { order: 2; }
   .feature-hero.reverse figure.shot { order: 0; }
   .feature-hero figure.shot { max-width: 320px; }
   .phones { max-width: 360px; padding-left: 70px; }
