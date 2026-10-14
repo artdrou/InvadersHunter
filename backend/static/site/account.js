@@ -3,8 +3,9 @@
 // Login with the app account (POST /auth/login, JWT + refresh token), then:
 // stats computed like the app's profile (GET /users/me + GET /invaders/ +
 // GET /progress/user/{id}), flash sync link, and account settings
-// (PUT / DELETE /users/{id}). The map tab comes in a later step.
+// (PUT / DELETE /users/{id}), and the map tab (account-map.js).
 import { STRINGS } from './account-i18n.js';
+import { mountMap } from './account-map.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -79,6 +80,8 @@ const state = {
   invaders: null,  // GET /invaders/
   progress: null,  // GET /progress/user/{id}
   citiesExpanded: false,
+  dataReady: null, // promise of the stats data, shared with the map tab
+  map: null,       // { setFilter, resize, count } once mounted
 };
 
 class HttpError extends Error {
@@ -151,8 +154,8 @@ function showDashboard() {
   state.userId = Number(c.sub);
   $('#admin-badge').hidden = !c.is_admin;
   renderHeader(c.username);
+  loadStats();   // first: the map tab waits on this data
   selectTab((location.hash || '#stats').slice(1));
-  loadStats();
 }
 
 function renderHeader(username) {
@@ -162,7 +165,9 @@ function renderHeader(username) {
   $('#dash-since').textContent = since ? tt('dash.since', { date: fmtDate(since) }) : '';
 }
 
-const fmtDate = (iso) => new Date(iso.endsWith('Z') ? iso : `${iso}Z`).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' });
+// Server datetimes are naive UTC ("2026-10-14T21:47:00"); pose dates are plain days ("1999-06-26").
+const toDate = (iso) => new Date(iso.length === 10 ? `${iso}T00:00:00Z` : iso.endsWith('Z') ? iso : `${iso}Z`);
+const fmtDate = (iso) => toDate(iso).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 function selectTab(name) {
   const tabs = $$('.tabs [data-tab]');
@@ -171,6 +176,7 @@ function selectTab(name) {
   $$('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name; });
   history.replaceState(null, '', `#${name}`);
   if (name === 'settings') fillSettings();
+  if (name === 'map') openMap();
 }
 
 // ── Login / logout ─────────────────────────────────────────────────────────
@@ -208,7 +214,12 @@ $('#logout').addEventListener('click', async () => {
 
 // ── Stats ──────────────────────────────────────────────────────────────────
 
-async function loadStats() {
+function loadStats() {
+  state.dataReady = fetchStats();
+  return state.dataReady;
+}
+
+async function fetchStats() {
   $('#stats-loading').hidden = false;
   $('#stats-loading').innerHTML = t('stats.loading');
   $('#stats-body').hidden = true;
@@ -226,9 +237,11 @@ async function loadStats() {
     fillSettings();
     $('#stats-loading').hidden = true;
     $('#stats-body').hidden = false;
+    return true;
   } catch (e) {
-    if (e.status === 401) return;
+    if (e.status === 401) return false;
     $('#stats-loading').textContent = tt('stats.error');
+    return false;
   }
 }
 
@@ -371,6 +384,48 @@ document.addEventListener('pointermove', (e) => {
   tip.style.transform = `translate(${x}px, ${e.clientY + 16}px)`;
 });
 
+// ── Map ────────────────────────────────────────────────────────────────────
+
+let mapMounting = null;
+async function openMap() {
+  if (state.map) { state.map.resize(); return; }
+  if (mapMounting) return;
+  const status = $('#map-status');
+  status.hidden = false;
+  status.textContent = tt('map.loading');
+  mapMounting = (async () => {
+    if (!(await state.dataReady)) throw new Error('data');
+    const foundAt = new Map(state.progress.map((f) => [f.invader_id, f.found_at]));
+    state.map = await mountMap($('#map-canvas'), {
+      invaders: state.invaders,
+      flashedIds: new Set(state.profile.flashed_invader_ids),
+      foundAt,
+    }, { t, esc, fmtDate });
+    status.hidden = true;
+    updateMapCount();
+  })().catch((e) => { console.error('map', e); status.textContent = tt('map.error'); })
+    .finally(() => { mapMounting = null; });
+}
+
+function updateMapCount() {
+  if (state.map) $('#map-count').innerHTML = t('map.count', { count: state.map.count() });
+}
+
+$$('.map-bar [data-filter]').forEach((group) => group.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn || !state.map) return;
+  const kind = group.dataset.filter;
+  if (kind === 'points') {
+    btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
+    const on = $$('button[aria-pressed="true"]', group).map((b) => Number(b.dataset.value));
+    state.map.setFilter({ points: new Set(on) });
+  } else {
+    $$('button', group).forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    state.map.setFilter({ [kind]: btn.dataset.value });
+  }
+  updateMapCount();
+}));
+
 // ── Account settings ───────────────────────────────────────────────────────
 
 function fillSettings() {
@@ -448,6 +503,7 @@ $('#lang').addEventListener('click', () => {
     renderHeader();
     if (state.stats) renderStats();
     fillSettings();
+    updateMapCount();
   }
 });
 

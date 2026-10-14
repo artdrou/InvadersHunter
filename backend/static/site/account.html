@@ -71,7 +71,7 @@
 
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="stats" data-i18n="tab.stats"></button>
-        <button role="tab" data-tab="map"><span data-i18n="tab.map"></span> <span class="tag" data-i18n="common.soon"></span></button>
+        <button role="tab" data-tab="map" data-i18n="tab.map"></button>
         <button role="tab" data-tab="sync" data-i18n="tab.sync"></button>
         <button role="tab" data-tab="settings" data-i18n="tab.settings"></button>
       </nav>
@@ -111,11 +111,37 @@
         </div>
       </div>
 
-      <!-- Map (issue #59, next step) -->
+      <!-- Map -->
       <div class="panel" data-panel="map" hidden>
-        <div class="empty-card">
-          <h2 data-i18n="map.title"></h2>
-          <p class="muted" data-i18n="map.body"></p>
+        <div class="map-bar">
+          <div class="seg" role="group" data-filter="status">
+            <button type="button" data-value="all" data-i18n="filter.all" aria-pressed="true"></button>
+            <button type="button" data-value="flashed" data-i18n="filter.flashed" aria-pressed="false"></button>
+            <button type="button" data-value="unflashed" data-i18n="filter.unflashed" aria-pressed="false"></button>
+          </div>
+          <div class="seg" role="group" data-filter="condition">
+            <button type="button" data-value="any" data-i18n="filter.any" aria-pressed="true"></button>
+            <button type="button" data-value="flashable" data-i18n="filter.flashable" aria-pressed="false"></button>
+            <button type="button" data-value="unflashable" data-i18n="filter.unflashable" aria-pressed="false"></button>
+          </div>
+          <div class="seg seg-points" role="group" data-filter="points">
+            <button type="button" data-value="10" aria-pressed="true">10</button>
+            <button type="button" data-value="20" aria-pressed="true">20</button>
+            <button type="button" data-value="30" aria-pressed="true">30</button>
+            <button type="button" data-value="40" aria-pressed="true">40</button>
+            <button type="button" data-value="50" aria-pressed="true">50</button>
+            <button type="button" data-value="100" aria-pressed="true">100</button>
+          </div>
+          <span class="muted map-count" id="map-count"></span>
+        </div>
+        <div class="map-wrap">
+          <div id="map-canvas"></div>
+          <p class="map-status" id="map-status"></p>
+          <ul class="map-legend">
+            <li><img src="img/markers/marker-30pts-flash-captured.png" alt=""><span data-i18n="legend.flashed"></span></li>
+            <li><img src="img/markers/marker-30pts-flash-uncaptured.png" alt=""><span data-i18n="legend.unflashed"></span></li>
+            <li><img src="img/markers/marker-30pts-grey.png" alt=""><span data-i18n="legend.grey"></span></li>
+          </ul>
         </div>
       </div>
 
