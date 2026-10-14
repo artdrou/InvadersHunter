@@ -1,0 +1,106 @@
+name: Production DB backup
+
+# Dumps the production Neon database and stores it in a PRIVATE Cloudflare R2 bucket
+# (never the public pictures bucket). Runs twice a day; "Run workflow" in the Actions
+# tab takes an extra backup on demand (e.g. right before a risky migration).
+#
+# Layout in the bucket:
+#   daily/<timestamp>.dump    every run, kept KEEP_DAILY_DAYS days
+#   monthly/<timestamp>.dump  first run of each month, kept KEEP_MONTHLY_DAYS days
+#
+# Restore: see .github/DEPLOYMENT.md → "Backups".
+# A failed run sends GitHub's usual "workflow failed" email.
+on:
+  schedule:
+    - cron: '0 2,14 * * *'   # 04:00 and 16:00 Paris (summer time)
+  workflow_dispatch:
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  KEEP_DAILY_DAYS: 30
+  KEEP_MONTHLY_DAYS: 365
+  PG_MAJOR: 18   # pg_dump must be >= the Neon server version; newer is fine
+
+jobs:
+  backup:
+    name: Dump production DB to R2
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      BUCKET: ${{ secrets.BACKUP_R2_BUCKET }}
+      R2_ENDPOINT: ${{ secrets.BACKUP_R2_ENDPOINT_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 rejects some of the newer default AWS CLI checksum headers
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    steps:
+      - name: Check secrets
+        run: |
+          for v in DATABASE_URL BUCKET R2_ENDPOINT AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v"; exit 1; fi
+          done
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq "postgresql-client-${PG_MAJOR}"
+          echo "/usr/lib/postgresql/${PG_MAJOR}/bin" >> "$GITHUB_PATH"
+
+      - name: Dump database
+        run: |
+          STAMP=$(date -u +%Y-%m-%dT%H%MZ)
+          FILE="invadershunter-prod-${STAMP}.dump"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          pg_dump --version
+          # Custom format = compressed, restorable table by table with pg_restore
+          pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges --file="$FILE"
+
+      - name: Verify dump
+        run: |
+          # The archive must be readable and contain real tables, otherwise fail loudly
+          TABLES=$(pg_restore --list "$FILE" | grep -c " TABLE DATA " || true)
+          SIZE=$(stat -c %s "$FILE")
+          echo "Dump size: ${SIZE} bytes, tables with data: ${TABLES}"
+          if [ "$TABLES" -lt 5 ]; then echo "::error::Dump looks empty (${TABLES} tables)"; exit 1; fi
+
+      - name: Upload to R2
+        run: |
+          aws s3 cp "$FILE" "s3://${BUCKET}/daily/${FILE}" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          # First backup of the month is also kept as a long-term copy
+          MONTH=$(date -u +%Y-%m)
+          if ! aws s3 ls "s3://${BUCKET}/monthly/invadershunter-prod-${MONTH}" --endpoint-url "$R2_ENDPOINT" >/dev/null 2>&1; then
+            aws s3 cp "$FILE" "s3://${BUCKET}/monthly/${FILE}" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+            echo "Also stored as this month's long-term copy"
+          fi
+
+      - name: Delete old backups
+        run: |
+          prune() {  # prune <prefix> <days>
+            CUTOFF=$(date -u -d "-$2 days" +%Y-%m-%d)
+            aws s3 ls "s3://${BUCKET}/$1/" --endpoint-url "$R2_ENDPOINT" | awk '{print $4}' |
+            while read -r NAME; do
+              DAY=$(echo "$NAME" | sed -n 's/^invadershunter-prod-\([0-9-]\{10\}\)T.*/\1/p')
+              if [ -n "$DAY" ] && [[ "$DAY" < "$CUTOFF" ]]; then
+                echo "Deleting $1/$NAME"
+                aws s3 rm "s3://${BUCKET}/$1/$NAME" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+              fi
+            done
+          }
+          prune daily "$KEEP_DAILY_DAYS"
+          prune monthly "$KEEP_MONTHLY_DAYS"
+
+      - name: Summary
+        run: |
+          echo "### Backup OK: \`daily/${FILE}\` ($(du -h "$FILE" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
