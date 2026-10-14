@@ -154,6 +154,7 @@ export const STRINGS = {
 
     'footer.fallback': 'Not working? Use the <a href="' + EXE_URL + '">Windows tool</a> or paste a list of names in the app (Settings → Sync → Import flashes).',
     'footer.credits': 'InvadersHunter is an unofficial fan tool. Space Invaders street art is the work of the artist Invader.',
+    'footer.images': 'Some screenshots: <a href="https://developer.android.com/studio/debug/dev-options">Android Developers</a> (CC BY 2.5) and <a href="https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki/Enabling-Developer-Options">FIRST Tech Challenge</a>.',
   },
 
   fr: {
@@ -306,5 +307,6 @@ export const STRINGS = {
 
     'footer.fallback': 'Ça ne fonctionne pas ? Utilisez l’<a href="' + EXE_URL + '">outil Windows</a> ou collez une liste de noms dans l’application (Réglages → Synchronisation → Importer mes flashes).',
     'footer.credits': 'InvadersHunter est un outil de fan non officiel. Les Space Invaders sont l’œuvre de l’artiste Invader.',
+    'footer.images': 'Certaines captures : <a href="https://developer.android.com/studio/debug/dev-options">Android Developers</a> (CC BY 2.5) et <a href="https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki/Enabling-Developer-Options">FIRST Tech Challenge</a>.',
   },
 };
