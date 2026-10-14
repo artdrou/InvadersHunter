@@ -288,13 +288,14 @@ async function analyse() {
     const { path, files } = await p.listFlashFiles({
       onPath: (dir, count) => log(t('log.path', { path: dir, count })),
     });
-    state.files = files;
-    log(t('log.found', { count: files.length, path }), 'ok');
+    // The official app keeps a second image per flash ("PA_12_S.jpg"): not a flash.
+    state.files = files.filter((f) => !/_S(\.[^.]*)?$/i.test(f));
+    log(t('log.found', { count: state.files.length, path }), 'ok');
 
     log(t('log.comparing', { username: state.session.username }));
     const [account, preview] = await Promise.all([
       api('/flash-import/snapshot'),
-      api('/flash-import/', { method: 'POST', body: { names: files, mirror: true, confirm: false } }),
+      api('/flash-import/', { method: 'POST', body: { names: state.files, mirror: true, confirm: false } }),
     ]);
     state.account = account;
     state.preview = preview;
