@@ -21,6 +21,13 @@ def list_users(db: Session = Depends(get_db), _admin=Depends(require_admin)):
     return user_service.list_all(db)
 
 
+@router.get("/me", response_model=UserAdminProfileOut)
+def get_my_profile(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """The caller's own account, dates, contributions and flashed invader ids
+    (same shape as the admin view: it's the user's own data)."""
+    return user_service.get_admin_profile(db, current_user.id)
+
+
 @router.get("/{user_id}/profile", response_model=UserAdminProfileOut)
 def get_user_profile(user_id: int, db: Session = Depends(get_db), _admin=Depends(require_admin)):
     """Admin only: account details, key dates, contributions and flashed invaders."""

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InvadersHunter · Mon compte</title>
+  <meta name="description" content="Votre progression InvadersHunter en détail, depuis le navigateur.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="account.css">
+  <script type="module" src="account.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="img/logo.svg" alt="" class="nav-logo">
+      <span class="wordmark">Invaders<span>Hunter</span></span>
+    </a>
+    <div class="nav-actions">
+      <button class="btn-ghost lang" id="lang" type="button" aria-label="Language"></button>
+      <button class="btn btn-secondary btn-sm" id="logout" type="button" data-i18n="acc.logout" hidden></button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── Login ────────────────────────────────────────────── -->
+  <section id="login-view" class="login-wrap" hidden>
+    <div class="hero-glow" aria-hidden="true"></div>
+    <form id="login-form" class="login-card" novalidate>
+      <img src="img/logo.svg" alt="" class="login-logo">
+      <h1 data-i18n="login.title"></h1>
+      <p class="muted" data-i18n="login.subtitle"></p>
+      <label class="field">
+        <span data-i18n="login.username"></span>
+        <input id="login-username" name="username" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span data-i18n="login.password"></span>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <label class="check">
+        <input id="login-remember" type="checkbox" checked>
+        <span data-i18n="login.remember"></span>
+      </label>
+      <p class="form-error" id="login-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit" data-i18n="login.submit"></button>
+      <p class="login-help" data-i18n="login.forgot"></p>
+      <p class="login-help" data-i18n="login.noAccount"></p>
+    </form>
+  </section>
+
+  <!-- ── Dashboard ────────────────────────────────────────── -->
+  <section id="dash-view" hidden>
+    <div class="container dash">
+      <header class="dash-head">
+        <div>
+          <p class="eyebrow" data-i18n="dash.eyebrow"></p>
+          <h1 id="dash-hello"></h1>
+          <p class="muted" id="dash-since"></p>
+        </div>
+        <span class="tag admin-badge" id="admin-badge" data-i18n="dash.admin" hidden></span>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="stats" data-i18n="tab.stats"></button>
+        <button role="tab" data-tab="map"><span data-i18n="tab.map"></span> <span class="tag" data-i18n="common.soon"></span></button>
+        <button role="tab" data-tab="sync" data-i18n="tab.sync"></button>
+        <button role="tab" data-tab="settings" data-i18n="tab.settings"></button>
+      </nav>
+
+      <!-- Stats -->
+      <div class="panel" data-panel="stats">
+        <p class="loading" id="stats-loading" data-i18n="stats.loading"></p>
+        <div id="stats-body" hidden>
+          <div class="tiles" id="tiles"></div>
+
+          <article class="chart-card">
+            <header class="chart-head">
+              <div>
+                <h2 data-i18n="chart.months.title"></h2>
+                <p class="muted" data-i18n="chart.months.sub"></p>
+              </div>
+              <button class="btn-ghost" type="button" data-table-toggle="months-table" data-i18n="chart.showTable"></button>
+            </header>
+            <div class="months" id="months-chart"></div>
+            <table class="data-table" id="months-table" hidden></table>
+          </article>
+
+          <article class="chart-card">
+            <header class="chart-head">
+              <div>
+                <h2 data-i18n="chart.cities.title"></h2>
+                <p class="muted" data-i18n="chart.cities.sub"></p>
+              </div>
+              <input class="search" id="city-search" type="search" data-i18n-placeholder="chart.cities.search">
+            </header>
+            <ol class="cities-list" id="cities"></ol>
+            <button class="btn btn-secondary btn-sm" id="cities-more" type="button" hidden></button>
+          </article>
+
+          <h2 class="section-title" data-i18n="contrib.title"></h2>
+          <div class="tiles tiles-sm" id="contrib"></div>
+        </div>
+      </div>
+
+      <!-- Map (issue #59, next step) -->
+      <div class="panel" data-panel="map" hidden>
+        <div class="empty-card">
+          <h2 data-i18n="map.title"></h2>
+          <p class="muted" data-i18n="map.body"></p>
+        </div>
+      </div>
+
+      <!-- Flash sync -->
+      <div class="panel" data-panel="sync" hidden>
+        <div class="empty-card">
+          <h2 data-i18n="sync.title"></h2>
+          <p class="muted" data-i18n="sync.body"></p>
+          <a class="btn btn-primary" href="/flash-import/web" data-i18n="sync.cta"></a>
+        </div>
+      </div>
+
+      <!-- Account settings -->
+      <div class="panel" data-panel="settings" hidden>
+        <div class="settings-grid">
+          <form class="set-card" data-field="username" novalidate>
+            <h2 data-i18n="set.username"></h2>
+            <label class="field"><input name="username" autocomplete="username" minlength="3" maxlength="50" required></label>
+            <p class="form-msg" role="status" hidden></p>
+            <button class="btn btn-secondary btn-sm" type="submit" data-i18n="set.save"></button>
+          </form>
+          <form class="set-card" data-field="email" novalidate>
+            <h2 data-i18n="set.email"></h2>
+            <label class="field"><input name="email" type="email" autocomplete="email" required></label>
+            <p class="form-msg" role="status" hidden></p>
+            <button class="btn btn-secondary btn-sm" type="submit" data-i18n="set.save"></button>
+          </form>
+          <form class="set-card" data-field="password" novalidate>
+            <h2 data-i18n="set.password"></h2>
+            <label class="field"><span data-i18n="set.newPassword"></span><input name="password" type="password" autocomplete="new-password" minlength="4" required></label>
+            <label class="field"><span data-i18n="set.confirmPassword"></span><input name="confirm" type="password" autocomplete="new-password" required></label>
+            <p class="form-msg" role="status" hidden></p>
+            <button class="btn btn-secondary btn-sm" type="submit" data-i18n="set.save"></button>
+          </form>
+          <form class="set-card danger-card" id="delete-form" novalidate>
+            <h2 data-i18n="set.delete.title"></h2>
+            <p class="muted" data-i18n="set.delete.body"></p>
+            <label class="field"><span id="delete-label"></span><input name="confirm" autocomplete="off" required></label>
+            <p class="form-msg" role="status" hidden></p>
+            <button class="btn btn-danger btn-sm" type="submit" data-i18n="set.delete.cta"></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p data-i18n="footer.disclaimer"></p>
+    <p><a href="index.html" data-i18n="acc.backHome"></a></p>
+  </div>
+</footer>
+
+</body>
+</html>

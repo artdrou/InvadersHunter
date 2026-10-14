@@ -254,3 +254,16 @@ def test_admin_cannot_remove_own_admin_role(client, admin):
 def test_user_cannot_promote_self(client, user):
     res = client.put(f"/users/{user.id}", json={"is_admin": True}, headers=auth_headers(user))
     assert res.status_code == 403
+
+
+def test_me_returns_own_profile(client, user):
+    res = client.get("/users/me", headers=auth_headers(user))
+    assert res.status_code == 200
+    body = res.json()
+    assert body["id"] == user.id
+    assert body["username"] == "alice"
+    assert body["flashed_invader_ids"] == []
+
+
+def test_me_requires_auth(client):
+    assert client.get("/users/me").status_code == 401

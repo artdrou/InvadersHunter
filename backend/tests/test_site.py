@@ -9,3 +9,9 @@ def test_site_redirects_to_static_page(client):
     page = client.get("/static/site/index.html")
     assert page.status_code == 200
     assert "InvadersHunter" in page.text
+
+
+def test_account_redirects_to_static_page(client):
+    res = client.get("/account", follow_redirects=False)
+    assert res.status_code == 307
+    assert res.headers["location"] == "/static/site/account.html"
