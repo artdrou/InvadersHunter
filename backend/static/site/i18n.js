@@ -87,8 +87,8 @@ export const STRINGS = {
     'inspi.title': 'Ces projets ont ouvert la voie',
     'inspi.body': 'InvadersHunter n’existerait pas sans le travail de la communauté. Allez les voir.',
     'inspi.spotter': 'La référence : fiches, états et historique de chaque invader.',
-    'inspi.findvaders': 'Une carte pour trouver les invaders autour de soi.',
-    'inspi.mapinvader': 'Une carte des mosaïques d’Invader.',
+    'inspi.findvaders': 'Carte interactive et suivi des flashs, sur le web et en app.',
+    'inspi.mapinvader': 'La carte participative de pnote.eu, dans les villes du monde entier.',
     'inspi.invaderquest': 'Carte et données ouvertes (ODbL) des invaders.',
 
     'thanks.title': 'Merci, Invader',
@@ -192,8 +192,8 @@ export const STRINGS = {
     'inspi.title': 'These projects paved the way',
     'inspi.body': 'InvadersHunter wouldn’t exist without the community’s work. Go check them out.',
     'inspi.spotter': 'The reference: records, states and history of every invader.',
-    'inspi.findvaders': 'A map to find the invaders around you.',
-    'inspi.mapinvader': 'A map of Invader’s mosaics.',
+    'inspi.findvaders': 'Interactive map and flash tracker, on the web and in an app.',
+    'inspi.mapinvader': 'pnote.eu’s crowd-sourced map, in cities around the world.',
     'inspi.invaderquest': 'Open map and open data (ODbL) of the invaders.',
 
     'thanks.title': 'Thank you, Invader',

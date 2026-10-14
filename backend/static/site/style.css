@@ -218,8 +218,6 @@ p { margin: 0; }
 .link-card { position: relative; color: var(--text); transition: border-color 0.15s, transform 0.15s; }
 .link-card:hover { text-decoration: none; border-color: var(--accent); transform: translateY(-2px); }
 .link-card .arrow { position: absolute; top: 22px; right: 22px; color: var(--text-muted); }
-.link-card.is-todo { border-style: dashed; cursor: default; }
-.link-card.is-todo:hover { border-color: var(--border); transform: none; }
 
 .thanks { text-align: center; max-width: 640px; margin: 0 auto 72px; }
 .thanks-logo { width: 120px; margin: 0 auto 24px; }

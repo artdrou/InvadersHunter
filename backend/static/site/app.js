@@ -24,11 +24,6 @@ function watchShots() {
   });
 }
 
-// Links still waiting for their URL (see TODOs in index.html) do nothing.
-function disableTodoLinks() {
-  document.querySelectorAll('a.is-todo').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
-}
-
 document.getElementById('lang').addEventListener('click', () => {
   lang = lang === 'fr' ? 'en' : 'fr';
   writePref(LANG_KEY, lang);
@@ -37,4 +32,3 @@ document.getElementById('lang').addEventListener('click', () => {
 
 applyStrings();
 watchShots();
-disableTodoLinks();
