@@ -159,7 +159,7 @@ def cyan_silhouette(size):
     At this size the lines are 1 px (the thinnest possible)."""
     sp = C.sprite(C.CYAN_RECTS, s=1)
     sp = sp.resize((sp.width // 10, sp.height // 10), Image.NEAREST)  # one pixel per cell
-    k = int(size * 0.86 / max(sp.size))
+    k = (size - 4) // max(sp.size)  # as big as whole pixels allow, 2 px margin (status-bar icons are tiny)
     a = punched(sp.resize((sp.width * k, sp.height * k), Image.NEAREST), 3)
     out = Image.new("RGBA", (size, size), (255, 255, 255, 0))
     layer = Image.new("RGBA", a.size, (255, 255, 255, 255)); layer.putalpha(a)
