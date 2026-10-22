@@ -12,7 +12,7 @@ The icons use the cyan + red duo, the splash the full logo (gold included):
 - android-icon-background.png       1024, opaque: navy + streets (tinted for -dev / -stag)
 - android-icon-monochrome.png       1024, white silhouettes (Android 13 themed icons)
 - splash-icon.png                   1024, transparent: the full website logo (3 invaders, streets, halo, dust)
-- notification-icon.png             96, white cyan-invader silhouette, same lines as the themed icon (status bar: Android keeps alpha only)
+- notification-icon.png             100, white cyan-invader silhouette filling 99 %, same lines as the themed icon (status bar: Android keeps alpha only)
 - favicon.png                       48, the flat duo (same as the website favicon)
 - design/logo/out/app-icons-preview.png   contact sheet (not used by the app)
 """
@@ -154,13 +154,14 @@ def silhouette(scale_to):
     out = Image.new("RGBA", canvas.size, (255, 255, 255, 0)); out.putalpha(canvas)
     return out
 
-def cyan_silhouette(size):
-    """The cyan invader, untilted, punched like the themed icon, on whole pixels.
-    At this size the lines are 1 px (the thinnest possible)."""
+def cyan_silhouette(cell, fill=0.99):
+    """The cyan invader, untilted, punched like the themed icon, `cell` px per pixel-art
+    cell, on a square canvas it fills to `fill` (status-bar icons are tiny: use it all).
+    Expo resizes this to every density anyway, so the canvas size is free. Lines are 1 px."""
     sp = C.sprite(C.CYAN_RECTS, s=1)
     sp = sp.resize((sp.width // 10, sp.height // 10), Image.NEAREST)  # one pixel per cell
-    k = (size - 4) // max(sp.size)  # as big as whole pixels allow, 2 px margin (status-bar icons are tiny)
-    a = punched(sp.resize((sp.width * k, sp.height * k), Image.NEAREST), 3)
+    a = punched(sp.resize((sp.width * cell, sp.height * cell), Image.NEAREST), 3)
+    size = round(max(a.size) / fill)
     out = Image.new("RGBA", (size, size), (255, 255, 255, 0))
     layer = Image.new("RGBA", a.size, (255, 255, 255, 255)); layer.putalpha(a)
     out.alpha_composite(layer, ((size - a.width) // 2, (size - a.height) // 2))
@@ -193,7 +194,7 @@ for key, (tint, text) in VARIANTS.items():
 # Splash: the full logo; its streets fade out to transparent, so the oval melts into the navy
 # background and nothing important sits where Android 12+ crops the image to a circle.
 save(centered(fit(FULL_LOGO, SIZE, SIZE)), "splash-icon.png")
-save(cyan_silhouette(96), "notification-icon.png")
+save(cyan_silhouette(9), "notification-icon.png")
 Image.open(HERE / "out/favicon-48.png").save(DST / "favicon.png"); print("wrote favicon.png")
 
 # ── Contact sheet ───────────────────────────────────────────────────────────────
@@ -213,7 +214,7 @@ tiles = [
     ("adaptive dev", circle(Image.alpha_composite(Image.open(DST / "android-icon-background-dev.png").convert("RGBA"), Image.open(DST / "android-icon-foreground-dev.png")))),
     ("monochrome", circle(Image.alpha_composite(Image.new("RGBA", (SIZE, SIZE), (60, 70, 90, 255)), Image.open(DST / "android-icon-monochrome.png")))),
     ("splash", Image.alpha_composite(Image.new("RGBA", (SIZE, SIZE), NAVY + (255,)), Image.open(DST / "splash-icon.png"))),
-    ("notification", Image.alpha_composite(Image.new("RGBA", (96, 96), (60, 70, 90, 255)), Image.open(DST / "notification-icon.png")).resize((SIZE, SIZE), Image.NEAREST)),
+    ("notification", (lambda n: Image.alpha_composite(Image.new("RGBA", n.size, (60, 70, 90, 255)), n))(Image.open(DST / "notification-icon.png")).resize((SIZE, SIZE), Image.NEAREST)),
 ]
 sheet = Image.new("RGB", (4 * (T + 20) + 20, 2 * (T + 40) + 20), "#555555"); dd = ImageDraw.Draw(sheet)
 for i, (name, im) in enumerate(tiles):
