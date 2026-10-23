@@ -3,14 +3,14 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="mockups.css">
 
 <div class="wrap">
   <header class="top">
     <div>
       <h1>Maquettes <span>InvadersHunter</span></h1>
-      <p>Trois écrans clés : l'app actuelle, une <b>retouche</b> (même disposition, finitions) et une <b>évolution</b> (même univers, avec les bonnes idées de la version Arcade). Chaque amélioration a un numéro : dis-moi lesquelles garder. Données d'exemple.</p>
+      <p>Trois écrans clés, chacun dans l'état actuel puis dans 3 directions. Choisis une direction (ou un mélange), on la décline ensuite sur tous les écrans. Données d'exemple.</p>
     </div>
     <div class="controls">
       <div class="seg" id="screen-seg" role="group" aria-label="Écran">
@@ -23,29 +23,34 @@
         <button type="button" data-v="dark" aria-pressed="true">Sombre</button>
         <button type="button" data-v="light" aria-pressed="false">Clair</button>
       </div>
-      <div class="seg" id="ann-seg" role="group" aria-label="Numéros">
-        <button type="button" data-v="on" aria-pressed="true">Numéros</button>
-        <button type="button" data-v="off" aria-pressed="false">Sans</button>
-      </div>
     </div>
   </header>
 
   <main id="mock-root"></main>
 
-  <section class="notes" aria-label="Notes">
+  <section class="notes" aria-label="Faisabilité">
     <div class="note">
-      <h3>Comment répondre</h3>
+      <h3>Faisable en OTA (React Native 0.83)</h3>
       <ul>
-        <li>Par numéro, ex. « carte : retouche 1, 3, 7 + évolution 1, 5 »</li>
-        <li>Les idées marquées <b>Arcade</b> viennent de la version Arcade d'avant</li>
-        <li>Les deux colonnes se mélangent librement</li>
+        <li>Lueurs et ombres colorées : <code>boxShadow</code></li>
+        <li>Dégradés : <code>experimental_backgroundImage</code>, sans module natif</li>
+        <li>Verre dépoli : <code>expo-blur</code>, déjà dans l'APK</li>
+        <li>Polices Google (Inter, Archivo) : <code>expo-font</code> + fichiers dans <code>assets/fonts</code></li>
       </ul>
     </div>
     <div class="note">
-      <h3>Faisabilité</h3>
+      <h3>Demande un build natif</h3>
       <ul>
-        <li>Tout passe en mise à jour OTA (React Native 0.83 : ombres, cadres)</li>
-        <li>Les cadres pixel à coins en escalier = le composant PixelBox déjà prévu ; version nette avec <code>react-native-svg</code> au prochain build</li>
+        <li>Sprites et icônes vectoriels nets : <code>react-native-svg</code> (déjà sur la liste TODO)</li>
+        <li>Nouveau splash et nouvelle icône d'app</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Comment donner ton avis</h3>
+      <ul>
+        <li>Une direction entière, ou un mélange (ex. « la carte en A, la liste en C »)</li>
+        <li>Ce que tu aimes / n'aimes pas sur chaque écran</li>
+        <li>Ensuite : on décline la direction choisie sur les ~30 écrans (#130)</li>
       </ul>
     </div>
   </section>
@@ -71,10 +76,6 @@
     }
     document.getElementById('screen-seg').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return; screen = b.dataset.v; draw();
-    });
-    document.getElementById('ann-seg').addEventListener('click', (e) => {
-      const b = e.target.closest('button'); if (!b) return;
-      document.body.classList.toggle('hide-ann', b.dataset.v === 'off'); sync('ann-seg', b.dataset.v);
     });
     document.getElementById('mode-seg').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return; mode = b.dataset.v;
