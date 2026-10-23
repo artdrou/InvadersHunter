@@ -1,6 +1,6 @@
 /* InvadersHunter — styles communs aux maquettes de la CARTE (dossier 02-carte).
  *
- * Chargé après _shared/app.css par chaque page de ce dossier. Contient ce qui revient sur
+ * Chargé après shared/app.css par chaque page de ce dossier. Contient ce qui revient sur
  * plusieurs écrans de la carte : boutons posés sur la carte, popup d'invader, champs des
  * formulaires, fenêtre de tutoriel, épingle de choix de position.
  * Tailles de texte « × 0,9 » = fontScale de l'app (sz()). Police : FreePixel partout, sauf

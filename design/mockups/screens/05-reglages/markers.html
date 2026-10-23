@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Personnalisation des markers — maquette InvadersHunter</title>
 <!-- Source : frontend/src/app/settings/marker-customization.tsx -->
-<link rel="stylesheet" href="../../_shared/fonts.css">
-<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="../../shared/fonts.css">
+<link rel="stylesheet" href="../../shared/app.css">
 <style>
   /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
   .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
@@ -43,7 +43,7 @@
   .state-label { color: var(--text-muted); font-size: var(--fs-xxs); white-space: nowrap; }
   .state.active { border-color: var(--accent); }
   .state.active .state-label { color: var(--accent); }
-  /* Highlight (ambre #FFC107) : pas d'image dans _shared, on teinte le marker gris */
+  /* Highlight (ambre #FFC107) : pas d'image dans shared, on teinte le marker gris */
   .tint-highlight { filter: sepia(1) saturate(6) hue-rotate(-8deg) brightness(1.05); }
   /* Encart : réglages de l'état sélectionné */
   .encart { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border);
@@ -168,9 +168,9 @@
     </div>
   </div>
 
-  <p class="page-notes">Valeurs par défaut (forme = palier, couleurs de settings/marker-customization-store.ts). Dans l'app, les aperçus sont dessinés à la volée avec les couleurs choisies ; ici ce sont les images de marqueurs de _shared/assets (l'état « Highlighte » ambre est simulé en teintant le marqueur gris). Toucher Corps ou Lueur ouvre le sélecteur de couleur (titre « Couleur du corps » / « Couleur de la lueur »). Dans l'app cette page ne défile pas (elle est prévue pour tenir sur un écran) ; ici on peut faire défiler pour voir les boutons du bas.</p>
+  <p class="page-notes">Valeurs par défaut (forme = palier, couleurs de settings/marker-customization-store.ts). Dans l'app, les aperçus sont dessinés à la volée avec les couleurs choisies ; ici ce sont les images de marqueurs de shared/assets (l'état « Highlighte » ambre est simulé en teintant le marqueur gris). Toucher Corps ou Lueur ouvre le sélecteur de couleur (titre « Couleur du corps » / « Couleur de la lueur »). Dans l'app cette page ne défile pas (elle est prévue pour tenir sur un écran) ; ici on peut faire défiler pour voir les boutons du bas.</p>
 
   <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-  <script src="../../_shared/app.js"></script>
+  <script src="../../shared/app.js"></script>
 </body>
 </html>

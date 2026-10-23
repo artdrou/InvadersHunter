@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tutoriel — filtres — maquette InvadersHunter</title>
 <!-- Source : frontend/src/features/tutorial/components/TutorialModal.tsx + map/components/FilterIllustration.tsx -->
-<link rel="stylesheet" href="../../_shared/fonts.css">
-<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="../../shared/fonts.css">
+<link rel="stylesheet" href="../../shared/app.css">
 <link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
 <style>
   /* Illustrations des tutoriels (ColorModeIllustration, GreyModeIllustration, FilterIllustration) */
@@ -106,15 +106,15 @@
             <div class="t-section"><div class="t-section-label">Condition</div><div class="t-body">'Flashable' montre les invaders encore en etat d'etre flashes. 'Non flashable' montre uniquement ceux detruits ou invisibles.</div></div>
             <div class="t-section"><div class="t-section-label">Points</div><div class="t-body">Restreint a un ou plusieurs niveaux de rarete. Selectionne plusieurs valeurs pour les combiner.</div></div>
             <div class="ill ill-filter">
-              <div class="ill-row"><span class="ill-flabel">Non flashés</span><div class="ill-group"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt="" class="dim"><img src="../../_shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
+              <div class="ill-row"><span class="ill-flabel">Non flashés</span><div class="ill-group"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../shared/assets/marker-50pts-flash-captured.png" alt="" class="dim"><img src="../../shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
               <div class="ill-hr"></div>
-              <div class="ill-row"><span class="ill-flabel">Flashés</span><div class="ill-group"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt="" class="dim"><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt=""><img src="../../_shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
+              <div class="ill-row"><span class="ill-flabel">Flashés</span><div class="ill-group"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt="" class="dim"><img src="../../shared/assets/marker-50pts-flash-captured.png" alt=""><img src="../../shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
               <div class="ill-hr"></div>
-              <div class="ill-row"><span class="ill-flabel">Flashable</span><div class="ill-group"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt=""><img src="../../_shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
+              <div class="ill-row"><span class="ill-flabel">Flashable</span><div class="ill-group"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../shared/assets/marker-50pts-flash-captured.png" alt=""><img src="../../shared/assets/marker-50pts-grey.png" alt="" class="dim"></div></div>
               <div class="ill-hr"></div>
-              <div class="ill-row"><span class="ill-flabel">50 pts</span><div class="ill-group"><img src="../../_shared/assets/marker-10pts-flash-uncaptured.png" alt="" class="dim"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../_shared/assets/marker-100pts-flash-uncaptured.png" alt="" class="dim"></div></div>
+              <div class="ill-row"><span class="ill-flabel">50 pts</span><div class="ill-group"><img src="../../shared/assets/marker-10pts-flash-uncaptured.png" alt="" class="dim"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../shared/assets/marker-100pts-flash-uncaptured.png" alt="" class="dim"></div></div>
               <div class="ill-hr"></div>
-              <div class="ill-row"><span class="ill-flabel">Non flashés + 50 pts</span><div class="ill-group"><img src="../../_shared/assets/marker-10pts-flash-uncaptured.png" alt="" class="dim"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt="" class="dim"><img src="../../_shared/assets/marker-100pts-flash-uncaptured.png" alt="" class="dim"></div></div>
+              <div class="ill-row"><span class="ill-flabel">Non flashés + 50 pts</span><div class="ill-group"><img src="../../shared/assets/marker-10pts-flash-uncaptured.png" alt="" class="dim"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img src="../../shared/assets/marker-50pts-flash-captured.png" alt="" class="dim"><img src="../../shared/assets/marker-100pts-flash-uncaptured.png" alt="" class="dim"></div></div>
             </div>
             <div class="t-tip">Les trois filtres se combinent. Exemple : Non flashe + Flashable + 50pts affiche uniquement les invaders 50pts que tu n'as pas captures et qui peuvent encore etre flashes.</div>
           </div>
@@ -130,6 +130,6 @@
   <p class="page-notes">Aide des filtres : une seule page, donc pas de points de pagination. Les marqueurs pâles de l'illustration (opacité 15 %) sont ceux que le filtre cache.</p>
 
   <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-  <script src="../../_shared/app.js"></script>
+  <script src="../../shared/app.js"></script>
 </body>
 </html>

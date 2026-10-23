@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Carte — mode rareté — maquette InvadersHunter</title>
 <!-- Source : frontend/src/features/map/components/MapFilterBar.tsx + invader-markers.tsx -->
-<link rel="stylesheet" href="../../_shared/fonts.css">
-<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="../../shared/fonts.css">
+<link rel="stylesheet" href="../../shared/app.css">
 <link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
 <style>
-  /* Marqueurs « rareté » : images de l'app copiées dans 02-carte/assets (pas dans _shared) */
+  /* Marqueurs « rareté » : images de l'app copiées dans 02-carte/assets (pas dans shared) */
   .mk-rar { position: absolute; transform: translate(-50%, -50%); display: block; }
 </style>
 </head>
@@ -25,21 +25,21 @@
       <div class="content map-area">
         <canvas class="map" data-seed="42"></canvas>
       <!-- Marqueurs en mode « Rareté » : une teinte par niveau de points (les grisés restent gris) -->
-      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:62px; top:160px">
-      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:120px; top:215px">
-      <img class="mk-rar" src="../../_shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:250px; top:175px">
-      <img class="mk-rar" src="../../_shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:300px; top:250px">
-      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:85px; top:305px">
-      <img class="mk-rar" src="../../_shared/assets/marker-40pts-rarity.png" width="36" alt="" style="left:205px; top:290px">
-      <img class="mk-rar" src="../../_shared/assets/marker-100pts-rarity.png" width="46" alt="" style="left:140px; top:385px">
+      <img class="mk-rar" src="../../shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:62px; top:160px">
+      <img class="mk-rar" src="../../shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:120px; top:215px">
+      <img class="mk-rar" src="../../shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:250px; top:175px">
+      <img class="mk-rar" src="../../shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:300px; top:250px">
+      <img class="mk-rar" src="../../shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:85px; top:305px">
+      <img class="mk-rar" src="../../shared/assets/marker-40pts-rarity.png" width="36" alt="" style="left:205px; top:290px">
+      <img class="mk-rar" src="../../shared/assets/marker-100pts-rarity.png" width="46" alt="" style="left:140px; top:385px">
       <img class="mk" data-pts="20" data-state="grey" style="left:285px; top:360px">
-      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:60px; top:450px">
-      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:250px; top:440px">
-      <img class="mk-rar" src="../../_shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:325px; top:470px">
-      <img class="mk-rar" src="../../_shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:125px; top:520px">
-      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:205px; top:560px">
+      <img class="mk-rar" src="../../shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:60px; top:450px">
+      <img class="mk-rar" src="../../shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:250px; top:440px">
+      <img class="mk-rar" src="../../shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:325px; top:470px">
+      <img class="mk-rar" src="../../shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:125px; top:520px">
+      <img class="mk-rar" src="../../shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:205px; top:560px">
       <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
-      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:235px; top:665px">
+      <img class="mk-rar" src="../../shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:235px; top:665px">
       <!-- Grappes (clusters) : rouge = au moins un non flashé, bleu = tous flashés -->
       <div class="cluster" style="left:175px; top:120px">7</div>
       <div class="cluster l blue" style="left:300px; top:545px">23</div>
@@ -78,6 +78,6 @@
   <p class="page-notes">Mode couleur « Rareté » : chaque niveau de points a sa teinte, quel que soit le statut flash. Griser ne propose plus que Tous / Off. Un réglage différent du défaut met le bouton Palette en couleur d'accent. Les grappes gardent leurs couleurs rouge / bleu.</p>
 
   <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-  <script src="../../_shared/app.js"></script>
+  <script src="../../shared/app.js"></script>
 </body>
 </html>

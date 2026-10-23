@@ -11,7 +11,7 @@ Un fichier HTML par écran de l'app, pour tester des idées de design rapidement
 ## Modifier
 
 - **Un seul écran** : ouvrir le `.html` dans VS Code. Le bloc `<style>` en haut contient les styles propres à cet écran, le HTML en dessous suit l'ordre de l'écran. Recharger le navigateur (F5) pour voir le résultat.
-- **Tous les écrans d'un coup** (couleurs, tailles de texte, arrondis, boutons, onglets…) : `_shared/app.css`. Les couleurs des 4 thèmes sont en haut du fichier, avec les mêmes noms que `frontend/src/constants/theme.ts`.
+- **Tous les écrans d'un coup** (couleurs, tailles de texte, arrondis, boutons, onglets…) : `shared/app.css`. Les couleurs des 4 thèmes sont en haut du fichier, avec les mêmes noms que `frontend/src/constants/theme.ts`.
 - **Icônes** : `<i data-lucide="nom"></i>`, noms sur https://lucide.dev/icons
 - **Sprite d'invader** : `<i class="spr" data-w="24" data-color="var(--success)"></i>`
 - **Marqueur de la carte** : `<img class="mk" data-pts="30" data-state="captured" style="left:40%;top:50%">` (états : captured, uncaptured, mine, friend, grey)
@@ -27,7 +27,7 @@ Un fichier HTML par écran de l'app, pour tester des idées de design rapidement
 | Dossier | Contenu |
 |---|---|
 | `screens/` | Les écrans, par groupe (démarrage, carte, invaders, social, réglages, admin, fenêtres) |
-| `_shared/` | `app.css` (thèmes + composants communs), `app.js` (onglets, sprites, carte, thèmes), `fonts.css` (polices), `assets/` (marqueurs, splash) |
+| `shared/` | `app.css` (thèmes + composants communs), `app.js` (onglets, sprites, carte, thèmes), `fonts.css` (polices), `assets/` (marqueurs, splash) |
 | `directions/` | Premier essai de directions (Néon, Arcade, Mosaïque), gardé comme référence |
 
 ## Idées retenues du premier essai (à appliquer)

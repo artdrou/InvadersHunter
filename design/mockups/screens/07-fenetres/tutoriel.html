@@ -6,8 +6,8 @@
 <title>Tutoriel — maquette InvadersHunter</title>
 <!-- Source : frontend/src/features/tutorial/components/TutorialModal.tsx + InfoButton.tsx,
      pages définies dans features/map/components/MapFilterBar.tsx, illustration ColorModeIllustration.tsx -->
-<link rel="stylesheet" href="../../_shared/fonts.css">
-<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="../../shared/fonts.css">
+<link rel="stylesheet" href="../../shared/app.css">
 <style>
   /* ── Fenêtre tutoriel (makeStyles de TutorialModal.tsx) ── */
   .tuto-overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
@@ -82,19 +82,19 @@
             <div class="t-body">Chaque niveau de rarete (en points) a sa propre teinte, independamment du statut flash.</div>
           </div>
 
-          <!-- Illustration (images « rareté » copiées dans _shared/assets) -->
+          <!-- Illustration (images « rareté » copiées dans shared/assets) -->
           <div class="illus">
             <div class="illus-label">Flash</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt="">Non flashe</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt="">Flashe</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-50pts-flash-uncaptured.png" alt="">Non flashe</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-50pts-flash-captured.png" alt="">Flashe</div>
             <div class="illus-div"></div>
             <div class="illus-label">Rareté</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-10pts-rarity.png" alt="">10 pts</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-20pts-rarity.png" alt="">20 pts</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-30pts-rarity.png" alt="">30 pts</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-40pts-rarity.png" alt="">40 pts</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-rarity.png" alt="">50 pts</div>
-            <div class="illus-row"><img src="../../_shared/assets/marker-100pts-rarity.png" alt="">100 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-10pts-rarity.png" alt="">10 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-20pts-rarity.png" alt="">20 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-30pts-rarity.png" alt="">30 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-40pts-rarity.png" alt="">40 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-50pts-rarity.png" alt="">50 pts</div>
+            <div class="illus-row"><img src="../../shared/assets/marker-100pts-rarity.png" alt="">100 pts</div>
           </div>
         </div>
 
@@ -112,6 +112,6 @@
     Le contenu défile dans la fenêtre (molette sur la maquette) ; toucher en dehors ou « ✕ » ferme.</p>
 
   <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-  <script src="../../_shared/app.js"></script>
+  <script src="../../shared/app.js"></script>
 </body>
 </html>
