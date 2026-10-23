@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion (erreur) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/login.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de login.tsx) */
+  .auth { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--sp-5); background: var(--bg); }
+  /* Titre : police Pixelmania, 27 × 0.9 = 24 px */
+  .auth-title { color: var(--accent); font-family: var(--font-title); font-size: 24px; margin-bottom: 48px; letter-spacing: 2px; text-align: center; }
+  .auth-form { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: var(--sp-3); }
+  .auth-form .btn { margin-top: var(--sp-2); }
+  .auth-form .error { font-size: 13px; }
+  .auth-link { text-align: center; color: var(--text-muted); font-size: 13px; }
+  .auth-link b { font-weight: normal; color: var(--accent); }
+  /* « Continuer sans compte » : cadre fin, centré */
+  .guest-link { align-self: center; margin-top: var(--sp-3); border: 0.5px solid var(--border); border-radius: var(--r-sm);
+    padding: 10px var(--sp-4); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Connexion <small>identifiants refusés</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="auth">
+      <div class="auth-title">INVADERS HUNTER</div>
+
+      <div class="auth-form">
+        <!-- Champs (texte gris = texte d'exemple) -->
+        <div class="input">space_hunter</div>
+        <div class="input">••••••••</div>
+
+        <!-- Message d'erreur -->
+        <div class="error">Identifiant ou mot de passe invalide</div>
+
+        <!-- Bouton principal -->
+        <div class="btn">Connexion</div>
+
+        <div class="auth-link">Pas de compte ? <b>En créer un</b></div>
+        <div class="auth-link"><b>Mot de passe oublié ?</b></div>
+        <div class="auth-link guest-link"><b>Continuer sans compte</b></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">État après un échec de connexion : le message d'erreur (couleur « danger ») s'insère entre les champs et le bouton.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

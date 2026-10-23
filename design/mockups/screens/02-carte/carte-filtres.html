@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte — filtres — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/MapFilterBar.tsx (+ filter.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Rien de plus : le reste est dans carte-commun.css */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Carte — filtres <small>panneau Filtres ouvert</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Seuls les invaders qui passent le filtre restent affichés (non flashés, 50 ou 100 pts) -->
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="100" data-state="uncaptured" style="left:140px; top:385px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:250px; top:120px">
+      <img class="mk" data-pts="100" data-state="uncaptured" style="left:320px; top:470px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <!-- Panneau Filtres (s'ouvre au-dessus du bouton) -->
+        <div class="fpanel">
+          <div class="fpanel-row"><span class="fpanel-label">État</span><span class="info-btn sm">i</span></div>
+          <div class="fopt">Tous</div>
+          <div class="fopt">Flashés</div>
+          <div class="fopt on">Non flashés</div>
+          <div class="fdivider"></div>
+          <div class="fpanel-label">Condition</div>
+          <div class="fopt on">Tous</div>
+          <div class="fopt">Flashable</div>
+          <div class="fopt">Non flashable</div>
+          <div class="fdivider"></div>
+          <div class="fpanel-label">Points</div>
+          <div class="fpoints">
+            <span class="fchip">10</span><span class="fchip">20</span><span class="fchip">30</span>
+            <span class="fchip">40</span><span class="fchip on">50</span><span class="fchip on">100</span>
+          </div>
+        </div>
+        <div class="pxb hot"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Panneau des filtres ouvert au-dessus du bouton Filtres. Exemple de réglage : « Non flashés » + 50 et 100 points ; un filtre différent du défaut met le bord et l'icône du bouton en couleur d'accent. Le petit « i » ouvre le tutoriel des filtres (voir tutoriel-filtres.html). Ouvrir un panneau ferme l'autre.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

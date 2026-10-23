@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mot de passe oublié (étape 3) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/forgot-password.tsx (étape 'new-password', désactivée par « false && » dans le code) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de forgot-password.tsx) */
+  .auth { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--sp-5); background: var(--bg); }
+  .auth-title { color: var(--accent); font-size: 24px; margin-bottom: 48px; letter-spacing: 2px; }
+  .auth-form { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: var(--sp-3); }
+  /* Sous-titre : 16 × 0.9 = 14 px */
+  .subtitle { color: var(--text); font-size: 14px; margin-bottom: var(--sp-2); }
+  .subtitle.center { text-align: center; }
+  .subtitle.small { font-size: var(--fs-sm); }
+  .auth-form .btn { margin-top: var(--sp-2); text-align: center; }
+  .back-link { margin-top: var(--sp-5); color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Mot de passe oublié <small>Étape 3 : nouveau mot de passe (désactivée)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="auth">
+      <div class="auth-title">Invaders Hunter</div>
+
+      <!-- Étape 3 : nouveau mot de passe (confirmation identique = champ vert) -->
+      <div class="auth-form">
+        <div class="subtitle">Choisissez un nouveau mot de passe</div>
+        <div class="input">••••••••••</div>
+        <div class="input valid">••••••••••</div>
+        <div class="btn">Mettre à jour le mot de passe</div>
+      </div>
+
+      <div class="back-link">Retour à la connexion</div>
+    </div>
+  </div>
+
+  <p class="page-notes">Écran pas visible aujourd'hui dans l'app (parcours désactivé). Étape 3 : le champ de confirmation devient vert quand les deux mots de passe sont identiques, rose sinon. Le libellé du bouton est long : en 30 px il passe sur deux lignes, comme dans l'app.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invaders sans position — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/MissingLocationList.tsx + invaders/components/InvaderGridCell.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* MissingLocationList (tailles × 0,9) : grille de 4 colonnes par ville */
+  .ml-scrim { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; }
+  .ml-card { width: 328px; height: 80%; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .ml-card > * { flex-shrink: 0; }
+  .ml-head { display: flex; align-items: center; gap: var(--sp-2); }
+  .ml-title { flex: 1; color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+  .ml-close { color: var(--text-muted); font-size: 18px; font-family: var(--font-sys); }
+  .ml-muted { color: var(--text-muted); font-size: 12px; }
+  .ml-search { border: 1px solid var(--border); border-radius: var(--r-sm); padding: var(--sp-2); background: var(--bg); color: var(--text-muted); font-size: 13px; }
+  .ml-list { flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: var(--sp-3); padding-bottom: var(--sp-2); }
+  .ml-list::-webkit-scrollbar { display: none; }
+  .ml-list > * { flex-shrink: 0; }
+  .ml-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .ml-city { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .ml-city span:first-child { flex: 1; color: var(--accent); font-size: 14px; letter-spacing: 1px; }
+  .ml-city span:last-child { color: var(--text-muted); font-size: 12px; }
+  .ml-grid { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .ml-cell { width: 66px; margin-bottom: 2px; }
+  .ml-img { width: 66px; height: 66px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg-element); overflow: hidden; }
+  .ml-cell.flashed .ml-img { border-color: var(--success); }
+  .ml-name { margin-top: 3px; text-align: center; color: var(--text-muted); font-size: 9px; white-space: nowrap; overflow: hidden; }
+  .ml-cell.flashed .ml-name { color: var(--success); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Invaders sans position <small>« Placer un invader connu »</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="23"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <div class="center-pin"><div class="pin"></div><div class="stem"></div></div>
+      </div>
+      <!-- Liste des invaders sans position (Modal transparent) -->
+      <div class="ml-scrim">
+        <div class="ml-card">
+          <div class="ml-head"><span class="ml-title">Ajouter un emplacement</span><span class="ml-close">✕</span></div>
+          <div class="ml-muted">Invaders pas encore sur la carte. Choisis-en un pour proposer cet endroit comme emplacement.</div>
+          <div class="ml-search">Rechercher (PA_1234…)</div>
+          <div class="ml-list">
+            <div class="ml-section">
+              <div class="ml-city"><span>LAP</span><span>3</span></div>
+              <div class="ml-grid">
+                <div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#ffd000"></i></div></div><div class="ml-name">LAP_01</div></div><div class="ml-cell"><div class="ml-img"></div><div class="ml-name">LAP_02</div></div><div class="ml-cell"><div class="ml-img"></div><div class="ml-name">LAP_03</div></div>
+              </div>
+            </div>
+            <div class="ml-section">
+              <div class="ml-city"><span>PA</span><span>6</span></div>
+              <div class="ml-grid">
+                <div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#1cb5ff"></i></div></div><div class="ml-name">PA_1501</div></div><div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#ff0062"></i></div></div><div class="ml-name">PA_1502</div></div><div class="ml-cell flashed"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#1cffb7"></i></div></div><div class="ml-name">PA_1588</div></div><div class="ml-cell"><div class="ml-img"></div><div class="ml-name">PA_1601</div></div>
+                <div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#ffffff"></i></div></div><div class="ml-name">PA_1623</div></div><div class="ml-cell"><div class="ml-img"></div><div class="ml-name">PA_1688</div></div>
+              </div>
+            </div>
+            <div class="ml-section">
+              <div class="ml-city"><span>TK</span><span>2</span></div>
+              <div class="ml-grid">
+                <div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#ff7a00"></i></div></div><div class="ml-name">TK_178</div></div><div class="ml-cell"><div class="ml-img"><div class="photo"><i class="spr" data-w="40" data-color="#1cb5ff"></i></div></div><div class="ml-name">TK_181</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Fenêtre ouverte par « Placer un invader connu » : les invaders connus mais absents de la carte, groupés par ville (code + nombre), en vignettes de 4 colonnes avec recherche par nom. Bord vert = déjà flashé ; case vide = pas de photo. En choisir un ouvre son formulaire de modification avec cette position proposée. Les photos sont factices.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

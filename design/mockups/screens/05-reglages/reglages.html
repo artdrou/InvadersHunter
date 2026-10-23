@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réglages — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/profile.tsx (onglet « Reglages ») -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de profile.tsx) */
+  .settings { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4) var(--sp-3); }
+  .settings-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .settings-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; justify-content: safe center; gap: var(--sp-2); }
+  .lang-group { display: flex; gap: var(--sp-1); }
+  .lang-pill { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 4px var(--sp-2); background: var(--bg-element);
+    color: var(--text-muted); font-size: var(--fs-xs); }
+  .lang-pill.active { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Réglages <small>onglet Réglages</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="settings">
+        <div class="settings-title">Reglages</div>
+
+        <div class="settings-body">
+          <div class="section">
+            <div class="section-label">Compte</div>
+            <div class="card">
+              <div class="row"><i data-lucide="user"></i><div class="row-label">Profil<small>Nom d'utilisateur, statistiques</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="lock"></i><div class="row-label">Securite<small>Email, mot de passe</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">Personnalisation &amp; Haptique</div>
+            <div class="card">
+              <div class="row"><i data-lucide="palette"></i><div class="row-label">Apparence<small>Theme et couleur</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="shapes"></i><div class="row-label">Markers<small>Formes, couleurs et lueur des invaders</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="languages"></i><div class="row-label">Langue</div>
+                <div class="lang-group"><span class="lang-pill active">FR</span><span class="lang-pill">EN</span></div></div>
+              <div class="row"><i data-lucide="activity"></i><div class="row-label">Vibrations</div><span class="switch on"></span></div>
+              <div class="row"><i data-lucide="bell"></i><div class="row-label">Notifications<small>Alertes de nouveaux invaders</small></div><span class="switch on"></span></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">Donnees</div>
+            <div class="card">
+              <div class="row"><i data-lucide="refresh-cw"></i><div class="row-label">Synchronisation<small>Donnees et flashes</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-label">A propos</div>
+            <div class="card">
+              <div class="row"><i data-lucide="info"></i><div class="row-label">A propos<small>Version, credits</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="mail"></i><div class="row-label">Contact<small>Joindre le developpeur</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="coffee"></i><div class="row-label">Soutenir<small>Offrir un cafe au dev</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="settings"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Les textes reprennent fr.json tels quels (sans accents, comme dans l'app). Les icônes Ionicons sont remplacées par leurs équivalents Lucide.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

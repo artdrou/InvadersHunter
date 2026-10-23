@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/admin.tsx (onglet « Admin », menu) + features/settings/components/SettingsSection.tsx, SettingsRow.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de (tabs)/admin.tsx) */
+  .admin { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4) var(--sp-3); }               /* paddingTop = insets.top + 8 */
+  .admin-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .admin-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-2); padding-bottom: var(--sp-6); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin <small>onglet Admin (menu)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="admin">
+        <div class="admin-title">Admin</div>
+
+        <div class="admin-body scroll">
+          <!-- Requêtes -->
+          <div class="section">
+            <div class="section-label">REQUÊTES</div>
+            <div class="card">
+              <div class="row"><i data-lucide="list"></i><div class="row-label">Parcourir les requêtes<small>Sélection manuelle, filtres</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+
+          <!-- Invaders (les 3 lignes ouvrent « Bientot disponible ») -->
+          <div class="section">
+            <div class="section-label">INVADERS</div>
+            <div class="card">
+              <div class="row"><i data-lucide="plus-circle"></i><div class="row-label">Créer un invader<small>Ajout direct sans passer par une requête</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="pencil-line"></i><div class="row-label">Modifier directement<small>Éditer un invader sans passer par une requête</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="git-merge"></i><div class="row-label">Fusionner des doublons<small>Détecter et fusionner les entrées en double</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+
+          <!-- Utilisateurs -->
+          <div class="section">
+            <div class="section-label">UTILISATEURS</div>
+            <div class="card">
+              <div class="row"><i data-lucide="user"></i><div class="row-label">Parcourir les utilisateurs<small>Liste, stats et infos de chaque compte</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="shield"></i><div class="row-label">Modérateurs<small>Gérer les rôles et villes assignées</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+
+          <!-- Outils -->
+          <div class="section">
+            <div class="section-label">OUTILS</div>
+            <div class="card">
+              <div class="row"><i data-lucide="bell"></i><div class="row-label">Notifications<small>Activer/desactiver les alertes push</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="bar-chart"></i><div class="row-label">Statistiques<small>Activité, temps de traitement, taux d'acceptation</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="messages-square"></i><div class="row-label">Chat modo<small>Discussion entre modérateurs</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+              <div class="row"><i data-lucide="download"></i><div class="row-label">Exporter les données<small>Requêtes, historique, logs au format CSV</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="admin" data-admin="1"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Menu de l'onglet Admin (visible seulement pour les admins). « Parcourir les requêtes », « Parcourir les utilisateurs » et « Notifications » ouvrent leurs écrans ; les autres lignes affichent « Bientot disponible ». Les textes admin de fr.json sont accentués, contrairement au reste de l'app.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

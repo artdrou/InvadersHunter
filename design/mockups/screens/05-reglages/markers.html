@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personnalisation des markers — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/marker-customization.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  /* Styles propres à marker-customization.tsx (page non défilante) */
+  .subcat { color: var(--accent); font-size: var(--fs-md); letter-spacing: 2px; text-transform: uppercase; }
+  .subcat.spaced { margin-top: var(--sp-2); }
+  .sub { color: var(--text-muted); font-size: var(--fs-xs); line-height: 20px; }
+  .phone img.mk { position: static; transform: none; }
+  /* Carrousels de formes (un par palier de points) */
+  .car-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .car { width: 44px; display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); }
+  .arrow-btn { width: 44px; height: 18px; display: grid; place-items: center; }
+  .off { opacity: .25; }
+  .tri-up { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid var(--text); }
+  .tri-down { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--text); }
+  .tri-left { width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 8px solid var(--text); }
+  .tri-right { width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid var(--text); }
+  .car-view { width: 44px; height: 42px; overflow: hidden; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg-element);
+    display: grid; place-items: center; }
+  .car-view img { width: 34px; height: 34px; object-fit: contain; }
+  .car-label { color: var(--accent); font-size: var(--fs-xs); }
+  /* En-tête Couleurs + choix de la silhouette d'aperçu */
+  .colors-head { display: flex; align-items: center; justify-content: space-between; }
+  .shape-switch { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); }
+  .shape-switch .arrow-h { padding: 4px; }
+  .shape-val { min-width: 28px; text-align: center; color: var(--text); font-size: var(--fs-sm); }
+  /* Aperçus des 4 états */
+  .state-row { display: flex; gap: var(--sp-2); }
+  .state { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: var(--sp-2) 0;
+    border-radius: var(--r-md); border: 1px solid var(--border); background: var(--bg-element); }
+  .state img { width: 44px; height: 44px; object-fit: contain; }
+  .state-label { color: var(--text-muted); font-size: var(--fs-xxs); white-space: nowrap; }
+  .state.active { border-color: var(--accent); }
+  .state.active .state-label { color: var(--accent); }
+  /* Highlight (ambre #FFC107) : pas d'image dans _shared, on teinte le marker gris */
+  .tint-highlight { filter: sepia(1) saturate(6) hue-rotate(-8deg) brightness(1.05); }
+  /* Encart : réglages de l'état sélectionné */
+  .encart { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: var(--sp-3); }
+  .encart-title { color: var(--text); font-size: var(--fs-md); letter-spacing: 1px; }
+  .params { display: flex; flex-wrap: wrap; justify-content: space-between; row-gap: var(--sp-3); }
+  .param { width: 47%; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+  .param-label { color: var(--text-muted); font-size: var(--fs-xs); text-align: center; }
+  .swatch { width: 44px; height: 44px; border-radius: var(--r-sm); border: 2px solid var(--border); }
+  .stepper { display: flex; align-items: center; gap: var(--sp-2); }
+  .stepper-btn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: var(--fs-lg); line-height: 22px; }
+  .stepper-value { min-width: 42px; text-align: center; color: var(--text); font-size: var(--fs-sm); }
+  /* Boutons du bas */
+  .actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); }
+  .sec-btn { flex: 1; padding: 14px 0; text-align: center; border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: var(--fs-md); }
+  .pri-btn { flex: 2; padding: 14px 0; text-align: center; border-radius: var(--r-sm); background: var(--accent); color: var(--bg); font-size: var(--fs-md); }
+  .dim { opacity: .6; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Personnalisation des markers <small>Réglages › Markers</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Personnalisation des markers</div>
+      </div>
+
+      <div class="shell-body">
+        <!-- ── Formes : une silhouette par palier de points (flèches ▲▼ ou glisser) ── -->
+        <div class="subcat">Formes</div>
+        <div class="sub">Choisis quelle silhouette represente chaque nombre de points</div>
+        <div class="car-row">
+          <div class="car">
+            <div class="arrow-btn off"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="10" data-state="uncaptured"></div>
+            <div class="arrow-btn"><div class="tri-down"></div></div>
+            <div class="car-label">10</div>
+          </div>
+          <div class="car">
+            <div class="arrow-btn"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="20" data-state="uncaptured"></div>
+            <div class="arrow-btn"><div class="tri-down"></div></div>
+            <div class="car-label">20</div>
+          </div>
+          <div class="car">
+            <div class="arrow-btn"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="30" data-state="uncaptured"></div>
+            <div class="arrow-btn"><div class="tri-down"></div></div>
+            <div class="car-label">30</div>
+          </div>
+          <div class="car">
+            <div class="arrow-btn"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="40" data-state="uncaptured"></div>
+            <div class="arrow-btn"><div class="tri-down"></div></div>
+            <div class="car-label">40</div>
+          </div>
+          <div class="car">
+            <div class="arrow-btn"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="50" data-state="uncaptured"></div>
+            <div class="arrow-btn"><div class="tri-down"></div></div>
+            <div class="car-label">50</div>
+          </div>
+          <div class="car">
+            <div class="arrow-btn"><div class="tri-up"></div></div>
+            <div class="car-view"><img class="mk" data-pts="100" data-state="uncaptured"></div>
+            <div class="arrow-btn off"><div class="tri-down"></div></div>
+            <div class="car-label">100</div>
+          </div>
+        </div>
+
+        <!-- ── Couleurs ── -->
+        <div class="colors-head">
+          <div class="subcat spaced">Couleurs</div>
+          <div class="shape-switch">
+            <div class="arrow-h"><div class="tri-left"></div></div>
+            <div class="shape-val">30</div>
+            <div class="arrow-h"><div class="tri-right"></div></div>
+          </div>
+        </div>
+
+        <!-- Aperçu des 4 états (l'état encadré est celui qu'on règle dans l'encart) -->
+        <div class="state-row">
+          <div class="state"><img class="mk" data-pts="30" data-state="captured"><div class="state-label">Flashe</div></div>
+          <div class="state active"><img class="mk" data-pts="30" data-state="uncaptured"><div class="state-label">Pas flashe</div></div>
+          <div class="state"><img class="mk tint-highlight" data-pts="30" data-state="grey"><div class="state-label">Highlighte</div></div>
+          <div class="state"><img class="mk" data-pts="30" data-state="grey" style="opacity:.8"><div class="state-label">Grise</div></div>
+        </div>
+
+        <!-- Encart : réglages de l'état sélectionné (couleurs par défaut de « Pas flashe ») -->
+        <div class="encart">
+          <div class="encart-title">Pas flashe</div>
+          <div class="params">
+            <div class="param"><div class="swatch" style="background:#FF0062"></div><div class="param-label">Corps</div></div>
+            <div class="param"><div class="swatch" style="background:#A300B3"></div><div class="param-label">Lueur</div></div>
+            <div class="param">
+              <div class="stepper-value">100%</div>
+              <div class="stepper"><div class="stepper-btn">−</div><div class="stepper-btn off">+</div></div>
+              <div class="param-label">Opacite</div>
+            </div>
+            <div class="param">
+              <div class="stepper-value">M·2</div>
+              <div class="stepper"><div class="stepper-btn">−</div><div class="stepper-btn">+</div></div>
+              <div class="param-label">Halo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons : Valider est atténué tant que rien n'a changé -->
+        <div class="actions">
+          <div class="sec-btn">Reinitialiser</div>
+          <div class="pri-btn dim">Valider</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Valeurs par défaut (forme = palier, couleurs de settings/marker-customization-store.ts). Dans l'app, les aperçus sont dessinés à la volée avec les couleurs choisies ; ici ce sont les images de marqueurs de _shared/assets (l'état « Highlighte » ambre est simulé en teintant le marqueur gris). Toucher Corps ou Lueur ouvre le sélecteur de couleur (titre « Couleur du corps » / « Couleur de la lueur »). Dans l'app cette page ne défile pas (elle est prévue pour tenir sur un écran) ; ici on peut faire défiler pour voir les boutons du bas.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

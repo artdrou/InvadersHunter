@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/profile-info.tsx (+ StatCards.tsx, features/auth/components/EditableUsername.tsx) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  /* StatCards.tsx : sections de statistiques (StatSection / StatCell / InfoCell) */
+  .stat-section { display: flex; flex-direction: column; gap: var(--sp-1); }
+  .stat-grid { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .stat-cell { flex: 1 1 48%; min-width: 0; }
+  .stat-cell, .info-cell { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 2px; }
+  .cell-value { color: var(--accent); font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell-sub, .cell-label { color: var(--text-muted); font-size: var(--fs-xs); }
+  /* Bouton rouge encadré (Deconnexion / Retirer des amis) */
+  .danger-btn { padding: 14px 0; border-radius: var(--r-sm); border: 1px solid var(--danger); color: var(--danger);
+    text-align: center; font-size: var(--fs-md); margin-top: var(--sp-3); }
+  /* EditableUsername.tsx : nom d'utilisateur modifiable (même look qu'une InfoCell) */
+  .name-cell { display: flex; align-items: center; gap: var(--sp-2); background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); }
+  .name-cell.editing { border-color: var(--accent); }
+  .name-value { flex: 1; min-width: 0; color: var(--accent); font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name-cell .lucide { width: 18px; height: 18px; color: var(--text-muted); }
+  .caret { display: inline-block; width: 2px; height: 1em; background: var(--accent); vertical-align: -2px; margin-left: 1px; }
+  .edit-wrap { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .edit-error { color: var(--danger); font-size: var(--fs-xs); padding: 0 var(--sp-2); }
+  .edit-buttons { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+  .edit-btn { padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text-muted); font-size: var(--fs-sm); }
+  .edit-btn.primary { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Profil <small>Réglages › Profil</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Profil</div>
+      </div>
+
+      <div class="shell-body">
+        <!-- Nom d'utilisateur (toucher la case pour le modifier) -->
+        <div class="stat-section">
+          <div class="section-label">Nom d'utilisateur</div>
+          <div class="name-cell"><div class="name-value">Drouuu</div><i data-lucide="square-pen"></i></div>
+        </div>
+
+        <!-- Collection (CollectionStatsSection) -->
+        <div class="stat-section">
+          <div class="section-label">Collection</div>
+          <div class="stat-grid">
+          <div class="stat-cell"><div class="cell-value">276</div><div class="cell-label">Invaders flashes</div></div>
+          <div class="stat-cell"><div class="cell-value">6</div><div class="cell-label">Villes touchees</div></div>
+          <div class="stat-cell"><div class="cell-value">1</div><div class="cell-label">Villes completes</div></div>
+          <div class="stat-cell"><div class="cell-value">3424</div><div class="cell-label">Restants a flasher</div></div>
+          <div class="stat-cell"><div class="cell-value">21</div><div class="cell-label">Detruits flashes</div></div>
+          <div class="stat-cell"><div class="cell-value">PA</div><div class="cell-sub">231/1512</div><div class="cell-label">Ville la plus avancee</div></div>
+          </div>
+        </div>
+
+        <!-- Contributions -->
+        <div class="stat-section">
+          <div class="section-label">Contributions</div>
+          <div class="stat-grid">
+          <div class="stat-cell"><div class="cell-value">12</div><div class="cell-label">Modifs envoyees</div></div>
+          <div class="stat-cell"><div class="cell-value">9</div><div class="cell-label">Modifs acceptees</div></div>
+          </div>
+        </div>
+
+        <!-- Deconnexion -->
+        <div class="danger-btn">Deconnexion</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Toucher le nom ouvre la modification (voir profil-modifier-nom.html). Les chiffres de la collection sont calculés sur l'appareil.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

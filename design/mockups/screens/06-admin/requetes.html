@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Requêtes — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/requests.tsx + features/admin/components/StatusBadge.tsx, ConfidenceBadge.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/requests.tsx). Tailles × 0,9 quand le code utilise sz(). */
+  .phone { --type-create: #0060f0; --type-modify: var(--brand-yellow); --type-delete: #79032e; --pending: #f0a500; }
+
+  /* En-tête : « ‹ Retour » + bouton filtre */
+  .rq-header { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); }
+  .back-accent { color: var(--accent); font-size: var(--fs-xl); padding-right: var(--sp-2); }
+  .filter-btn { position: relative; padding: 4px; color: var(--text); }          /* devient accent + point quand un type est filtré */
+  .filter-btn .lucide { width: 22px; height: 22px; }
+  .filter-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 4px; background: var(--accent); }
+
+  /* Filtre de statut — contrôle segmenté */
+  .seg-wrap { padding: 0 var(--sp-3) var(--sp-2); }
+  .seg { display: flex; gap: 2px; padding: 3px; background: var(--bg-element); border-radius: 10px; }
+  .seg span { flex: 1; text-align: center; padding: 7px 0; border-radius: 8px; color: var(--text-muted); font-size: 12px; }
+  .seg span.on { background: var(--text); color: var(--bg); }
+
+  /* Filtre de type — ligne repliable (bouton filtre) */
+  .type-row { display: flex; gap: var(--sp-1); padding: 0 var(--sp-3) var(--sp-2); }
+  .type-chip { display: flex; align-items: center; gap: 4px; padding: 5px var(--sp-2); border-radius: var(--r-sm);
+    border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; }
+  .type-chip .lucide { width: 12px; height: 12px; }
+  .type-chip.on { --c: var(--accent); border-color: var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+
+  /* Liste de cartes */
+  .list { flex: 1; min-height: 0; padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .rq-card { flex: none; background: var(--bg-element); border-radius: var(--r-md); border: 1.5px solid var(--c); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-1); }
+  .rq-card.create { --c: var(--type-create); }
+  .rq-card.modify { --c: var(--type-modify); }
+  .rq-row1, .rq-row2 { display: flex; align-items: center; gap: var(--sp-2); }
+  .rq-row1 > .lucide { width: 16px; height: 16px; color: var(--c); }
+  .rq-name { flex: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rq-meta { color: var(--text-muted); font-size: 10px; }
+  .rq-summary { flex: 1; min-width: 0; color: var(--text-muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rq-right { display: flex; align-items: center; gap: 4px; }
+
+  /* StatusBadge */
+  .status { --c: var(--pending); border-radius: var(--r-sm); padding: 3px var(--sp-2); border: 1px solid var(--c);
+    background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--c); font-size: var(--fs-xs); letter-spacing: .5px; white-space: nowrap; }
+  .status.approved { --c: var(--success); }
+  .status.rejected { --c: var(--danger); }
+  /* ConfidenceBadge : vert ≥ 75, orange ≥ 45, rouge sinon, gris si moins de 2 votes */
+  .conf { border-radius: 4px; padding: 2px 6px; min-width: 38px; text-align: center; color: #fff; font-size: var(--fs-xs); background: var(--text-muted); }
+  .conf.hi { background: var(--success); }
+  .conf.mid { background: var(--pending); }
+  .conf.lo { background: var(--danger); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Requêtes <small>liste des requêtes</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête -->
+      <div class="rq-header">
+        <span class="back-accent">‹ Retour</span>
+        <span class="filter-btn"><i data-lucide="sliders-horizontal"></i><!-- <span class="filter-dot"></span> --></span>
+      </div>
+
+      <!-- Statut : en attente / toutes / approuvée / rejetée -->
+      <div class="seg-wrap">
+        <div class="seg">
+          <span>en attente</span><span class="on">toutes</span><span>approuvée</span><span>rejetée</span>
+        </div>
+      </div>
+
+      <!-- Type (ligne ouverte par le bouton filtre) -->
+      <div class="type-row">
+        <span class="type-chip on">toutes</span>
+        <span class="type-chip"><i data-lucide="pencil-line"></i>modifier</span>
+        <span class="type-chip"><i data-lucide="plus-circle"></i>créer</span>
+      </div>
+
+      <!-- Liste : ligne 1 = icône de type · nom · statut ; ligne 2 = date · résumé · votes + confiance -->
+      <div class="list scroll">
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">PA_1042</span><span class="status">en attente</span></div>
+          <div class="rq-row2"><span class="rq-meta">22/10/2026</span><span class="rq-summary">state → Destroyed · location</span>
+            <span class="rq-right"><span class="rq-meta">5</span><span class="conf hi">82%</span></span></div>
+        </div>
+        <div class="rq-card create">
+          <div class="rq-row1"><i data-lucide="plus-circle"></i><span class="rq-name">BXL_071</span><span class="status">en attente</span></div>
+          <div class="rq-row2"><span class="rq-meta">22/10/2026</span><span class="rq-summary">state → Good · location · name → BXL_071 · pts → 20</span>
+            <span class="rq-right"><span class="rq-meta">4</span><span class="conf hi">76%</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">PA_0877</span><span class="status">en attente</span></div>
+          <div class="rq-row2"><span class="rq-meta">21/10/2026</span><span class="rq-summary">location</span>
+            <span class="rq-right"><span class="rq-meta">3</span><span class="conf mid">58%</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">MARS_77</span><span class="status">en attente</span></div>
+          <div class="rq-row2"><span class="rq-meta">21/10/2026</span><span class="rq-summary">state → Not visible</span>
+            <span class="rq-right"><span class="rq-meta">2</span><span class="conf lo">31%</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">PA_0412</span><span class="status">en attente</span></div>
+          <div class="rq-row2"><span class="rq-meta">20/10/2026</span><span class="rq-summary">pts → 50</span>
+            <span class="rq-right"><span class="rq-meta">1</span><span class="conf">—</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">PA_1311</span><span class="status approved">approuvée</span></div>
+          <div class="rq-row2"><span class="rq-meta">18/10/2026</span><span class="rq-summary">state → Degraded · location</span>
+            <span class="rq-right"><span class="rq-meta">4</span><span class="conf hi">91%</span></span></div>
+        </div>
+        <div class="rq-card create">
+          <div class="rq-row1"><i data-lucide="plus-circle"></i><span class="rq-name">LDN_154</span><span class="status approved">approuvée</span></div>
+          <div class="rq-row2"><span class="rq-meta">15/10/2026</span><span class="rq-summary">location · name → LDN_154</span>
+            <span class="rq-right"><span class="rq-meta">1</span><span class="conf">—</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">PA_0233</span><span class="status rejected">rejetée</span></div>
+          <div class="rq-row2"><span class="rq-meta">12/10/2026</span><span class="rq-summary">name → PA_0234 · pts → 20</span>
+            <span class="rq-right"><span class="rq-meta">2</span><span class="conf mid">47%</span></span></div>
+        </div>
+        <div class="rq-card modify">
+          <div class="rq-row1"><i data-lucide="pencil-line"></i><span class="rq-name">ROM_092</span><span class="status approved">approuvée</span></div>
+          <div class="rq-row2"><span class="rq-meta">09/10/2026</span><span class="rq-summary">state → Badly degraded</span>
+            <span class="rq-right"><span class="rq-meta">6</span><span class="conf hi">88%</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Écran ouvert par « Parcourir les requêtes ». Par défaut le filtre est sur « en attente » et la ligne des types est repliée ; ici le statut « toutes » est choisi pour montrer les trois statuts, et la ligne des types est ouverte (quand un type autre que « toutes » est choisi, l'icône filtre passe en couleur accent avec un petit point). Le contour de chaque carte prend la couleur du type : bleu = créer, jaune = modifier. Les résumés (« state → … », « location ») sont en anglais dans le code.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

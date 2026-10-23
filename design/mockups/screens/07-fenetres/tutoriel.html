@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/tutorial/components/TutorialModal.tsx + InfoButton.tsx,
+     pages définies dans features/map/components/MapFilterBar.tsx, illustration ColorModeIllustration.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* ── Fenêtre tutoriel (makeStyles de TutorialModal.tsx) ── */
+  .tuto-overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+  /* Hauteur fixe = 78 % de l'écran */
+  .tuto { width: 100%; max-width: 380px; height: 78%; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    overflow: hidden; display: flex; flex-direction: column; }
+  .tuto-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  .tuto-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .tuto-close { color: var(--text-muted); font-size: var(--fs-lg); }
+  .tuto-page { flex: 1; min-height: 0; padding: var(--sp-3) var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .tuto-foot { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--bg-divider); }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 4px; background: var(--border); }
+  .dot.on { background: var(--accent); }
+  .got-it { width: 100%; text-align: center; padding: 10px; border-radius: var(--r-sm); background: var(--accent); color: var(--on-accent); font-size: var(--fs-md); }
+
+  /* Le contenu des pages utilise la police système du téléphone (Fonts.sans), pas FreePixel */
+  .sys { font-family: Roboto, system-ui, 'Segoe UI', sans-serif; }
+  .t-section { display: flex; flex-direction: column; gap: 4px; }
+  .t-label { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .t-body { color: var(--text-muted); font-size: var(--fs-sm); line-height: 20px; }
+
+  /* ── Illustration « Mode couleur » (ColorModeIllustration.tsx) ── */
+  .illus { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-2); display: flex; flex-direction: column; gap: 6px; }
+  .illus-label { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; margin-top: 2px; }
+  .illus-row { display: flex; align-items: center; gap: var(--sp-2); color: var(--text); font-size: var(--fs-sm); }
+  .illus-row img { width: 28px; height: 39px; object-fit: contain; }
+  .illus-div { height: 1px; background: var(--border); margin: 4px 0; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Tutoriel <small>fenêtre d'aide « i » (Mode couleur)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+
+    <!-- Écran derrière : la carte (version simplifiée) -->
+    <div class="screen">
+      <div class="content">
+        <canvas class="map" data-seed="5"></canvas>
+        <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+        <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+        <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+        <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+        <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+        <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+        <div class="loc-dot" style="left: 180px; top: 360px"></div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+
+    <!-- Fenêtre tutoriel -->
+    <div class="tuto-overlay">
+      <div class="tuto">
+        <!-- En-tête : le titre change avec la page -->
+        <div class="tuto-head">
+          <span class="tuto-title">Mode couleur</span>
+          <span class="tuto-close">✕</span>
+        </div>
+
+        <!-- Page 1 sur 2 (on passe à la page « Griser » en glissant) -->
+        <div class="tuto-page scroll sys">
+          <div class="t-section">
+            <div class="t-label">Flash</div>
+            <div class="t-body">La couleur du marqueur reflete ton statut flash. Les marqueurs rouges ne sont pas encore flashes, les captures ont une couleur differente.</div>
+          </div>
+          <div class="t-section">
+            <div class="t-label">Rareté</div>
+            <div class="t-body">Chaque niveau de rarete (en points) a sa propre teinte, independamment du statut flash.</div>
+          </div>
+
+          <!-- Illustration (images « rareté » copiées dans _shared/assets) -->
+          <div class="illus">
+            <div class="illus-label">Flash</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt="">Non flashe</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-flash-captured.png" alt="">Flashe</div>
+            <div class="illus-div"></div>
+            <div class="illus-label">Rareté</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-10pts-rarity.png" alt="">10 pts</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-20pts-rarity.png" alt="">20 pts</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-30pts-rarity.png" alt="">30 pts</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-40pts-rarity.png" alt="">40 pts</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-50pts-rarity.png" alt="">50 pts</div>
+            <div class="illus-row"><img src="../../_shared/assets/marker-100pts-rarity.png" alt="">100 pts</div>
+          </div>
+        </div>
+
+        <!-- Pied : points de page + bouton -->
+        <div class="tuto-foot">
+          <div class="dots"><span class="dot on"></span><span class="dot"></span></div>
+          <div class="got-it">Compris</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Fenêtre d'aide générique, ouverte par le petit bouton rond « i » (InfoButton : cercle de 14 px bordé d'accent, dans le panneau couleur/filtres de la carte ; 22 px + mot « help » dans le panneau Chasse, voir tutoriel-chasse.html).
+    La 2e page « Griser » explique Tous / Flashés / Off avec une illustration. Le texte des pages est dans la police système du téléphone, pas en pixel.
+    Le contenu défile dans la fenêtre (molette sur la maquette) ; toucher en dehors ou « ✕ » ferme.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

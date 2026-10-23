@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InvaderSpotter — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/InvaderPopup/InvaderSpotterModal.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* InvaderSpotterModal : fenêtre plein écran avec une page web */
+  .full-modal { position: absolute; inset: 0; z-index: 60; background: var(--bg); padding-top: 24px; display: flex; flex-direction: column; }
+  .fm-header { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  .fm-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fm-header .lucide { width: 26px; height: 26px; color: var(--text-muted); }
+  .fm-web { flex: 1; position: relative; background: var(--bg); }
+  /* Chargement : un voile de la couleur du fond avec un indicateur, jusqu'à ce que la fiche soit prête */
+  .fm-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--accent); }
+  /* Aperçu très simplifié de la fiche du site invader-spotter.art (contenu externe, pas stylé par l'app) */
+  .web { position: absolute; inset: 0; background: #fff; color: #222; font: 13px/1.4 Arial, sans-serif; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .web-bar { background: #1b1b1b; color: #eee; margin: -12px -12px 0; padding: 10px 12px; font-weight: bold; letter-spacing: 1px; }
+  .web-card { display: flex; gap: 10px; border: 1px solid #ddd; padding: 8px; }
+  .web-card .ph { width: 110px; height: 110px; flex: none; }
+  .web b { color: #000; }
+  .web-error { color: var(--text-muted); font-family: var(--font-sys); font-size: var(--fs-md); text-align: center; padding: var(--sp-4); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / InvaderSpotter <small>page web de l'invader</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <!-- Fenêtre plein écran InvaderSpotter (Modal, animation glissée) -->
+      <div class="full-modal">
+        <div class="fm-header"><span class="fm-title">PA_1042</span><i data-lucide="x"></i></div>
+        <div class="fm-web">
+          <!-- Page du site affichée dans une WebView (aperçu indicatif) -->
+          <div class="web">
+            <div class="web-bar">INVADER SPOTTER</div>
+            <div class="web-card">
+              <div class="ph"><div class="photo"><i class="spr" data-w="70" data-color="#1cb5ff"></i></div></div>
+              <div><b>PA_1042</b><br>30 pts<br>Date et source : janvier 2011<br>Etat : OK<br><br>Paris 11e</div>
+            </div>
+            <div style="color:#666">Derniere mise a jour : 14/09/2026</div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Bouton globe du popup : la vraie fiche du site invader-spotter.art s'ouvre en plein écran dans l'app. Seul l'en-tête (nom en couleur d'accent + croix) est dessiné par l'app ; le reste est la page du site (ici un aperçu grossier). Pendant le chargement, un fond uni avec une roue de chargement couleur d'accent cache la page ; en cas d'erreur : « Impossible de charger InvaderSpotter. Vérifiez votre connexion. » centré en gris.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

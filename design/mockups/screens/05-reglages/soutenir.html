@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soutenir — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/support.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .block { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-4);
+    display: flex; flex-direction: column; gap: var(--sp-3); }
+  .block-text { color: var(--text); font-size: var(--fs-md); line-height: 22px; }
+  .accent-btn { padding: 12px 0; border-radius: var(--r-sm); background: var(--accent); color: var(--on-accent); text-align: center;
+    font-size: var(--fs-md); margin-top: var(--sp-2); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Soutenir <small>Réglages › Soutenir</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Soutenir</div>
+      </div>
+
+      <div class="shell-body">
+        <div class="block">
+          <div class="block-text">Ce don est entierement optionnel. C'est tout a fait OK de profiter de l'app gratuitement. Si vous choisissez de contribuer, ca m'aide enormement a maintenir l'app, ajouter des mises a jour et payer les frais de serveurs.</div>
+          <div class="block-text">L'application est gratuite et le restera, avec 100% des fonctionnalites accessibles a tous.</div>
+          <div class="accent-btn">Soutenir sur Ko-fi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Le bouton ouvre la page Ko-fi dans le navigateur.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

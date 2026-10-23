@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes de version — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/changelog.tsx (+ features/changelog/releases.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .rel-card { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-2); }
+  .rel-header { display: flex; justify-content: space-between; align-items: center; }
+  .rel-version { color: var(--accent); font-size: var(--fs-md); }
+  .rel-date { color: var(--text-muted); font-size: var(--fs-xs); }
+  .note { display: flex; gap: var(--sp-2); align-items: flex-start; font-size: var(--fs-sm); line-height: 20px; }
+  .bullet { color: var(--accent); }
+  .note-text { flex: 1; color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Notes de version <small>À propos › Notes de version</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Notes de version</div>
+      </div>
+
+      <div class="shell-body">
+        <div class="list">
+          <!-- Une carte par version publiée (releases.ts) -->
+          <div class="rel-card">
+            <div class="rel-header"><span class="rel-version">Version 0.1.0</span><span class="rel-date">2026-07-06</span></div>
+            <div class="note"><span class="bullet">▪</span><span class="note-text">Première version publique : carte interactive, mosaïque de collection, flashs hors-ligne, itinéraires, page News et notifications</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Seule la version 0.1.0 est publiée dans releases.ts pour l'instant (les notes « unreleased » ne sont jamais affichées). Chaque nouvelle version ajoute une carte en haut.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

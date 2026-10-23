@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choisir la position — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/pick-location.tsx + features/map/components/CoordinateInput.tsx, AimIcon.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (styles de admin/pick-location.tsx). La carte occupe tout l'écran, sans .screen. */
+
+  /* Points sur la carte (CircleLayer MapLibre) */
+  .dot { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; }
+  .dot.current { width: 20px; height: 20px; background: color-mix(in srgb, var(--danger) 90%, transparent); border: 2px solid var(--bg); }   /* position actuelle */
+  .dot.proposed { width: 16px; height: 16px; background: rgba(255,255,255,.7); border: 1px solid #888; }                                     /* chaque position proposée */
+  .dot.bary { width: 24px; height: 24px; background: color-mix(in srgb, var(--accent) 90%, transparent); border: 2px solid var(--bg); }      /* barycentre */
+
+  /* Viseur fixe au centre : c'est là que tombe le choix */
+  .pin-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
+  .pin { width: 18px; height: 18px; border-radius: 9px; border: 2px solid var(--bg); background: var(--accent); margin-bottom: 18px; }
+  .pin-stem { position: absolute; width: 2px; height: 10px; top: 50%; margin-top: -1px; background: var(--accent); }
+
+  /* Champ coordonnées (CoordinateInput) */
+  .coords { position: absolute; left: 16px; right: 16px; top: 32px; z-index: 20; }      /* top = insets.top + 8 */
+  .coords-row { display: flex; align-items: center; gap: var(--sp-1); min-height: 44px; padding: 0 var(--sp-1) 0 var(--sp-2);
+    background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm); }
+  .coords-input { flex: 1; padding: var(--sp-2) 0; color: var(--text-muted); font-size: 13px; }      /* texte d'exemple (placeholder) */
+  .go-btn { padding: var(--sp-2); border-radius: var(--r-sm); background: var(--accent); color: var(--bg); display: grid; }
+  .go-btn .lucide { width: 18px; height: 18px; }
+
+  /* Légende */
+  .legend { position: absolute; right: 16px; top: 88px; z-index: 10; background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }       /* top = insets.top + 64 */
+  .legend-row { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: var(--fs-xs); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 6px; }
+
+  /* Bouton « me localiser » (AimIcon : disque pixelisé + viseur accent) */
+  .locate { position: absolute; right: 16px; bottom: 88px; width: 48px; height: 48px; z-index: 20; }   /* bottom = 32 + 48 + 8 */
+  .locate svg { display: block; shape-rendering: crispEdges; }
+
+  /* Barre de boutons */
+  .bar { position: absolute; left: 16px; right: 16px; bottom: 32px; display: flex; gap: 12px; z-index: 20; }
+  .bar-btn { flex: 1; height: 48px; display: grid; place-items: center; border-radius: 10px; border: 1px solid transparent; font-size: var(--fs-xl);
+    text-align: center; line-height: 1.1; }   /* en 27 px, « Valider la position » ne tient pas sur une ligne : il déborde comme dans l'app */
+  .bar-btn.cancel { background: var(--bg-element); border-color: var(--border); color: var(--text-muted); }
+  .bar-btn.ok { background: var(--accent); color: var(--bg); }
+
+  /* Attribution MapLibre (bas gauche) */
+  .attrib { position: absolute; left: 8px; bottom: 8px; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.8);
+    color: #333; font: 700 13px/22px Georgia, serif; text-align: center; z-index: 5; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Choisir la position <small>« Examiner sur la carte »</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+
+    <!-- Carte -->
+    <canvas class="map" data-seed="17"></canvas>
+
+    <!-- Position actuelle (rouge), positions proposées (blanc), barycentre (accent) -->
+    <span class="dot current" style="left: 118px; top: 300px"></span>
+    <span class="dot proposed" style="left: 196px; top: 370px"></span>
+    <span class="dot proposed" style="left: 160px; top: 414px"></span>
+    <span class="dot proposed" style="left: 214px; top: 424px"></span>
+    <span class="dot proposed" style="left: 150px; top: 384px"></span>
+    <span class="dot bary" style="left: 180px; top: 400px"></span>   <!-- à l'ouverture, la carte est centrée sur le barycentre -->
+
+    <!-- Viseur central -->
+    <div class="pin-wrap"><span class="pin"></span><span class="pin-stem"></span></div>
+
+    <!-- Saisir / coller une position -->
+    <div class="coords">
+      <div class="coords-row">
+        <span class="coords-input">Coordonnées ou lien de carte</span>
+        <span class="go-btn"><i data-lucide="locate-fixed"></i></span>
+      </div>
+    </div>
+
+    <!-- Légende -->
+    <div class="legend">
+      <div class="legend-row"><span class="legend-dot" style="background: var(--danger)"></span>Actuel</div>
+      <div class="legend-row"><span class="legend-dot" style="background: #fff; opacity: .8"></span>Proposé</div>
+      <div class="legend-row"><span class="legend-dot" style="background: var(--accent)"></span>Barycentre</div>
+    </div>
+
+    <!-- Me localiser -->
+    <div class="locate">
+      <svg width="48" height="48" viewBox="0 0 31 31" aria-hidden="true">
+        <circle cx="15.5" cy="15.5" r="15" fill="var(--bg-element)"/>
+        <g fill="none" stroke="var(--accent)" stroke-width="1.4">
+          <circle cx="15.5" cy="15.5" r="8"/>
+        </g>
+        <g fill="var(--accent)">
+          <rect x="15" y="3" width="1" height="4"/><rect x="15" y="24" width="1" height="4"/>
+          <rect x="3" y="15" width="4" height="1"/><rect x="24" y="15" width="4" height="1"/>
+          <rect x="14" y="14" width="3" height="3"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Boutons -->
+    <div class="bar">
+      <span class="bar-btn cancel">Annuler</span>
+      <span class="bar-btn ok">Valider la position</span>
+    </div>
+
+    <span class="attrib">i</span>
+  </div>
+
+  <p class="page-notes">Carte plein écran ouverte par « Examiner sur la carte » dans le détail d'une requête. L'admin déplace la carte sous le viseur central puis « Valider la position » : la requête affiche alors « (choix admin) » au lieu de « (barycentre) ». Le point rouge (position actuelle) n'existe que pour une modification. Le fond de carte est une approximation des styles MapLibre. À noter : en taille 27 px, « Valider la position » est trop long pour son bouton et passe sur deux lignes qui débordent (calcul fait d'après le code, à vérifier sur le téléphone).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

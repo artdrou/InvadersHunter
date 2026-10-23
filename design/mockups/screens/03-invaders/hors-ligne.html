@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invaders (hors ligne) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/invader.tsx (isOfflineEmpty) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="invaders.css">
+<style>
+  /* Styles propres à cette page : aucun, tout est dans invaders.css (commun à l'onglet Invaders) */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Invaders <small>aucune donnée et pas de connexion</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+
+      <!-- Barre d'outils : actualités, recherche, vue (grille / liste), paramètres -->
+      <div class="toolbar">
+        <div class="toolbar-row">
+          <div class="tbtn on"><i data-lucide="newspaper"></i><span class="tbadge red">3</span></div>
+          <div class="search"><i data-lucide="search"></i><span>Rechercher des invaders…</span></div>
+          <div class="tbtn"><i data-lucide="layout-grid"></i></div>
+          <div class="tbtn"><i data-lucide="filter"></i></div>
+        </div>
+      </div>
+
+      <!-- État vide : pas d'invaders en local et la synchro a échoué faute de réseau -->
+      <div class="empty">
+        <div class="empty-title">Pas de connexion internet</div>
+        <div class="empty-sub">Connectez-vous pour charger les invaders</div>
+      </div>
+
+      <nav class="tabs" data-active="invaders"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Affiché seulement au tout premier lancement sans réseau (aucun invader en mémoire). Une fois les données chargées, la liste reste disponible hors ligne.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

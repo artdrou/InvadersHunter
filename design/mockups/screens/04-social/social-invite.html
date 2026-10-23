@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/social.tsx (onglet « Social », mode invité, sans compte) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de social.tsx, tailles de texte × 0,9 = fontScale) */
+  .social-title { color: var(--accent); font-size: 24px; letter-spacing: 1px; padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+  .social-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-4);
+    padding: var(--sp-2) var(--sp-4) var(--sp-5); }
+  .social-body > * { flex-shrink: 0; }
+  .s-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .s-label { color: var(--text-muted); font-size: var(--fs-xs); letter-spacing: 1px; text-transform: uppercase; padding: 0 var(--sp-2); }
+
+  /* Ligne « Ajouter un ami » : champ + bouton Envoyer */
+  .add-row { display: flex; gap: var(--sp-2); }
+  .input-wrap { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 var(--sp-3); }
+  .input-wrap.confirmed { border-color: var(--success); }
+  .input-wrap .lucide { width: 18px; height: 18px; color: var(--success); }
+  .input-text { flex: 1; min-width: 0; color: var(--text); font-size: 13px; padding: 10px 0; white-space: nowrap; overflow: hidden; }
+  .input-text.placeholder { color: var(--text-muted); }
+  .primary-btn { background: var(--accent); color: var(--on-accent); border-radius: var(--r-sm); padding: 10px var(--sp-4);
+    display: flex; align-items: center; justify-content: center; font-size: var(--fs-md); }
+  .send-btn { min-width: 90px; }
+  .disabled { opacity: .5; }
+  .feedback { font-size: 12px; padding: 0 var(--sp-2); }
+
+  /* Carte d'une personne (ami, invitation) */
+  .p-card { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-md); }
+  .p-card.suggestion { border-color: var(--accent); }
+  .p-card > .lucide { color: var(--accent); }
+  .p-card > .chev { width: 18px; height: 18px; color: var(--text-muted); }
+  .avatar { width: 36px; height: 36px; border-radius: 18px; border: 1px solid var(--accent); flex: none;
+    display: grid; place-items: center; color: var(--accent); font-size: var(--fs-lg); }
+  .p-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .username { color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--text-muted); font-size: var(--fs-xs); }
+  .small-btn { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px var(--sp-2); color: var(--text); font-size: var(--fs-sm); flex: none; }
+  .small-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .muted-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: var(--sp-3) 0; }
+  /* Mode invité (styles.centered + guestText) */
+  .guest { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--sp-3); padding: var(--sp-3) var(--sp-5) 0; }
+  .guest-icon.lucide { width: 48px; height: 48px; color: var(--accent); fill: var(--accent); }
+  .guest-text { color: var(--text); font-size: 14px; text-align: center; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Social <small>mode invité</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- Mode invité : tout l'écran est remplacé par ce message centré -->
+      <div class="guest">
+        <i data-lucide="users" class="guest-icon"></i>
+        <div class="guest-text">Crée un compte pour ajouter des amis et comparer vos cartes.</div>
+        <div class="primary-btn">Créer un compte</div>
+      </div>
+
+      <nav class="tabs" data-active="social"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Affiché quand l'utilisateur n'a pas de compte (mode invité). Le bouton ouvre la création de compte. L'icône de l'app est « people » plein (Ionicons), approchée ici par « users » de Lucide.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

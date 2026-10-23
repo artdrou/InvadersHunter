@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compte requis — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/auth/components/AccountGateModal.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Fenêtre centrée (makeStyles du composant) — fond assombri à 70 % */
+  .overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+  .card-modal { width: 100%; max-width: 360px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+  /* Titre : 20 × 0.9 = 18 px */
+  .m-title { color: var(--accent); font-size: 18px; letter-spacing: 1px; margin-bottom: var(--sp-1); }
+  /* Texte : 14 × 0.9 = 13 px, interligne 20 */
+  .m-body { color: var(--text); font-size: 13px; line-height: 20px; }
+  .m-notes { color: var(--text-muted); font-size: 12px; font-style: italic; margin-top: var(--sp-1); }
+  .m-primary { background: var(--accent); color: var(--on-accent); border-radius: var(--r-sm); padding: 14px; text-align: center; margin-top: var(--sp-2); font-size: var(--fs-xxl); }
+  .m-outline { border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 12px; text-align: center; font-size: var(--fs-xl); }
+  .m-secondary { color: var(--text-muted); padding: 10px; text-align: center; font-size: var(--fs-xl); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Compte requis <small>fenêtre pour le mode invité</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <!-- Écran derrière : la carte (version simplifiée) -->
+    <div class="screen">
+      <div class="content">
+        <canvas class="map" data-seed="7"></canvas>
+        <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+        <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+        <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+        <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+        <img class="mk" data-pts="20" data-state="grey" style="left: 210px; top: 420px">
+        <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+        <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+        <img class="mk" data-pts="10" data-state="captured" style="left: 170px; top: 640px">
+        <div class="loc-dot" style="left: 180px; top: 360px"></div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+
+    <!-- Fenêtre -->
+    <div class="overlay">
+      <div class="card-modal">
+        <div class="m-title">Compte requis</div>
+        <div class="m-body">Crée un compte gratuit pour proposer des ajouts et modifications, et sauvegarder tes flashs en ligne. Tes flashs locaux seront transférés automatiquement.</div>
+        <div class="m-primary">Créer un compte</div>
+        <div class="m-outline">J'ai déjà un compte</div>
+        <div class="m-secondary">Plus tard</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">S'ouvre quand un invité (mode « Continuer sans compte ») touche une fonction réservée aux comptes : proposer un ajout ou une modification, commenter, amis… « Créer un compte » ouvre l'inscription, « J'ai déjà un compte » la connexion.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+/* InvadersHunter — styles communs aux maquettes de la CARTE (dossier 02-carte).
+ *
+ * Chargé après _shared/app.css par chaque page de ce dossier. Contient ce qui revient sur
+ * plusieurs écrans de la carte : boutons posés sur la carte, popup d'invader, champs des
+ * formulaires, fenêtre de tutoriel, épingle de choix de position.
+ * Tailles de texte « × 0,9 » = fontScale de l'app (sz()). Police : FreePixel partout, sauf
+ * les textes qui n'ont pas de police dans le code (police système Android = Roboto).
+ */
+
+/* ─── Dessins pixel AimIcon / BoussoleIcon (grilles 31 × 31 calculées comme dans l'app) ─── */
+.phone {
+  --aim-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 31' shape-rendering='crispEdges'%3E%3Cpath d='M12 1h7v1h-7zM9 2h13v1h-13zM7 3h17v1h-17zM6 4h19v1h-19zM5 5h21v1h-21zM4 6h23v1h-23zM3 7h25v1h-25zM3 8h25v1h-25zM2 9h27v1h-27zM2 10h27v1h-27zM2 11h27v1h-27zM1 12h29v1h-29zM1 13h29v1h-29zM1 14h29v1h-29zM1 15h29v1h-29zM1 16h29v1h-29zM1 17h29v1h-29zM1 18h29v1h-29zM2 19h27v1h-27zM2 20h27v1h-27zM2 21h27v1h-27zM3 22h25v1h-25zM3 23h25v1h-25zM4 24h23v1h-23zM5 25h21v1h-21zM6 26h19v1h-19zM7 27h17v1h-17zM9 28h13v1h-13zM12 29h7v1h-7z'/%3E%3C/svg%3E");
+  --aim-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 31' shape-rendering='crispEdges'%3E%3Cpath d='M15 3h1v1h-1zM15 4h1v1h-1zM15 5h1v1h-1zM15 6h1v1h-1zM12 7h7v1h-7zM10 8h3v1h-3zM18 8h3v1h-3zM9 9h2v1h-2zM20 9h2v1h-2zM8 10h2v1h-2zM21 10h2v1h-2zM8 11h1v1h-1zM22 11h1v1h-1zM7 12h2v1h-2zM22 12h2v1h-2zM7 13h1v1h-1zM23 13h1v1h-1zM7 14h1v1h-1zM14 14h3v1h-3zM23 14h1v1h-1zM3 15h5v1h-5zM14 15h3v1h-3zM23 15h5v1h-5zM7 16h1v1h-1zM14 16h3v1h-3zM23 16h1v1h-1zM7 17h1v1h-1zM23 17h1v1h-1zM7 18h2v1h-2zM22 18h2v1h-2zM8 19h1v1h-1zM22 19h1v1h-1zM8 20h2v1h-2zM21 20h2v1h-2zM9 21h2v1h-2zM20 21h2v1h-2zM10 22h3v1h-3zM18 22h3v1h-3zM12 23h7v1h-7zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1z'/%3E%3C/svg%3E");
+  --compass-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 31' shape-rendering='crispEdges'%3E%3Cpath d='M12 1h7v1h-7zM9 2h6v1h-6zM16 2h6v1h-6zM7 3h8v1h-8zM16 3h8v1h-8zM6 4h9v1h-9zM16 4h9v1h-9zM5 5h9v1h-9zM17 5h9v1h-9zM4 6h10v1h-10zM17 6h10v1h-10zM3 7h10v1h-10zM18 7h10v1h-10zM3 8h10v1h-10zM18 8h10v1h-10zM2 9h10v1h-10zM19 9h10v1h-10zM2 10h10v1h-10zM19 10h10v1h-10zM2 11h9v1h-9zM20 11h9v1h-9zM1 12h10v1h-10zM20 12h10v1h-10zM1 13h9v1h-9zM21 13h9v1h-9zM1 14h9v1h-9zM14 14h3v1h-3zM21 14h9v1h-9zM1 15h8v1h-8zM14 15h1v1h-1zM16 15h1v1h-1zM22 15h8v1h-8zM1 16h9v1h-9zM14 16h3v1h-3zM21 16h9v1h-9zM1 17h9v1h-9zM21 17h9v1h-9zM1 18h10v1h-10zM20 18h10v1h-10zM2 19h9v1h-9zM20 19h9v1h-9zM2 20h10v1h-10zM19 20h10v1h-10zM2 21h10v1h-10zM19 21h10v1h-10zM3 22h10v1h-10zM18 22h10v1h-10zM3 23h10v1h-10zM18 23h10v1h-10zM4 24h10v1h-10zM17 24h10v1h-10zM5 25h9v1h-9zM17 25h9v1h-9zM6 26h9v1h-9zM16 26h9v1h-9zM7 27h8v1h-8zM16 27h8v1h-8zM9 28h6v1h-6zM16 28h6v1h-6zM12 29h7v1h-7z'/%3E%3C/svg%3E");
+  --compass-south: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 31' shape-rendering='crispEdges'%3E%3Cpath d='M15 15h1v1h-1zM10 16h4v1h-4zM17 16h4v1h-4zM10 17h11v1h-11zM11 18h9v1h-9zM11 19h9v1h-9zM12 20h7v1h-7zM12 21h7v1h-7zM13 22h5v1h-5zM13 23h5v1h-5zM14 24h3v1h-3zM14 25h3v1h-3zM15 26h1v1h-1zM15 27h1v1h-1zM15 28h1v1h-1z'/%3E%3C/svg%3E");
+  --compass-north: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 31' shape-rendering='crispEdges'%3E%3Cpath d='M15 2h1v1h-1zM15 3h1v1h-1zM15 4h1v1h-1zM14 5h3v1h-3zM14 6h3v1h-3zM13 7h5v1h-5zM13 8h5v1h-5zM12 9h7v1h-7zM12 10h7v1h-7zM11 11h9v1h-9zM11 12h9v1h-9zM10 13h11v1h-11zM10 14h4v1h-4zM17 14h4v1h-4zM9 15h5v1h-5zM17 15h5v1h-5z'/%3E%3C/svg%3E");
+
+  /* Police système (textes sans fontFamily dans le code) */
+  --font-sys: Roboto, system-ui, 'Segoe UI', sans-serif;
+  /* Couleurs fixes de la carte (InvaderClusterSource.tsx, friends/constants.ts) */
+  --cluster-red: #ff0062; --cluster-red-halo: #a300b3;
+  --cluster-blue: #1cf0ff; --cluster-blue-halo: #002fa7;
+  --friend-both: #1cf0ff; --friend-mine: #1fff5a; --friend-friend: #ff7a00; --friend-neither: #ff0062;
+}
+
+/* ─── Écran carte : la carte passe sous la barre d'état ; barre d'onglets en bas ──────────── */
+.map-screen { padding-top: 0; }
+.map-area { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.map-area.full { position: absolute; inset: 0; }   /* écrans sans barre d'onglets (sélecteur de position) */
+
+/* ─── PixelButton : carré 12 × 12 pixels aux coins en escalier ───────────────────────────── */
+.pxb { position: relative; width: 48px; height: 48px; display: grid; place-items: center; flex: none;
+  --pxb-stroke: var(--border); color: var(--text-muted); }
+.pxb::before, .pxb::after { content: ""; position: absolute; inset: 0; }
+.pxb::before { background: var(--pxb-stroke);
+  clip-path: polygon(25% 0,75% 0,75% 8.33%,83.33% 8.33%,83.33% 16.67%,91.67% 16.67%,91.67% 25%,100% 25%,100% 75%,91.67% 75%,91.67% 83.33%,83.33% 83.33%,83.33% 91.67%,75% 91.67%,75% 100%,25% 100%,25% 91.67%,16.67% 91.67%,16.67% 83.33%,8.33% 83.33%,8.33% 75%,0 75%,0 25%,8.33% 25%,8.33% 16.67%,16.67% 16.67%,16.67% 8.33%,25% 8.33%); }
+.pxb::after { background: var(--bg-element);
+  clip-path: polygon(25% 8.33%,75% 8.33%,75% 16.67%,83.33% 16.67%,83.33% 25%,91.67% 25%,91.67% 75%,83.33% 75%,83.33% 83.33%,75% 83.33%,75% 91.67%,25% 91.67%,25% 83.33%,16.67% 83.33%,16.67% 75%,8.33% 75%,8.33% 25%,16.67% 25%,16.67% 16.67%,25% 16.67%); }
+.pxb > * { position: relative; z-index: 1; }
+.pxb .lucide { width: 22px; height: 22px; }
+.pxb.hot { --pxb-stroke: var(--accent); color: var(--accent); }   /* actif / actualités non lues */
+.pxb.big { width: 54px; height: 54px; }                           /* RoutingFAB (54 px, icône 26) */
+.pxb.big .lucide { width: 26px; height: 26px; }
+
+/* Badge rouge du bouton Actualités (newsBadge) */
+.news-badge { position: absolute; top: -2px; right: -2px; z-index: 2; min-width: 18px; height: 18px; border-radius: 9px;
+  border: 1.5px solid var(--bg); background: var(--danger); color: var(--white); padding: 0 3px;
+  display: grid; place-items: center; font: 700 var(--fs-xxs)/1 var(--font-sys); }
+
+/* ─── AimIcon (me localiser) et BoussoleIcon (boussole) ──────────────────────────────────── */
+.aim, .compass { position: relative; width: 48px; height: 48px; flex: none; }
+.aim::before, .aim::after, .compass::before, .compass::after, .compass > span {
+  content: ""; position: absolute; inset: 0; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+.aim::before { background: var(--bg-element); -webkit-mask-image: var(--aim-circle); mask-image: var(--aim-circle); }
+.aim::after  { background: var(--accent);     -webkit-mask-image: var(--aim-ring);   mask-image: var(--aim-ring); }
+.aim.locked::before { background: var(--brand-pink); }   /* suivi activé (appui long) */
+.aim.locked::after  { background: var(--bg-element); }
+.compass::before { background: var(--bg-element); -webkit-mask-image: var(--compass-circle); mask-image: var(--compass-circle); }
+.compass > span  { background: var(--text);       -webkit-mask-image: var(--compass-south);  mask-image: var(--compass-south); }
+.compass::after  { background: var(--danger);     -webkit-mask-image: var(--compass-north);  mask-image: var(--compass-north); }
+
+/* ─── Place des boutons sur la carte (styles de map.tsx) ─────────────────────────────────── */
+.ctl { position: absolute; z-index: 5; }
+.ctl-fab      { left: 16px; bottom: 140px; }   /* RoutingFAB */
+.ctl-locate   { right: 16px; bottom: 32px; }
+.ctl-compass  { right: 16px; bottom: 86px; }   /* 32 + 48 + 6 */
+.ctl-news     { right: 16px; top: 32px; }      /* insets.top + 8 */
+.ctl-friends  { right: 16px; top: 86px; }      /* + 48 + 6 */
+.lifted { transform: translateY(-56px); }      /* remontés au-dessus de la barre Annuler / Valider */
+
+/* Barre de filtres (MapFilterBar) : palette au-dessus, filtres en dessous, panneaux qui s'ouvrent au-dessus */
+.filter-bar { position: absolute; left: 16px; bottom: 32px; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; }
+.filter-bar .gap { height: 6px; }
+.fpanel { margin-bottom: 6px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm);
+  overflow: hidden; min-width: 140px; }
+.fpanel-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px var(--sp-3) 4px; }
+.fpanel-label { color: var(--text-muted); font-size: var(--fs-md); padding: 10px var(--sp-3) 4px; }
+.fpanel-row .fpanel-label { padding: 0; }
+.fopt { padding: 9px var(--sp-3); color: var(--text); font-size: var(--fs-lg); }
+.fopt.on { background: var(--accent); color: var(--bg); }
+.fdivider { height: 1px; background: var(--bg-divider); margin-top: 6px; }
+.fpoints { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 var(--sp-3) 10px; }
+.fchip { padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text); font-size: var(--fs-lg); }
+.fchip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+/* Bouton rond « i » (InfoButton) */
+.info-btn { display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--accent); background: var(--bg-element); color: var(--accent); font-size: 11px; line-height: 1; }
+.info-btn.sm { width: 14px; height: 14px; font-size: 7px; }
+.info-wrap { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-size: var(--fs-xs); letter-spacing: .5px; }
+
+/* ─── Grappes de marqueurs (clusters) et position de l'utilisateur ───────────────────────── */
+.cluster { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; border-radius: 50%;
+  width: 36px; height: 36px; background: var(--cluster-red); color: var(--white); font: 700 13px/1 var(--font-sys); z-index: 1;
+  --halo: var(--cluster-red-halo);
+  box-shadow: 0 0 6px 8px color-mix(in srgb, var(--halo) 45%, transparent); }   /* halo flou autour de la bulle */
+.cluster.blue { background: var(--cluster-blue); --halo: var(--cluster-blue-halo); }   /* tous flashés */
+.cluster.l { width: 44px; height: 44px; }                                              /* 10 à 49 invaders */
+
+.user-loc { position: absolute; width: 20px; height: 20px; transform: translate(-50%, -50%); z-index: 2; }
+.user-loc::before { content: ""; position: absolute; left: 50%; bottom: 50%; width: 60px; height: 64px; transform: translateX(-50%);
+  background: var(--location-dot); opacity: .25; clip-path: polygon(50% 100%, 0 0, 100% 0); }   /* cône d'orientation */
+.user-loc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--location-dot); border: 2px solid #fff; }
+
+/* ─── Popup d'invader (InvaderPopup/styles.ts) ───────────────────────────────────────────── */
+.popup-wrap { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.popup { width: 300px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: var(--sp-4); display: flex; flex-direction: column; gap: 14px; }
+.popup > * { flex-shrink: 0; }
+.popup-arrow { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid var(--border); }
+.handle { width: 36px; height: 4px; border-radius: 2px; background: var(--bg-divider); align-self: center; }
+.p-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.p-name { color: var(--accent); font-size: 24px; letter-spacing: 1px; min-width: 0; }
+.p-close { color: var(--text-muted); font-size: 14px; padding: 4px; }
+.p-divider { height: 1px; background: var(--bg-divider); }
+.p-image { width: 100%; aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden; }
+.p-info { display: flex; flex-direction: column; gap: 10px; }
+.p-row { display: flex; justify-content: space-between; align-items: center; }
+.p-label { color: var(--text-muted); font-size: 18px; }
+.p-value { color: var(--text); font-size: 18px; }
+.p-value.flashed { color: var(--success); }
+.p-vchip { display: flex; align-items: center; gap: 6px; }
+.p-pending { color: var(--text-muted); font-size: 10px; }
+.missing-chip { border: 1px solid var(--accent); border-radius: var(--r-sm); padding: 1px 6px; color: var(--accent); font-size: 10px; }
+.p-topcomment { display: flex; align-items: flex-start; gap: 4px; }
+.p-topcomment .lucide { width: 12px; height: 12px; color: var(--accent); fill: var(--accent); margin-top: 2px; }
+.p-topcomment span { flex: 1; color: var(--text); font-size: 14px; font-style: italic;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.p-contrib { display: flex; flex-direction: column; gap: 10px; }
+.p-contrib div { color: var(--text-muted); font-size: 12px; text-align: center; }
+.p-contrib b { color: var(--accent); font-weight: normal; }
+.p-links { display: flex; justify-content: center; gap: var(--sp-4); padding: 4px 0; }
+.p-link { padding: 4px; color: var(--accent); position: relative; display: flex; }
+.p-link .lucide { width: 20px; height: 20px; }
+.lucide.filled { fill: currentColor; }
+.count-badge { position: absolute; top: -6px; right: -8px; min-width: 16px; height: 16px; border-radius: 8px; padding: 0 3px;
+  border: 1px solid var(--bg-element); background: var(--accent); color: var(--bg); font: 700 10px/12px var(--font-sys);
+  display: grid; place-items: center; }
+.count-badge.new { background: var(--danger); }   /* nouveaux commentaires pas encore lus */
+.p-btn { border-radius: var(--r-sm); padding: 13px 0; text-align: center; margin-top: 4px; font-size: var(--fs-xl);
+  background: var(--accent); color: var(--bg); }
+.p-btn.unflash { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+.p-btn.disabled { background: var(--bg-divider); opacity: .6; }
+.p-modify { text-align: center; padding: 4px 0; color: var(--accent); font-size: var(--fs-md); }
+.p-cancel { text-align: center; padding: 8px 0; color: var(--text-muted); font-size: var(--fs-xl); }
+
+/* Fausse photo d'invader (mosaïque sur un mur) */
+.photo { width: 100%; height: 100%; display: grid; place-items: center;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 1px, transparent 1px 22px),
+              repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 1px, transparent 1px 44px),
+              linear-gradient(160deg, #c9c0b2, #a99f90 60%, #8f8576); }
+.photo svg.spr { filter: drop-shadow(1px 2px 0 rgba(0,0,0,.25)); }
+
+/* ─── Champs des formulaires (StateGrid, PointsPicker, YearInput, PhotoField) ───────────── */
+.f-label { color: var(--text-muted); font-size: 12px; margin: var(--sp-2) 0 4px; }
+.state-grid { display: flex; flex-direction: column; gap: 5px; }
+.state-grid > div, .points-row { display: flex; gap: 5px; }
+.opt { flex: 1; padding: 8px var(--sp-2); border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+.opt.on { border-color: var(--accent); background: var(--bg); color: var(--accent); }
+.points-row .opt { padding: 8px 0; text-align: center; }
+.year-input { width: 90px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text);
+  padding: 8px var(--sp-2); font-size: 13px; }
+.placeholder { color: var(--text-muted); }
+.position-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px var(--sp-2);
+  border: 1px solid var(--border); border-radius: var(--r-sm); }
+.position-row .pv { color: var(--text); font-size: 12px; min-width: 0; }
+.position-row .pe { color: var(--accent); font-size: var(--fs-md); }
+.photo-add { padding: 10px var(--sp-2); border: 1px solid var(--border); border-radius: var(--r-sm); text-align: center; color: var(--accent); font-size: 12px; }
+
+/* ─── Fenêtre de tutoriel (TutorialModal) ────────────────────────────────────────────────── */
+.tuto-scrim { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+.tuto { width: 100%; height: 624px; /* 78 % de la hauteur de l'écran */ background: var(--bg-element); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; }
+.tuto-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+.tuto-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+.tuto-close { color: var(--text-muted); font-size: var(--fs-lg); }
+.tuto-page { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: var(--sp-3) var(--sp-3) var(--sp-4);
+  display: flex; flex-direction: column; gap: var(--sp-2); font-family: var(--font-sys); }
+.tuto-page::-webkit-scrollbar { display: none; }
+.tuto-page > * { flex-shrink: 0; }
+.t-section { display: flex; flex-direction: column; gap: 4px; }
+.t-section-label { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.t-body { color: var(--text-muted); font-size: var(--fs-sm); line-height: 20px; }
+.t-step { display: flex; gap: var(--sp-2); align-items: flex-start; }
+.t-step-num { width: 24px; height: 24px; border-radius: 12px; border: 1.5px solid var(--border); color: var(--text-muted); flex: none; margin-top: 2px;
+  display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 700; }
+.t-step-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.t-step-title { color: var(--text); font-size: var(--fs-sm); font-weight: 600; }
+.t-tip { background: var(--bg); border-left: 3px solid var(--accent); border-radius: var(--r-sm); padding: 4px 0 4px var(--sp-2);
+  color: var(--text-muted); font-size: var(--fs-sm); line-height: 20px; font-style: italic; }
+.tuto-foot { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--bg-divider); }
+.tuto-dots { display: flex; gap: 6px; }
+.tuto-dots i { width: 7px; height: 7px; border-radius: 4px; background: var(--border); }
+.tuto-dots i.on { background: var(--accent); }
+.tuto-ok { width: 100%; text-align: center; padding: 10px 0; border-radius: var(--r-sm); background: var(--accent); color: var(--bg); font-size: var(--fs-md); }
+/* Marqueurs dans les illustrations (28 × 39 dans l'app) */
+.ill-mk { width: 28px; height: 39px; object-fit: contain; display: block; }
+
+/* ─── Épingle centrale des sélecteurs de position (CenterPin) ────────────────────────────── */
+.center-pin { position: absolute; inset: 0; z-index: 15; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.center-pin .pin { width: 18px; height: 18px; border-radius: 9px; border: 2px solid var(--bg); background: var(--accent); margin-bottom: 18px; }
+.center-pin .stem { position: absolute; width: 2px; height: 10px; top: 50%; margin-top: -1px; background: var(--accent); }
+
+/* Indicateur de chargement (ActivityIndicator) */
+.spinner { width: 20px; height: 20px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; flex: none; }
+.spinner.lg { width: 36px; height: 36px; border-width: 3.5px; }

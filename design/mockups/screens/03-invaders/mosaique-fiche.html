@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invaders (mosaique, fiche) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/invader.tsx + features/invaders/components/ (MosaicToolbar, CityHeader, InvaderGridCell, InvaderInfoPanel) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="invaders.css">
+<style>
+  /* Styles propres à cette page : aucun, tout est dans invaders.css (commun à l'onglet Invaders) */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Invaders <small>mosaïque, PA_1042 choisi : fiche ouverte sous sa rangée</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+
+      <!-- Barre d'outils : actualités, recherche, vue (grille / liste), paramètres -->
+      <div class="toolbar">
+        <div class="toolbar-row">
+          <div class="tbtn on"><i data-lucide="newspaper"></i><span class="tbadge red">3</span></div>
+          <div class="search"><i data-lucide="search"></i><span>Rechercher des invaders…</span></div>
+          <div class="tbtn"><i data-lucide="layout-grid"></i></div>
+          <div class="tbtn"><i data-lucide="filter"></i></div>
+        </div>
+      </div>
+
+      <!-- Mosaïque, 3 colonnes (défile dans le téléphone) -->
+      <div class="list scroll">
+        <div class="city"><span class="city-name">PA</span><span class="city-count">6/10</span><span class="city-chev">▲</span></div>
+        <div class="grid-row">
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-pink)"></i></div><div class="cell-name">PA_1038</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-cyan)"></i></div><div class="cell-name">PA_1039</div></div>
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-yellow)"></i></div><div class="cell-name">PA_1040</div></div>
+        </div>
+        <div class="grid-row">
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="#2f80ff"></i></div><div class="cell-name">PA_1041</div></div>
+          <div class="cell selected"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--white)"></i></div><div class="cell-name">PA_1042</div></div>
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="#ff8a00"></i></div><div class="cell-name">PA_1043</div></div>
+        </div>
+        <!-- Fiche de l'invader choisi, sous sa rangée (bordure + coins arrondis en mosaïque) -->
+        <div class="panel in-grid">
+          <div class="panel-img photo"><i class="spr" data-w="120" data-color="var(--brand-yellow)"></i></div>
+          <div class="divider"></div>
+          <div class="info">
+            <div class="info-row"><span class="lbl">Points</span><span class="val">10</span></div>
+            <div class="info-row"><span class="lbl">État</span><span class="val">Bon</span></div>
+            <div class="info-row"><span class="lbl">Posé</span><span class="val">12/03/2019</span></div>
+            <div class="info-row"><span class="lbl">Flashé</span><span class="val">--</span></div>
+          </div>
+          <div class="contrib">
+            <p>Découvert par <b>InvaderQuest</b></p>
+          </div>
+          <div class="divider"></div>
+          <div class="btn-row">
+            <div class="act flash">Flash</div>
+            <div class="act locate">Localiser</div>
+          </div>
+          <div class="update-link">Modifier</div>
+          <div class="comments"><span class="ico"><i data-lucide="messages-square"></i><span class="cbadge">5</span></span>Commentaires</div>
+        </div>
+        <div class="grid-row">
+          <div class="cell pending"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-pink)"></i></div><div class="cell-name">PA_1044</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-cyan)"></i></div><div class="cell-name">PA_1045</div></div>
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-yellow)"></i></div><div class="cell-name">PA_1046</div></div>
+        </div>
+        <div class="grid-row">
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="#2f80ff"></i></div><div class="cell-name">PA_1047</div></div>
+        </div>
+        <div class="city"><span class="city-name">LDN</span><span class="city-count">2/6</span><span class="city-chev">▲</span></div>
+        <div class="grid-row">
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-pink)"></i></div><div class="cell-name">LDN_150</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-cyan)"></i></div><div class="cell-name">LDN_151</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--brand-yellow)"></i></div><div class="cell-name">LDN_152</div></div>
+        </div>
+        <div class="grid-row">
+          <div class="cell captured"><div class="cell-img photo"><i class="spr" data-w="44" data-color="#2f80ff"></i></div><div class="cell-name">LDN_153</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="var(--white)"></i></div><div class="cell-name">LDN_154</div></div>
+          <div class="cell"><div class="cell-img photo"><i class="spr" data-w="44" data-color="#ff8a00"></i></div><div class="cell-name">LDN_155</div></div>
+        </div>
+        <!-- Autres villes, repliées -->
+        <div class="city"><span class="city-name">MARS</span><span class="city-count">9/88</span><span class="city-chev">▼</span></div>
+        <div class="city"><span class="city-name">RN</span><span class="city-count">4/45</span><span class="city-chev">▼</span></div>
+        <div class="city"><span class="city-name">NY</span><span class="city-count">0/198</span><span class="city-chev">▼</span></div>
+      </div>
+
+      <nav class="tabs" data-active="invaders"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Les « photos » sont des blocs avec un sprite (l'app affiche les photos d'invader-spotter.art). La case choisie prend un cadre couleur accent ; la fiche est la même qu'en mode liste, avec une bordure et des coins arrondis. Invader pas flashé : bouton « Flash » plein. Faites défiler dans le téléphone.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

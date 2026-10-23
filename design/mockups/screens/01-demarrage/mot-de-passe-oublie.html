@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mot de passe oublié — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/forgot-password.tsx (état affiché aujourd'hui : service indisponible) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de forgot-password.tsx) */
+  .auth { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--sp-5); background: var(--bg); }
+  .auth-title { color: var(--accent); font-size: 24px; margin-bottom: 48px; letter-spacing: 2px; }
+  .auth-form { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: var(--sp-3); }
+  /* Sous-titre : 16 × 0.9 = 14 px */
+  .subtitle { color: var(--text); font-size: 14px; margin-bottom: var(--sp-2); }
+  .subtitle.center { text-align: center; }
+  .subtitle.small { font-size: var(--fs-sm); }
+  .back-link { margin-top: var(--sp-5); color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Mot de passe oublié <small>état actuel</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="auth">
+      <div class="auth-title">Invaders Hunter</div>
+
+      <!-- Message affiché à la place du formulaire -->
+      <div class="auth-form">
+        <div class="subtitle center">La réinitialisation du mot de passe est temporairement indisponible.</div>
+        <div class="subtitle center small">Veuillez contacter le support pour réinitialiser votre mot de passe.</div>
+      </div>
+
+      <div class="back-link">Retour à la connexion</div>
+    </div>
+  </div>
+
+  <p class="page-notes">C'est ce que l'app affiche aujourd'hui. Les 3 étapes du vrai parcours (e-mail, code, nouveau mot de passe) existent dans le code
+    mais sont désactivées ; elles sont dessinées dans mot-de-passe-oublie-etape-1/2/3.html.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

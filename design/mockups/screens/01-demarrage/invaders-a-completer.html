@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invaders à compléter — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/incomplete.tsx (ouvert depuis l'onglet Social) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de incomplete.tsx) */
+  .inc { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-top: var(--sp-3); }
+  .inc-header { padding: 0 var(--sp-4) var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .inc-header .back { padding: 4px 0; }
+  .inc-title { color: var(--accent); font-size: var(--fs-xxl); letter-spacing: 1px; }
+  .inc-intro { color: var(--text-muted); font-size: 12px; line-height: 1.35; }
+
+  /* Filtres : ligne qui défile horizontalement */
+  .chips { flex: none; display: flex; gap: var(--sp-2); align-items: center; padding: 0 var(--sp-4) var(--sp-3);
+    overflow-x: auto; scrollbar-width: none; }
+  .chip { flex: none; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px var(--sp-2);
+    color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+  .chip.on { border-color: var(--accent); background: var(--bg-element); color: var(--accent); }
+
+  /* Liste par ville */
+  .list { flex: 1; min-height: 0; }
+  .city { display: flex; justify-content: space-between; align-items: center; padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--bg-divider); }
+  .city-name { color: var(--accent); font-size: 15px; }
+  .city-right { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-muted); font-size: 12px; }
+  .city-right .lucide { width: 16px; height: 16px; }
+  .inv { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); padding: 10px var(--sp-4);
+    border-bottom: 1px solid var(--bg-divider); }
+  .inv-name { color: var(--text); font-size: 13px; white-space: nowrap; }
+  .inv-missing { color: var(--text-muted); font-size: 10px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Invaders à compléter <small>page communauté (depuis Social)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="inc">
+        <!-- En-tête -->
+        <div class="inc-header">
+          <div class="back">&lt; Retour</div>
+          <div class="inc-title">Invaders à compléter</div>
+          <div class="inc-intro">Aidez la communauté : proposez les infos manquantes (position, photo, points…). Chaque proposition est validée avant publication.</div>
+        </div>
+
+        <!-- Filtres (nombre d'invaders concernés) -->
+        <div class="chips">
+          <span class="chip on">Tout 214</span>
+          <span class="chip">Position 38</span>
+          <span class="chip">Photo 97</span>
+          <span class="chip">Points 21</span>
+          <span class="chip">État 6</span>
+          <span class="chip">Posé 143</span>
+        </div>
+
+        <!-- Villes (PA ouverte) -->
+        <div class="list scroll">
+          <div class="city"><span class="city-name">AMI</span><span class="city-right">4 à compléter <i data-lucide="chevron-down"></i></span></div>
+          <div class="city"><span class="city-name">BXL</span><span class="city-right">11 à compléter <i data-lucide="chevron-down"></i></span></div>
+          <div class="city"><span class="city-name">LAP</span><span class="city-right">7 à compléter <i data-lucide="chevron-down"></i></span></div>
+          <div class="city"><span class="city-name">LDN</span><span class="city-right">23 à compléter <i data-lucide="chevron-down"></i></span></div>
+          <div class="city"><span class="city-name">MARS</span><span class="city-right">9 à compléter <i data-lucide="chevron-down"></i></span></div>
+          <div class="city"><span class="city-name">PA</span><span class="city-right">58 à compléter <i data-lucide="chevron-up"></i></span></div>
+          <div class="inv"><span class="inv-name">PA_0412</span><span class="inv-missing">Photo · Posé</span></div>
+          <div class="inv"><span class="inv-name">PA_0877</span><span class="inv-missing">Posé</span></div>
+          <div class="inv"><span class="inv-name">PA_1042</span><span class="inv-missing">Position · Photo · Points · Posé</span></div>
+          <div class="inv"><span class="inv-name">PA_1388</span><span class="inv-missing">Photo</span></div>
+          <div class="inv"><span class="inv-name">PA_1501</span><span class="inv-missing">Position · Posé</span></div>
+          <div class="inv"><span class="inv-name">PA_1502</span><span class="inv-missing">Position · Photo · Posé</span></div>
+          <div class="inv"><span class="inv-name">PA_1503</span><span class="inv-missing">Points · État</span></div>
+          <div class="city"><span class="city-name">ROM</span><span class="city-right">15 à compléter <i data-lucide="chevron-down"></i></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Les villes sont repliables (chevron). Toucher un invader ouvre en dessous le panneau habituel de l'invader (celui de l'onglet Invaders, avec les puces « + Ajouter »), non redessiné ici.
+    Si un filtre ne laisse rien : « Rien à compléter avec ce filtre. » centré en gris. Pas de barre d'onglets : c'est une page empilée.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

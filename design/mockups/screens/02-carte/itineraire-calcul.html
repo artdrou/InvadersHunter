@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itinéraire — calcul en cours — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/map.tsx (routingLoader) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* routingLoader : pastille cyan pendant le calcul, quand le panneau est fermé */
+  .r-loader { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: var(--sp-2);
+    background: var(--brand-cyan); color: var(--white); padding: 10px var(--sp-3); border-radius: var(--r-pill); font-size: var(--fs-sm); white-space: nowrap; }
+  .r-loader .spinner { width: 18px; height: 18px; border-width: 2px; }
+  .mk-hl { position: absolute; transform: translate(-50%, -50%); display: block; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Itinéraire — calcul en cours <small>panneau fermé pendant le calcul</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="11"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:330px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:400px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:360px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:520px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:230px; top:640px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <!-- Arrêts obligatoires choisis (marqueurs dorés) -->
+      <img class="mk-hl" src="../../_shared/assets/marker-40pts-highlight.png" width="36" alt="" style="left:205px; top:430px">
+      <img class="mk-hl" src="../../_shared/assets/marker-20pts-highlight.png" width="30" alt="" style="left:255px; top:560px">
+      <div class="user-loc" style="left:150px; top:600px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Pastille « calcul en cours » (texte blanc sur cyan, comme dans le code) -->
+      <div class="r-loader"><span class="spinner"></span>Calcul en cours…</div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Si on ferme le panneau pendant le calcul, une pastille cyan s'affiche en bas (BottomTabInset 80 + 16 au-dessus du bas de la carte). Le texte blanc sur cyan est peu lisible : c'est le rendu actuel du code.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/social.tsx (onglet « Social », avec invitations et amis) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de social.tsx, tailles de texte × 0,9 = fontScale) */
+  .social-title { color: var(--accent); font-size: 24px; letter-spacing: 1px; padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+  .social-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-4);
+    padding: var(--sp-2) var(--sp-4) var(--sp-5); }
+  .social-body > * { flex-shrink: 0; }
+  .s-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .s-label { color: var(--text-muted); font-size: var(--fs-xs); letter-spacing: 1px; text-transform: uppercase; padding: 0 var(--sp-2); }
+
+  /* Ligne « Ajouter un ami » : champ + bouton Envoyer */
+  .add-row { display: flex; gap: var(--sp-2); }
+  .input-wrap { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 var(--sp-3); }
+  .input-wrap.confirmed { border-color: var(--success); }
+  .input-wrap .lucide { width: 18px; height: 18px; color: var(--success); }
+  .input-text { flex: 1; min-width: 0; color: var(--text); font-size: 13px; padding: 10px 0; white-space: nowrap; overflow: hidden; }
+  .input-text.placeholder { color: var(--text-muted); }
+  .primary-btn { background: var(--accent); color: var(--on-accent); border-radius: var(--r-sm); padding: 10px var(--sp-4);
+    display: flex; align-items: center; justify-content: center; font-size: var(--fs-md); }
+  .send-btn { min-width: 90px; }
+  .disabled { opacity: .5; }
+  .feedback { font-size: 12px; padding: 0 var(--sp-2); }
+
+  /* Carte d'une personne (ami, invitation) */
+  .p-card { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-md); }
+  .p-card.suggestion { border-color: var(--accent); }
+  .p-card > .lucide { color: var(--accent); }
+  .p-card > .chev { width: 18px; height: 18px; color: var(--text-muted); }
+  .avatar { width: 36px; height: 36px; border-radius: 18px; border: 1px solid var(--accent); flex: none;
+    display: grid; place-items: center; color: var(--accent); font-size: var(--fs-lg); }
+  .p-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .username { color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--text-muted); font-size: var(--fs-xs); }
+  .small-btn { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px var(--sp-2); color: var(--text); font-size: var(--fs-sm); flex: none; }
+  .small-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .muted-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: var(--sp-3) 0; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Social <small>avec invitations et amis</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="social-title">Social</div>
+
+      <div class="social-body scroll">
+        <!-- Communauté : invaders à compléter -->
+        <div class="s-section">
+          <div class="s-label">Communauté</div>
+          <div class="p-card">
+            <i data-lucide="wrench"></i>
+            <div class="p-body">
+              <div class="username">Invaders à compléter</div>
+              <div class="meta">143 invaders ont des infos manquantes</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+        </div>
+
+        <!-- Ajouter un ami -->
+        <div class="s-section">
+          <div class="s-label">Ajouter un ami</div>
+          <div class="add-row">
+            <div class="input-wrap"><div class="input-text placeholder">Son nom d'utilisateur exact</div></div>
+            <div class="primary-btn send-btn disabled">Envoyer</div>
+          </div>
+        </div>
+
+        <!-- Invitations reçues -->
+        <div class="s-section">
+          <div class="s-label">Invitations reçues (2)</div>
+          <div class="p-card">
+            <div class="avatar">M</div>
+            <div class="p-body"><div class="username">mariem</div></div>
+            <div class="small-btn">Refuser</div>
+            <div class="small-btn primary">Accepter</div>
+          </div>
+          <div class="p-card">
+            <div class="avatar">P</div>
+            <div class="p-body"><div class="username">pix75</div></div>
+            <div class="small-btn">Refuser</div>
+            <div class="small-btn primary">Accepter</div>
+          </div>
+        </div>
+
+        <!-- Invitations envoyées -->
+        <div class="s-section">
+          <div class="s-label">Invitations envoyées</div>
+          <div class="p-card">
+            <div class="avatar">L</div>
+            <div class="p-body">
+              <div class="username">lyon_flasher</div>
+              <div class="meta">En attente de réponse</div>
+            </div>
+            <div class="small-btn">Annuler</div>
+          </div>
+        </div>
+
+        <!-- Amis -->
+        <div class="s-section">
+          <div class="s-label">Amis (3)</div>
+          <div class="p-card">
+            <div class="avatar">S</div>
+            <div class="p-body">
+              <div class="username">SpaceKev</div>
+              <div class="meta">Invaders flashés : 412</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+          <div class="p-card">
+            <div class="avatar">J</div>
+            <div class="p-body">
+              <div class="username">juju.invade</div>
+              <div class="meta">Invaders flashés : 87</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+          <div class="p-card">
+            <div class="avatar">T</div>
+            <div class="p-body">
+              <div class="username">TomRoubaix</div>
+              <div class="meta">Invaders flashés : 1204</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tabs" data-active="social" data-social-badge="2"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Textes repris de fr.json. Le contenu défile sous le titre (tirer vers le bas = rafraîchir). Le badge rouge de l'onglet = nombre d'invitations reçues.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

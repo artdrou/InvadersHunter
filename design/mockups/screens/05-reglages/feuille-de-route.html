@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feuille de route — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/roadmap.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .intro { color: var(--text-muted); font-size: var(--fs-sm); line-height: 22px; }
+  .list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .rm-card { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-2); }
+  .rm-header { display: flex; align-items: center; gap: var(--sp-2); }
+  .rm-header .lucide { width: 20px; height: 20px; color: var(--accent); }
+  .rm-title { color: var(--text); font-size: var(--fs-md); flex-shrink: 1; }
+  /* Badge de statut : Bientôt (accent) / En cours (gris) / Prévu (bordure discrète) */
+  .rm-badge { margin-left: auto; border-radius: var(--r-sm); border: 1px solid; padding: 2px var(--sp-2); font-size: var(--fs-xxs); letter-spacing: .5px; white-space: nowrap; }
+  .rm-badge.soon { border-color: var(--accent); color: var(--accent); }
+  .rm-badge.wip { border-color: var(--text-muted); color: var(--text-muted); }
+  .rm-badge.planned { border-color: var(--border); color: var(--text-muted); }
+  .rm-body { color: var(--text-muted); font-size: var(--fs-sm); line-height: 20px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Feuille de route <small>À propos › Feuille de route</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Feuille de route</div>
+      </div>
+
+      <div class="shell-body">
+        <div class="intro">Voici un aperçu des fonctionnalités en préparation pour les prochaines versions de l'application.</div>
+
+        <div class="list">
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="user-plus"></i><span class="rm-title">Mode invité</span><span class="rm-badge soon">Bientôt</span></div>
+            <div class="rm-body">Utiliser l'app sans compte. Les flashs restent sur le téléphone et sont transférés à la création du compte.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="plus-circle"></i><span class="rm-title">Invaders personnels</span><span class="rm-badge wip">En cours</span></div>
+            <div class="rm-body">Ajouter ses propres invaders sur sa carte.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="users"></i><span class="rm-title">Amis</span><span class="rm-badge wip">En cours</span></div>
+            <div class="rm-body">Se connecter à d'autres chasseurs, voir leurs flashs sur la carte et comparer les collections.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="messages-square"></i><span class="rm-title">Mur de commentaires</span><span class="rm-badge wip">En cours</span></div>
+            <div class="rm-body">Laisser des descriptions et astuces sur chaque invader.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="award"></i><span class="rm-title">Découvreurs</span><span class="rm-badge wip">En cours</span></div>
+            <div class="rm-body">Voir qui a découvert ou mis à jour chaque invader.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="trophy"></i><span class="rm-title">Gamification</span><span class="rm-badge planned">Prévu</span></div>
+            <div class="rm-body">Progression, emblèmes, récompenses.</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-header"><i data-lucide="radio"></i><span class="rm-title">Mode radar</span><span class="rm-badge planned">Prévu</span></div>
+            <div class="rm-body">Repérer les invaders autour de soi.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Liste et statuts repris de ROADMAP_ITEMS dans roadmap.tsx. Icônes Ionicons remplacées par leurs équivalents Lucide. La liste dépasse l'écran : faire défiler dans le téléphone.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

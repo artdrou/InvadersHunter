@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itinéraire — panneau — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/routing/components/RoutingSheet/ (index, CoordField, ComputeButton, styles.ts) + RoutingFAB.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* RoutingSheet (RoutingSheet/styles.ts, tailles × 0,9) */
+  .rsheet { position: absolute; top: 32px; left: 8px; right: 8px; z-index: 10; background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); box-shadow: 0 2px 6px rgba(0,0,0,.22), 0 6px 16px rgba(0,0,0,.25); }
+  .r-title { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  .r-title span:first-child { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .r-fields { padding: var(--sp-2) var(--sp-3) 0; display: flex; flex-direction: column; gap: 4px; }
+  .r-coord { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg); padding: 10px var(--sp-2); }
+  .r-coord.searching { border-color: var(--accent); }
+  .r-lead { width: 20px; display: grid; place-items: center; color: var(--text-muted); }
+  .r-lead .lucide { width: 16px; height: 16px; fill: currentColor; }
+  .r-lead.from { color: var(--accent); }
+  .r-lead.to { color: var(--success); }
+  .r-label { flex: 1; min-width: 0; color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r-label.empty { color: var(--text-muted); }
+  .r-actions { display: flex; align-items: center; gap: 10px; color: var(--text-muted); }
+  .r-actions .lucide { width: 16px; height: 16px; }
+  .r-mand { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg); padding: 8px var(--sp-2); color: var(--text-muted); }
+  .r-mand.on { border-color: var(--accent); color: var(--accent); }
+  .r-mand > .lucide { width: 14px; height: 14px; }
+  .r-mand span { flex: 1; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r-mand .x { width: 16px; height: 16px; color: var(--text-muted); }
+  .r-opts { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--bg-divider); padding: var(--sp-2) 0 4px; }
+  .r-opts.open { justify-content: flex-end; }
+  .r-toggle { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 12px; }
+  .r-toggle .lucide { width: 14px; height: 14px; }
+  .r-action { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: var(--r-sm); font-size: var(--fs-xs);
+    background: var(--accent); color: var(--bg); align-self: flex-start; }
+  .r-action .lucide { width: 13px; height: 13px; }
+  .r-action .lucide.filled { fill: currentColor; }
+  .r-action.off { background: var(--bg-element); color: var(--text-muted); }
+  .r-action.cancel { background: var(--danger); color: var(--white); }
+  .r-panel { border-top: 1px solid var(--bg-divider); padding: var(--sp-2) 0 4px; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .r-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .r-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px var(--sp-2); border-radius: var(--r-sm); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: var(--fs-xs); }
+  .r-chip .lucide { width: 13px; height: 13px; }
+  .r-chip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .r-stepper { display: flex; align-items: center; gap: var(--sp-3); }
+  .r-step { width: 32px; height: 32px; border-radius: var(--r-sm); border: 1px solid var(--border); display: grid; place-items: center; color: var(--text); font-size: var(--fs-xl); }
+  .r-step-val { min-width: 72px; text-align: center; color: var(--text); font-size: 14px; }
+  .r-result { border-top: 1px solid var(--bg-divider); background: var(--bg); padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 2px;
+    border-radius: 0 0 var(--r-md) var(--r-md); }
+  .r-result .main { color: var(--success); font-size: 13px; }
+  .r-result .sub { color: var(--text-muted); font-size: 12px; }
+  .r-search { border: 1px solid var(--border); border-radius: var(--r-sm); margin-top: 2px; overflow: hidden; background: var(--bg); }
+  .r-res { display: flex; align-items: flex-start; gap: 6px; padding: 9px var(--sp-2); color: var(--text); font-size: 13px; line-height: 17px; }
+  .r-res + .r-res { border-top: 1px solid var(--bg-divider); }
+  .r-res .lucide { width: 13px; height: 13px; color: var(--text-muted); flex: none; margin-top: 2px; }
+  /* Marqueurs dorés = invaders choisis comme arrêts obligatoires */
+  .mk-hl { position: absolute; transform: translate(-50%, -50%); display: block; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Itinéraire — panneau <small>panneau Chasse ouvert</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="11"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:330px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:400px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:360px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:520px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:230px; top:640px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <!-- Arrêts obligatoires choisis (marqueurs dorés) -->
+      <img class="mk-hl" src="../../_shared/assets/marker-40pts-highlight.png" width="36" alt="" style="left:205px; top:430px">
+      <img class="mk-hl" src="../../_shared/assets/marker-20pts-highlight.png" width="30" alt="" style="left:255px; top:560px">
+      <div class="user-loc" style="left:150px; top:600px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) — panneau ouvert -->
+      <div class="ctl ctl-fab"><div class="pxb big hot"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Panneau Chasse (RoutingSheet) en haut de la carte -->
+      <div class="rsheet">
+        <div class="r-title"><span>Chasse</span><span class="info-wrap"><span class="info-btn">i</span>help</span></div>
+        <div class="r-fields">
+          <div class="r-coord">
+            <span class="r-lead from"><i data-lucide="navigation"></i></span>
+            <span class="r-label">Ma position</span>
+            <span class="r-actions"><i data-lucide="x"></i><i data-lucide="locate"></i></span>
+          </div>
+          <div class="r-mand on"><i data-lucide="flag"></i><span>2 invaders sélectionnés</span><i data-lucide="x-circle" class="x"></i></div>
+          <div class="r-coord">
+            <span class="r-lead to"><i data-lucide="flag"></i></span>
+            <span class="r-label">Place de la République, Paris</span>
+            <span class="r-actions"><i data-lucide="x"></i><i data-lucide="locate"></i></span>
+          </div>
+          <div class="r-opts">
+            <span class="r-action"><i data-lucide="flag" class="filled"></i>Démarrer</span>
+            <span class="r-toggle">+15 min<i data-lucide="chevron-down"></i></span>
+          </div>
+        </div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Bouton Itinéraire touché : le panneau « Chasse » s'ouvre en haut et cache le bouton Actualités ; le bouton Itinéraire passe en couleur d'accent. Départ = Ma position (icône flèche = utiliser ma position), arrêts obligatoires = invaders touchés sur la carte (dorés), arrivée = adresse. À droite de chaque champ : croix pour effacer, viseur pour choisir sur la carte. « Démarrer » reste gris tant que départ et arrivée ne sont pas remplis. Résumé « +15 min » = détour maximal.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

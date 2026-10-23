@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/social.tsx (onglet « Social », recherche d'un ami par son nom) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de social.tsx, tailles de texte × 0,9 = fontScale) */
+  .social-title { color: var(--accent); font-size: 24px; letter-spacing: 1px; padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+  .social-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-4);
+    padding: var(--sp-2) var(--sp-4) var(--sp-5); }
+  .social-body > * { flex-shrink: 0; }
+  .s-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .s-label { color: var(--text-muted); font-size: var(--fs-xs); letter-spacing: 1px; text-transform: uppercase; padding: 0 var(--sp-2); }
+
+  /* Ligne « Ajouter un ami » : champ + bouton Envoyer */
+  .add-row { display: flex; gap: var(--sp-2); }
+  .input-wrap { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-2); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 var(--sp-3); }
+  .input-wrap.confirmed { border-color: var(--success); }
+  .input-wrap .lucide { width: 18px; height: 18px; color: var(--success); }
+  .input-text { flex: 1; min-width: 0; color: var(--text); font-size: 13px; padding: 10px 0; white-space: nowrap; overflow: hidden; }
+  .input-text.placeholder { color: var(--text-muted); }
+  .primary-btn { background: var(--accent); color: var(--on-accent); border-radius: var(--r-sm); padding: 10px var(--sp-4);
+    display: flex; align-items: center; justify-content: center; font-size: var(--fs-md); }
+  .send-btn { min-width: 90px; }
+  .disabled { opacity: .5; }
+  .feedback { font-size: 12px; padding: 0 var(--sp-2); }
+
+  /* Carte d'une personne (ami, invitation) */
+  .p-card { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-md); }
+  .p-card.suggestion { border-color: var(--accent); }
+  .p-card > .lucide { color: var(--accent); }
+  .p-card > .chev { width: 18px; height: 18px; color: var(--text-muted); }
+  .avatar { width: 36px; height: 36px; border-radius: 18px; border: 1px solid var(--accent); flex: none;
+    display: grid; place-items: center; color: var(--accent); font-size: var(--fs-lg); }
+  .p-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .username { color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--text-muted); font-size: var(--fs-xs); }
+  .small-btn { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px var(--sp-2); color: var(--text); font-size: var(--fs-sm); flex: none; }
+  .small-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .muted-msg { color: var(--text-muted); font-size: 13px; text-align: center; padding: var(--sp-3) 0; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Social <small>ajout d'un ami</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="social-title">Social</div>
+
+      <div class="social-body scroll">
+        <!-- Communauté : invaders à compléter -->
+        <div class="s-section">
+          <div class="s-label">Communauté</div>
+          <div class="p-card">
+            <i data-lucide="wrench"></i>
+            <div class="p-body">
+              <div class="username">Invaders à compléter</div>
+              <div class="meta">143 invaders ont des infos manquantes</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+        </div>
+
+        <!-- Ajouter un ami : nom tapé, le compte existe → carte de suggestion sous le champ (bordure accent).
+             Toucher la suggestion corrige les majuscules, met la bordure du champ en vert avec une coche
+             (classe "confirmed" + <i data-lucide="check-circle">) et active Envoyer (retirer "disabled"). -->
+        <div class="s-section">
+          <div class="s-label">Ajouter un ami</div>
+          <div class="add-row">
+            <div class="input-wrap"><div class="input-text">zoeinvade</div></div>
+            <div class="primary-btn send-btn disabled">Envoyer</div>
+          </div>
+          <div class="p-card suggestion">
+            <div class="avatar">Z</div>
+            <div class="p-body">
+              <div class="username">ZoeInvade</div>
+              <div class="meta">Touche pour sélectionner</div>
+            </div>
+            <i data-lucide="plus-circle"></i>
+          </div>
+        </div>
+
+        <!-- Amis -->
+        <div class="s-section">
+          <div class="s-label">Amis (1)</div>
+          <div class="p-card">
+            <div class="avatar">S</div>
+            <div class="p-body">
+              <div class="username">SpaceKev</div>
+              <div class="meta">Invaders flashés : 412</div>
+            </div>
+            <i data-lucide="chevron-right" class="chev"></i>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tabs" data-active="social"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Recherche d'un ami : la suggestion apparaît 0,4 s après la frappe (3 caractères minimum). Autres textes de suggestion : « Déjà ton ami », « Invitation déjà envoyée », « T'a invité : touche pour accepter », « C'est toi ! » (carte grisée à 50 %, sans le +). Messages possibles sous le champ (texte 12 px, padding 0 8 px) : « Aucun utilisateur avec ce nom » (gris), « Invitation envoyée à ZoeInvade » (vert = --success), « Envoi impossible, vérifie ta connexion » (rouge = --danger).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

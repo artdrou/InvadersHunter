@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erreur inattendue — maquette InvadersHunter</title>
+<!-- Source : frontend/src/components/ErrorBoundary.tsx (monté dans app/_layout.tsx) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Écran de secours : couleurs FIXES du thème sombre (il s'affiche même si le thème a planté) */
+  .crash { position: absolute; inset: 0; background: #0a0f1e; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--sp-4); gap: var(--sp-3); text-align: center; }
+  .crash-title { color: #ffffff; font-size: var(--fs-xl); }
+  .crash-msg { color: #5b7a9d; font-size: var(--fs-md); }
+  .crash-btn { margin-top: var(--sp-3); background: var(--brand-yellow); color: #0a0f1e; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-md); font-size: var(--fs-md); }
+  .phone .sb { color: #e8f0fe; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Erreur inattendue <small>écran de secours après un plantage</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="crash">
+      <div class="crash-title">Something went wrong</div>
+      <div class="crash-msg">The app hit an unexpected error. You can try again.</div>
+      <div class="crash-btn">Try again</div>
+    </div>
+  </div>
+
+  <p class="page-notes">Filet de sécurité global : remplace toute l'app si un écran plante. Les textes sont en anglais en dur dans le code (pas traduits) et les couleurs sont fixes (thème sombre + bouton jaune de la marque) : le sélecteur de thème ne change rien ici.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

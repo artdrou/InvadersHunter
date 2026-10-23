@@ -1,88 +1,537 @@
+<!doctype html>
+<html lang="fr">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maquettes InvadersHunter</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="mockups.css">
-
+<!-- Fichier généré par build_index.py : ne pas modifier à la main, relancer le script. -->
+<style>
+  :root { --bg:#070b16; --surface:#0f1626; --fg:#e8f0fe; --soft:#9fb3cc; --muted:#5b7a9d; --line:#1e2a3a; --accent:#ccff00; --on-accent:#0a0f1e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+  h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.02em; }
+  header p { margin: 4px 0 0; color: var(--soft); max-width: 70ch; }
+  nav.groups { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+  nav.groups a { color: var(--soft); text-decoration: none; font-size: 13px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; }
+  nav.groups a:hover { color: var(--accent); border-color: var(--accent); }
+  .themes { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .themes button { font: 600 12px/1 system-ui, sans-serif; color: var(--soft); background: none; border: 0; padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+  .themes button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+  .themes button:focus-visible, .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  section { margin-top: 40px; }
+  h2 { margin: 0 0 14px; font-size: 19px; }
+  h2 small { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px 16px; }
+  .card { display: flex; flex-direction: column; gap: 3px; color: inherit; text-decoration: none; min-width: 0; }
+  .frame { width: 180px; height: 400px; overflow: hidden; border-radius: 18px; background: #000; box-shadow: 0 0 0 4px #1b2130; margin-bottom: 8px; }
+  .frame iframe { width: 360px; height: 800px; border: 0; transform: scale(.5); transform-origin: 0 0; pointer-events: none; display: block; }
+  .card:hover .frame { box-shadow: 0 0 0 4px var(--accent); }
+  .card b { font-size: 14px; }
+  .card span { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
 <div class="wrap">
-  <header class="top">
+  <header>
     <div>
-      <h1>Maquettes <span>InvadersHunter</span></h1>
-      <p>Trois écrans clés, chacun dans l'état actuel puis dans 3 directions. Choisis une direction (ou un mélange), on la décline ensuite sur tous les écrans. Données d'exemple.</p>
+      <h1>Maquettes InvadersHunter</h1>
+      <p>87 écrans de l'app telle qu'elle est aujourd'hui, un fichier HTML par écran dans <code>screens/</code>. Clique sur un écran pour l'ouvrir en grand.</p>
     </div>
-    <div class="controls">
-      <div class="seg" id="screen-seg" role="group" aria-label="Écran">
-        <button type="button" data-v="all" aria-pressed="true">Tous</button>
-        <button type="button" data-v="carte" aria-pressed="false">Carte</button>
-        <button type="button" data-v="invaders" aria-pressed="false">Invaders</button>
-        <button type="button" data-v="reglages" aria-pressed="false">Réglages</button>
-      </div>
-      <div class="seg" id="mode-seg" role="group" aria-label="Thème des maquettes">
-        <button type="button" data-v="dark" aria-pressed="true">Sombre</button>
-        <button type="button" data-v="light" aria-pressed="false">Clair</button>
-      </div>
+    <div class="themes" role="group" aria-label="Thème">
+      <button type="button" data-theme="dark" aria-pressed="true">Sombre</button>
+      <button type="button" data-theme="light" aria-pressed="false">Clair</button>
+      <button type="button" data-theme="amber" aria-pressed="false">Ambre</button>
+      <button type="button" data-theme="matrix" aria-pressed="false">Matrix</button>
     </div>
   </header>
-
-  <main id="mock-root"></main>
-
-  <section class="notes" aria-label="Faisabilité">
-    <div class="note">
-      <h3>Faisable en OTA (React Native 0.83)</h3>
-      <ul>
-        <li>Lueurs et ombres colorées : <code>boxShadow</code></li>
-        <li>Dégradés : <code>experimental_backgroundImage</code>, sans module natif</li>
-        <li>Verre dépoli : <code>expo-blur</code>, déjà dans l'APK</li>
-        <li>Polices Google (Inter, Archivo) : <code>expo-font</code> + fichiers dans <code>assets/fonts</code></li>
-      </ul>
-    </div>
-    <div class="note">
-      <h3>Demande un build natif</h3>
-      <ul>
-        <li>Sprites et icônes vectoriels nets : <code>react-native-svg</code> (déjà sur la liste TODO)</li>
-        <li>Nouveau splash et nouvelle icône d'app</li>
-      </ul>
-    </div>
-    <div class="note">
-      <h3>Comment donner ton avis</h3>
-      <ul>
-        <li>Une direction entière, ou un mélange (ex. « la carte en A, la liste en C »)</li>
-        <li>Ce que tu aimes / n'aimes pas sur chaque écran</li>
-        <li>Ensuite : on décline la direction choisie sur les ~30 écrans (#130)</li>
-      </ul>
-    </div>
-  </section>
+  <nav class="groups"><a href="#01-demarrage">Démarrage et connexion</a><a href="#02-carte">Carte</a><a href="#03-invaders">Invaders et actualités</a><a href="#04-social">Social</a><a href="#05-reglages">Réglages</a><a href="#06-admin">Admin</a><a href="#07-fenetres">Fenêtres et messages</a></nav>
+    <section id="01-demarrage">
+      <h2>Démarrage et connexion <small>9</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/01-demarrage/connexion-erreur.html" data-src="screens/01-demarrage/connexion-erreur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Connexion (erreur)" src="screens/01-demarrage/connexion-erreur.html?embed"></iframe></div>
+          <b>Connexion (erreur)</b>
+          <span>connexion-erreur.html · frontend/src/app/login.tsx</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/connexion.html" data-src="screens/01-demarrage/connexion.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Connexion" src="screens/01-demarrage/connexion.html?embed"></iframe></div>
+          <b>Connexion</b>
+          <span>connexion.html · frontend/src/app/login.tsx</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/demarrage.html" data-src="screens/01-demarrage/demarrage.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Démarrage" src="screens/01-demarrage/demarrage.html?embed"></iframe></div>
+          <b>Démarrage</b>
+          <span>demarrage.html · frontend/src/app/index.tsx (simple redirection vers la carte) + frontend/app.json (plugin expo-splash-screen)</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/inscription.html" data-src="screens/01-demarrage/inscription.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Inscription" src="screens/01-demarrage/inscription.html?embed"></iframe></div>
+          <b>Inscription</b>
+          <span>inscription.html · frontend/src/app/register.tsx</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/invaders-a-completer.html" data-src="screens/01-demarrage/invaders-a-completer.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders à compléter" src="screens/01-demarrage/invaders-a-completer.html?embed"></iframe></div>
+          <b>Invaders à compléter</b>
+          <span>invaders-a-completer.html · frontend/src/app/incomplete.tsx (ouvert depuis l&#x27;onglet Social)</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/mot-de-passe-oublie-etape-1.html" data-src="screens/01-demarrage/mot-de-passe-oublie-etape-1.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mot de passe oublié (étape 1)" src="screens/01-demarrage/mot-de-passe-oublie-etape-1.html?embed"></iframe></div>
+          <b>Mot de passe oublié (étape 1)</b>
+          <span>mot-de-passe-oublie-etape-1.html · frontend/src/app/forgot-password.tsx (étape &#x27;request&#x27;, désactivée par « false &amp;&amp; » dans le code)</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/mot-de-passe-oublie-etape-2.html" data-src="screens/01-demarrage/mot-de-passe-oublie-etape-2.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mot de passe oublié (étape 2)" src="screens/01-demarrage/mot-de-passe-oublie-etape-2.html?embed"></iframe></div>
+          <b>Mot de passe oublié (étape 2)</b>
+          <span>mot-de-passe-oublie-etape-2.html · frontend/src/app/forgot-password.tsx (étape &#x27;verify&#x27;, désactivée par « false &amp;&amp; » dans le code)</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/mot-de-passe-oublie-etape-3.html" data-src="screens/01-demarrage/mot-de-passe-oublie-etape-3.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mot de passe oublié (étape 3)" src="screens/01-demarrage/mot-de-passe-oublie-etape-3.html?embed"></iframe></div>
+          <b>Mot de passe oublié (étape 3)</b>
+          <span>mot-de-passe-oublie-etape-3.html · frontend/src/app/forgot-password.tsx (étape &#x27;new-password&#x27;, désactivée par « false &amp;&amp; » dans le code)</span>
+        </a>
+        <a class="card" href="screens/01-demarrage/mot-de-passe-oublie.html" data-src="screens/01-demarrage/mot-de-passe-oublie.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mot de passe oublié" src="screens/01-demarrage/mot-de-passe-oublie.html?embed"></iframe></div>
+          <b>Mot de passe oublié</b>
+          <span>mot-de-passe-oublie.html · frontend/src/app/forgot-password.tsx (état affiché aujourd&#x27;hui : service indisponible)</span>
+        </a>
+      </div>
+    </section>
+    <section id="02-carte">
+      <h2>Carte <small>28</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/02-carte/amis-carte-comparee.html" data-src="screens/02-carte/amis-carte-comparee.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte commune avec un ami" src="screens/02-carte/amis-carte-comparee.html?embed"></iframe></div>
+          <b>Carte commune avec un ami</b>
+          <span>amis-carte-comparee.html · frontend/src/features/friends/components/FriendMapBanner.tsx + applyFriendView</span>
+        </a>
+        <a class="card" href="screens/02-carte/amis-choix-carte.html" data-src="screens/02-carte/amis-choix-carte.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Cartes des amis" src="screens/02-carte/amis-choix-carte.html?embed"></iframe></div>
+          <b>Cartes des amis</b>
+          <span>amis-choix-carte.html · frontend/src/features/friends/components/FriendMapPicker.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/amis-sa-carte.html" data-src="screens/02-carte/amis-sa-carte.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte d&#x27;un ami" src="screens/02-carte/amis-sa-carte.html?embed"></iframe></div>
+          <b>Carte d&#x27;un ami</b>
+          <span>amis-sa-carte.html · frontend/src/features/friends/components/FriendMapBanner.tsx + applyFriendView</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte-filtres.html" data-src="screens/02-carte/carte-filtres.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte — filtres" src="screens/02-carte/carte-filtres.html?embed"></iframe></div>
+          <b>Carte — filtres</b>
+          <span>carte-filtres.html · frontend/src/features/map/components/MapFilterBar.tsx (+ filter.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte-hors-ligne.html" data-src="screens/02-carte/carte-hors-ligne.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte — hors ligne" src="screens/02-carte/carte-hors-ligne.html?embed"></iframe></div>
+          <b>Carte — hors ligne</b>
+          <span>carte-hors-ligne.html · frontend/src/app/(tabs)/map.tsx (offlineBanner)</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte-mode-rarete.html" data-src="screens/02-carte/carte-mode-rarete.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte — mode rareté" src="screens/02-carte/carte-mode-rarete.html?embed"></iframe></div>
+          <b>Carte — mode rareté</b>
+          <span>carte-mode-rarete.html · frontend/src/features/map/components/MapFilterBar.tsx + invader-markers.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte-palette.html" data-src="screens/02-carte/carte-palette.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte — palette" src="screens/02-carte/carte-palette.html?embed"></iframe></div>
+          <b>Carte — palette</b>
+          <span>carte-palette.html · frontend/src/features/map/components/MapFilterBar.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte-toast.html" data-src="screens/02-carte/carte-toast.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte — demande envoyée" src="screens/02-carte/carte-toast.html?embed"></iframe></div>
+          <b>Carte — demande envoyée</b>
+          <span>carte-toast.html · frontend/src/features/map/components/MapToast.tsx (+ hooks/use-toast.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/carte.html" data-src="screens/02-carte/carte.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Carte" src="screens/02-carte/carte.html?embed"></iframe></div>
+          <b>Carte</b>
+          <span>carte.html · frontend/src/app/(tabs)/map.tsx + features/map/components (MapFilterBar, AimIcon, BoussoleIcon,
+     InvaderClusterSource, UserLocationLayer) + features/routing/components/RoutingFAB.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/choisir-position.html" data-src="screens/02-carte/choisir-position.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Choisir une position" src="screens/02-carte/choisir-position.html?embed"></iframe></div>
+          <b>Choisir une position</b>
+          <span>choisir-position.html · frontend/src/features/map/components/MapLocationPicker.tsx + CenterPin.tsx + CoordinateInput.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/commentaires.html" data-src="screens/02-carte/commentaires.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Commentaires" src="screens/02-carte/commentaires.html?embed"></iframe></div>
+          <b>Commentaires</b>
+          <span>commentaires.html · frontend/src/features/comments/components/InvaderCommentsModal.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/creer-ici.html" data-src="screens/02-carte/creer-ici.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Créer un invader ici" src="screens/02-carte/creer-ici.html?embed"></iframe></div>
+          <b>Créer un invader ici</b>
+          <span>creer-ici.html · frontend/src/features/map/components/CreateHerePopup.tsx + CenterPin.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/creer-invader.html" data-src="screens/02-carte/creer-invader.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Nouvel invader" src="screens/02-carte/creer-invader.html?embed"></iframe></div>
+          <b>Nouvel invader</b>
+          <span>creer-invader.html · frontend/src/features/map/components/CreateInvaderModal/ (index, NameField, styles.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/invader-spotter.html" data-src="screens/02-carte/invader-spotter.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="InvaderSpotter" src="screens/02-carte/invader-spotter.html?embed"></iframe></div>
+          <b>InvaderSpotter</b>
+          <span>invader-spotter.html · frontend/src/features/map/components/InvaderPopup/InvaderSpotterModal.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/invaders-sans-position.html" data-src="screens/02-carte/invaders-sans-position.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders sans position" src="screens/02-carte/invaders-sans-position.html?embed"></iframe></div>
+          <b>Invaders sans position</b>
+          <span>invaders-sans-position.html · frontend/src/features/map/components/MissingLocationList.tsx + invaders/components/InvaderGridCell.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-calcul.html" data-src="screens/02-carte/itineraire-calcul.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — calcul en cours" src="screens/02-carte/itineraire-calcul.html?embed"></iframe></div>
+          <b>Itinéraire — calcul en cours</b>
+          <span>itineraire-calcul.html · frontend/src/app/(tabs)/map.tsx (routingLoader)</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-options.html" data-src="screens/02-carte/itineraire-options.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — options" src="screens/02-carte/itineraire-options.html?embed"></iframe></div>
+          <b>Itinéraire — options</b>
+          <span>itineraire-options.html · frontend/src/features/routing/components/RoutingSheet/OptionsPanel.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-panneau-vide.html" data-src="screens/02-carte/itineraire-panneau-vide.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — panneau vide" src="screens/02-carte/itineraire-panneau-vide.html?embed"></iframe></div>
+          <b>Itinéraire — panneau vide</b>
+          <span>itineraire-panneau-vide.html · frontend/src/features/routing/components/RoutingSheet/</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-panneau.html" data-src="screens/02-carte/itineraire-panneau.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — panneau" src="screens/02-carte/itineraire-panneau.html?embed"></iframe></div>
+          <b>Itinéraire — panneau</b>
+          <span>itineraire-panneau.html · frontend/src/features/routing/components/RoutingSheet/ (index, CoordField, ComputeButton, styles.ts) + RoutingFAB.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-recherche.html" data-src="screens/02-carte/itineraire-recherche.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — recherche d&#x27;adresse" src="screens/02-carte/itineraire-recherche.html?embed"></iframe></div>
+          <b>Itinéraire — recherche d&#x27;adresse</b>
+          <span>itineraire-recherche.html · frontend/src/features/routing/components/RoutingSheet/CoordField.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/itineraire-trace.html" data-src="screens/02-carte/itineraire-trace.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Itinéraire — tracé" src="screens/02-carte/itineraire-trace.html?embed"></iframe></div>
+          <b>Itinéraire — tracé</b>
+          <span>itineraire-trace.html · frontend/src/features/routing/components/RouteLayer.tsx + RoutingSheet/index.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/popup-invader-flashe.html" data-src="screens/02-carte/popup-invader-flashe.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Popup — invader flashé" src="screens/02-carte/popup-invader-flashe.html?embed"></iframe></div>
+          <b>Popup — invader flashé</b>
+          <span>popup-invader-flashe.html · frontend/src/features/map/components/InvaderPopup/ (index, PopupShell, PopupView, PopupEdit, styles.ts, format.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/popup-invader-non-flashe.html" data-src="screens/02-carte/popup-invader-non-flashe.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Popup — invader non flashé" src="screens/02-carte/popup-invader-non-flashe.html?embed"></iframe></div>
+          <b>Popup — invader non flashé</b>
+          <span>popup-invader-non-flashe.html · frontend/src/features/map/components/InvaderPopup/ (index, PopupShell, PopupView, PopupEdit, styles.ts, format.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/popup-modifier.html" data-src="screens/02-carte/popup-modifier.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Popup — modifier" src="screens/02-carte/popup-modifier.html?embed"></iframe></div>
+          <b>Popup — modifier</b>
+          <span>popup-modifier.html · frontend/src/features/map/components/InvaderPopup/ (index, PopupShell, PopupView, PopupEdit, styles.ts, format.ts)</span>
+        </a>
+        <a class="card" href="screens/02-carte/tutoriel-chasse.html" data-src="screens/02-carte/tutoriel-chasse.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel — chasse" src="screens/02-carte/tutoriel-chasse.html?embed"></iframe></div>
+          <b>Tutoriel — chasse</b>
+          <span>tutoriel-chasse.html · frontend/src/features/routing/components/RoutingSheet/tutorial.tsx + RoutingPanelPreview.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/tutoriel-filtres.html" data-src="screens/02-carte/tutoriel-filtres.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel — filtres" src="screens/02-carte/tutoriel-filtres.html?embed"></iframe></div>
+          <b>Tutoriel — filtres</b>
+          <span>tutoriel-filtres.html · frontend/src/features/tutorial/components/TutorialModal.tsx + map/components/FilterIllustration.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/tutoriel-griser.html" data-src="screens/02-carte/tutoriel-griser.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel — griser" src="screens/02-carte/tutoriel-griser.html?embed"></iframe></div>
+          <b>Tutoriel — griser</b>
+          <span>tutoriel-griser.html · frontend/src/features/tutorial/components/TutorialModal.tsx + map/components/GreyModeIllustration.tsx</span>
+        </a>
+        <a class="card" href="screens/02-carte/tutoriel-mode-couleur.html" data-src="screens/02-carte/tutoriel-mode-couleur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel — mode couleur" src="screens/02-carte/tutoriel-mode-couleur.html?embed"></iframe></div>
+          <b>Tutoriel — mode couleur</b>
+          <span>tutoriel-mode-couleur.html · frontend/src/features/tutorial/components/TutorialModal.tsx + map/components/ColorModeIllustration.tsx</span>
+        </a>
+      </div>
+    </section>
+    <section id="03-invaders">
+      <h2>Invaders et actualités <small>11</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/03-invaders/actualites.html" data-src="screens/03-invaders/actualites.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Actualités" src="screens/03-invaders/actualites.html?embed"></iframe></div>
+          <b>Actualités</b>
+          <span>actualites.html · frontend/src/app/news.tsx + features/news/components/NewsListItem.tsx</span>
+        </a>
+        <a class="card" href="screens/03-invaders/hors-ligne.html" data-src="screens/03-invaders/hors-ligne.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (hors ligne)" src="screens/03-invaders/hors-ligne.html?embed"></iframe></div>
+          <b>Invaders (hors ligne)</b>
+          <span>hors-ligne.html · frontend/src/app/(tabs)/invader.tsx (isOfflineEmpty)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/import-flashes-liste.html" data-src="screens/03-invaders/import-flashes-liste.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Importer mes flashes (liste collee)" src="screens/03-invaders/import-flashes-liste.html?embed"></iframe></div>
+          <b>Importer mes flashes (liste collee)</b>
+          <span>import-flashes-liste.html · frontend/src/app/flash-import.tsx (+ features/flash-import/)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/import-flashes.html" data-src="screens/03-invaders/import-flashes.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Importer mes flashes" src="screens/03-invaders/import-flashes.html?embed"></iframe></div>
+          <b>Importer mes flashes</b>
+          <span>import-flashes.html · frontend/src/app/flash-import.tsx (+ features/flash-import/)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/liste.html" data-src="screens/03-invaders/liste.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (liste)" src="screens/03-invaders/liste.html?embed"></iframe></div>
+          <b>Invaders (liste)</b>
+          <span>liste.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/
+     (MosaicToolbar, CityHeader, InvaderListRow, InvaderInfoPanel, MissingChip)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/menu-filtrer.html" data-src="screens/03-invaders/menu-filtrer.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (menu Filtrer)" src="screens/03-invaders/menu-filtrer.html?embed"></iframe></div>
+          <b>Invaders (menu Filtrer)</b>
+          <span>menu-filtrer.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/MosaicToolbar/ (index, MenuRow, SubSheets, GridSlider, IconButtons, styles)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/menu-grouper.html" data-src="screens/03-invaders/menu-grouper.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (menu Grouper)" src="screens/03-invaders/menu-grouper.html?embed"></iframe></div>
+          <b>Invaders (menu Grouper)</b>
+          <span>menu-grouper.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/MosaicToolbar/ (index, MenuRow, SubSheets, GridSlider, IconButtons, styles)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/menu-parametres.html" data-src="screens/03-invaders/menu-parametres.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (menu Parametres)" src="screens/03-invaders/menu-parametres.html?embed"></iframe></div>
+          <b>Invaders (menu Parametres)</b>
+          <span>menu-parametres.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/MosaicToolbar/ (index, MenuRow, SubSheets, GridSlider, IconButtons, styles)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/menu-trier.html" data-src="screens/03-invaders/menu-trier.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (menu Trier)" src="screens/03-invaders/menu-trier.html?embed"></iframe></div>
+          <b>Invaders (menu Trier)</b>
+          <span>menu-trier.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/MosaicToolbar/ (index, MenuRow, SubSheets, GridSlider, IconButtons, styles)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/mosaique-fiche.html" data-src="screens/03-invaders/mosaique-fiche.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (mosaique, fiche)" src="screens/03-invaders/mosaique-fiche.html?embed"></iframe></div>
+          <b>Invaders (mosaique, fiche)</b>
+          <span>mosaique-fiche.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/ (MosaicToolbar, CityHeader, InvaderGridCell, InvaderInfoPanel)</span>
+        </a>
+        <a class="card" href="screens/03-invaders/mosaique.html" data-src="screens/03-invaders/mosaique.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Invaders (mosaique)" src="screens/03-invaders/mosaique.html?embed"></iframe></div>
+          <b>Invaders (mosaique)</b>
+          <span>mosaique.html · frontend/src/app/(tabs)/invader.tsx + features/invaders/components/ (MosaicToolbar, CityHeader, InvaderGridCell, InvaderInfoPanel)</span>
+        </a>
+      </div>
+    </section>
+    <section id="04-social">
+      <h2>Social <small>5</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/04-social/profil-ami.html" data-src="screens/04-social/profil-ami.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="SpaceKev" src="screens/04-social/profil-ami.html?embed"></iframe></div>
+          <b>SpaceKev</b>
+          <span>profil-ami.html · frontend/src/app/friends/[id].tsx (+ features/settings/components/StatCards.tsx, SettingsShell.tsx)</span>
+        </a>
+        <a class="card" href="screens/04-social/social-ajout.html" data-src="screens/04-social/social-ajout.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Social" src="screens/04-social/social-ajout.html?embed"></iframe></div>
+          <b>Social</b>
+          <span>social-ajout.html · frontend/src/app/(tabs)/social.tsx (onglet « Social », recherche d&#x27;un ami par son nom)</span>
+        </a>
+        <a class="card" href="screens/04-social/social-invite.html" data-src="screens/04-social/social-invite.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Social" src="screens/04-social/social-invite.html?embed"></iframe></div>
+          <b>Social</b>
+          <span>social-invite.html · frontend/src/app/(tabs)/social.tsx (onglet « Social », mode invité, sans compte)</span>
+        </a>
+        <a class="card" href="screens/04-social/social-vide.html" data-src="screens/04-social/social-vide.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Social" src="screens/04-social/social-vide.html?embed"></iframe></div>
+          <b>Social</b>
+          <span>social-vide.html · frontend/src/app/(tabs)/social.tsx (onglet « Social », aucun ami ni invitation)</span>
+        </a>
+        <a class="card" href="screens/04-social/social.html" data-src="screens/04-social/social.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Social" src="screens/04-social/social.html?embed"></iframe></div>
+          <b>Social</b>
+          <span>social.html · frontend/src/app/(tabs)/social.tsx (onglet « Social », avec invitations et amis)</span>
+        </a>
+      </div>
+    </section>
+    <section id="05-reglages">
+      <h2>Réglages <small>13</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/05-reglages/a-propos.html" data-src="screens/05-reglages/a-propos.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="A propos" src="screens/05-reglages/a-propos.html?embed"></iframe></div>
+          <b>A propos</b>
+          <span>a-propos.html · frontend/src/app/settings/about.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/apparence-couleur.html" data-src="screens/05-reglages/apparence-couleur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Apparence" src="screens/05-reglages/apparence-couleur.html?embed"></iframe></div>
+          <b>Apparence</b>
+          <span>apparence-couleur.html · frontend/src/app/settings/appearance.tsx + features/settings/components/ColorPickerModal.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/apparence.html" data-src="screens/05-reglages/apparence.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Apparence" src="screens/05-reglages/apparence.html?embed"></iframe></div>
+          <b>Apparence</b>
+          <span>apparence.html · frontend/src/app/settings/appearance.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/contact.html" data-src="screens/05-reglages/contact.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Contact" src="screens/05-reglages/contact.html?embed"></iframe></div>
+          <b>Contact</b>
+          <span>contact.html · frontend/src/app/settings/contact.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/feuille-de-route.html" data-src="screens/05-reglages/feuille-de-route.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Feuille de route" src="screens/05-reglages/feuille-de-route.html?embed"></iframe></div>
+          <b>Feuille de route</b>
+          <span>feuille-de-route.html · frontend/src/app/settings/roadmap.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/markers.html" data-src="screens/05-reglages/markers.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Personnalisation des markers" src="screens/05-reglages/markers.html?embed"></iframe></div>
+          <b>Personnalisation des markers</b>
+          <span>markers.html · frontend/src/app/settings/marker-customization.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/notes-de-version.html" data-src="screens/05-reglages/notes-de-version.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Notes de version" src="screens/05-reglages/notes-de-version.html?embed"></iframe></div>
+          <b>Notes de version</b>
+          <span>notes-de-version.html · frontend/src/app/settings/changelog.tsx (+ features/changelog/releases.ts)</span>
+        </a>
+        <a class="card" href="screens/05-reglages/profil-modifier-nom.html" data-src="screens/05-reglages/profil-modifier-nom.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Profil" src="screens/05-reglages/profil-modifier-nom.html?embed"></iframe></div>
+          <b>Profil</b>
+          <span>profil-modifier-nom.html · frontend/src/app/settings/profile-info.tsx (+ features/auth/components/EditableUsername.tsx en mode édition)</span>
+        </a>
+        <a class="card" href="screens/05-reglages/profil.html" data-src="screens/05-reglages/profil.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Profil" src="screens/05-reglages/profil.html?embed"></iframe></div>
+          <b>Profil</b>
+          <span>profil.html · frontend/src/app/settings/profile-info.tsx (+ StatCards.tsx, features/auth/components/EditableUsername.tsx)</span>
+        </a>
+        <a class="card" href="screens/05-reglages/reglages.html" data-src="screens/05-reglages/reglages.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Réglages" src="screens/05-reglages/reglages.html?embed"></iframe></div>
+          <b>Réglages</b>
+          <span>reglages.html · frontend/src/app/(tabs)/profile.tsx (onglet « Reglages »)</span>
+        </a>
+        <a class="card" href="screens/05-reglages/securite.html" data-src="screens/05-reglages/securite.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Securite" src="screens/05-reglages/securite.html?embed"></iframe></div>
+          <b>Securite</b>
+          <span>securite.html · frontend/src/app/settings/security.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/soutenir.html" data-src="screens/05-reglages/soutenir.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Soutenir" src="screens/05-reglages/soutenir.html?embed"></iframe></div>
+          <b>Soutenir</b>
+          <span>soutenir.html · frontend/src/app/settings/support.tsx</span>
+        </a>
+        <a class="card" href="screens/05-reglages/synchronisation.html" data-src="screens/05-reglages/synchronisation.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Synchronisation" src="screens/05-reglages/synchronisation.html?embed"></iframe></div>
+          <b>Synchronisation</b>
+          <span>synchronisation.html · frontend/src/app/settings/sync.tsx</span>
+        </a>
+      </div>
+    </section>
+    <section id="06-admin">
+      <h2>Admin <small>13</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/06-admin/admin.html" data-src="screens/06-admin/admin.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Admin" src="screens/06-admin/admin.html?embed"></iframe></div>
+          <b>Admin</b>
+          <span>admin.html · frontend/src/app/(tabs)/admin.tsx (onglet « Admin », menu) + features/settings/components/SettingsSection.tsx, SettingsRow.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/choisir-position.html" data-src="screens/06-admin/choisir-position.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Choisir la position" src="screens/06-admin/choisir-position.html?embed"></iframe></div>
+          <b>Choisir la position</b>
+          <span>choisir-position.html · frontend/src/app/admin/pick-location.tsx + features/map/components/CoordinateInput.tsx, AimIcon.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/demande-creation.html" data-src="screens/06-admin/demande-creation.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Requête de création" src="screens/06-admin/demande-creation.html?embed"></iframe></div>
+          <b>Requête de création</b>
+          <span>demande-creation.html · frontend/src/app/admin/[id].tsx + features/admin/components/StatusBadge.tsx, TypeBadge.tsx, ConfidenceBadge.tsx, Diff.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/demande-modification.html" data-src="screens/06-admin/demande-modification.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Requête de modification" src="screens/06-admin/demande-modification.html?embed"></iframe></div>
+          <b>Requête de modification</b>
+          <span>demande-modification.html · frontend/src/app/admin/[id].tsx + features/admin/components/StatusBadge.tsx, TypeBadge.tsx, ConfidenceBadge.tsx, Diff.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/demande-rejet.html" data-src="screens/06-admin/demande-rejet.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Rejeter une requête" src="screens/06-admin/demande-rejet.html?embed"></iframe></div>
+          <b>Rejeter une requête</b>
+          <span>demande-rejet.html · frontend/src/app/admin/[id].tsx + features/admin/components/StatusBadge.tsx, TypeBadge.tsx, ConfidenceBadge.tsx, Diff.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/notifications.html" data-src="screens/06-admin/notifications.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Notifications admin" src="screens/06-admin/notifications.html?embed"></iframe></div>
+          <b>Notifications admin</b>
+          <span>notifications.html · frontend/src/app/admin/notifications.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/requetes.html" data-src="screens/06-admin/requetes.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Requêtes" src="screens/06-admin/requetes.html?embed"></iframe></div>
+          <b>Requêtes</b>
+          <span>requetes.html · frontend/src/app/admin/requests.tsx + features/admin/components/StatusBadge.tsx, ConfidenceBadge.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/soumission.html" data-src="screens/06-admin/soumission.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Soumission" src="screens/06-admin/soumission.html?embed"></iframe></div>
+          <b>Soumission</b>
+          <span>soumission.html · frontend/src/app/admin/[id]/submissions/[subId].tsx + features/admin/components/TypeBadge.tsx, Diff.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/soumissions.html" data-src="screens/06-admin/soumissions.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Soumissions" src="screens/06-admin/soumissions.html?embed"></iframe></div>
+          <b>Soumissions</b>
+          <span>soumissions.html · frontend/src/app/admin/[id]/submissions.tsx + features/admin/components/TypeBadge.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/supprimer-invader.html" data-src="screens/06-admin/supprimer-invader.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Supprimer un invader" src="screens/06-admin/supprimer-invader.html?embed"></iframe></div>
+          <b>Supprimer un invader</b>
+          <span>supprimer-invader.html · frontend/src/features/admin/components/DangerConfirmScreen.tsx (ouvert par DeleteInvaderButton.tsx, dans la fiche invader en mode édition)</span>
+        </a>
+        <a class="card" href="screens/06-admin/supprimer-utilisateur.html" data-src="screens/06-admin/supprimer-utilisateur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Supprimer un utilisateur" src="screens/06-admin/supprimer-utilisateur.html?embed"></iframe></div>
+          <b>Supprimer un utilisateur</b>
+          <span>supprimer-utilisateur.html · frontend/src/features/admin/components/DangerConfirmScreen.tsx (ouvert par UserAdminActions.tsx, profil admin d&#x27;un compte)</span>
+        </a>
+        <a class="card" href="screens/06-admin/utilisateur.html" data-src="screens/06-admin/utilisateur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Profil utilisateur (admin)" src="screens/06-admin/utilisateur.html?embed"></iframe></div>
+          <b>Profil utilisateur (admin)</b>
+          <span>utilisateur.html · frontend/src/app/admin/users/[id].tsx + features/settings/components/SettingsShell.tsx, StatCards.tsx + features/admin/components/UserAdminActions.tsx</span>
+        </a>
+        <a class="card" href="screens/06-admin/utilisateurs.html" data-src="screens/06-admin/utilisateurs.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Utilisateurs" src="screens/06-admin/utilisateurs.html?embed"></iframe></div>
+          <b>Utilisateurs</b>
+          <span>utilisateurs.html · frontend/src/app/admin/users/index.tsx</span>
+        </a>
+      </div>
+    </section>
+    <section id="07-fenetres">
+      <h2>Fenêtres et messages <small>8</small></h2>
+      <div class="grid">
+        <a class="card" href="screens/07-fenetres/compte-requis.html" data-src="screens/07-fenetres/compte-requis.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Compte requis" src="screens/07-fenetres/compte-requis.html?embed"></iframe></div>
+          <b>Compte requis</b>
+          <span>compte-requis.html · frontend/src/features/auth/components/AccountGateModal.tsx</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/connexion.html" data-src="screens/07-fenetres/connexion.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Connexion réseau" src="screens/07-fenetres/connexion.html?embed"></iframe></div>
+          <b>Connexion réseau</b>
+          <span>connexion.html · frontend/src/app/(tabs)/_layout.tsx (pastille « Hors ligne », bandeaux rouge et vert)</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/erreur.html" data-src="screens/07-fenetres/erreur.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Erreur inattendue" src="screens/07-fenetres/erreur.html?embed"></iframe></div>
+          <b>Erreur inattendue</b>
+          <span>erreur.html · frontend/src/components/ErrorBoundary.tsx (monté dans app/_layout.tsx)</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/mise-a-jour-apk.html" data-src="screens/07-fenetres/mise-a-jour-apk.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mise à jour disponible" src="screens/07-fenetres/mise-a-jour-apk.html?embed"></iframe></div>
+          <b>Mise à jour disponible</b>
+          <span>mise-a-jour-apk.html · frontend/src/features/app-update/components/UpdateAvailableModal.tsx + update-modal-styles.ts</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/mise-a-jour-ota.html" data-src="screens/07-fenetres/mise-a-jour-ota.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Mise à jour trouvée" src="screens/07-fenetres/mise-a-jour-ota.html?embed"></iframe></div>
+          <b>Mise à jour trouvée</b>
+          <span>mise-a-jour-ota.html · frontend/src/features/app-update/components/OtaReadyModal.tsx + update-modal-styles.ts</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/quoi-de-neuf.html" data-src="screens/07-fenetres/quoi-de-neuf.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Quoi de neuf" src="screens/07-fenetres/quoi-de-neuf.html?embed"></iframe></div>
+          <b>Quoi de neuf</b>
+          <span>quoi-de-neuf.html · frontend/src/features/changelog/components/WhatsNewModal.tsx (textes : features/changelog/releases.ts)</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/tutoriel-chasse.html" data-src="screens/07-fenetres/tutoriel-chasse.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel Chasse" src="screens/07-fenetres/tutoriel-chasse.html?embed"></iframe></div>
+          <b>Tutoriel Chasse</b>
+          <span>tutoriel-chasse.html · frontend/src/features/tutorial/components/TutorialModal.tsx + InfoButton.tsx,
+     pages définies dans features/routing/components/RoutingSheet/tutorial.tsx (bouton dans RoutingSheet/index.tsx)</span>
+        </a>
+        <a class="card" href="screens/07-fenetres/tutoriel.html" data-src="screens/07-fenetres/tutoriel.html">
+          <div class="frame"><iframe loading="lazy" tabindex="-1" title="Tutoriel" src="screens/07-fenetres/tutoriel.html?embed"></iframe></div>
+          <b>Tutoriel</b>
+          <span>tutoriel.html · frontend/src/features/tutorial/components/TutorialModal.tsx + InfoButton.tsx,
+     pages définies dans features/map/components/MapFilterBar.tsx, illustration ColorModeIllustration.tsx</span>
+        </a>
+      </div>
+    </section>
 </div>
-
-<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-<script src="mockups.js"></script>
 <script>
-  (function () {
-    const root = document.getElementById('mock-root');
-    const ALL = ['carte', 'invaders', 'reglages'];
-    let screen = 'all', mode = 'dark';
-    try { mode = localStorage.getItem('mock-mode') || 'dark'; } catch (e) {}
-    const hash = (location.hash || '').slice(1);
-    if (ALL.includes(hash)) screen = hash;
-
-    function sync(segId, v) {
-      document.querySelectorAll('#' + segId + ' button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
-    }
-    function draw() {
-      sync('screen-seg', screen); sync('mode-seg', mode);
-      MOCK.render(root, { screens: screen === 'all' ? ALL : [screen], mode });
-    }
-    document.getElementById('screen-seg').addEventListener('click', (e) => {
-      const b = e.target.closest('button'); if (!b) return; screen = b.dataset.v; draw();
+  document.querySelector('.themes').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const t = b.dataset.theme;
+    document.querySelectorAll('.themes button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.card').forEach((c) => {
+      c.querySelector('iframe').src = c.dataset.src + '?embed&theme=' + t;
+      c.href = c.dataset.src + '?theme=' + t;
     });
-    document.getElementById('mode-seg').addEventListener('click', (e) => {
-      const b = e.target.closest('button'); if (!b) return; mode = b.dataset.v;
-      try { localStorage.setItem('mock-mode', mode); } catch (err) {}
-      draw();
-    });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw); else draw();
-    draw();
-  })();
+  });
 </script>
+</body>
+</html>

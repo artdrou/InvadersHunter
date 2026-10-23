@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commentaires — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/comments/components/InvaderCommentsModal.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* InvaderCommentsModal (tailles × 0,9) */
+  .full-modal { position: absolute; inset: 0; z-index: 60; background: var(--bg); padding-top: 24px; display: flex; flex-direction: column; }
+  .cm-header { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  .cm-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .cm-title { color: var(--accent); font-size: 24px; letter-spacing: 1px; }
+  .cm-sub { color: var(--text-muted); font-size: 12px; }
+  .cm-header > .lucide { width: 26px; height: 26px; color: var(--text-muted); }
+  .cm-list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .cm-list > * { flex-shrink: 0; }
+  .c-row { display: flex; flex-direction: column; gap: 4px; }
+  .c-row.top { border: 1px solid var(--accent); border-radius: var(--r-sm); padding: var(--sp-2); }
+  .c-toptag { display: flex; align-items: center; gap: 4px; color: var(--accent); font-size: 10px; letter-spacing: 1px; }
+  .c-toptag .lucide { width: 11px; height: 11px; fill: currentColor; }
+  .c-head { display: flex; align-items: center; gap: var(--sp-2); }
+  .c-author { color: var(--accent); font-size: 13px; }
+  .c-date { flex: 1; color: var(--text-muted); font-size: 10px; }
+  .c-head .lucide, .c-react .lucide { width: 16px; height: 16px; color: var(--text-muted); }
+  .c-body { color: var(--text); font-size: 13px; line-height: 19px; }
+  .c-review { color: var(--text-muted); font-size: 10px; font-style: italic; }
+  .c-reacts { display: flex; align-items: center; gap: var(--sp-3); margin-top: 2px; }
+  .c-react { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 12px; }
+  .c-react .lucide { width: 15px; height: 15px; }
+  .c-react.liked, .c-react.liked .lucide { color: var(--accent); }
+  .c-react.liked .lucide { fill: currentColor; }
+  .cm-composer { display: flex; align-items: flex-end; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--bg-divider); }
+  .cm-input { flex: 1; min-height: 42px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm);
+    padding: var(--sp-2); color: var(--text-muted); font-size: 13px; }
+  .cm-send { width: 42px; height: 42px; border-radius: var(--r-sm); background: var(--accent); color: var(--bg); display: grid; place-items: center; opacity: .4; }
+  .cm-send .lucide { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Commentaires <small>mur de commentaires d'un invader</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <!-- Mur de commentaires plein écran (Modal, animation glissée) -->
+      <div class="full-modal">
+        <div class="cm-header">
+          <div class="cm-titles"><span class="cm-title">PA_1042</span><span class="cm-sub">Commentaires</span></div>
+          <i data-lucide="x"></i>
+        </div>
+        <div class="cm-list">
+          <div class="c-row top">
+            <div class="c-toptag"><i data-lucide="star"></i>TOP</div>
+            <div class="c-head"><span class="c-author">pixel_lou</span><span class="c-date">21/10/26 18:42</span><i data-lucide="flag"></i></div>
+            <div class="c-body">Toujours la, au-dessus de la boulangerie. Se flashe tres bien depuis le trottoir d'en face.</div>
+            <div class="c-reacts"><span class="c-react liked"><i data-lucide="thumbs-up"></i>12</span><span class="c-react"><i data-lucide="thumbs-down"></i></span></div>
+          </div>
+          <div class="c-row">
+            <div class="c-head"><span class="c-author">spacehunter</span><span class="c-date">22/10/26 09:15</span><i data-lucide="flag"></i></div>
+            <div class="c-body">Attention, un echafaudage le cache en partie depuis lundi.</div>
+            <div class="c-reacts"><span class="c-react"><i data-lucide="thumbs-up"></i>3</span><span class="c-react"><i data-lucide="thumbs-down"></i>1</span></div>
+          </div>
+          <div class="c-row">
+            <div class="c-head"><span class="c-author">Moi_IH</span><span class="c-date">22/10/26 21:03</span><i data-lucide="trash-2"></i></div>
+            <div class="c-body">Flashe ce soir, aucun souci.</div>
+            <div class="c-review">En attente de modération</div>
+            <div class="c-reacts"><span class="c-react"><i data-lucide="thumbs-up"></i></span><span class="c-react"><i data-lucide="thumbs-down"></i></span></div>
+          </div>
+          <div class="c-row">
+            <div class="c-head"><span class="c-author">marco_lyon</span><span class="c-date">12/08/26 14:27</span><i data-lucide="flag"></i></div>
+            <div class="c-body">Le plus beau du quartier !</div>
+            <div class="c-reacts"><span class="c-react"><i data-lucide="thumbs-up"></i>1</span><span class="c-react"><i data-lucide="thumbs-down"></i></span></div>
+          </div>
+        </div>
+        <!-- Zone de saisie (bouton Envoyer pâle tant que le champ est vide) -->
+        <div class="cm-composer">
+          <div class="cm-input">Ajouter un commentaire…</div>
+          <div class="cm-send"><i data-lucide="send"></i></div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Bouton bulles du popup. Le commentaire le plus aimé est épinglé en haut avec un cadre et l'étiquette « TOP ». Drapeau = signaler (commentaires des autres), corbeille = supprimer (les miens, ou tous pour un admin). Un commentaire en modération porte « En attente de modération ». Un invité voit à la place de la zone de saisie : cadenas + « Connecte-toi pour commenter ». Liste vide : « Aucun commentaire. Sois le premier ! ».</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte commune avec un ami — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/friends/components/FriendMapBanner.tsx + applyFriendView -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* FriendMapBanner (tailles × 0,9) — couleurs de légende fixes (friends/constants.ts) */
+  .fb { position: absolute; top: 32px; left: 16px; right: 72px; z-index: 5; background: var(--bg-element); border: 1px solid var(--accent);
+    border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 4px; }
+  .fb-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .fb-row > .lucide { width: 16px; height: 16px; color: var(--accent); }
+  .fb-title { flex: 1; min-width: 0; color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fb-btn { padding: 2px; color: var(--text); display: flex; }
+  .fb-btn .lucide { width: 18px; height: 18px; }
+  .fb-legend { display: flex; flex-wrap: wrap; column-gap: var(--sp-3); row-gap: 2px; }
+  .fb-item { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: var(--fs-xxs); white-space: nowrap; }
+  .fb-sw { width: 10px; height: 10px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Carte commune avec un ami <small>« Comparer »</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs : bleu = flashé par les deux, vert = moi seul, orange = l'ami seul, rouge = personne -->
+      <img class="mk" data-pts="20" data-state="mine" style="left:62px; top:190px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:235px">
+      <img class="mk" data-pts="10" data-state="friend" style="left:250px; top:175px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:305px">
+      <img class="mk" data-pts="40" data-state="friend" style="left:205px; top:290px">
+      <img class="mk" data-pts="100" data-state="uncaptured" style="left:140px; top:385px">
+      <img class="mk" data-pts="20" data-state="grey" style="left:285px; top:360px">
+      <img class="mk" data-pts="30" data-state="mine" style="left:60px; top:450px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:250px; top:440px">
+      <img class="mk" data-pts="10" data-state="friend" style="left:325px; top:470px">
+      <img class="mk" data-pts="50" data-state="mine" style="left:125px; top:520px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:560px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <img class="mk" data-pts="30" data-state="friend" style="left:235px; top:665px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis (actif : une carte d'ami est affichée) -->
+      <div class="ctl ctl-friends"><div class="pxb hot"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Bandeau de la carte comparée -->
+      <div class="fb">
+        <div class="fb-row"><i data-lucide="users"></i><span class="fb-title">Carte commune : moi &amp; pixel_lou</span>
+          <span class="fb-btn"><i data-lucide="arrow-left-right"></i></span><span class="fb-btn"><i data-lucide="x"></i></span></div>
+        <div class="fb-legend">
+          <span class="fb-item"><span class="fb-sw" style="background:var(--friend-both)"></span>Tous les deux</span>
+          <span class="fb-item"><span class="fb-sw" style="background:var(--friend-mine)"></span>Moi seul</span>
+          <span class="fb-item"><span class="fb-sw" style="background:var(--friend-friend)"></span>pixel_lou seul</span>
+          <span class="fb-item"><span class="fb-sw" style="background:var(--friend-neither)"></span>Personne</span>
+        </div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Carte commune : le bandeau en haut (bord accent) rappelle avec qui on compare et donne la légende des 4 couleurs. Les flèches basculent sur « Sa carte », la croix revient à ma carte. Toucher un marqueur ouvre toujours mon propre popup. Le bouton amis est en couleur d'accent tant qu'une carte d'ami est affichée.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

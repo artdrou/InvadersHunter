@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invaders (liste) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/invader.tsx + features/invaders/components/
+     (MosaicToolbar, CityHeader, InvaderListRow, InvaderInfoPanel, MissingChip) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="invaders.css">
+<style>
+  /* Styles propres à cette page : aucun, tout est dans invaders.css (commun à l'onglet Invaders) */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Invaders <small>mode liste, ville PA ouverte, fiche de PA_1041 dépliée</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+
+      <!-- Barre d'outils : actualités, recherche, vue (liste = bouton allumé), paramètres -->
+      <div class="toolbar">
+        <div class="toolbar-row">
+          <div class="tbtn on"><i data-lucide="newspaper"></i><span class="tbadge red">3</span></div>
+          <div class="search"><i data-lucide="search"></i><span>Rechercher des invaders…</span></div>
+          <div class="tbtn on"><i data-lucide="list"></i></div>
+          <div class="tbtn"><i data-lucide="filter"></i></div>
+        </div>
+      </div>
+
+      <!-- Liste (défile dans le téléphone) -->
+      <div class="list scroll">
+        <div class="city"><span class="city-name">PA</span><span class="city-count">6/10</span><span class="city-chev">▲</span></div>
+
+        <div class="inv captured"><span class="inv-name">PA_1040</span><span class="inv-meta"><span class="inv-pts">50pts</span><span class="inv-check">✓</span><span class="inv-chev">▼</span></span></div>
+
+        <!-- Invader déplié : la ligne passe en fond « élément » et la fiche s'ouvre dessous -->
+        <div class="inv captured open"><span class="inv-name">PA_1041</span><span class="inv-meta"><span class="inv-pts">40pts</span><span class="inv-check">✓</span><span class="inv-chev">▲</span></span></div>
+        <div class="panel">
+          <div class="panel-img photo"><i class="spr" data-w="120" data-color="var(--accent)"></i></div>
+          <div class="divider"></div>
+          <div class="info">
+            <div class="info-row"><span class="lbl">Points</span><span class="val">40</span></div>
+            <div class="info-row"><span class="lbl">État</span><span class="val">Légèrement dégradé</span></div>
+            <div class="info-row"><span class="lbl">Posé</span><span class="val"><span class="missing">+ Ajouter</span>--</span></div>
+            <div class="info-row"><span class="lbl">Flashé</span><span class="val ok">14/09/2026</span></div>
+          </div>
+          <div class="contrib">
+            <p>Découvert par <b>Kroko</b></p>
+            <p>Mis à jour par <b>space_lulu</b></p>
+          </div>
+          <div class="divider"></div>
+          <div class="btn-row">
+            <div class="act unflash">Déflasher</div>
+            <div class="act locate">Localiser</div>
+          </div>
+          <div class="update-link">Modifier</div>
+          <div class="comments"><span class="ico"><i data-lucide="messages-square"></i><span class="cbadge new">2</span></span>Commentaires</div>
+        </div>
+
+        <div class="inv"><span class="inv-name">PA_1042</span><span class="inv-meta"><span class="inv-pts">10pts</span><span class="inv-chev">▼</span></span></div>
+        <div class="inv captured"><span class="inv-name">PA_1043</span><span class="inv-meta"><span class="inv-pts">20pts</span><span class="inv-check">✓</span><span class="inv-chev">▼</span></span></div>
+        <!-- Flash en attente de synchro : nom et ✓ en gris -->
+        <div class="inv captured pending"><span class="inv-name">PA_1044</span><span class="inv-meta"><span class="inv-pts">30pts</span><span class="inv-check">✓</span><span class="inv-chev">▼</span></span></div>
+        <div class="inv"><span class="inv-name">PA_1045</span><span class="inv-meta"><span class="inv-pts">100pts</span><span class="inv-chev">▼</span></span></div>
+        <div class="inv captured"><span class="inv-name">PA_1046</span><span class="inv-meta"><span class="inv-pts">20pts</span><span class="inv-check">✓</span><span class="inv-chev">▼</span></span></div>
+        <div class="inv"><span class="inv-name">PA_1047</span><span class="inv-meta"><span class="inv-chev">▼</span></span></div>
+        <div class="inv captured"><span class="inv-name">PA_1048</span><span class="inv-meta"><span class="inv-pts">30pts</span><span class="inv-check">✓</span><span class="inv-chev">▼</span></span></div>
+        <div class="inv"><span class="inv-name">PA_1049</span><span class="inv-meta"><span class="inv-pts">20pts</span><span class="inv-chev">▼</span></span></div>
+
+        <!-- Autres villes, repliées (triées : la plus flashée en premier) -->
+        <div class="city"><span class="city-name">LDN</span><span class="city-count">12/154</span><span class="city-chev">▼</span></div>
+        <div class="city"><span class="city-name">MARS</span><span class="city-count">9/88</span><span class="city-chev">▼</span></div>
+        <div class="city"><span class="city-name">RN</span><span class="city-count">4/45</span><span class="city-chev">▼</span></div>
+        <div class="city"><span class="city-name">NY</span><span class="city-count">0/198</span><span class="city-chev">▼</span></div>
+      </div>
+
+      <nav class="tabs" data-active="invaders"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Faites défiler la liste dans le téléphone. Codes couleur : nom vert = flashé, gris = flash en attente de synchronisation, blanc = pas flashé. La « photo » est un bloc avec un sprite (l'app affiche la vraie photo d'invader-spotter.art). « + Ajouter » apparaît à côté d'une info manquante (ici la date de pose). Styles communs : invaders.css.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

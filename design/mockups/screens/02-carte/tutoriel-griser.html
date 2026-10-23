@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel — griser — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/tutorial/components/TutorialModal.tsx + map/components/GreyModeIllustration.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Illustrations des tutoriels (ColorModeIllustration, GreyModeIllustration, FilterIllustration) */
+  .ill { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); }
+  .ill-color { padding: var(--sp-2); display: flex; flex-direction: column; gap: 6px; }
+  .ill-mode { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; margin-top: 2px; }
+  .ill-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .ill-cap { color: var(--text); font-size: var(--fs-sm); }
+  .ill-hr { height: 1px; background: var(--border); }
+  .ill-color .ill-hr { margin: 4px 0; }
+  .ill-grey { padding: 4px 0; overflow: hidden; }
+  .ill-grey .ill-row { padding: 4px var(--sp-2); }
+  .ill-pair { display: flex; gap: 4px; width: 64px; align-items: flex-end; }
+  .ill-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .ill-label { color: var(--text); font-size: var(--fs-sm); font-weight: 600; }
+  .ill-sub { color: var(--text-muted); font-size: var(--fs-xs); line-height: 14px; }
+  .ill-filter { overflow: hidden; }
+  .ill-filter .ill-row { justify-content: space-between; padding: 5px var(--sp-2); }
+  .ill-filter .ill-flabel { flex: 1; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 600; }
+  .ill-filter .ill-group { display: flex; gap: 4px; align-items: flex-end; }
+  .ill-filter img { width: 18px; height: 25px; object-fit: contain; display: block; }
+  .ill-filter img.dim { opacity: .15; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Tutoriel — griser <small>page 2 / 2 du « i » de la palette</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:215px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:250px; top:175px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:305px">
+      <img class="mk" data-pts="40" data-state="uncaptured" style="left:205px; top:290px">
+      <img class="mk" data-pts="100" data-state="uncaptured" style="left:140px; top:385px">
+      <img class="mk" data-pts="20" data-state="grey" style="left:285px; top:360px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:250px; top:440px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="50" data-state="captured" style="left:125px; top:520px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:560px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:235px; top:665px">
+      <!-- Grappes (clusters) : rouge = au moins un non flashé, bleu = tous flashés -->
+      <div class="cluster" style="left:175px; top:120px">7</div>
+      <div class="cluster l blue" style="left:300px; top:545px">23</div>
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <!-- Panneau Palette : mode couleur + griser -->
+        <div class="fpanel">
+          <div class="fpanel-row"><span class="fpanel-label">Mode couleur</span><span class="info-btn sm">i</span></div>
+          <div class="fopt on">Flash</div>
+          <div class="fopt">Rareté</div>
+          <div class="fdivider"></div>
+          <div class="fpanel-label">Griser</div>
+          <div class="fopt on">Tous</div>
+          <div class="fopt">Flashés</div>
+          <div class="fopt">Off</div>
+        </div>
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <!-- Fenêtre de tutoriel (TutorialModal) par-dessus tout l'écran -->
+      <div class="tuto-scrim">
+        <div class="tuto">
+          <div class="tuto-head"><span class="tuto-title">Griser</span><span class="tuto-close">✕</span></div>
+          <div class="tuto-page">
+            <div class="t-section"><div class="t-section-label">Tous</div><div class="t-body">Tous les invaders detruits ou invisibles sont grises sur la carte, qu'ils soient captures ou non.</div></div>
+            <div class="t-section"><div class="t-section-label">Flashés</div><div class="t-body">Les invaders detruits que tu as deja captures gardent leur couleur. Seuls les non-captures sont grises.</div></div>
+            <div class="t-section"><div class="t-section-label">Off</div><div class="t-body">Rien n'est grise. Chaque marqueur s'affiche en couleur quelle que soit son etat.</div></div>
+            <div class="ill ill-grey">
+              <div class="ill-row"><div class="ill-pair"><img class="ill-mk" src="../../_shared/assets/marker-50pts-grey.png" alt=""><img class="ill-mk" src="../../_shared/assets/marker-50pts-grey.png" alt=""></div><div class="ill-text"><span class="ill-label">Tous</span><span class="ill-sub">Tout grise</span></div></div>
+              <div class="ill-hr"></div>
+              <div class="ill-row"><div class="ill-pair"><img class="ill-mk" src="../../_shared/assets/marker-50pts-grey.png" alt=""><img class="ill-mk" src="../../_shared/assets/marker-50pts-flash-captured.png" alt=""></div><div class="ill-text"><span class="ill-label">Flashés</span><span class="ill-sub">Cap. colore</span></div></div>
+              <div class="ill-hr"></div>
+              <div class="ill-row"><div class="ill-pair"><img class="ill-mk" src="../../_shared/assets/marker-50pts-flash-uncaptured.png" alt=""><img class="ill-mk" src="../../_shared/assets/marker-50pts-flash-captured.png" alt=""></div><div class="ill-text"><span class="ill-label">Off</span><span class="ill-sub">Tout colore</span></div></div>
+            </div>
+          </div>
+          <div class="tuto-foot">
+          <div class="tuto-dots"><i></i><i class="on"></i></div>
+            <div class="tuto-ok">Compris</div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Deuxième page de l'aide de la palette (Griser).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

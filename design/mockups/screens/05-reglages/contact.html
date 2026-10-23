@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/contact.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .block { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-4);
+    display: flex; flex-direction: column; gap: var(--sp-3); }
+  .block-text { color: var(--text); font-size: var(--fs-md); line-height: 22px; }
+  .accent-btn { padding: 12px 0; border-radius: var(--r-sm); background: var(--accent); color: var(--on-accent); text-align: center; font-size: var(--fs-md); }
+  .notice { color: var(--danger); font-size: var(--fs-xs); line-height: 18px; text-align: center; opacity: .85; padding: 0 var(--sp-2); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Contact <small>Réglages › Contact</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Contact</div>
+      </div>
+
+      <div class="shell-body">
+        <div class="block">
+          <div class="block-text">Pour toute question ou suggestion, contactez le developpeur.</div>
+          <div class="accent-btn">Envoyer un email</div>
+        </div>
+        <div class="notice">Merci de garder vos messages courts et pertinents. L'app est developpee en solo, un traitement rapide est plus facile avec peu de bruit.</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Le bouton ouvre l'application mail du téléphone (adresse invaderhunter.app+contact@gmail.com).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

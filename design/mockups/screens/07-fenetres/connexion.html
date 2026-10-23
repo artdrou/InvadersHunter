@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion réseau — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/_layout.tsx (pastille « Hors ligne », bandeaux rouge et vert) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Deux téléphones côte à côte */
+  .phones { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+  .phones figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .phones figcaption { color: #9fb3cc; font-size: 13px; }
+
+  /* Styles de (tabs)/_layout.tsx — couleurs fixes, identiques dans tous les thèmes.
+     Ils sont collés tout en haut de l'écran, donc sous la barre d'état. */
+  .offline-pill { position: absolute; top: 12px; right: 12px; z-index: 45; background: rgba(0,0,0,0.45); padding: 3px 10px; border-radius: 20px;
+    color: rgba(255,255,255,0.75); font-size: var(--fs-xxs); }
+  .band { position: absolute; top: 0; left: 0; right: 0; z-index: 45; padding: 4px 0; text-align: center; color: #ffffff; font-size: var(--fs-xs); font-weight: 600; }
+  .band.red { background: #c0392b; }
+  .band.green { background: #27ae60; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Connexion réseau <small>indicateurs hors ligne / reconnecté</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phones">
+    <!-- 1. Perte de réseau : bandeau rouge (2 s puis fondu) + pastille qui reste -->
+    <figure>
+      <div class="phone">
+        <div class="sb">12:47</div>
+        <div class="screen">
+          <div class="content">
+            <canvas class="map" data-seed="17"></canvas>
+            <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+            <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+            <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+            <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+            <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+            <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+            <div class="loc-dot" style="left: 180px; top: 360px"></div>
+          </div>
+          <nav class="tabs" data-active="map"></nav>
+        </div>
+        <div class="band red">Déconnecté</div>
+        <div class="offline-pill">Hors ligne</div>
+      </div>
+      <figcaption>Réseau perdu : bandeau rouge + pastille « Hors ligne »</figcaption>
+    </figure>
+
+    <!-- 2. Retour du réseau : bandeau vert (2 s puis fondu), la pastille disparaît -->
+    <figure>
+      <div class="phone">
+        <div class="sb">12:48</div>
+        <div class="screen">
+          <div class="content">
+            <canvas class="map" data-seed="17"></canvas>
+            <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+            <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+            <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+            <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+            <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+            <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+            <div class="loc-dot" style="left: 180px; top: 360px"></div>
+          </div>
+          <nav class="tabs" data-active="map"></nav>
+        </div>
+        <div class="band green">Reconnecté</div>
+      </div>
+      <figcaption>Réseau revenu : bandeau vert</figcaption>
+    </figure>
+  </div>
+
+  <p class="page-notes">Ces indicateurs vivent dans la barre d'onglets : ils s'affichent sur tous les onglets (carte, invaders, social, réglages, admin).
+    Les bandeaux restent 2 secondes puis s'effacent en 0,6 s ; la pastille « Hors ligne » reste tant qu'il n'y a pas de réseau.
+    Ils sont placés tout en haut de l'écran (top: 0 et top: 12 dans le code), donc en partie sous la barre d'état du téléphone. Leurs couleurs sont fixes (pas liées au thème).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

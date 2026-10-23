@@ -1,0 +1,177 @@
+/* InvadersHunter — styles communs aux maquettes de l'onglet Invaders (dossier 03-invaders).
+ *
+ * Toutes les pages *.html de l'onglet Invaders chargent ce fichier : modifier une valeur ici
+ * change toutes ces pages d'un coup. Les pages Actualites et Import ont leur propre <style>.
+ *
+ * Tailles reprises du code (Spacing, FontSize, BorderRadius). Quand le code utilise sz(n),
+ * la taille affichée est 0,9 × n (arrondi) : c'est indiqué en commentaire. */
+
+/* ─── Petites tailles d'icônes Lucide ──────────────────────────────────── */
+.phone .lucide.i11 { width: 11px; height: 11px; }
+.phone .lucide.i14 { width: 14px; height: 14px; }
+.phone .lucide.i15 { width: 15px; height: 15px; }
+.phone .lucide.i17 { width: 17px; height: 17px; }
+.phone .lucide.i18 { width: 18px; height: 18px; }
+
+/* ─── Barre d'outils (MosaicToolbar/styles.ts) ─────────────────────────── */
+/* paddingTop = Spacing.six (64) mesuré depuis le haut de l'écran ; ici la barre d'état (24) est déjà
+   comptée par .screen, donc 64 − 24 = 40. */
+.toolbar { flex: none; padding: 40px var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--bg-divider); background: var(--bg); }
+.toolbar-row { display: flex; align-items: center; gap: var(--sp-1); }
+
+/* Champ de recherche */
+.search { flex: 1; min-width: 0; height: 38px; display: flex; align-items: center; gap: var(--sp-1); padding: 0 var(--sp-2);
+  background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.search .lucide { width: 14px; height: 14px; color: var(--text-muted); }
+.search span { font-size: 12px; /* sz(13) */ color: var(--text-muted); white-space: nowrap; overflow: hidden; }
+
+/* Bouton carré « pixel » 38 × 38 (PixelButton, grille 12 × 12 : contour 1 case, coins en escalier) */
+.tbtn { position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; color: var(--text-muted); }
+.tbtn::before, .tbtn::after { content: ""; position: absolute; inset: 0; }
+.tbtn::before { background: var(--border); /* contour */
+  clip-path: polygon(25% 0, 75% 0, 75% 8.33%, 83.33% 8.33%, 83.33% 16.67%, 91.67% 16.67%, 91.67% 25%, 100% 25%, 100% 75%, 91.67% 75%, 91.67% 83.33%, 83.33% 83.33%, 83.33% 91.67%, 75% 91.67%, 75% 100%, 25% 100%, 25% 91.67%, 16.67% 91.67%, 16.67% 83.33%, 8.33% 83.33%, 8.33% 75%, 0 75%, 0 25%, 8.33% 25%, 8.33% 16.67%, 16.67% 16.67%, 16.67% 8.33%, 25% 8.33%); }
+.tbtn::after { background: var(--bg-element); /* fond */
+  clip-path: polygon(25% 8.33%, 75% 8.33%, 75% 16.67%, 83.33% 16.67%, 83.33% 25%, 91.67% 25%, 91.67% 75%, 83.33% 75%, 83.33% 83.33%, 75% 83.33%, 75% 91.67%, 25% 91.67%, 25% 83.33%, 16.67% 83.33%, 16.67% 75%, 8.33% 75%, 8.33% 25%, 16.67% 25%, 16.67% 16.67%, 25% 16.67%); }
+.tbtn > * { position: relative; z-index: 1; }
+.tbtn .lucide { width: 17px; height: 17px; }   /* max(16, 38 × 0.45) */
+.tbtn.on { color: var(--accent); }
+.tbtn.on::before { background: var(--accent); }
+/* Pastille en haut à droite (accent pour le filtre, rouge pour les actualités) */
+.tbtn .tbadge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 8px;
+  display: grid; place-items: center; font-size: var(--fs-xxs); line-height: 15px; z-index: 2;
+  background: var(--accent); color: var(--bg); }
+.tbtn .tbadge.red { background: var(--danger); color: var(--white); }
+
+/* Puces des filtres actifs (2e ligne, défilement horizontal) */
+.chips { display: flex; gap: var(--sp-1); padding: var(--sp-2) 0 var(--sp-1); overflow-x: auto; scrollbar-width: none; }
+.fchip { display: inline-flex; align-items: center; gap: 4px; padding: 4px var(--sp-2); border-radius: var(--r-sm); flex: none;
+  background: var(--accent); color: var(--bg); font-size: var(--fs-xs); }
+
+/* ─── Liste (FlatList) ─────────────────────────────────────────────────── */
+.list { flex: 1; min-height: 0; padding-bottom: var(--sp-6); }
+
+/* En-tête de ville (CityHeader) */
+.city { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); background: var(--bg-element); border-bottom: 1px solid var(--bg-divider); }
+.city-name { flex: 1; color: var(--accent); font-size: 15px; /* sz(17) */ letter-spacing: 1px; }
+.city-count { color: var(--text-muted); font-size: 12px; /* sz(13) */ }
+.city-chev { color: var(--text-muted); font-size: var(--fs-xs); width: 14px; text-align: center; }
+
+/* Ligne d'invader en mode liste (InvaderListRow) */
+.inv { display: flex; align-items: center; padding: 10px 24px; background: var(--bg); border-bottom: 1px solid var(--bg-divider); }
+.inv.open { background: var(--bg-element); }
+.inv-name { flex: 1; font-size: 12px; /* sz(13) */ color: var(--text); }
+.inv.captured .inv-name { color: var(--success); }
+.inv.pending .inv-name { color: var(--text-muted); }
+.inv-meta { display: flex; align-items: center; gap: var(--sp-2); }
+.inv-pts { color: var(--text-muted); font-size: var(--fs-xxs); }
+.inv-check { color: var(--success); font-size: var(--fs-sm); }
+.inv.pending .inv-check { color: var(--text-muted); }
+.inv-chev { color: var(--text-muted); font-size: var(--fs-xxs); width: 14px; text-align: center; }
+
+/* ─── Mosaïque (InvaderGridCell) ───────────────────────────────────────── */
+/* 3 colonnes : taille = floor((360 − 16 − 4 × 2) / 3) = 112 px (avec 2 col. : 168, 4 : 83, 5 : 66) */
+.grid-row { display: flex; padding: 4px; gap: 4px; }
+.cell { margin-bottom: 2px; width: 112px; }
+.cell-img { width: 112px; height: 112px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg-element);
+  display: grid; place-items: center; overflow: hidden; }
+.cell-name { margin-top: 3px; text-align: center; font-size: 9px; /* sz(10) */ color: var(--text-muted); white-space: nowrap; overflow: hidden; }
+.cell.captured .cell-img { border-color: var(--success); }
+.cell.captured .cell-name { color: var(--success); }
+.cell.pending .cell-img { border-color: var(--text-muted); }
+.cell.pending .cell-name { color: var(--text-muted); }
+.cell.selected .cell-img { border-color: var(--accent); }
+.cell.selected .cell-name { color: var(--accent); }
+
+/* Faux « photo » : l'app affiche la photo d'invader-spotter.art ; ici un bloc avec un sprite */
+.photo { background: var(--bg-divider); display: grid; place-items: center; }
+
+/* ─── Fiche dépliée (InvaderInfoPanel) ─────────────────────────────────── */
+.panel { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); background: var(--bg-element);
+  border-top: 1px solid var(--bg-divider); border-bottom: 1px solid var(--bg-divider); }
+/* en mosaïque : marges de 4 px, coins arrondis et bordure */
+.panel.in-grid { margin: 0 4px 4px; border: 1px solid var(--border); border-radius: 8px; }
+.panel-img { width: 100%; aspect-ratio: 1; border-radius: var(--r-sm); }
+.divider { height: 1px; background: var(--bg-divider); flex: none; }
+.info { display: flex; flex-direction: column; gap: 4px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; /* sz(13) */ }
+.info-row .lbl { color: var(--text-muted); }
+.info-row .val { display: flex; align-items: center; gap: 6px; color: var(--text); }
+.info-row .val.ok { color: var(--success); }
+.missing { border: 1px solid var(--accent); border-radius: var(--r-sm); padding: 1px 6px; color: var(--accent); font-size: 10px; /* sz(11) */ }
+.pending-txt { color: var(--text-muted); font-size: 10px; }
+.contrib { display: flex; flex-direction: column; gap: 4px; }
+.contrib p { margin: 0; text-align: center; color: var(--text-muted); font-size: 11px; /* sz(12) */ }
+.contrib b { font-weight: normal; color: var(--accent); }
+.btn-row { display: flex; gap: var(--sp-2); margin-top: var(--sp-1); }
+.act { flex: 1; border-radius: var(--r-sm); padding: 12px 0; text-align: center; font-size: var(--fs-lg); }
+.act.flash { background: var(--accent); color: var(--bg); }
+.act.unflash { border: 1px solid var(--danger); color: var(--danger); }
+.act.locate { border: 1px solid var(--accent); color: var(--accent); }
+.update-link { text-align: center; padding: var(--sp-1) 0; color: var(--accent); font-size: 13px; /* sz(14) */ }
+.comments { display: flex; align-items: center; justify-content: center; gap: var(--sp-1); padding: var(--sp-2) 0; color: var(--text-muted); font-size: 12px; /* sz(13) */ }
+.comments .ico { position: relative; display: flex; }
+.comments .lucide { width: 14px; height: 14px; /* sz(16) */ }
+/* CommentCountBadge : accent, ou rouge s'il y a du nouveau */
+.cbadge { position: absolute; top: -6px; right: -8px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px;
+  border: 1px solid var(--bg-element); background: var(--accent); color: var(--bg);
+  font: 700 10px/12px system-ui, sans-serif; display: grid; place-items: center; }
+.cbadge.new { background: var(--danger); }
+
+/* ─── Feuille du bas « Paramètres » (Modal de MosaicToolbar) ───────────── */
+.tsheet-scrim { position: absolute; inset: 0; z-index: 60; background: var(--scrim-soft); display: flex; flex-direction: column; justify-content: flex-end; }
+.tsheet { background: var(--bg); border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.handle-row { display: flex; justify-content: center; padding: var(--sp-2) 0; }
+.handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); }
+.tsheet-head { display: flex; align-items: center; padding: 0 var(--sp-2) var(--sp-2); border-bottom: 1px solid var(--bg-divider); }
+.head-side { width: 40px; height: 32px; display: grid; place-items: center; }
+.head-side .lucide { width: 18px; height: 18px; }
+.head-side.back { color: var(--accent); }
+.head-side.close { color: var(--text-muted); }
+.tsheet-title { flex: 1; text-align: center; font-size: var(--fs-lg); color: var(--text); }
+/* Zone du panneau : 168 px pour le menu (3 lignes × 56), 288 px pour les sous-menus (36 % de 800) */
+.panel-area { overflow: hidden; height: 168px; }
+.panel-area.sub { height: 288px; overflow-y: auto; scrollbar-width: none; }
+
+/* Lignes du menu principal (MenuRow) */
+.mrow { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+.mrow-left { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-muted); }
+.mrow-left .lucide { width: 18px; height: 18px; }
+.mrow-label { font-size: var(--fs-lg); color: var(--text); }
+.mrow-right { display: flex; align-items: center; gap: var(--sp-1); max-width: 50%; color: var(--text-muted); }
+.mrow-value { font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow-right .lucide { width: 15px; height: 15px; }
+.mrow.on .mrow-left, .mrow.on .mrow-value { color: var(--accent); }
+
+/* Options des sous-menus Trier / Grouper (bande accent sur l'option choisie) */
+.opt { padding: 12px var(--sp-3); font-size: var(--fs-lg); color: var(--text); display: flex; align-items: center; justify-content: space-between; }
+.opt.sel { background: var(--accent); color: var(--bg); }
+.opt .lucide { width: 14px; height: 14px; }
+
+/* Sous-menu Filtrer : 3 colonnes de texte */
+.fcols { display: flex; gap: var(--sp-1); padding: 8px var(--sp-2) 0; }
+.fcol { flex: 1; min-width: 0; }
+.fcol-label { font-size: var(--fs-sm); letter-spacing: .5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; padding: 0 6px; }
+.fopt { padding: 9px 6px; border-radius: var(--r-sm); font-size: var(--fs-lg); color: var(--text); }
+.fopt.sel { background: var(--accent); color: var(--bg); }
+
+/* Bas de feuille : Vue (grille / liste) + curseur de colonnes */
+.tsheet-bottom { padding: var(--sp-2) var(--sp-3) var(--sp-4); border-top: 1px solid var(--bg-divider); }
+.tsheet-bottom .sec { font-size: var(--fs-md); color: var(--text-muted); padding: 10px var(--sp-3) 4px; }
+.bottom-row { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-1); }
+.seg { display: flex; gap: var(--sp-1); }
+.seg-btn { width: 52px; height: 36px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text-muted); }
+.seg-btn .lucide { width: 18px; height: 18px; }
+.seg-btn.sel { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.slider-wrap { flex: 1; display: flex; align-items: center; gap: var(--sp-2); color: var(--text-muted); }
+.slider-wrap .lucide { width: 14px; height: 14px; }
+/* GridSlider : --val de 0 % (2 colonnes) à 100 % (5 colonnes) ; 3 colonnes = 33.33 % */
+.slider { flex: 1; height: 28px; position: relative; display: flex; align-items: center; }
+.slider-track { width: 100%; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.slider-fill { height: 100%; width: var(--val); background: var(--accent); border-radius: 2px; }
+.slider-thumb { position: absolute; top: 5px; left: var(--val); margin-left: -9px; width: 18px; height: 18px; border-radius: 9px;
+  background: var(--accent); border: 2px solid var(--bg); }
+
+/* ─── État hors ligne ──────────────────────────────────────────────────── */
+.empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); }
+.empty-title { font-size: var(--fs-sm); }
+.empty-sub { font-size: var(--fs-xs); opacity: .6; }

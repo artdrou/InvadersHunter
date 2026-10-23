@@ -1,0 +1,201 @@
+/* InvadersHunter — base commune des maquettes (une page HTML par écran).
+ *
+ * Les tokens reprennent frontend/src/constants/theme.ts : modifier une valeur ici change tous les écrans.
+ * Tailles en px = dp de l'app (téléphone de 360 × 800). Les composants ci-dessous reprennent
+ * les styles React Native existants ; chaque page peut ajouter les siens dans son propre <style>. */
+
+/* ─── Tokens des 4 thèmes de l'app (data-theme sur .phone) ──────────────── */
+.phone {
+  /* dark (thème par défaut) */
+  --bg: #0a0f1e;
+  --bg-element: #111827;
+  --bg-divider: #1e2a3a;
+  --bg-input-valid: #0a2a1a;
+  --bg-input-invalid: #2a0a0a;
+  --text: #e8f0fe;
+  --text-muted: #5b7a9d;
+  --border: #1e3a5f;
+  --border-input-valid: #1cffb7;
+  --border-input-invalid: #ff0062;
+  --accent: #ccff00;
+  --danger: #ff0062;
+  --success: #1cffb7;
+  --location-dot: #1cffb7;
+  --route-path: #3effa0;
+  /* couleur du texte posé sur l'accent (l'app utilise theme.bg) */
+  --on-accent: var(--bg);
+
+  /* fond de carte (approximation des styles MapLibre) */
+  --map-land: #0d1424;
+  --map-road: #1c2740;
+  --map-street: #141d31;
+  --map-water: #0c2a4a;
+  --map-park: #0f2420;
+}
+.phone[data-theme="light"] {
+  --bg: #f2f2f2; --bg-element: #ffffff; --bg-divider: #e0e0e0; --bg-input-valid: #e6fff5; --bg-input-invalid: #fff0f3;
+  --text: #000000; --text-muted: #888888; --border: #cccccc;
+  --accent: #002fa7; --location-dot: #4a90e2; --route-path: #00aa66;
+  --map-land: #eef0f3; --map-road: #ffffff; --map-street: #e3e6eb; --map-water: #b9d3ee; --map-park: #d6ead3;
+}
+.phone[data-theme="amber"] {
+  --bg: #f2e3d3; --bg-element: #fbf3ea; --bg-divider: #e5cdb6; --bg-input-valid: #e6fff5; --bg-input-invalid: #fff0f3;
+  --text: #5a3626; --text-muted: #a97b5f; --border: #d9b899;
+  --accent: #c05a72; --location-dot: #c05a72; --route-path: #2a8fa0;
+  --map-land: #f3dcc6; --map-road: #e8a98f; --map-street: #f0cdb2; --map-water: #b7d5d9; --map-park: #e2d6b0;
+}
+.phone[data-theme="matrix"] {
+  --bg: #050a05; --bg-element: #0b160b; --bg-divider: #162a16; --bg-input-valid: #0a2a1a; --bg-input-invalid: #2a0a0a;
+  --text: #a7c4ae; --text-muted: #5f7a66; --border: #2c4a35;
+  --accent: #5aa06e; --success: #5aa06e; --location-dot: #5aa06e; --route-path: #5fb083;
+  --map-land: #070f07; --map-road: #1a2e1d; --map-street: #0f1c11; --map-water: #0b1f17; --map-park: #0c1a0c;
+}
+.phone {
+  /* Couleurs de marque fixes */
+  --brand-yellow: #ffd000;
+  --brand-pink: #ff0062;
+  --brand-cyan: #1cffb7;
+  --white: #ffffff;
+  --scrim-soft: rgba(0,0,0,0.25);
+  --scrim: rgba(0,0,0,0.65);
+  --scrim-strong: rgba(0,0,0,0.75);
+
+  /* Échelles (FontSize, Spacing, BorderRadius) */
+  --fs-xxs: 11px; --fs-xs: 13px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 27px; --fs-xxl: 30px;
+  --sp-half: 2px; --sp-1: 4px; --sp-2: 8px; --sp-3: 16px; --sp-4: 24px; --sp-5: 32px; --sp-6: 64px;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 14px; --r-pill: 20px;
+
+  /* Polices : AppFont / ButtonFont = FreePixel, TitleFont = Pixelmania */
+  --font: 'FreePixel', ui-monospace, monospace;
+  --font-title: 'Pixelmania', 'FreePixel', monospace;
+
+  /* Coins « pixel » des PixelButton (escalier de 4 px) */
+  --pixel-step: polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px));
+}
+
+/* ─── Page autour du téléphone ───────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  background: #05070d;
+  color: #c9d6ea;
+  font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 18px 16px 40px;
+}
+.page-bar { width: 100%; max-width: 760px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.page-bar a { color: #ccff00; text-decoration: none; }
+.page-bar h1 { margin: 0; font-size: 15px; font-weight: 600; color: #e8f0fe; }
+.page-bar h1 small { font-weight: 400; color: #5b7a9d; margin-left: 6px; }
+.theme-switch { display: inline-flex; gap: 2px; background: #111827; border: 1px solid #1e3a5f; border-radius: 999px; padding: 3px; }
+.theme-switch button { font: 600 12px/1 system-ui, sans-serif; color: #9fb3cc; background: none; border: 0; padding: 7px 11px; border-radius: 999px; cursor: pointer; }
+.theme-switch button[aria-pressed="true"] { background: #ccff00; color: #0a0f1e; }
+.page-notes { width: 100%; max-width: 760px; color: #7f95b3; font-size: 13px; }
+body.embed { padding: 0; background: transparent; min-height: 0; display: block; }
+body.embed .page-bar, body.embed .page-notes { display: none; }
+body.embed .phone { box-shadow: none; }
+
+/* ─── Téléphone ──────────────────────────────────────────────────────────── */
+.phone {
+  position: relative;
+  width: 360px; height: 800px; flex: none;
+  border-radius: 34px;
+  outline: 8px solid #000; outline-offset: 0;
+  box-shadow: 0 0 0 9px #222832, 0 30px 60px rgba(0,0,0,.5);
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-md);
+  line-height: 1.25;
+  isolation: isolate;
+}
+.phone svg.spr { display: block; shape-rendering: crispEdges; }
+.phone .lucide { width: 22px; height: 22px; stroke-width: 2; flex: none; }
+
+/* Barre d'état Android (24 dp) — les écrans sans en-tête natif mettent paddingTop = insets.top */
+.sb { position: absolute; inset: 0 0 auto; height: 24px; z-index: 50; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; font: 600 12px/1 system-ui, sans-serif; color: var(--text); pointer-events: none; }
+.sb::after { content: "▴ ▮"; letter-spacing: 3px; font-size: 10px; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding-top: 24px; }
+.screen > .content { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+.scroll { overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ─── Barre d'onglets ((tabs)/_layout.tsx) ───────────────────────────────── */
+.tabs { flex: none; height: 64px; display: flex; background: var(--bg); border-top: 1px solid var(--border); padding-bottom: 6px; }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--text-muted); font-size: var(--fs-xxs); position: relative; }
+.tab.active { color: var(--accent); }
+.tab .lucide, .tab svg { width: 24px; height: 24px; }
+.tab .tab-badge { position: absolute; top: 6px; left: calc(50% + 6px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+  background: var(--danger); color: var(--white); font-size: 10px; display: grid; place-items: center; }
+
+/* ─── En-tête des sous-pages (SettingsShell) ─────────────────────────────── */
+.shell-header { padding: var(--sp-3) var(--sp-4) var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+.back { align-self: flex-start; color: var(--text-muted); font-size: var(--fs-md); padding: 4px 0; }
+.shell-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+.shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 0 var(--sp-4) var(--sp-6);
+  display: flex; flex-direction: column; justify-content: safe center; gap: var(--sp-3); }
+.shell-body > * { flex-shrink: 0; }
+
+/* ─── Sections et lignes de réglages (SettingsSection / SettingsRow) ────── */
+.section { display: flex; flex-direction: column; gap: var(--sp-1); }
+.section-label { color: var(--text-muted); font-size: var(--fs-xs); letter-spacing: 1px; text-transform: uppercase; padding: 0 var(--sp-2); }
+.card { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); }
+.row + .row { border-top: 1px solid var(--bg-divider); }
+.row > .lucide { color: var(--accent); width: 20px; height: 20px; margin: 0 2px; }
+.row > .chev { width: 16px; height: 16px; color: var(--text-muted); }
+.row-label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-md); }
+.row-label small { color: var(--text-muted); font-size: var(--fs-xs); }
+.row-value { color: var(--text-muted); font-size: var(--fs-sm); }
+.chev { color: var(--text-muted); }
+
+/* Interrupteur (Switch Android) */
+.switch { width: 36px; height: 20px; border-radius: 10px; background: var(--border); position: relative; flex: none; }
+.switch::after { content: ""; position: absolute; top: -2px; left: -2px; width: 24px; height: 24px; border-radius: 50%; background: #c9c9c9; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 14px; background: var(--bg-element); }
+
+/* ─── Formulaires et boutons (login, register…) ──────────────────────────── */
+.input { background: var(--bg-element); color: var(--text); border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 12px var(--sp-3); font: inherit; font-size: 14px; width: 100%; }
+.input.placeholder { color: var(--text-muted); }
+.input.valid { border-color: var(--border-input-valid); background: var(--bg-input-valid); }
+.input.invalid { border-color: var(--border-input-invalid); background: var(--bg-input-invalid); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--r-sm); padding: 14px; font-size: var(--fs-xxl);
+  background: var(--accent); color: var(--on-accent); }
+.btn.md { font-size: var(--fs-lg); padding: 10px 14px; }
+.btn.outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn.danger { background: var(--danger); color: var(--white); }
+.btn.ghost { background: transparent; color: var(--text-muted); }
+.link { color: var(--accent); }
+.muted { color: var(--text-muted); }
+.error { color: var(--danger); font-size: var(--fs-sm); text-align: center; }
+.pill { border: 1px solid var(--border); border-radius: var(--r-pill); padding: 4px 12px; font-size: var(--fs-sm); color: var(--text-muted); }
+.pill.active { border-color: var(--accent); color: var(--accent); }
+.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: var(--white); font-size: 11px; }
+
+/* Bouton carré à coins pixel (PixelButton) */
+.pixbtn { width: 48px; height: 48px; display: grid; place-items: center; background: var(--border); clip-path: var(--pixel-step); position: relative; }
+.pixbtn::before { content: ""; position: absolute; inset: 2px; background: var(--bg-element); clip-path: var(--pixel-step); }
+.pixbtn > * { position: relative; color: var(--text-muted); }
+.pixbtn.hot { background: var(--accent); }
+.pixbtn.hot > * { color: var(--accent); }
+
+/* ─── Fenêtres par-dessus l'écran (Modal) ────────────────────────────────── */
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 60; display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+.scrim.soft { background: var(--scrim-soft); }
+.scrim.bottom { align-items: flex-end; padding: 0; }
+.dialog { width: 100%; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.sheet { width: 100%; background: var(--bg-element); border-top: 1px solid var(--border); border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--sp-3) var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.dialog-title { color: var(--accent); font-size: var(--fs-xl); }
+.toast { position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%); background: var(--scrim-strong); color: var(--white); padding: 8px 14px; border-radius: var(--r-sm); font-size: var(--fs-sm); z-index: 70; white-space: nowrap; }
+
+/* ─── Carte (canvas dessiné par app.js) et marqueurs ─────────────────────── */
+canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.mk { position: absolute; transform: translate(-50%, -50%); display: block; }
+.loc-dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--location-dot); border: 2px solid var(--white); transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--location-dot) 25%, transparent); }

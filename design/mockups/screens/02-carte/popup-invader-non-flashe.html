@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Popup — invader non flashé — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/InvaderPopup/ (index, PopupShell, PopupView, PopupEdit, styles.ts, format.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Rien de plus : le reste est dans carte-commun.css */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Popup — invader non flashé <small>pas encore flashé, infos manquantes</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Popup centré ; la carte place l'invader choisi juste sous la flèche -->
+      <div class="popup-wrap">
+        <div class="popup">
+          <div class="p-header"><span class="p-name">LYN_87</span><span class="p-close">✕</span></div>
+          <!-- Pas de photo connue : pas d'image, une ligne « Photo » à compléter -->
+          <div class="p-divider"></div>
+          <div class="p-info">
+            <div class="p-row"><span class="p-label">Points</span><span class="p-value">20</span></div>
+            <div class="p-row"><span class="p-label">État</span><span class="p-value">Légèrement dégradé</span></div>
+            <!-- Détail manquant : bouton « + Ajouter » -->
+            <div class="p-row"><span class="p-label">Posé</span><span class="p-vchip"><span class="missing-chip">+ Ajouter</span><span class="p-value">--</span></span></div>
+            <!-- Détail déjà proposé, en attente de validation -->
+            <div class="p-row"><span class="p-label">Photo</span><span class="p-vchip"><span class="p-pending">en attente</span><span class="p-value">--</span></span></div>
+            <div class="p-row"><span class="p-label">Flashé</span><span class="p-value">--</span></div>
+            <!-- Commentaire le plus aimé (2 lignes max) -->
+            <div class="p-topcomment"><i data-lucide="message-circle"></i><span>Cache derriere la gouttiere, il faut se mettre sur le banc pour le flasher.</span></div>
+          </div>
+          <div class="p-contrib">
+            <div>Découvert par <b>marco_lyon</b></div>
+          </div>
+          <div class="p-divider"></div>
+          <div class="p-links">
+            <span class="p-link"><i data-lucide="navigation" class="filled"></i></span>
+            <span class="p-link"><i data-lucide="instagram"></i></span>
+            <span class="p-link"><i data-lucide="globe"></i></span>
+            <span class="p-link"><i data-lucide="messages-square"></i><span class="count-badge">2</span></span>
+          </div>
+          <div class="p-btn">Flash</div>
+          <div class="p-modify">Modifier</div>
+        </div>
+        <div class="popup-arrow"></div>
+        <div style="position:relative; height:0"><img class="mk" data-pts="20" data-state="uncaptured" style="left:0; top:20px"></div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Popup d'un invader pas encore flashé : gros bouton « Flash » plein (couleur d'accent). Exemple sans photo : l'image disparaît et une ligne « Photo » s'ajoute. Un détail manquant affiche « + Ajouter » ; un détail que l'utilisateur a déjà proposé affiche « en attente ». En italique : le commentaire le plus aimé. Badge de commentaires en couleur d'accent = déjà lus.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

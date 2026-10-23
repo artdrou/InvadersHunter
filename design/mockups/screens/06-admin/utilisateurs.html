@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utilisateurs — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/users/index.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/users/index.tsx). Tailles × 0,9 quand le code utilise sz(). */
+  .u-header { padding: var(--sp-2) var(--sp-4) 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .u-title { color: var(--accent); font-size: 24px; letter-spacing: 1px; }
+
+  /* Recherche */
+  .search { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) var(--sp-4) 0; padding: 0 var(--sp-3);
+    background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text-muted); }
+  .search .lucide { width: 18px; height: 18px; }
+  .search-input { flex: 1; padding: 10px 0; font-size: 13px; color: var(--text-muted); }    /* texte d'exemple (placeholder) */
+  .count { color: var(--text-muted); font-size: var(--fs-xs); margin: var(--sp-2) var(--sp-4) 0; }
+
+  /* Liste */
+  .list { flex: 1; min-height: 0; padding: var(--sp-2) var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .u-card { flex: none; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); background: var(--bg-element);
+    border: 1px solid var(--border); border-radius: var(--r-md); }
+  .avatar { width: 40px; height: 40px; border-radius: 20px; border: 1px solid var(--accent); display: grid; place-items: center;
+    color: var(--accent); font-size: var(--fs-lg); flex: none; }
+  .u-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .u-row1 { display: flex; align-items: center; gap: var(--sp-2); }
+  .u-name { flex-shrink: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-badge { color: var(--accent); font-size: var(--fs-xxs); border: 1px solid var(--accent); border-radius: var(--r-sm); padding: 1px 5px; }
+  .u-email { color: var(--text-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .u-meta { color: var(--text-muted); font-size: var(--fs-xxs); }
+  .u-card > .lucide { width: 18px; height: 18px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Utilisateurs <small>liste des comptes</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="u-header">
+        <span class="back">‹ Retour</span>
+        <span class="u-title">Utilisateurs</span>
+      </div>
+
+      <!-- Recherche par nom ou email -->
+      <div class="search">
+        <i data-lucide="search"></i>
+        <span class="search-input">Nom ou email</span>
+      </div>
+      <div class="count">8 / 8 comptes</div>
+
+      <!-- Comptes triés par nom -->
+      <div class="list scroll">
+        <div class="u-card"><div class="avatar">A</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">artdrou</span><span class="admin-badge">ADMIN</span></div>
+            <span class="u-email">artdrou@example.com</span><span class="u-meta">Inscrit le 04/01/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">L</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">loulou75</span></div>
+            <span class="u-email">louise.martin@example.com</span><span class="u-meta">Inscrit le 17/03/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">M</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">marie.flash</span></div>
+            <span class="u-email">marie.flash@example.com</span><span class="u-meta">Inscrit le 22/02/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">M</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">modo_lyon</span><span class="admin-badge">ADMIN</span></div>
+            <span class="u-email">modo.lyon@example.com</span><span class="u-meta">Inscrit le 09/05/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">P</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">pixel_hunter</span></div>
+            <span class="u-email">pixel.hunter@example.com</span><span class="u-meta">Inscrit le 12/03/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">S</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">space_chaser</span></div>
+            <span class="u-email">space.chaser@example.com</span><span class="u-meta">Inscrit le 30/06/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">T</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">tom_invade</span></div>
+            <span class="u-email">tom.invade@example.com</span><span class="u-meta">Inscrit le 14/08/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+
+        <div class="u-card"><div class="avatar">Z</div>
+          <div class="u-body"><div class="u-row1"><span class="u-name">zoe_mosaic</span></div>
+            <span class="u-email">zoe.mosaic@example.com</span><span class="u-meta">Inscrit le 02/10/2026</span></div>
+          <i data-lucide="chevron-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Ouvert par « Parcourir les utilisateurs ». Le champ filtre la liste par nom ou email (une croix apparaît à droite quand il contient du texte) ; le compteur indique « affichés / total ». Un appui ouvre le profil admin du compte.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

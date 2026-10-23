@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartes des amis — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/friends/components/FriendMapPicker.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* FriendMapPicker (tailles × 0,9) */
+  .fp-scrim { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+  .fp-card { width: 100%; max-height: 75%; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .fp-title { color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+  .fp-mine { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 0; text-align: center; color: var(--text); font-size: var(--fs-sm); }
+  .fp-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .fp-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .fp-name { flex: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fp-btn { min-width: 84px; text-align: center; border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px var(--sp-2); color: var(--text); font-size: var(--fs-sm); }
+  .on { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Cartes des amis <small>choix de la carte affichée</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:215px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:250px; top:175px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:305px">
+      <img class="mk" data-pts="40" data-state="uncaptured" style="left:205px; top:290px">
+      <img class="mk" data-pts="100" data-state="uncaptured" style="left:140px; top:385px">
+      <img class="mk" data-pts="20" data-state="grey" style="left:285px; top:360px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:250px; top:440px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="50" data-state="captured" style="left:125px; top:520px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:560px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:235px; top:665px">
+      <!-- Grappes (clusters) : rouge = au moins un non flashé, bleu = tous flashés -->
+      <div class="cluster" style="left:175px; top:120px">7</div>
+      <div class="cluster l blue" style="left:300px; top:545px">23</div>
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <!-- Choix de la carte affichée (Modal transparent) -->
+      <div class="fp-scrim">
+        <div class="fp-card">
+          <div class="fp-title">Cartes des amis</div>
+          <div class="fp-mine on">Ma carte</div>
+          <div class="fp-list">
+            <div class="fp-row"><span class="fp-name">pixel_lou</span><span class="fp-btn">Sa carte</span><span class="fp-btn">Comparer</span></div>
+            <div class="fp-row"><span class="fp-name">spacehunter</span><span class="fp-btn">Sa carte</span><span class="fp-btn">Comparer</span></div>
+            <div class="fp-row"><span class="fp-name">marco_lyon</span><span class="fp-btn">Sa carte</span><span class="fp-btn">Comparer</span></div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Bouton amis de la carte. Le choix actif est plein en couleur d'accent (ici « Ma carte »). Une roue de chargement remplace le texte du bouton touché le temps de récupérer les flashs de l'ami. Sans ami : « Pas encore d'amis. » et un bouton « Ajouter des amis » qui mène à l'onglet Social.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

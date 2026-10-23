@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actualités — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/news.tsx + features/news/components/NewsListItem.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (news.tsx + NewsListItem.tsx) */
+
+  /* En-tête : paddingTop = insets.top + 16 (la barre d'état de 24 est déjà comptée par .screen) */
+  .news-header { flex: none; padding: var(--sp-3) var(--sp-4) var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .news-back { align-self: flex-start; padding: 4px 0; color: var(--text-muted); font-size: var(--fs-md); }
+  .news-title { color: var(--accent); font-size: var(--fs-xxl); letter-spacing: 1px; }
+  .news-list { flex: 1; min-height: 0; padding-bottom: var(--sp-6); }
+
+  /* Une actualité (NewsListItem) */
+  .news { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  /* Barre de couleur à gauche selon le type d'évènement (4 px) */
+  .news[data-kind] { border-left: 4px solid var(--kind); padding-left: 12px; }
+  .news[data-kind="create"], .news[data-kind="discovered"] { --kind: #2ECC40; }   /* vert */
+  .news[data-kind="destroyed"]   { --kind: #FF3B30; }                             /* rouge */
+  .news[data-kind="hidden"], .news[data-kind="unknown"] { --kind: #9A9A9A; }       /* gris */
+  .news[data-kind="reactivated"] { --kind: #FF2BD6; }                             /* magenta */
+  .news[data-kind="restored"]    { --kind: #FF9BE6; }                             /* rose clair */
+  .news[data-kind="degraded"], .news[data-kind="state_changed"] { --kind: #D4A017; } /* moutarde */
+  .news[data-kind="moved"], .news[data-kind="updated"] { --kind: #2F80FF; }        /* bleu */
+
+  .thumb { width: 52px; height: 52px; flex: none; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--bg-element);
+    display: grid; place-items: center; color: var(--text-muted); overflow: hidden; }
+  .thumb.photo { background: var(--bg-divider); }
+  .news-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .news-top { display: flex; justify-content: space-between; align-items: center; }
+  .news-type { text-transform: uppercase; letter-spacing: .5px; font-size: 10px; /* sz(11) */ color: var(--kind, var(--accent)); }
+  .news-date { color: var(--text-muted); font-size: 10px; }
+  .news-name { margin-top: 1px; color: var(--text); font-size: 13px; /* sz(14) */ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .news-sub { color: var(--text-muted); font-size: 12px; /* sz(13) */
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .news-by { margin-top: 2px; color: var(--text-muted); font-size: 10px; }
+  /* Pastille de source automatique (invader-spotter.art, InvaderQuest) */
+  .news-src { align-self: flex-start; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px; padding: 2px 6px;
+    border: 1px solid var(--accent); border-radius: var(--r-sm); color: var(--accent); font-size: 10px; }
+  .news-src .lucide { width: 11px; height: 11px; }
+  .news > .lucide { width: 20px; height: 20px; color: var(--text-muted); }
+
+  /* Bouton « Plus » en bas de liste */
+  .more { margin: var(--sp-3) var(--sp-4) 0; padding: 12px 0; border: 1px solid var(--border); border-radius: var(--r-sm);
+    text-align: center; color: var(--accent); font-size: var(--fs-lg); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Actualités <small>fil d'actualités (ouvert depuis le bouton journal)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="news-header">
+        <div class="news-back">&lt; Retour</div>
+        <div class="news-title">Actualites</div>
+      </div>
+
+      <div class="news-list scroll">
+
+        <!-- Nouvel invader (vert), source InvaderQuest -->
+        <div class="news" data-kind="create">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-pink)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Nouvel invader</span><span class="news-date">22 oct.</span></div>
+            <div class="news-name">PA_1521</div>
+            <div class="news-sub">Bon&nbsp; ·&nbsp; 30 pts</div>
+            <div class="news-src"><i data-lucide="map-pinned"></i>InvaderQuest</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader détruit (rouge), source invader-spotter.art -->
+        <div class="news" data-kind="destroyed">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-cyan)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader detruit</span><span class="news-date">22 oct.</span></div>
+            <div class="news-name">LDN_204</div>
+            <div class="news-sub">Détruit</div>
+            <div class="news-src"><i data-lucide="globe"></i>invader-spotter.art</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader réactivé (magenta) -->
+        <div class="news" data-kind="reactivated">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-yellow)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader reactive</span><span class="news-date">21 oct.</span></div>
+            <div class="news-name">MARS_31</div>
+            <div class="news-sub">Bon</div>
+            <div class="news-src"><i data-lucide="globe"></i>invader-spotter.art</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Annonce (pas de barre de couleur, icône mégaphone, pas cliquable) -->
+        <div class="news">
+          <div class="thumb"><i data-lucide="megaphone"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Annonce</span><span class="news-date">20 oct.</span></div>
+            <div class="news-name">Nouveaux invaders a Rennes</div>
+            <div class="news-sub">Une vague de 12 invaders vient d'etre posee dans le centre. Bonne chasse !</div>
+          </div>
+        </div>
+
+        <!-- Invader déplacé (bleu), proposé par un joueur -->
+        <div class="news" data-kind="moved">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="#2f80ff"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader deplace</span><span class="news-date">19 oct.</span></div>
+            <div class="news-name">PA_871</div>
+            <div class="news-sub">Position</div>
+            <div class="news-by">par Kroko</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader dégradé (moutarde) -->
+        <div class="news" data-kind="degraded">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--white)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader degrade</span><span class="news-date">18 oct.</span></div>
+            <div class="news-name">RN_12</div>
+            <div class="news-sub">Très dégradé</div>
+            <div class="news-src"><i data-lucide="globe"></i>invader-spotter.art</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Mise à jour de l'app (icône fusée, titre = version) -->
+        <div class="news">
+          <div class="thumb"><i data-lucide="rocket"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Mise a jour</span><span class="news-date">17 oct.</span></div>
+            <div class="news-name">v0.2.0</div>
+            <div class="news-sub">Nouvelle icone, onglet Social et cartes d'amis.</div>
+          </div>
+        </div>
+
+        <!-- Invader non visible (gris) -->
+        <div class="news" data-kind="hidden">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="#ff8a00"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader non visible</span><span class="news-date">16 oct.</span></div>
+            <div class="news-name">NY_115</div>
+            <div class="news-sub">Non visible</div>
+            <div class="news-by">par space_lulu</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader restauré (rose clair) -->
+        <div class="news" data-kind="restored">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-pink)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader restaure</span><span class="news-date">15 oct.</span></div>
+            <div class="news-name">PA_402</div>
+            <div class="news-sub">Légèrement dégradé</div>
+            <div class="news-by">par Equipe</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader découvert (vert) -->
+        <div class="news" data-kind="discovered">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-cyan)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader decouvert</span><span class="news-date">14 oct.</span></div>
+            <div class="news-name">LDN_88</div>
+            <div class="news-sub">Bon&nbsp; ·&nbsp; Position</div>
+            <div class="news-by">par Kroko</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Invader modifié sans changement d'état (bleu) -->
+        <div class="news" data-kind="updated">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--brand-yellow)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Invader modifie</span><span class="news-date">13 oct.</span></div>
+            <div class="news-name">MARS_7</div>
+            <div class="news-sub">40 pts&nbsp; ·&nbsp; Photo</div>
+            <div class="news-by">par Equipe</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <!-- Etat inconnu (gris) -->
+        <div class="news" data-kind="unknown">
+          <div class="thumb photo"><i class="spr" data-w="30" data-color="var(--white)"></i></div>
+          <div class="news-body">
+            <div class="news-top"><span class="news-type">Etat inconnu</span><span class="news-date">12 oct.</span></div>
+            <div class="news-name">RN_40</div>
+            <div class="news-sub">Inconnu</div>
+            <div class="news-src"><i data-lucide="globe"></i>invader-spotter.art</div>
+          </div>
+          <i data-lucide="chevron-right"></i>
+        </div>
+
+        <div class="more">Plus</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Écran empilé (pas de barre d'onglets). Faites défiler dans le téléphone. La couleur de la barre de gauche et du type dépend de l'évènement : vert = nouveau / découvert, rouge = détruit, magenta = réactivé, rose clair = restauré, moutarde = dégradé / état modifié, bleu = déplacé / modifié, gris = non visible / inconnu. Les annonces et mises à jour de l'app n'ont pas de barre et utilisent la couleur accent. Ces couleurs sont fixes dans le code (identiques dans les 4 thèmes). Un appui sur une actualité d'invader ouvre sa fiche sur la carte.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

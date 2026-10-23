@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importer mes flashes (liste collee) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/flash-import.tsx (+ features/flash-import/) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de flash-import.tsx).
+     Ce tutoriel utilise la police système du téléphone (Roboto) pour la lisibilité des longs textes ;
+     seuls les numéros d'étape et les boutons sont en police pixel (AppFont). */
+  .fi { flex: 1; min-height: 0; font-family: Roboto, system-ui, 'Segoe UI', sans-serif;
+    /* paddingTop = insets.top + 16 (barre d'état déjà comptée par .screen), paddingBottom = insets.bottom + 32 */
+    padding: var(--sp-3) var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .fi > * { flex: none; }
+  .fi-header { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .fi-back { align-self: flex-start; padding: 4px 0; color: var(--text-muted); font-size: 13px; /* sz(14) */ }
+  .fi-title { color: var(--accent); font-size: 24px; /* sz(27) */ letter-spacing: 1px; }
+  .fi-intro { color: var(--text); font-size: 13px; line-height: 18px; }
+
+  /* Étapes numérotées */
+  .step { display: flex; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm); padding: var(--sp-3); }
+  .step-badge { width: 28px; height: 28px; flex: none; border-radius: 14px; background: var(--accent); color: var(--bg);
+    display: grid; place-items: center; font-family: var(--font); font-size: var(--fs-sm); }
+  .step-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .step-title { color: var(--text); font-size: 14px; /* sz(16) */ }
+  .step-text { color: var(--text-muted); font-size: 13px; /* sz(14) */ line-height: 17px; }
+
+  /* Boutons (texte en police pixel) */
+  .fi-btn { border: 1px solid var(--accent); background: var(--bg-element); border-radius: var(--r-sm); padding: 14px 0;
+    text-align: center; color: var(--accent); font-family: var(--font); font-size: var(--fs-md); }
+  .fi-btn.secondary { border-color: var(--border); padding: 12px 0; }
+  .fi-note { color: var(--text-muted); font-size: 12px; /* sz(13) */ line-height: 15px; }
+  .fi-divider { height: 1px; background: var(--bg-divider); margin: var(--sp-2) 0; }
+  .fi-section { color: var(--text); font-size: 14px; /* sz(16) */ letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Zone de texte « coller une liste » */
+  .fi-area { min-height: 120px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg-element);
+    padding: var(--sp-3); font-size: 13px; color: var(--text); white-space: pre-line; }
+  .fi-area.placeholder { color: var(--text-muted); }
+
+  /* Résultat de l'import */
+  .fi-result { border: 1px solid var(--success); border-radius: var(--r-sm); padding: var(--sp-3); display: flex; flex-direction: column; gap: 4px; }
+  .fi-result p { margin: 0; color: var(--text); font-size: 13px; }
+  .fi-result b { font-weight: normal; color: var(--accent); font-family: var(--font); }
+  .fi-result .done { color: var(--text-muted); font-size: 12px; margin-top: var(--sp-2); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Import des flashes <small>plan B : liste collée puis résultat de l'import</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="fi scroll">
+        <!-- Page défilée vers le bas : l'en-tête et les étapes 1 à 4 sont au-dessus (voir import-flashes.html) -->
+        <div class="step">
+          <div class="step-badge">5</div>
+          <div class="step-body">
+            <div class="step-title">IMPORTANT : synchronisez l'app</div>
+            <div class="step-text">Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur "Synchroniser" pour récupérer les flashes importés dans l'application.</div>
+          </div>
+        </div>
+
+        <!-- Bouton de téléchargement de l'outil Windows -->
+        <div class="fi-btn">Télécharger l'application (Windows)</div>
+        <div class="fi-note">Aucun prérequis : le script télécharge automatiquement les outils Android nécessaires (~10 Mo, une seule fois). Windows uniquement pour le moment.</div>
+
+        <div class="fi-divider"></div>
+
+        <!-- Plan B : coller une liste de noms -->
+        <div class="fi-section">Alternative : coller une liste</div>
+        <div class="fi-note">Si l'ADB ne fonctionne pas, collez une liste de noms d'invaders (un par ligne ou séparés par des virgules). Les extensions de fichier sont ignorées.</div>
+        <!-- Liste collée par l'utilisateur -->
+        <div class="fi-area">PA_1041
+PA_1043
+LDN_150, LDN_153
+MARS_31.jpg
+XX_999</div>
+        <div class="fi-btn secondary">Importer la liste</div>
+
+        <!-- Résultat après l'import (cadre vert) -->
+        <div class="fi-result">
+          <p>Importés : <b>4</b></p>
+          <p>Déjà flashés : <b>1</b></p>
+          <p>Inconnus : <b>1</b></p>
+          <p class="done">Flashes importés. Refaites l'opération quand vous avez de nouveaux flashes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Même page que import-flashes.html, défilée tout en bas, après avoir collé une liste et appuyé sur « Importer la liste ». Le cadre de résultat (bordure verte = couleur success) n'apparaît qu'après un import.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nouvel invader — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/CreateInvaderModal/ (index, NameField, styles.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* CreateInvaderModal (CreateInvaderModal/styles.ts, tailles × 0,9) */
+  .create { width: 300px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-4);
+    display: flex; flex-direction: column; gap: 10px; }
+  .create > * { flex-shrink: 0; }
+  .c-title { color: var(--accent); font-size: 18px; letter-spacing: 1px; }
+  .create .f-label { font-size: 11px; margin: 4px 0 4px; }
+  .name-row { display: flex; align-items: center; gap: 6px; }
+  .c-input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text); padding: 8px var(--sp-2); font-size: 13px; }
+  .c-input.city { width: 58px; }
+  .c-input.num { width: 64px; }
+  .name-sep { color: var(--text-muted); font-size: 16px; }
+  .name-preview { color: var(--text-muted); font-size: 12px; min-width: 0; }
+  .create .position-row .pv { font-size: 11px; }
+  .create .photo-add { font-size: 12px; }
+  .c-submit { background: var(--accent); color: var(--bg); border-radius: var(--r-sm); padding: 13px 0; text-align: center; margin-top: 4px; font-size: var(--fs-xxl); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Nouvel invader <small>formulaire de création</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="23"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Formulaire « Nouvel invader » centré sur la carte -->
+      <div class="popup-wrap">
+        <div class="create">
+          <div class="handle"></div>
+          <div class="p-header"><span class="c-title">Nouvel invader</span><span class="p-close">✕</span></div>
+          <div class="p-divider"></div>
+          <div>
+            <div class="f-label">Nom</div>
+            <div class="name-row">
+              <span class="c-input city">PA</span><span class="name-sep">_</span><span class="c-input num">1688</span>
+              <span class="name-preview">PA_1688</span>
+            </div>
+            <div class="f-label">Points</div>
+            <div class="points-row"><span class="opt">10</span><span class="opt">20</span><span class="opt">30</span><span class="opt on">40</span><span class="opt">50</span><span class="opt">100</span></div>
+            <div class="f-label">Année de pose (facultatif)</div>
+            <div class="year-input placeholder">ex. 2015</div>
+            <div class="f-label">État</div>
+            <div class="state-grid">
+              <div><span class="opt on">Bon</span><span class="opt">Légèrement dégradé</span></div>
+              <div><span class="opt">Dégradé</span><span class="opt">Très dégradé</span></div>
+              <div><span class="opt">Détruit</span><span class="opt">Non visible</span></div>
+            </div>
+            <div class="f-label">Position</div>
+            <div class="position-row"><span class="pv">48.864215, 2.361038</span><span class="pe">Modifier</span></div>
+            <div class="f-label">Photo (facultatif)</div>
+            <div class="photo-add">Ajouter une photo…</div>
+          </div>
+          <div class="p-divider"></div>
+          <div class="c-submit">Envoyer</div>
+          <div class="p-cancel">Annuler</div>
+        </div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Bouton « Créer » de l'étape précédente. Nom en deux cases (code ville + numéro, aperçu à droite), puis points, année, état, position et photo. « Envoyer » est gris et pâle tant que le nom n'est pas complet ; erreurs possibles en rouge sous le bouton (« Le code de la ville et le numéro sont requis », « Cet invader existe déjà (PA_1688) : proposez plutôt une modification »). Le formulaire ne défile pas : sur un petit écran il dépasse.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

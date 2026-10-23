@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A propos — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/about.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .info-block { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-2); }
+  .info-row { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-md); }
+  .info-label { color: var(--text-muted); }
+  .info-value { color: var(--text); }
+  .outline-btn { padding: 12px 0; border: 1px solid var(--border); border-radius: var(--r-sm); text-align: center; color: var(--accent); font-size: var(--fs-md); }
+  .nav-row { display: flex; align-items: center; gap: var(--sp-2); background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3); }
+  .nav-row > .lucide { width: 20px; height: 20px; color: var(--accent); }
+  .nav-row > .chev { width: 16px; height: 16px; color: var(--text-muted); }
+  .nav-label { flex: 1; display: flex; flex-direction: column; gap: 2px; color: var(--text); font-size: var(--fs-md); }
+  .nav-label small { color: var(--text-muted); font-size: var(--fs-xs); }
+  .credits { display: flex; flex-direction: column; gap: var(--sp-2); padding-top: var(--sp-3); }
+  .credits-title { color: var(--text-muted); font-size: var(--fs-sm); letter-spacing: 1px; text-transform: uppercase; }
+  .credits-body { color: var(--text-muted); font-size: var(--fs-sm); line-height: 22px; white-space: pre-line; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / A propos <small>Réglages › À propos</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">A propos</div>
+      </div>
+
+      <div class="shell-body">
+        <!-- Version -->
+        <div class="info-block">
+          <div class="info-row"><span class="info-label">Version de l'app</span><span class="info-value">0.2.0</span></div>
+          <div class="info-row"><span class="info-label">OTA</span><span class="info-value">21/10/2026 18:30</span></div>
+          <div class="info-row"><span class="info-label">Canal de build</span><span class="info-value">preview</span></div>
+        </div>
+
+        <div class="outline-btn">Verifier les mises a jour</div>
+
+        <!-- Liens vers les sous-pages -->
+        <div class="nav-row"><i data-lucide="rocket"></i><div class="nav-label">Feuille de route<small>Fonctionnalites a venir</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+        <div class="nav-row"><i data-lucide="file-text"></i><div class="nav-label">Notes de version<small>Les nouveautés de chaque version</small></div><i data-lucide="chevron-right" class="chev"></i></div>
+
+        <!-- Crédits -->
+        <div class="credits">
+          <div class="credits-title">Credits</div>
+          <div class="credits-body">Les mosaiques et le concept de chasse aux invaders sont l'oeuvre de l'artiste Invader. Cette application ne se substitue pas a l'application officielle FlashInvaders et ne cherche pas a lui faire concurrence : c'est simplement une experience complementaire développée par un fan.
+
+Les donnees comme l'etat des oeuvres, les dates de pose, les points et les photos sont tirees de invader-spotter.art et de l'application officielle.
+
+Les positions et la liste des invaders viennent aussi d'InvaderQuest (donnees ouvertes sous licence ODbL : InvaderQuest, goguelnikov/SpaceInvaders, pnote.eu, OpenStreetMap).
+
+Merci a toute la communaute qui fait vivre la chasse aux invaders : sur Instagram, dans les blogs, sur les cartes alternatives, en partageant des astuces.
+
+Developpe par DROUUU (FlashInvaders).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">La ligne « OTA » n'apparaît que si l'app tourne sur une mise à jour OTA ; « Canal de build » seulement si un canal est défini. Les crédits dépassent l'écran : faire défiler dans le téléphone.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quoi de neuf — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/changelog/components/WhatsNewModal.tsx (textes : features/changelog/releases.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Fenêtre centrée (makeStyles du composant) — fond assombri à 70 % */
+  .overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+  .card-modal { width: 100%; max-width: 360px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+  /* Titre : 20 × 0.9 = 18 px */
+  .m-title { color: var(--accent); font-size: 18px; letter-spacing: 1px; margin-bottom: var(--sp-1); }
+  /* Texte : 14 × 0.9 = 13 px, interligne 20 */
+  .m-body { color: var(--text); font-size: 13px; line-height: 20px; }
+  .m-notes { color: var(--text-muted); font-size: 12px; font-style: italic; margin-top: var(--sp-1); }
+  .m-primary { background: var(--accent); color: var(--on-accent); border-radius: var(--r-sm); padding: 14px; text-align: center; margin-top: var(--sp-2); font-size: var(--fs-xxl); }
+  .m-outline { border: 1px solid var(--border); color: var(--text); border-radius: var(--r-sm); padding: 12px; text-align: center; font-size: var(--fs-xl); }
+  .m-secondary { color: var(--text-muted); padding: 10px; text-align: center; font-size: var(--fs-xl); }
+  /* Spécifique WhatsNewModal : hauteur max 75 %, pas de marge sous le titre, liste qui défile */
+  .card-modal { max-height: 75%; }
+  .m-title { margin-bottom: 0; }
+  .version { color: var(--text-muted); font-size: 13px; }
+  .notes { min-height: 0; flex: 0 1 auto; display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-1) 0; }
+  .note { display: flex; gap: var(--sp-2); align-items: flex-start; color: var(--text); font-size: 13px; line-height: 20px; }
+  .note .bullet { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Quoi de neuf ? <small>notes de version</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <!-- Écran derrière : la carte (version simplifiée) -->
+    <div class="screen">
+      <div class="content">
+        <canvas class="map" data-seed="31"></canvas>
+        <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+        <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+        <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+        <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+        <img class="mk" data-pts="20" data-state="grey" style="left: 210px; top: 420px">
+        <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+        <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+        <img class="mk" data-pts="10" data-state="captured" style="left: 170px; top: 640px">
+        <div class="loc-dot" style="left: 180px; top: 360px"></div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+
+    <!-- Fenêtre -->
+    <div class="overlay">
+      <div class="card-modal">
+        <div class="m-title">Quoi de neuf ?</div>
+        <div class="version">Version 0.2.0</div>
+        <!-- Liste des nouveautés (défile si elle est longue) -->
+        <div class="notes scroll">
+          <div class="note"><span class="bullet">▪</span><span>Mur de commentaires sur chaque invader : publie un mot, aime ou n’aime pas, avec commentaire vedette et modération automatique</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Chaque invader affiche qui l’a découvert et qui l’a mis à jour (popup carte et fiche détail)</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Mode invité : utilise l’app sans compte, tes flashs restent sur ton téléphone et sont transférés si tu crées un compte</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Nouvelle icône globe sur les invaders : ouvre la fiche invader-spotter.art correspondante</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Personnalisation des marqueurs : interface compacte et opacité réglable par état</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Réglages simplifiés et notes de version consultables dans l’app</span></div>
+          <div class="note"><span class="bullet">▪</span><span>Sécurité renforcée côté serveur (flashs et comptes)</span></div>
+        </div>
+        <div class="m-primary">Compris !</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">S'affiche une seule fois après chaque nouvelle version (APK ou OTA), jamais à la première installation. Les lignes viennent de releases.ts ; ici on a mis les nouveautés en préparation comme si elles sortaient en 0.2.0. Si la liste est trop longue, elle défile dans la fenêtre (hauteur max 75 % de l'écran).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

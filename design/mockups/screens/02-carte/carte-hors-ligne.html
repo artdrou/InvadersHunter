@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte — hors ligne — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/(tabs)/map.tsx (offlineBanner) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Bandeau hors ligne : pastille sombre en haut au centre (offlineBanner) */
+  .offline-banner { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 20; white-space: nowrap;
+    background: var(--scrim); color: var(--white); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-pill);
+    font: var(--fs-sm)/1.25 var(--font-sys); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Carte — hors ligne <small>aucune donnée, pas de réseau</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="7"></canvas>
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Bandeau : seulement quand aucun invader n'est chargé et que la synchro a échoué faute de réseau -->
+      <div class="offline-banner">Pas de connexion internet</div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Premier lancement sans réseau : aucun invader en mémoire, donc aucun marqueur, et un bandeau en haut (top 16 px, il passe donc juste sous la barre d'état, à moitié derrière). Le texte n'a pas de police dans le code : police système. Une fois des invaders en mémoire, la carte hors ligne ressemble à carte.html.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

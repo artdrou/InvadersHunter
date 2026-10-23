@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supprimer un utilisateur — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/admin/components/DangerConfirmScreen.tsx (ouvert par UserAdminActions.tsx, profil admin d'un compte) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Écran rouge plein écran (styles de DangerConfirmScreen.tsx). Rouge et blanc fixes : identiques dans tous les thèmes. */
+  .phone { --danger-red: #C8102E; }
+  .sb { color: #fff; }                                   /* barre d'état transparente sur le rouge */
+  .danger { position: absolute; inset: 0; background: var(--danger-red); color: #fff; display: flex; flex-direction: column;
+    justify-content: space-between; padding: 48px var(--sp-4) var(--sp-4); }          /* paddingTop = insets.top + 24 */
+  .danger-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-3); text-align: center; }
+  .danger-title { font-size: 24px; }
+  .danger-body { font-size: 13px; line-height: 22px; opacity: .92; }
+  .danger-hint { font-size: 13px; }
+  .danger-input { align-self: stretch; margin-top: var(--sp-2); padding: 12px var(--sp-3); border: 2px solid #fff; border-radius: var(--r-sm);
+    text-align: center; letter-spacing: 4px; font-size: 18px; color: #fff; }
+  .danger-input.placeholder { color: rgba(255,255,255,.45); }
+  .danger-actions { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .confirm-btn { background: #fff; border-radius: var(--r-sm); padding: 15px 0; text-align: center; color: var(--danger-red); font-size: 14px; }
+  .confirm-btn.disabled { opacity: .35; }               /* tant que DELETE n'est pas tapé */
+  .cancel-btn { padding: 12px 0; border: 2px solid #fff; border-radius: var(--r-sm); text-align: center; font-size: 14px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Supprimer un utilisateur <small>confirmation rouge, DELETE tapé (bouton armé)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="danger">
+      <div class="danger-content">
+        <!-- Icône alert-octagon (MaterialCommunityIcons), 84 px -->
+        <svg width="84" height="84" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.27 3 3 8.27v7.46L8.27 21h7.46L21 15.73V8.27L15.73 3H8.27Z" fill="#fff"/>
+          <path d="M11 7h2v7h-2zM11 15.5h2v2h-2z" fill="var(--danger-red)"/>
+        </svg>
+        <div class="danger-title">Supprimer pixel_hunter ?</div>
+        <div class="danger-body">Action DÉFINITIVE et sans retour. Le compte sera supprimé avec tous ses flashs, ses demandes, ses commentaires et ses réactions.</div>
+        <div class="danger-hint">Tapez DELETE pour confirmer</div>
+        <div class="danger-input">DELETE</div>   <!-- texte tapé par l'admin -->
+      </div>
+
+      <div class="danger-actions">
+        <div class="confirm-btn">Supprimer définitivement</div>
+        <div class="cancel-btn">Annuler</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">S'ouvre depuis « Supprimer l'utilisateur » sur le profil admin d'un compte. Ici l'admin a tapé DELETE : le bouton blanc est armé (opacité pleine). Même composant que la suppression d'un invader, avec d'autres textes (ceux-ci sont accentués dans fr.json). En cas d'échec, une ligne « L'action a échoué. Vérifiez votre connexion. » apparaît sous le champ.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte — mode rareté — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/MapFilterBar.tsx + invader-markers.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Marqueurs « rareté » : images de l'app copiées dans 02-carte/assets (pas dans _shared) */
+  .mk-rar { position: absolute; transform: translate(-50%, -50%); display: block; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Carte — mode rareté <small>palette : Rareté</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs en mode « Rareté » : une teinte par niveau de points (les grisés restent gris) -->
+      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:62px; top:160px">
+      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:120px; top:215px">
+      <img class="mk-rar" src="../../_shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:250px; top:175px">
+      <img class="mk-rar" src="../../_shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:300px; top:250px">
+      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:85px; top:305px">
+      <img class="mk-rar" src="../../_shared/assets/marker-40pts-rarity.png" width="36" alt="" style="left:205px; top:290px">
+      <img class="mk-rar" src="../../_shared/assets/marker-100pts-rarity.png" width="46" alt="" style="left:140px; top:385px">
+      <img class="mk" data-pts="20" data-state="grey" style="left:285px; top:360px">
+      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:60px; top:450px">
+      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:250px; top:440px">
+      <img class="mk-rar" src="../../_shared/assets/marker-10pts-rarity.png" width="26" alt="" style="left:325px; top:470px">
+      <img class="mk-rar" src="../../_shared/assets/marker-50pts-rarity.png" width="40" alt="" style="left:125px; top:520px">
+      <img class="mk-rar" src="../../_shared/assets/marker-20pts-rarity.png" width="30" alt="" style="left:205px; top:560px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <img class="mk-rar" src="../../_shared/assets/marker-30pts-rarity.png" width="34" alt="" style="left:235px; top:665px">
+      <!-- Grappes (clusters) : rouge = au moins un non flashé, bleu = tous flashés -->
+      <div class="cluster" style="left:175px; top:120px">7</div>
+      <div class="cluster l blue" style="left:300px; top:545px">23</div>
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <!-- Panneau Palette : mode couleur + griser -->
+        <div class="fpanel">
+          <div class="fpanel-row"><span class="fpanel-label">Mode couleur</span><span class="info-btn sm">i</span></div>
+          <div class="fopt">Flash</div>
+          <div class="fopt on">Rareté</div>
+          <div class="fdivider"></div>
+          <div class="fpanel-label">Griser</div>
+          <div class="fopt on">Tous</div>
+          <div class="fopt">Off</div>
+        </div>
+        <div class="pxb hot"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Mode couleur « Rareté » : chaque niveau de points a sa teinte, quel que soit le statut flash. Griser ne propose plus que Tous / Off. Un réglage différent du défaut met le bouton Palette en couleur d'accent. Les grappes gardent leurs couleurs rouge / bleu.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

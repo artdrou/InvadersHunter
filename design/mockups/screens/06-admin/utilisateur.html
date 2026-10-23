@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil utilisateur (admin) — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/users/[id].tsx + features/settings/components/SettingsShell.tsx, StatCards.tsx + features/admin/components/UserAdminActions.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran : cartes de stats (StatCards.tsx) et boutons admin (UserAdminActions.tsx) */
+  .body-scroll { flex: 1; min-height: 0; }
+  .stat-label { color: var(--text-muted); font-size: var(--fs-xs); letter-spacing: 1px; text-transform: uppercase; padding: 0 var(--sp-2); }
+  .grid { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .cell, .cell-full { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3);
+    display: flex; flex-direction: column; gap: 2px; }
+  .cell { flex: 1 1 48%; min-width: 0; flex-basis: calc(50% - 4px); }
+  .cell-value { color: var(--accent); font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell-sub, .cell-caption { color: var(--text-muted); font-size: var(--fs-xs); }
+
+  /* Boutons admin */
+  .actions { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .act-btn { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); padding: 12px 0; border: 1px solid var(--c);
+    border-radius: var(--r-sm); color: var(--c); font-size: var(--fs-md); }
+  .act-btn .lucide { width: 18px; height: 18px; }
+  .act-btn.promote { --c: var(--accent); }
+  .act-btn.delete { --c: #C8102E; }        /* DANGER_RED fixe, identique dans tous les thèmes */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Profil utilisateur <small>vue admin d'un compte (défiler dans le téléphone)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête SettingsShell : retour + nom du compte -->
+      <div class="shell-header">
+        <span class="back">&lt; Retour</span>
+        <span class="shell-title">pixel_hunter</span>
+      </div>
+
+      <div class="body-scroll scroll">
+        <div class="shell-body">
+          <!-- Compte -->
+          <div class="section">
+            <div class="stat-label">Compte</div>
+            <div class="cell-full"><span class="cell-value">pixel.hunter@example.com</span><span class="cell-caption">Email</span></div>
+          </div>
+
+          <!-- Détails -->
+          <div class="section">
+            <div class="stat-label">Détails</div>
+            <div class="grid">
+              <div class="cell"><span class="cell-value">Utilisateur</span><span class="cell-caption">Rôle</span></div>
+              <div class="cell"><span class="cell-value">#42</span><span class="cell-caption">Identifiant</span></div>
+              <div class="cell"><span class="cell-value">FR</span><span class="cell-caption">Langue</span></div>
+              <div class="cell"><span class="cell-value">Oui</span><span class="cell-caption">Notifications</span></div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="section">
+            <div class="stat-label">Dates</div>
+            <div class="cell-full"><span class="cell-value">12/03/2026</span><span class="cell-caption">Inscription</span></div>
+            <div class="cell-full"><span class="cell-value">22/10/2026 18:04</span><span class="cell-caption">Dernière connexion</span></div>
+            <div class="cell-full"><span class="cell-value">14/03/2026</span><span class="cell-caption">Premier flash</span></div>
+            <div class="cell-full"><span class="cell-value">21/10/2026 11:37</span><span class="cell-caption">Dernier flash</span></div>
+            <div class="cell-full"><span class="cell-value">22/10/2026 09:12</span><span class="cell-caption">Dernière demande de modification</span></div>
+          </div>
+
+          <!-- Collection -->
+          <div class="section">
+            <div class="stat-label">Collection</div>
+            <div class="grid">
+              <div class="cell"><span class="cell-value">412</span><span class="cell-caption">Invaders flashes</span></div>
+              <div class="cell"><span class="cell-value">9</span><span class="cell-caption">Villes touchees</span></div>
+              <div class="cell"><span class="cell-value">2</span><span class="cell-caption">Villes completes</span></div>
+              <div class="cell"><span class="cell-value">3 891</span><span class="cell-caption">Restants a flasher</span></div>
+              <div class="cell"><span class="cell-value">37</span><span class="cell-caption">Detruits flashes</span></div>
+              <div class="cell"><span class="cell-value">Paris</span><span class="cell-sub">318/1503</span><span class="cell-caption">Ville la plus avancee</span></div>
+            </div>
+          </div>
+
+          <!-- Contributions -->
+          <div class="section">
+            <div class="stat-label">Contributions</div>
+            <div class="grid">
+              <div class="cell"><span class="cell-value">27</span><span class="cell-caption">Modifs envoyees</span></div>
+              <div class="cell"><span class="cell-value">19</span><span class="cell-caption">Modifs acceptees</span></div>
+              <div class="cell"><span class="cell-value">3</span><span class="cell-caption">Modifications refusées</span></div>
+              <div class="cell"><span class="cell-value">5</span><span class="cell-caption">Modifications en attente</span></div>
+              <div class="cell"><span class="cell-value">8</span><span class="cell-caption">Commentaires</span></div>
+            </div>
+          </div>
+
+          <!-- Actions admin -->
+          <div class="section">
+            <div class="stat-label">Actions</div>
+            <div class="actions">
+              <div class="act-btn promote"><i data-lucide="shield-check"></i>Promouvoir admin</div>
+              <div class="act-btn delete"><i data-lucide="trash-2"></i>Supprimer l'utilisateur</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Profil d'un compte vu par un admin (la page est longue : faire défiler à la molette dans le téléphone). Pour un compte déjà admin, le premier bouton devient « Retirer le statut admin » (icône bouclier vide). Sur son propre compte, les deux boutons sont remplacés par le texte « C'est votre compte : utilisez Réglages &gt; Profil pour le gérer. ». « Promouvoir admin » ouvre une boîte de confirmation Android ; « Supprimer l'utilisateur » ouvre l'écran rouge (voir supprimer-utilisateur.html).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

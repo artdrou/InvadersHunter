@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soumission — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/[id]/submissions/[subId].tsx + features/admin/components/TypeBadge.tsx, Diff.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/[id]/submissions/[subId].tsx). Tailles × 0,9 quand le code utilise sz(). */
+  .phone { --type-modify: var(--brand-yellow); }
+
+  .d-header { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--border); }
+  .back-accent { color: var(--accent); font-size: var(--fs-xl); padding-right: var(--sp-2); }
+  .d-title { flex: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .d-scroll { flex: 1; min-height: 0; padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .d-section { flex: none; background: var(--bg-element); border-radius: var(--r-md); border: 1px solid var(--border); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: 6px; }
+  .d-section-title { color: var(--text-muted); font-size: var(--fs-md); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .d-row { display: flex; justify-content: space-between; align-items: center; }
+  .meta-label { color: var(--text-muted); font-size: 12px; }
+  .meta-value { color: var(--text); font-size: 12px; }
+
+  /* Photo pleine largeur (appui = aperçu en grand) */
+  .photo { width: 100%; height: 200px; border-radius: var(--r-sm); display: grid; place-items: center; overflow: hidden;
+    background: repeating-linear-gradient(0deg, #6f7378 0 18px, #7b7f84 18px 19px), #6f7378; }   /* fausse photo (contenu) */
+
+  /* Diff */
+  .diff { margin-bottom: 6px; }
+  .diff-label { color: var(--text-muted); font-size: var(--fs-xxs); }
+  .diff-line { display: flex; align-items: center; gap: 8px; margin-top: 2px; font-size: var(--fs-sm); }
+  .diff-cur { color: var(--text-muted); }
+  .diff-new { color: var(--text); }
+  .diff-new.changed { color: var(--accent); }
+
+  .typebadge { --c: var(--type-modify); display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-sm); padding: 3px var(--sp-2);
+    border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--c); font-size: var(--fs-xs); letter-spacing: .5px; }
+  .typebadge .lucide { width: 12px; height: 12px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Soumission <small>envoi d'un joueur</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="d-header">
+        <span class="back-accent">‹ Retour</span>
+        <span class="d-title">Soumission</span>
+        <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+      </div>
+
+      <div class="d-scroll scroll">
+        <!-- Auteur + date -->
+        <div class="d-section">
+          <div class="d-row"><span class="meta-label">Par marie.flash</span><span class="meta-value">21/10/2026</span></div>
+        </div>
+
+        <!-- Photo envoyée -->
+        <div class="d-section">
+          <div class="d-section-title">Photo</div>
+          <div class="photo"><i class="spr" data-w="88" data-color="#e8e8e8"></i></div>
+        </div>
+
+        <!-- Changements proposés -->
+        <div class="d-section">
+          <div class="d-section-title">Proposé</div>
+          <div class="diff">
+            <div class="diff-label">État</div>
+            <div class="diff-line"><span class="diff-cur">Good</span><span class="diff-cur">→</span><span class="diff-new changed">Destroyed</span></div>
+          </div>
+          <div class="diff">
+            <div class="diff-label">Points</div>
+            <div class="diff-line"><span class="diff-cur">30</span><span class="diff-cur">→</span><span class="diff-new">30</span></div>
+          </div>
+          <div class="diff">
+            <div class="diff-label">Emplacement</div>
+            <div class="diff-line"><span class="diff-new changed">48.864201, 2.349874</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Détail d'une soumission, ouvert depuis la liste des soumissions. Lecture seule : pas de bouton d'action. Un appui sur la photo l'affiche en grand sur fond noir. L'emplacement proposé n'est pas comparé à l'actuel (pas de flèche).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

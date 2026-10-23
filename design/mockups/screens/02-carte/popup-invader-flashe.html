@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Popup — invader flashé — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/InvaderPopup/ (index, PopupShell, PopupView, PopupEdit, styles.ts, format.ts) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Rien de plus : le reste est dans carte-commun.css */
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Popup — invader flashé <small>invader déjà flashé</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="42"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) -->
+      <div class="ctl ctl-fab"><div class="pxb big"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Popup centré ; la carte place l'invader choisi juste sous la flèche -->
+      <div class="popup-wrap">
+        <div class="popup">
+          <div class="p-header"><span class="p-name">PA_1042</span><span class="p-close">✕</span></div>
+          <div class="p-image"><div class="photo"><i class="spr" data-w="150" data-color="#1cb5ff"></i></div></div>
+          <div class="p-divider"></div>
+          <div class="p-info">
+            <div class="p-row"><span class="p-label">Points</span><span class="p-value">30</span></div>
+            <div class="p-row"><span class="p-label">État</span><span class="p-value">Bon</span></div>
+            <div class="p-row"><span class="p-label">Posé</span><span class="p-value">01/01/2011</span></div>
+            <div class="p-row"><span class="p-label">Flashé</span><span class="p-value flashed">14/09/2026</span></div>
+          </div>
+          <div class="p-contrib">
+            <div>Découvert par <b>spacehunter</b></div>
+            <div>Mis à jour par <b>pixel_lou</b></div>
+          </div>
+          <div class="p-divider"></div>
+          <!-- Liens : itinéraire Google Maps, Instagram, InvaderSpotter, commentaires -->
+          <div class="p-links">
+            <span class="p-link"><i data-lucide="navigation" class="filled"></i></span>
+            <span class="p-link"><i data-lucide="instagram"></i></span>
+            <span class="p-link"><i data-lucide="globe"></i></span>
+            <span class="p-link"><i data-lucide="messages-square"></i><span class="count-badge new">4</span></span>
+          </div>
+          <div class="p-btn unflash">Déflasher</div>
+          <div class="p-modify">Modifier</div>
+        </div>
+        <div class="popup-arrow"></div>
+        <div style="position:relative; height:0"><img class="mk" data-pts="30" data-state="captured" style="left:0; top:20px"></div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Popup d'un invader déjà flashé : date de flash en couleur « succès », bouton « Déflasher » en contour rouge. Badge de commentaires rouge = nouveaux commentaires pas encore lus (couleur d'accent sinon, absent s'il n'y en a aucun). La photo est une image factice. Si l'invader a un commentaire aimé, une ligne en italique (icône bulle) s'ajoute sous « Flashé » (voir popup-invader-non-flashe.html) : avec la photo, le popup dépasse alors de cet écran de 800 px, car l'app ne le fait pas défiler.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

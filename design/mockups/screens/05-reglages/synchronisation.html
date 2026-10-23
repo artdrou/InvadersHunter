@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synchronisation — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/sync.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  .outline-btn { padding: 14px var(--sp-4); border: 1px solid var(--border); border-radius: var(--r-sm); text-align: center;
+    color: var(--accent); font-size: var(--fs-md); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Synchronisation <small>Réglages › Synchronisation</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Synchronisation</div>
+      </div>
+
+      <div class="shell-body">
+        <div class="outline-btn">Synchroniser maintenant</div>
+        <div class="outline-btn">Importer mes flashes</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Pendant une synchro, le 1er bouton affiche « Synchronisation... ». Le 2e ouvre la page Import des flashes.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

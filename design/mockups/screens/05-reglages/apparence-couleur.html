@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apparence — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/settings/appearance.tsx + features/settings/components/ColorPickerModal.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* SettingsShell : contenu centré verticalement sous le titre, qui défile s'il dépasse */
+  .shell-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; justify-content: safe center; }
+  .shell-body::-webkit-scrollbar { display: none; }
+  .shell-body > * { flex-shrink: 0; }
+  /* Styles propres à appearance.tsx */
+  .subcat { color: var(--accent); font-size: var(--fs-md); letter-spacing: 2px; text-transform: uppercase; }
+  .subcat.spaced { margin-top: var(--sp-2); }
+  .ap-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .ap-label { color: var(--text-muted); font-size: var(--fs-sm); letter-spacing: 1px; text-transform: uppercase; }
+  .theme-row { display: flex; gap: var(--sp-2); }
+  .theme-opt { flex: 1; padding: 10px 0; text-align: center; border-radius: var(--r-sm); border: 1px solid var(--border);
+    background: var(--bg-element); color: var(--text-muted); font-size: var(--fs-md); }
+  .theme-opt.active { border-color: var(--accent); color: var(--accent); }
+  .swatch-row { display: flex; align-items: center; gap: var(--sp-3); }
+  .big-swatch { width: 44px; height: 44px; border-radius: var(--r-sm); border: 2px solid var(--border); }
+  .reset-btn { padding: 8px var(--sp-3); border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: var(--fs-md); }
+  /* Ligne à interrupteur */
+  .toggle-row { display: flex; align-items: center; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: var(--sp-3); }
+  .toggle-label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .toggle-text { color: var(--text); font-size: var(--fs-md); }
+  .toggle-sub { color: var(--text-muted); font-size: var(--fs-xs); line-height: 20px; }
+  /* Compteur − / + (zoom de regroupement) */
+  .stepper { display: flex; align-items: center; gap: var(--sp-2); }
+  .stepper-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: var(--fs-xl); line-height: 24px; }
+  .stepper-value { min-width: 28px; text-align: center; color: var(--text); font-size: var(--fs-lg); }
+  /* ColorPickerModal.tsx */
+  .cp-overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.7); display: flex; align-items: center;
+    justify-content: center; padding: var(--sp-4); }
+  .cp-card { width: 100%; max-width: 360px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .cp-title { font-size: var(--fs-xl); letter-spacing: 1px; }
+  .cp-grid { display: flex; flex-direction: column; gap: var(--sp-1); }
+  .cp-row { display: flex; gap: var(--sp-1); }
+  .cp-swatch { flex: 1; aspect-ratio: 1; border-radius: var(--r-sm); border: 2px solid var(--border); }
+  .cp-swatch.active { border: 3px solid var(--text); }
+  .cp-hex-row { display: flex; gap: var(--sp-2); align-items: center; }
+  .cp-preview { width: 44px; height: 44px; border-radius: var(--r-sm); border: 2px solid var(--border); flex: none; }
+  /* Le champ hex n'a pas de police définie dans l'app → police système */
+  .cp-input { flex: 1; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg); color: var(--text);
+    padding: 10px var(--sp-3); font: 16px/1.25 Roboto, system-ui, sans-serif; }
+  .cp-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-2); }
+  .cp-btn { flex: 1; padding: 12px 0; text-align: center; border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: var(--fs-md); }
+  .cp-btn.primary { border: 0; color: var(--bg); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Apparence <small>sélecteur de couleur ouvert</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête commun des sous-pages (SettingsShell) -->
+      <div class="shell-header">
+        <div class="back">&lt; Retour</div>
+        <div class="shell-title">Apparence</div>
+      </div>
+
+      <div class="shell-body">
+        <!-- ── Theme ── -->
+        <div class="subcat">Theme</div>
+
+        <div class="ap-section">
+          <div class="ap-label">Theme</div>
+          <div class="theme-row">
+            <div class="theme-opt active">Sombre</div>
+            <div class="theme-opt">Clair</div>
+            <div class="theme-opt">Ambre</div>
+            <div class="theme-opt">Matrix</div>
+          </div>
+        </div>
+
+        <!-- Couleur d'accent : le carré prend la couleur d'accent du thème ; « Reinitialiser » n'apparaît qu'après un choix perso -->
+        <div class="ap-section">
+          <div class="ap-label">Couleur d'accent</div>
+          <div class="swatch-row"><div class="big-swatch" style="background: var(--accent)"></div></div>
+        </div>
+
+        <div class="ap-section">
+          <div class="ap-label">Couleur du tracé</div>
+          <div class="swatch-row"><div class="big-swatch" style="background: var(--route-path)"></div></div>
+        </div>
+
+        <!-- ── Chasse ── -->
+        <div class="subcat spaced">Chasse</div>
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Lueur de l'itineraire</div><div class="toggle-sub">Effet de lumiere anime sur le trace</div></div>
+          <span class="switch on"></span>
+        </div>
+
+        <!-- ── Carte ── -->
+        <div class="subcat spaced">Carte</div>
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Regroupement</div><div class="toggle-sub">Regrouper les invaders proches en bulles</div></div>
+          <span class="switch on"></span>
+        </div>
+        <!-- Visible seulement si le regroupement est activé -->
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Zoom de regroupement</div><div class="toggle-sub">Niveau de zoom en dessous duquel les invaders se regroupent</div></div>
+          <div class="stepper"><div class="stepper-btn">−</div><div class="stepper-value">10</div><div class="stepper-btn">+</div></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Carte allegee</div><div class="toggle-sub">Moins de details pour une navigation plus fluide sur appareils anciens</div></div>
+          <span class="switch"></span>
+        </div>
+        <!-- Points d'interet et Batiments 3D sont masqués quand la carte allégée est activée -->
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Points d'interet</div><div class="toggle-sub">Afficher commerces, stations et autres labels</div></div>
+          <span class="switch on"></span>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label"><div class="toggle-text">Batiments 3D</div><div class="toggle-sub">Afficher les batiments en 3D en zoomant (plus lourd a afficher)</div></div>
+          <span class="switch"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fenêtre « Couleur d'accent » ouverte : la couleur #00ddff vient d'être touchée dans la grille
+         (le titre, l'aperçu et le bouton Valider prennent la couleur choisie) -->
+    <div class="cp-overlay">
+      <div class="cp-card">
+        <div class="cp-title" style="color:#00ddff">Couleur d'accent</div>
+        <div class="cp-grid">
+          <div class="cp-row"><div class="cp-swatch" style="background:#ff0033"></div><div class="cp-swatch" style="background:#ff3300"></div><div class="cp-swatch" style="background:#ff6600"></div><div class="cp-swatch" style="background:#ff8800"></div><div class="cp-swatch" style="background:#ffaa00"></div></div>
+          <div class="cp-row"><div class="cp-swatch" style="background:#ffcc00"></div><div class="cp-swatch" style="background:#ffe000"></div><div class="cp-swatch" style="background:#ffff00"></div><div class="cp-swatch" style="background:#eeff00"></div><div class="cp-swatch" style="background:#ccff00"></div></div>
+          <div class="cp-row"><div class="cp-swatch" style="background:#88ff00"></div><div class="cp-swatch" style="background:#00ff00"></div><div class="cp-swatch" style="background:#00ff66"></div><div class="cp-swatch" style="background:#00ffaa"></div><div class="cp-swatch" style="background:#00ffcc"></div></div>
+          <div class="cp-row"><div class="cp-swatch" style="background:#00ffff"></div><div class="cp-swatch active" style="background:#00ddff"></div><div class="cp-swatch" style="background:#00aaff"></div><div class="cp-swatch" style="background:#0077ff"></div><div class="cp-swatch" style="background:#0044ff"></div></div>
+          <div class="cp-row"><div class="cp-swatch" style="background:#4400ff"></div><div class="cp-swatch" style="background:#8800ff"></div><div class="cp-swatch" style="background:#cc00ff"></div><div class="cp-swatch" style="background:#ff00cc"></div><div class="cp-swatch" style="background:#ff0088"></div></div>
+        </div>
+        <div class="cp-hex-row">
+          <div class="cp-preview" style="background:#00ddff"></div>
+          <div class="cp-input">#00ddff</div>
+        </div>
+        <div class="cp-actions">
+          <div class="cp-btn">Annuler</div>
+          <div class="cp-btn">Reinitialiser</div>
+          <div class="cp-btn primary" style="background:#00ddff">Valider</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Fenêtre ouverte en touchant le carré « Couleur d'accent » (même fenêtre pour « Couleur du tracé » et pour les couleurs des markers ; ces dernières n'ont pas le bouton « Reinitialiser »). À l'ouverture, la couleur actuelle est présélectionnée ; ici on montre l'état après avoir touché une autre case. Valider est grisé (40 %) si le code hex tapé est invalide.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

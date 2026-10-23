@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démarrage — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/index.tsx (simple redirection vers la carte) + frontend/app.json (plugin expo-splash-screen) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Écran de lancement natif (app.json) : fond fixe #0a0f1e, image de 280 px de large, centrée.
+     Ce fond ne suit PAS le thème choisi : il est le même dans les 4 thèmes. */
+  .splash { position: absolute; inset: 0; background: #0a0f1e; display: flex; align-items: center; justify-content: center; }
+  .splash img { width: 280px; height: auto; display: block; }
+  .phone .sb { color: #e8f0fe; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Démarrage <small>écran de lancement</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <!-- Écran de lancement -->
+    <div class="splash">
+      <img src="../../_shared/assets/splash-icon.png" alt="">
+    </div>
+  </div>
+
+  <p class="page-notes">index.tsx ne dessine rien : il redirige tout de suite vers la carte (ou vers la connexion si on n'est pas connecté).
+    Ce qu'on voit au démarrage est l'écran de lancement natif défini dans app.json (fond #0a0f1e, image de 280 px), affiché tant que les polices et les traductions chargent.
+    Sa couleur est fixe : elle ne change pas avec le thème.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

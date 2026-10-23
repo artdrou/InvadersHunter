@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications admin — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/notifications.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/notifications.tsx) */
+  .n-header { padding: var(--sp-3) var(--sp-4) var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }  /* paddingTop = insets.top + 16 */
+  .n-body { padding: 0 var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .n-row { display: flex; align-items: center; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: var(--sp-3); }
+  .n-row.disabled { opacity: .5; }                    /* quand « Notifications actives » est coupé */
+  .n-label-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .n-label { color: var(--text); font-size: var(--fs-md); }
+  .n-sub { color: var(--text-muted); font-size: var(--fs-xs); line-height: 20px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Notifications <small>alertes push pour tous les joueurs</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="n-header">
+        <span class="back">&lt; Retour</span>
+        <span class="shell-title">Notifications</span>
+      </div>
+
+      <div class="n-body">
+        <div class="n-row">
+          <div class="n-label-wrap"><span class="n-label">Notifications actives</span><span class="n-sub">Coupe-circuit global : desactive toutes les notifications push</span></div>
+          <span class="switch on"></span>
+        </div>
+        <div class="n-row">
+          <div class="n-label-wrap"><span class="n-label">Nouveaux invaders</span><span class="n-sub">Notifier a chaque nouvel invader ajoute</span></div>
+          <span class="switch on"></span>
+        </div>
+        <div class="n-row">
+          <div class="n-label-wrap"><span class="n-label">Invaders modifies</span><span class="n-sub">Notifier a chaque invader modifie</span></div>
+          <span class="switch"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Réglages globaux des notifications push (valables pour tous les joueurs), ouverts depuis Admin › Outils › Notifications. Quand « Notifications actives » est coupé, les deux lignes du dessous passent à 50 % d'opacité et ne sont plus modifiables (classe <code>disabled</code>). Pendant l'enregistrement, l'interrupteur est remplacé par une petite roue de chargement.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

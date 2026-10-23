@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Créer un invader ici — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/CreateHerePopup.tsx + CenterPin.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* CreateHerePopup : petite carte au-dessus de l'épingle (police système, gras 600) */
+  .create-here { position: absolute; left: 0; right: 0; bottom: 52%; z-index: 20; display: flex; justify-content: center; }
+  .ch-card { min-width: 160px; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: var(--sp-2) 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-sys); font-weight: 600; }
+  .ch-label { color: var(--text); font-size: var(--fs-sm); margin-bottom: 2px; }
+  .ch-btn { width: 100%; text-align: center; padding: 4px var(--sp-3); border-radius: var(--r-sm); font-size: var(--fs-xs); white-space: nowrap; }
+  .ch-btn.primary { background: var(--accent); color: var(--bg); }
+  .ch-btn.outline { border: 1px solid var(--accent); color: var(--accent); }
+  .ch-btn.muted { border: 1px solid var(--border); color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Créer un invader ici <small>appui long sur la carte</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="23"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Épingle au centre de l'écran (on déplace la carte dessous) -->
+      <div class="center-pin"><div class="pin"></div><div class="stem"></div></div>
+      <!-- Carte « Créer un invader ici ? » -->
+      <div class="create-here">
+        <div class="ch-card">
+          <span class="ch-label">Créer un invader ici ?</span>
+          <span class="ch-btn primary">Créer</span>
+          <span class="ch-btn outline">Placer un invader connu</span>
+          <span class="ch-btn muted">Annuler</span>
+        </div>
+      </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Appui long sur la carte : une épingle se pose au centre et une petite carte propose de créer un invader à cet endroit, ou d'y placer un invader connu qui n'a pas encore de position (invaders-sans-position.html). La barre de filtres, le bouton amis et le bouton itinéraire sont masqués pendant ce choix. Textes en police système grasse (pas de police dans le code).</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choisir une position — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/map/components/MapLocationPicker.tsx + CenterPin.tsx + CoordinateInput.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* MapLocationPicker : champ de coordonnées en haut, barre Annuler / Valider en bas (police système, gras 600) */
+  .pk-coords { position: absolute; top: 32px; left: 16px; right: 16px; z-index: 20; }
+  .pk-field { display: flex; align-items: center; gap: 4px; min-height: 44px; background: var(--bg-element); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 0 4px 0 var(--sp-2); }
+  .pk-field .txt { flex: 1; padding: var(--sp-2) 0; color: var(--text-muted); font-size: 13px; }
+  .pk-go { padding: var(--sp-2); border-radius: var(--r-sm); background: var(--accent); color: var(--bg); display: flex; }
+  .pk-go .lucide { width: 18px; height: 18px; }
+  .pk-bar { position: absolute; left: 16px; right: 16px; bottom: 32px; z-index: 20; display: flex; gap: var(--sp-3); }
+  .pk-btn { flex: 1; height: 48px; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid transparent;
+    font: 600 var(--fs-sm)/1 var(--font-sys); }
+  .pk-btn.cancel { background: var(--bg-element); border-color: var(--border); color: var(--text-muted); }
+  .pk-btn.ok { background: var(--accent); color: var(--bg); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Choisir une position <small>sélecteur de position plein écran</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area full">
+        <canvas class="map" data-seed="31"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:160px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:250px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:60px; top:450px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:205px; top:690px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:330px; top:110px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:150px; top:330px">
+      <!-- Ma position (point + cône d'orientation) -->
+      <div class="user-loc" style="left:185px; top:450px"></div>
+      <!-- Boussole et bouton « me localiser » (remontés au-dessus de la barre Annuler / Valider) -->
+      <div class="ctl ctl-compass lifted"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate lifted"><div class="aim"></div></div>
+      <!-- Épingle fixe au centre : on fait glisser la carte dessous -->
+      <div class="center-pin"><div class="pin"></div><div class="stem"></div></div>
+      <!-- Champ « coordonnées ou lien de carte » -->
+      <div class="pk-coords">
+        <div class="pk-field"><span class="txt">Coordonnées ou lien de carte</span><span class="pk-go"><i data-lucide="locate-fixed"></i></span></div>
+      </div>
+      <!-- Barre Annuler / Valider -->
+      <div class="pk-bar"><span class="pk-btn cancel">Annuler</span><span class="pk-btn ok">Valider</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Sélecteur commun (position d'un invader à modifier, position d'un nouvel invader, départ / arrivée d'itinéraire). Plein écran : la barre d'onglets, les filtres et les boutons du haut disparaissent ; boussole et « me localiser » remontent au-dessus de la barre. On peut taper ou coller une position (décimal, degrés, lien Google Maps…) : bord rouge et « Coordonnées non reconnues » si elle est illisible ; une croix apparaît pour vider le champ.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

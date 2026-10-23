@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel Chasse — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/tutorial/components/TutorialModal.tsx + InfoButton.tsx,
+     pages définies dans features/routing/components/RoutingSheet/tutorial.tsx (bouton dans RoutingSheet/index.tsx) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* ── Fenêtre tutoriel (makeStyles de TutorialModal.tsx) ── */
+  .tuto-overlay { position: absolute; inset: 0; z-index: 60; background: rgba(0,0,0,0.72); display: flex; align-items: center; justify-content: center; padding: var(--sp-4); }
+  /* Hauteur fixe = 78 % de l'écran */
+  .tuto { width: 100%; max-width: 380px; height: 78%; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-lg);
+    overflow: hidden; display: flex; flex-direction: column; }
+  .tuto-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--bg-divider); }
+  .tuto-title { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .tuto-close { color: var(--text-muted); font-size: var(--fs-lg); }
+  .tuto-page { flex: 1; min-height: 0; padding: var(--sp-3) var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .tuto-foot { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-top: 1px solid var(--bg-divider); }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 4px; background: var(--border); }
+  .dot.on { background: var(--accent); }
+  .got-it { width: 100%; text-align: center; padding: 10px; border-radius: var(--r-sm); background: var(--accent); color: var(--on-accent); font-size: var(--fs-md); }
+
+  /* Le contenu des pages utilise la police système du téléphone (Fonts.sans), pas FreePixel */
+  .sys { font-family: Roboto, system-ui, 'Segoe UI', sans-serif; }
+  .t-section { display: flex; flex-direction: column; gap: 4px; }
+  .t-label { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .t-body { color: var(--text-muted); font-size: var(--fs-sm); line-height: 20px; }
+
+  /* Étapes numérotées */
+  .t-step { display: flex; gap: var(--sp-2); align-items: flex-start; }
+  .t-num { flex: none; width: 24px; height: 24px; border-radius: 12px; border: 1.5px solid var(--border); margin-top: 2px;
+    display: grid; place-items: center; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 700; }
+  .t-step-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .t-step-title { color: var(--text); font-size: var(--fs-sm); font-weight: 600; }
+
+  /* ── Derrière : haut du panneau Chasse (RoutingSheet/styles.ts) ── */
+  .hunt { position: absolute; left: 8px; right: 8px; top: 32px; z-index: 10; background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); }
+  .hunt-title { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 0.5px solid var(--bg-divider); }
+  .hunt-title span:first-child { color: var(--accent); font-size: var(--fs-xl); letter-spacing: 1px; }
+  .hunt-fields { padding: var(--sp-2) var(--sp-3) var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-1); }
+  .hunt-fields .input { padding: 8px 12px; font-size: var(--fs-sm); }
+  /* Bouton « i » (InfoButton.tsx) : cercle 22 px, bord 1,5 px, « i » à 52 % de la taille + mot « help » */
+  .info-btn { display: flex; align-items: center; gap: 5px; color: var(--accent); }
+  .info-btn i { width: 22px; height: 22px; border-radius: 11px; border: 1.5px solid currentColor; background: var(--bg-element);
+    display: grid; place-items: center; font-style: normal; font-size: 11px; }
+  .info-btn small { font-size: var(--fs-xs); letter-spacing: .5px; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Tutoriel <small>fenêtre d'aide du panneau Chasse (page 2/4)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+
+    <!-- Écran derrière : la carte (version simplifiée) -->
+    <div class="screen">
+      <div class="content">
+        <canvas class="map" data-seed="5"></canvas>
+        <img class="mk" data-pts="20" data-state="captured" style="left: 70px; top: 150px">
+        <img class="mk" data-pts="10" data-state="uncaptured" style="left: 240px; top: 120px">
+        <img class="mk" data-pts="30" data-state="uncaptured" style="left: 300px; top: 260px">
+        <img class="mk" data-pts="50" data-state="captured" style="left: 120px; top: 330px">
+        <img class="mk" data-pts="40" data-state="uncaptured" style="left: 60px; top: 520px">
+        <img class="mk" data-pts="100" data-state="uncaptured" style="left: 280px; top: 560px">
+        <div class="loc-dot" style="left: 180px; top: 360px"></div>
+        <!-- Panneau Chasse ouvert (simplifié) avec son bouton d'aide -->
+        <div class="hunt">
+          <div class="hunt-title"><span>Chasse</span><span class="info-btn"><i>i</i><small>help</small></span></div>
+          <div class="hunt-fields">
+            <div class="input placeholder">Départ</div>
+            <div class="input placeholder">Arrivée</div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+
+    <!-- Fenêtre tutoriel -->
+    <div class="tuto-overlay">
+      <div class="tuto">
+        <!-- En-tête : le titre change avec la page -->
+        <div class="tuto-head">
+          <span class="tuto-title">Depart &amp; arrivee</span>
+          <span class="tuto-close">✕</span>
+        </div>
+
+        <!-- Page 2 sur 4 -->
+        <div class="tuto-page scroll sys">
+          <div class="t-section">
+            <div class="t-label">Depart &amp; arrivee</div>
+            <div class="t-body">Definis d'ou part ton trajet et ou il se termine.</div>
+          </div>
+          <div class="t-step"><span class="t-num">1</span><div class="t-step-body">
+            <div class="t-step-title">Rechercher une adresse</div>
+            <div class="t-body">Tape dans le champ de recherche pour trouver n'importe quelle adresse.</div></div></div>
+          <div class="t-step"><span class="t-num">2</span><div class="t-step-body">
+            <div class="t-step-title">Choisir sur la carte</div>
+            <div class="t-body">Appuie sur l'icone carte pour fermer le panneau et poser un repere a l'emplacement voulu.</div></div></div>
+          <div class="t-step"><span class="t-num">3</span><div class="t-step-body">
+            <div class="t-step-title">Utiliser ta position</div>
+            <div class="t-body">Appuie sur l'icone de localisation pour utiliser ta position GPS comme point de depart.</div></div></div>
+          <div class="t-step"><span class="t-num">4</span><div class="t-step-body">
+            <div class="t-step-title">Mode boucle</div>
+            <div class="t-body">Active le chip Boucle dans les options pour remplacer l'arrivee par un circuit, le trajet revient a ton point de depart.</div></div></div>
+          <!-- Ici l'app affiche ensuite un aperçu miniature du panneau Chasse (RoutingPanelPreview), non redessiné -->
+        </div>
+
+        <!-- Pied : points de page + bouton -->
+        <div class="tuto-foot">
+          <div class="dots"><span class="dot"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="got-it">Compris</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Même fenêtre que tutoriel.html, ouverte par le bouton « i help » du panneau Chasse (visible derrière, en haut). 4 pages : Vue d'ensemble, Depart &amp; arrivee, Detour, Invaders.
+    Les étapes sont numérotées dans des pastilles rondes. Sous les étapes, l'app montre un aperçu miniature du panneau avec les zones concernées surlignées (RoutingPanelPreview) : pas reproduit ici.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

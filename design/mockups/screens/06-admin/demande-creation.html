@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Requête de création — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/[id].tsx + features/admin/components/StatusBadge.tsx, TypeBadge.tsx, ConfidenceBadge.tsx, Diff.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/[id].tsx). Tailles × 0,9 quand le code utilise sz(). */
+  .phone { --type-create: #0060f0; --type-modify: var(--brand-yellow); --pending: #f0a500; }
+
+  /* En-tête : « ‹ Retour » · nom de l'invader · statut, trait en dessous */
+  .d-header { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--border); }
+  .back-accent { color: var(--accent); font-size: var(--fs-xl); padding-right: var(--sp-2); }
+  .d-title { flex: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Contenu défilant (paddingBottom 120 pour passer sous la barre d'actions) */
+  .d-scroll { flex: 1; min-height: 0; padding: var(--sp-3) var(--sp-3) 120px; display: flex; flex-direction: column; gap: var(--sp-3); }
+  .d-section { flex: none; background: var(--bg-element); border-radius: var(--r-md); border: 1px solid var(--border); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: 6px; }
+  .d-section-title { color: var(--text-muted); font-size: var(--fs-md); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .d-row { display: flex; justify-content: space-between; align-items: center; }
+  .meta-label { color: var(--text-muted); font-size: 12px; }
+  .meta-value { color: var(--text); font-size: 12px; }
+
+  /* Diff : libellé, puis « actuel → proposé » (proposé en accent s'il change) */
+  .diff { margin-bottom: 6px; }
+  .diff-label { color: var(--text-muted); font-size: var(--fs-xxs); }
+  .diff-line { display: flex; align-items: center; gap: 8px; margin-top: 2px; font-size: var(--fs-sm); }
+  .diff-cur { color: var(--text-muted); }
+  .diff-new { color: var(--text); }
+  .diff-new.changed { color: var(--accent); }
+  .loc-label { color: var(--text-muted); font-size: 10px; margin-bottom: 2px; }
+  .map-btn { margin-top: var(--sp-2); border: 1px solid var(--accent); border-radius: var(--r-sm); padding: 8px 0; text-align: center;
+    color: var(--accent); font-size: var(--fs-lg); }
+
+  /* Choix de la photo (bande horizontale) */
+  .photo-strip { display: flex; gap: var(--sp-2); padding: 4px 0; overflow: hidden; }
+  .photo-frame { flex: none; border: 2px solid transparent; border-radius: var(--r-sm); padding: 2px; display: flex; flex-direction: column; align-items: center; }
+  .photo-frame.selected { border-color: var(--accent); }
+  .photo-thumb { width: 96px; height: 96px; border-radius: var(--r-sm); display: grid; place-items: center; overflow: hidden; }
+  .photo-caption { color: var(--text-muted); font-size: 9px; margin-top: 2px; max-width: 96px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Fausses photos de mosaïque (contenu, pas des couleurs du thème) */
+  .ph1 { background: repeating-linear-gradient(0deg, #6f7378 0 12px, #7b7f84 12px 13px), #6f7378; }
+  .ph2 { background: repeating-linear-gradient(90deg, #a88a6d 0 18px, #9b7e62 18px 19px), #a88a6d; }
+  .ph3 { background: linear-gradient(160deg, #3d4a57, #24303b); }
+
+  /* Lien vers les soumissions */
+  .subs-cta { flex: none; display: flex; align-items: center; justify-content: space-between; background: var(--bg-element);
+    border-radius: var(--r-md); border: 1px solid var(--border); padding: var(--sp-3); }
+  .subs-cta span:first-child { color: var(--text); font-size: 13px; }
+  .subs-cta span:last-child { color: var(--accent); font-size: var(--fs-xl); line-height: 1; }
+
+  /* Barre d'actions fixée en bas (requête en attente seulement) */
+  .actions { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: var(--sp-2); padding: var(--sp-3);
+    background: var(--bg); border-top: 1px solid var(--border); z-index: 5; }
+  .reject-btn, .approve-btn { flex: 1; padding: 14px 0; border-radius: var(--r-sm); text-align: center; font-size: var(--fs-xl); }
+  .reject-btn { border: 1px solid var(--danger); color: var(--danger); }
+  .approve-btn { background: var(--accent); color: var(--on-accent); }
+
+  /* StatusBadge / TypeBadge / ConfidenceBadge */
+  .status { --c: var(--pending); border-radius: var(--r-sm); padding: 3px var(--sp-2); border: 1px solid var(--c);
+    background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--c); font-size: var(--fs-xs); letter-spacing: .5px; white-space: nowrap; }
+  .typebadge { --c: var(--type-modify); display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-sm); padding: 3px var(--sp-2);
+    border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--c); font-size: var(--fs-xs); letter-spacing: .5px; }
+  .typebadge.create { --c: var(--type-create); }
+  .typebadge .lucide { width: 12px; height: 12px; }
+  .conf { border-radius: 4px; padding: 2px 6px; min-width: 38px; text-align: center; color: #fff; font-size: var(--fs-xs); background: var(--text-muted); }
+  .conf.hi { background: var(--success); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Requête <small>création d'un nouvel invader</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <!-- En-tête -->
+      <div class="d-header">
+        <span class="back-accent">‹ Retour</span>
+        <span class="d-title">BXL_071</span>
+        <span class="status">en attente</span>
+      </div>
+
+      <div class="d-scroll scroll">
+        <!-- Méta : type, votes, confiance -->
+        <div class="d-section">
+          <div class="d-row"><span class="meta-label">Type</span><span class="typebadge create"><i data-lucide="plus-circle"></i>CREATE</span></div>
+          <div class="d-row"><span class="meta-label">Votes</span><span class="meta-value">4</span></div>
+          <div class="d-row"><span class="meta-label">Confiance</span><span class="conf hi">76%</span></div>
+        </div>
+
+        <!-- Pas de section « Actuel » : l'invader n'existe pas encore -->
+
+        <!-- Changements proposés (Diff) -->
+        <div class="d-section">
+          <div class="d-section-title">Proposé</div>
+          <div class="diff">
+            <div class="diff-label">Nom</div>
+            <div class="diff-line"><span class="diff-new changed">BXL_071</span></div>
+          </div>
+          <div class="diff">
+            <div class="diff-label">État</div>
+            <div class="diff-line"><span class="diff-new changed">Good</span></div>
+          </div>
+          <div class="diff">
+            <div class="diff-label">Points</div>
+            <div class="diff-line"><span class="diff-new changed">20</span></div>
+          </div>
+          <div class="diff">
+            <div class="diff-label">Année de pose</div>
+            <div class="diff-line"><span class="diff-new changed">2025</span></div>
+          </div>
+          <div>
+            <div class="loc-label">Emplacement</div>
+            <div class="meta-value" style="color: var(--accent)">50.846211, 4.352473 (barycentre)</div>
+            <div class="map-btn">Examiner sur la carte</div>
+          </div>
+        </div>
+
+        <!-- Photo : choix parmi les photos des soumissions (cadre accent = choisie) -->
+        <div class="d-section">
+          <div class="d-section-title">Photo</div>
+          <div class="photo-strip">
+            <div class="photo-frame selected"><div class="photo-thumb ph1"><i class="spr" data-w="44" data-color="#e8e8e8"></i></div><span class="photo-caption">pixel_hunter</span></div>
+            <div class="photo-frame"><div class="photo-thumb ph2"><i class="spr" data-w="40" data-color="#3a2a1f"></i></div><span class="photo-caption">marie.flash</span></div>
+            <div class="photo-frame"><div class="photo-thumb ph3"><i class="spr" data-w="36" data-color="#5fd0ff"></i></div><span class="photo-caption">#118</span></div>
+          </div>
+        </div>
+
+        <!-- Soumissions -->
+        <div class="subs-cta"><span>Voir les 4 soumissions</span><span>›</span></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <span class="reject-btn">Rejeter</span>
+        <span class="approve-btn">Approuver</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Détail d'une requête « CREATE » en attente : un invader absent de la base, proposé par 4 joueurs. Pas de section « Actuel », et le Diff montre seulement les valeurs proposées (toutes en accent, sans flèche). Le titre est le nom proposé.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

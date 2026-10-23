@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importer mes flashes — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/flash-import.tsx (+ features/flash-import/) -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de flash-import.tsx).
+     Ce tutoriel utilise la police système du téléphone (Roboto) pour la lisibilité des longs textes ;
+     seuls les numéros d'étape et les boutons sont en police pixel (AppFont). */
+  .fi { flex: 1; min-height: 0; font-family: Roboto, system-ui, 'Segoe UI', sans-serif;
+    /* paddingTop = insets.top + 16 (barre d'état déjà comptée par .screen), paddingBottom = insets.bottom + 32 */
+    padding: var(--sp-3) var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .fi > * { flex: none; }
+  .fi-header { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .fi-back { align-self: flex-start; padding: 4px 0; color: var(--text-muted); font-size: 13px; /* sz(14) */ }
+  .fi-title { color: var(--accent); font-size: 24px; /* sz(27) */ letter-spacing: 1px; }
+  .fi-intro { color: var(--text); font-size: 13px; line-height: 18px; }
+
+  /* Étapes numérotées */
+  .step { display: flex; gap: var(--sp-3); background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-sm); padding: var(--sp-3); }
+  .step-badge { width: 28px; height: 28px; flex: none; border-radius: 14px; background: var(--accent); color: var(--bg);
+    display: grid; place-items: center; font-family: var(--font); font-size: var(--fs-sm); }
+  .step-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .step-title { color: var(--text); font-size: 14px; /* sz(16) */ }
+  .step-text { color: var(--text-muted); font-size: 13px; /* sz(14) */ line-height: 17px; }
+
+  /* Boutons (texte en police pixel) */
+  .fi-btn { border: 1px solid var(--accent); background: var(--bg-element); border-radius: var(--r-sm); padding: 14px 0;
+    text-align: center; color: var(--accent); font-family: var(--font); font-size: var(--fs-md); }
+  .fi-btn.secondary { border-color: var(--border); padding: 12px 0; }
+  .fi-note { color: var(--text-muted); font-size: 12px; /* sz(13) */ line-height: 15px; }
+  .fi-divider { height: 1px; background: var(--bg-divider); margin: var(--sp-2) 0; }
+  .fi-section { color: var(--text); font-size: 14px; /* sz(16) */ letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Zone de texte « coller une liste » */
+  .fi-area { min-height: 120px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg-element);
+    padding: var(--sp-3); font-size: 13px; color: var(--text); white-space: pre-line; }
+  .fi-area.placeholder { color: var(--text-muted); }
+
+  /* Résultat de l'import */
+  .fi-result { border: 1px solid var(--success); border-radius: var(--r-sm); padding: var(--sp-3); display: flex; flex-direction: column; gap: 4px; }
+  .fi-result p { margin: 0; color: var(--text); font-size: 13px; }
+  .fi-result b { font-weight: normal; color: var(--accent); font-family: var(--font); }
+  .fi-result .done { color: var(--text-muted); font-size: 12px; margin-top: var(--sp-2); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Import des flashes <small>page tutoriel (ouverte depuis Profil)</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="fi scroll">
+        <div class="fi-header">
+          <div class="fi-back">&lt;- Retour</div>
+          <div class="fi-title">Importer mes flashes</div>
+        </div>
+
+        <div class="fi-intro">Récupérez automatiquement vos flashes depuis l'application officielle FlashInvaders installée sur votre téléphone Android, via votre PC.</div>
+
+        <!-- Les 5 étapes -->
+        <div class="step">
+          <div class="step-badge">1</div>
+          <div class="step-body">
+            <div class="step-title">Connectez-vous à InvadersHunter</div>
+            <div class="step-text">Avec le compte sur lequel vous voulez importer vos flashes.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-badge">2</div>
+          <div class="step-body">
+            <div class="step-title">Branchez votre téléphone au PC</div>
+            <div class="step-text">Câble USB. Autorisez le transfert de données si demandé.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-badge">3</div>
+          <div class="step-body">
+            <div class="step-title">Activez le débogage USB</div>
+            <div class="step-text">Réglages → À propos → tapez 7 fois sur "Numéro de build" pour activer les options développeur, puis activez "Débogage USB". Acceptez la demande sur le téléphone.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-badge">4</div>
+          <div class="step-body">
+            <div class="step-title">Téléchargez et lancez l'application</div>
+            <div class="step-text">Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez "Informations complémentaires" → "Exécuter quand même". Saisissez vos identifiants InvadersHunter quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-badge">5</div>
+          <div class="step-body">
+            <div class="step-title">IMPORTANT : synchronisez l'app</div>
+            <div class="step-text">Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur "Synchroniser" pour récupérer les flashes importés dans l'application.</div>
+          </div>
+        </div>
+
+        <!-- Bouton de téléchargement de l'outil Windows -->
+        <div class="fi-btn">Télécharger l'application (Windows)</div>
+        <div class="fi-note">Aucun prérequis : le script télécharge automatiquement les outils Android nécessaires (~10 Mo, une seule fois). Windows uniquement pour le moment.</div>
+
+        <div class="fi-divider"></div>
+
+        <!-- Plan B : coller une liste de noms -->
+        <div class="fi-section">Alternative : coller une liste</div>
+        <div class="fi-note">Si l'ADB ne fonctionne pas, collez une liste de noms d'invaders (un par ligne ou séparés par des virgules). Les extensions de fichier sont ignorées.</div>
+        <div class="fi-area placeholder">PA_1234
+LYO_56
+NY_789</div>
+        <div class="fi-btn secondary">Importer la liste</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Écran empilé, sans barre d'onglets. Toute la page défile (faites défiler dans le téléphone) : 5 étapes, bouton de téléchargement, puis le plan B « coller une liste » en bas. Textes en police système (choix du code pour la lisibilité), sauf numéros et boutons en police pixel. La zone de texte montre son texte d'exemple en gris.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

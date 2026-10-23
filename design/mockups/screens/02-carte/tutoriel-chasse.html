@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel — chasse — maquette InvadersHunter</title>
+<!-- Source : frontend/src/features/routing/components/RoutingSheet/tutorial.tsx + RoutingPanelPreview.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<link rel="stylesheet" href="carte-commun.css"><!-- styles communs aux écrans de la carte -->
+<style>
+  /* Illustrations des tutoriels (ColorModeIllustration, GreyModeIllustration, FilterIllustration) */
+  .ill { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); }
+  .ill-color { padding: var(--sp-2); display: flex; flex-direction: column; gap: 6px; }
+  .ill-mode { color: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; margin-top: 2px; }
+  .ill-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .ill-cap { color: var(--text); font-size: var(--fs-sm); }
+  .ill-hr { height: 1px; background: var(--border); }
+  .ill-color .ill-hr { margin: 4px 0; }
+  .ill-grey { padding: 4px 0; overflow: hidden; }
+  .ill-grey .ill-row { padding: 4px var(--sp-2); }
+  .ill-pair { display: flex; gap: 4px; width: 64px; align-items: flex-end; }
+  .ill-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .ill-label { color: var(--text); font-size: var(--fs-sm); font-weight: 600; }
+  .ill-sub { color: var(--text-muted); font-size: var(--fs-xs); line-height: 14px; }
+  .ill-filter { overflow: hidden; }
+  .ill-filter .ill-row { justify-content: space-between; padding: 5px var(--sp-2); }
+  .ill-filter .ill-flabel { flex: 1; color: var(--text-muted); font-size: var(--fs-xs); font-weight: 600; }
+  .ill-filter .ill-group { display: flex; gap: 4px; align-items: flex-end; }
+  .ill-filter img { width: 18px; height: 25px; object-fit: contain; display: block; }
+  .ill-filter img.dim { opacity: .15; }
+  /* RoutingPanelPreview : mini-panneau numéroté (textes en anglais dans le code) */
+  .pv { background: var(--bg-element); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; font-family: var(--font); }
+  .pv-title { display: flex; align-items: center; gap: var(--sp-2); padding: 8px var(--sp-2); border-bottom: 1px solid var(--bg-divider); }
+  .pv-title .t { color: var(--accent); font-size: var(--fs-md); letter-spacing: 1px; flex: 1; }
+  .pv-badge { width: 18px; height: 18px; border-radius: 9px; background: var(--accent); color: var(--bg); display: grid; place-items: center; font-size: var(--fs-xxs); flex: none; }
+  .pv-info { width: 18px; height: 18px; border-radius: 9px; border: 1px solid var(--accent); color: var(--accent); display: grid; place-items: center; font-size: var(--fs-xxs); }
+  .pv-fields { padding: 6px var(--sp-2); display: flex; flex-direction: column; gap: 5px; }
+  .pv-row { display: flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--bg); padding: 7px 8px; }
+  .pv-row .lucide { width: 13px; height: 13px; }
+  .pv-row .txt { flex: 1; color: var(--text-muted); font-size: var(--fs-xs); }
+  .pv-opts { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--bg-divider); padding-top: 7px; }
+  .pv-chip { padding: 3px 7px; border-radius: var(--r-sm); border: 1px solid var(--border); color: var(--text-muted); font-size: var(--fs-xxs); }
+  .pv-chip.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .pv-opts .det { color: var(--text-muted); font-size: var(--fs-xs); margin-left: auto; }
+  .pv-opts .lucide { width: 12px; height: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Tutoriel — chasse <small>« help » du panneau Chasse, page 1 / 4</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen map-screen">
+      <div class="content map-area">
+        <canvas class="map" data-seed="11"></canvas>
+      <!-- Marqueurs d'invaders (mode couleur « Flash », grisés = détruits / non visibles) -->
+      <img class="mk" data-pts="20" data-state="uncaptured" style="left:62px; top:330px">
+      <img class="mk" data-pts="30" data-state="captured" style="left:120px; top:400px">
+      <img class="mk" data-pts="50" data-state="uncaptured" style="left:300px; top:360px">
+      <img class="mk" data-pts="20" data-state="captured" style="left:85px; top:520px">
+      <img class="mk" data-pts="10" data-state="uncaptured" style="left:325px; top:470px">
+      <img class="mk" data-pts="30" data-state="uncaptured" style="left:230px; top:640px">
+      <img class="mk" data-pts="10" data-state="grey" style="left:130px; top:640px">
+      <!-- Arrêts obligatoires choisis (marqueurs dorés) -->
+      <img class="mk-hl" src="../../_shared/assets/marker-40pts-highlight.png" width="36" alt="" style="left:205px; top:430px">
+      <img class="mk-hl" src="../../_shared/assets/marker-20pts-highlight.png" width="30" alt="" style="left:255px; top:560px">
+      <div class="user-loc" style="left:150px; top:600px"></div>
+      <!-- Raccourci Actualités (3 non lues) -->
+      <div class="ctl ctl-news"><div class="pxb hot"><i data-lucide="newspaper"></i></div><span class="news-badge">3</span></div>
+      <!-- Cartes des amis -->
+      <div class="ctl ctl-friends"><div class="pxb"><i data-lucide="users"></i></div></div>
+      <!-- Itinéraire (RoutingFAB) — panneau ouvert -->
+      <div class="ctl ctl-fab"><div class="pxb big hot"><i data-lucide="navigation"></i></div></div>
+      <!-- Barre de filtres : palette (mode couleur / griser) puis filtres -->
+      <div class="filter-bar">
+        <div class="pxb"><i data-lucide="palette"></i></div>
+        <div class="gap"></div>
+        <div class="pxb"><i data-lucide="sliders-horizontal"></i></div>
+      </div>
+      <!-- Boussole et bouton « me localiser » -->
+      <div class="ctl ctl-compass"><div class="compass"><span></span></div></div>
+      <div class="ctl ctl-locate"><div class="aim"></div></div>
+      <!-- Panneau Chasse (RoutingSheet) en haut de la carte -->
+      <div class="rsheet">
+        <div class="r-title"><span>Chasse</span><span class="info-wrap"><span class="info-btn">i</span>help</span></div>
+        <div class="r-fields">
+          <div class="r-coord">
+            <span class="r-lead from"><i data-lucide="navigation"></i></span>
+            <span class="r-label">Ma position</span>
+            <span class="r-actions"><i data-lucide="x"></i><i data-lucide="locate"></i></span>
+          </div>
+          <div class="r-mand on"><i data-lucide="flag"></i><span>2 invaders sélectionnés</span><i data-lucide="x-circle" class="x"></i></div>
+          <div class="r-coord">
+            <span class="r-lead to"><i data-lucide="flag"></i></span>
+            <span class="r-label">Place de la République, Paris</span>
+            <span class="r-actions"><i data-lucide="x"></i><i data-lucide="locate"></i></span>
+          </div>
+          <div class="r-opts">
+            <span class="r-action"><i data-lucide="flag" class="filled"></i>Démarrer</span>
+            <span class="r-toggle">+15 min<i data-lucide="chevron-down"></i></span>
+          </div>
+        </div>
+      </div>
+      </div>
+      <!-- Fenêtre de tutoriel (TutorialModal) par-dessus tout l'écran -->
+      <div class="tuto-scrim">
+        <div class="tuto">
+          <div class="tuto-head"><span class="tuto-title">Vue d'ensemble</span><span class="tuto-close">✕</span></div>
+          <div class="tuto-page">
+            <div class="t-section"><div class="t-section-label">Ouvrir le panneau</div><div class="t-body">Appuie sur le bouton drapeau en bas a gauche de la carte pour ouvrir le panneau de routage.</div></div>
+            <!-- Aperçu numéroté du panneau (RoutingPanelPreview) -->
+            <div class="pv">
+              <div class="pv-title"><span class="pv-badge">1</span><span class="t">HUNT</span><span class="pv-info">i</span></div>
+              <div class="pv-fields">
+                <div class="pv-row"><span class="pv-badge">2</span><i data-lucide="navigation" class="filled" style="color:var(--accent)"></i><span class="txt">Origin</span><i data-lucide="locate" style="color:var(--border)"></i></div>
+                <div class="pv-row"><span class="pv-badge">3</span><i data-lucide="flag" style="color:var(--text-muted)"></i><span class="txt">Invader stops</span></div>
+                <div class="pv-row"><span class="pv-badge">4</span><i data-lucide="flag" class="filled" style="color:var(--success)"></i><span class="txt">Destination</span><i data-lucide="locate" style="color:var(--border)"></i></div>
+                <div class="pv-opts"><span class="pv-badge">5</span><span class="pv-chip">Loop</span><span class="pv-chip on">Uncaptured</span><span class="det">+15 min</span><i data-lucide="chevron-down"></i></div>
+              </div>
+            </div>
+            <div class="t-section"><div class="t-section-label">② Depart</div><div class="t-body">Ton point de depart - recherche une adresse, choisis sur la carte ou utilise ta position.</div></div>
+            <div class="t-section"><div class="t-section-label">③ Arrets obligatoires</div><div class="t-body">Les invaders a inclure quoi qu'il arrive. Appuie dessus sur la carte quand le panneau est ouvert.</div></div>
+            <div class="t-section"><div class="t-section-label">④ Arrivee</div><div class="t-body">Ton point d'arrivee. Masque en mode boucle.</div></div>
+            <div class="t-section"><div class="t-section-label">⑤ Options &amp; calcul</div><div class="t-body">Deplie pour regler le detour, les filtres et le mode boucle. Appuie sur Demarrer pour calculer.</div></div>
+          </div>
+          <div class="tuto-foot">
+          <div class="tuto-dots"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="tuto-ok">Compris</div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-active="map"></nav>
+    </div>
+  </div>
+
+  <p class="page-notes">Aide du panneau Chasse (4 pages : Vue d'ensemble, Depart &amp; arrivee, Detour, Invaders). L'aperçu du panneau est écrit en anglais en dur dans le code (« HUNT », « Origin »…) : reproduit tel quel. Les pages suivantes réutilisent l'aperçu en estompant les zones non concernées.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>

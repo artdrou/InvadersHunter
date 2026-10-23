@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soumissions — maquette InvadersHunter</title>
+<!-- Source : frontend/src/app/admin/[id]/submissions.tsx + features/admin/components/TypeBadge.tsx -->
+<link rel="stylesheet" href="../../_shared/fonts.css">
+<link rel="stylesheet" href="../../_shared/app.css">
+<style>
+  /* Styles propres à cet écran (makeStyles de admin/[id]/submissions.tsx). Tailles × 0,9 quand le code utilise sz(). */
+  .phone { --type-modify: var(--brand-yellow); }
+
+  /* En-tête : « ‹ Retour » + titre, trait en dessous */
+  .d-header { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--border); }
+  .back-accent { color: var(--accent); font-size: var(--fs-xl); padding-right: var(--sp-2); }
+  .d-title { flex: 1; min-width: 0; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Liste */
+  .list { flex: 1; min-height: 0; padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+  .sub-card { flex: none; background: var(--bg-element); border-radius: var(--r-md); border: 1px solid var(--border); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-2); }
+  .sub-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .thumb { width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--bg); display: grid; place-items: center; overflow: hidden; flex: none; }
+  .thumb.empty { border: 1px solid var(--border); }                      /* pas de photo envoyée */
+  .sub-info { flex: 1; min-width: 0; }
+  .sub-user { color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub-date { color: var(--text-muted); font-size: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { color: var(--text-muted); font-size: 11px; background: var(--bg); border-radius: 4px; padding: 2px 6px; }
+
+  /* TypeBadge */
+  .typebadge { --c: var(--type-modify); display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-sm); padding: 3px var(--sp-2);
+    border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--c); font-size: var(--fs-xs); letter-spacing: .5px; }
+  .typebadge .lucide { width: 12px; height: 12px; }
+
+  /* Fausses photos (contenu) */
+  .ph1 { background: #6f7378; } .ph2 { background: #a88a6d; } .ph3 { background: #2f3b47; }
+</style>
+</head>
+<body>
+  <header class="page-bar">
+    <h1><a href="../../index.html">Maquettes</a> / Admin / Soumissions <small>envois des joueurs pour une requête</small></h1>
+    <div class="theme-switch"></div>
+  </header>
+
+  <div class="phone">
+    <div class="sb">12:47</div>
+    <div class="screen">
+      <div class="d-header">
+        <span class="back-accent">‹ Retour</span>
+        <span class="d-title">Soumissions (5)</span>
+      </div>
+
+      <!-- Une carte par soumission : photo · joueur + date · type ; puis les champs proposés -->
+      <div class="list scroll">
+        <div class="sub-card">
+          <div class="sub-row">
+            <div class="thumb ph1"><i class="spr" data-w="22" data-color="#e8e8e8"></i></div>
+            <div class="sub-info"><div class="sub-user">pixel_hunter</div><div class="sub-date">22/10/2026</div></div>
+            <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+          </div>
+          <div class="chips"><span class="chip">Destroyed</span><span class="chip">📍 emplacement</span></div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-row">
+            <div class="thumb ph2"><i class="spr" data-w="20" data-color="#3a2a1f"></i></div>
+            <div class="sub-info"><div class="sub-user">marie.flash</div><div class="sub-date">21/10/2026</div></div>
+            <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+          </div>
+          <div class="chips"><span class="chip">Destroyed</span><span class="chip">📍 emplacement</span><span class="chip">30 pts</span></div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-row">
+            <div class="thumb empty"></div>
+            <div class="sub-info"><div class="sub-user">space_chaser</div><div class="sub-date">21/10/2026</div></div>
+            <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+          </div>
+          <div class="chips"><span class="chip">Destroyed</span></div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-row">
+            <div class="thumb ph3"><i class="spr" data-w="18" data-color="#5fd0ff"></i></div>
+            <div class="sub-info"><div class="sub-user">#118</div><div class="sub-date">20/10/2026</div></div>
+            <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+          </div>
+          <div class="chips"><span class="chip">Destroyed</span><span class="chip">📍 emplacement</span></div>
+        </div>
+
+        <div class="sub-card">
+          <div class="sub-row">
+            <div class="thumb empty"></div>
+            <div class="sub-info"><div class="sub-user">loulou75</div><div class="sub-date">19/10/2026</div></div>
+            <span class="typebadge"><i data-lucide="pencil-line"></i>MODIFY</span>
+          </div>
+          <div class="chips"><span class="chip">📍 emplacement</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-notes">Ouvert par « Voir les 5 soumissions » dans le détail d'une requête. Chaque carte est l'envoi d'un joueur ; « #118 » apparaît quand le joueur n'a plus de nom d'utilisateur. Les pastilles listent ce qu'il a proposé (nom, état, emplacement, points). Un appui ouvre le détail de la soumission.</p>
+
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_shared/app.js"></script>
+</body>
+</html>
