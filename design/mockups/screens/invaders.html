@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette Invaders — InvadersHunter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../mockups.css">
+</head>
+<body>
+<!-- Écran seul, les 4 directions côte à côte. Ajouter ?light pour les variantes claires. -->
+<div class="wrap"><p><a href="../index.html" style="color:var(--accent)">← Toutes les maquettes</a></p><main id="mock-root"></main></div>
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<script src="../mockups.js"></script>
+<script>
+  const draw = () => MOCK.render(document.getElementById('mock-root'), { screens: ['invaders'], mode: location.search.includes('light') ? 'light' : 'dark', prefix: '../' });
+  document.fonts.ready.then(draw); draw();
+</script>
+</body>
+</html>

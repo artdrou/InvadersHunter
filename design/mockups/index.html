@@ -1,0 +1,88 @@
+<meta charset="utf-8">
+<title>Maquettes InvadersHunter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="mockups.css">
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Maquettes <span>InvadersHunter</span></h1>
+      <p>Trois écrans clés, chacun dans l'état actuel puis dans 3 directions. Choisis une direction (ou un mélange), on la décline ensuite sur tous les écrans. Données d'exemple.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="screen-seg" role="group" aria-label="Écran">
+        <button type="button" data-v="all" aria-pressed="true">Tous</button>
+        <button type="button" data-v="carte" aria-pressed="false">Carte</button>
+        <button type="button" data-v="invaders" aria-pressed="false">Invaders</button>
+        <button type="button" data-v="reglages" aria-pressed="false">Réglages</button>
+      </div>
+      <div class="seg" id="mode-seg" role="group" aria-label="Thème des maquettes">
+        <button type="button" data-v="dark" aria-pressed="true">Sombre</button>
+        <button type="button" data-v="light" aria-pressed="false">Clair</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="mock-root"></main>
+
+  <section class="notes" aria-label="Faisabilité">
+    <div class="note">
+      <h3>Faisable en OTA (React Native 0.83)</h3>
+      <ul>
+        <li>Lueurs et ombres colorées : <code>boxShadow</code></li>
+        <li>Dégradés : <code>experimental_backgroundImage</code>, sans module natif</li>
+        <li>Verre dépoli : <code>expo-blur</code>, déjà dans l'APK</li>
+        <li>Polices Google (Inter, Archivo) : <code>expo-font</code> + fichiers dans <code>assets/fonts</code></li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Demande un build natif</h3>
+      <ul>
+        <li>Sprites et icônes vectoriels nets : <code>react-native-svg</code> (déjà sur la liste TODO)</li>
+        <li>Nouveau splash et nouvelle icône d'app</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Comment donner ton avis</h3>
+      <ul>
+        <li>Une direction entière, ou un mélange (ex. « la carte en A, la liste en C »)</li>
+        <li>Ce que tu aimes / n'aimes pas sur chaque écran</li>
+        <li>Ensuite : on décline la direction choisie sur les ~30 écrans (#130)</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<script src="mockups.js"></script>
+<script>
+  (function () {
+    const root = document.getElementById('mock-root');
+    const ALL = ['carte', 'invaders', 'reglages'];
+    let screen = 'all', mode = 'dark';
+    try { mode = localStorage.getItem('mock-mode') || 'dark'; } catch (e) {}
+    const hash = (location.hash || '').slice(1);
+    if (ALL.includes(hash)) screen = hash;
+
+    function sync(segId, v) {
+      document.querySelectorAll('#' + segId + ' button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    }
+    function draw() {
+      sync('screen-seg', screen); sync('mode-seg', mode);
+      MOCK.render(root, { screens: screen === 'all' ? ALL : [screen], mode });
+    }
+    document.getElementById('screen-seg').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return; screen = b.dataset.v; draw();
+    });
+    document.getElementById('mode-seg').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return; mode = b.dataset.v;
+      try { localStorage.setItem('mock-mode', mode); } catch (err) {}
+      draw();
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw); else draw();
+    draw();
+  })();
+</script>
