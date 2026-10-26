@@ -11,12 +11,12 @@ The icons use the cyan + red duo, the splash the full logo (gold included):
 - android-icon-foreground-dev/stag  same + label
 - android-icon-background.png       1024, opaque: navy + streets (tinted for -dev / -stag)
 - android-icon-monochrome.png       1024, white silhouettes (Android 13 themed icons)
-- splash-icon.png                   1024, transparent: the full website logo (3 invaders, streets, halo, dust)
+- splash-icon.png                   1024: the full website logo (3 invaders, halo, dust) over the street grid, faded on the outer 20 %
 - notification-icon.png             100, white cyan-invader silhouette filling 99 %, same lines as the themed icon (status bar: Android keeps alpha only)
 - favicon.png                       48, the flat duo (same as the website favicon)
 - design/logo/out/app-icons-preview.png   contact sheet (not used by the app)
 """
-import os, sys
+import math, os, random, sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
 
@@ -36,12 +36,13 @@ C = V.C
 
 DUST = dict(n=90, front=6, alpha=0.75)  # pixel dust around the duo: sparse, a bit faded
 
-def duo_art():
+def duo_art(overlap=0.68):
     """Cyan + red with their halos, laid out like the website duo: red overlapping the
-    cyan's right edge, a bit higher, cyan in front, with a little pixel dust.
+    cyan's right edge, a bit higher, cyan in front, with a little pixel dust. The red
+    starts at `overlap` x the cyan's width: lower = more overlap.
     Returns (image, places of each sprite in drawing order, box of the invaders + halos in it):
     sizes are fitted on that box, so the dust can spill past it without shrinking the invaders."""
-    xr, yc = int(C.cyan_r.width * 0.68), int(C.red_r.height * 0.22)  # rotated boxes have empty corners
+    xr, yc = int(C.cyan_r.width * overlap), int(C.red_r.height * 0.22)  # rotated boxes have empty corners
     m = C.PAD * 2                                                    # room for the dust
     layers = [(C.red_g, (m + xr, m), "red", C.red_r), (C.cyan_g, (m, m + yc), "cyan", C.cyan_r)]
     W = max(pos[0] + g.width for (g, _), pos, _, _ in layers) + m
@@ -65,8 +66,53 @@ def duo_art():
     im.alpha_composite(dust(5, DUST["front"]))
     return im.crop(crop), [(n, sp, x - crop[0], y - crop[1]) for n, sp, x, y in places], (e, e, e + r - l, e + b - t)
 
-FULL_LOGO = V.build("C"); FULL_LOGO = FULL_LOGO.crop(FULL_LOGO.getbbox())
+def radial_fade(size, radius, band):
+    """L mask, 0 inside → 255 at `radius` (and beyond), smoothstep over the outer `band`
+    fraction of the radius."""
+    m = Image.new("L", (size, size)); px = m.load()
+    for y in range(size):
+        for x in range(size):
+            t = min(1, max(0, (math.hypot(x - size / 2 + .5, y - size / 2 + .5) / radius - (1 - band)) / band))
+            px[x, y] = int(255 * t * t * (3 - 2 * t))
+    return m
+
+def full_logo_square():
+    """The website logo (3 invaders, halo, dust) over the street grid, which fades out over
+    the outer 20 % of the diameter of the circle inscribed in the square (also what Android 12+
+    shows of the splash), so it reads the same as a square or a circle."""
+    side = max(V.W, V.H)
+    saved = V.W, V.H
+    V.W = V.H = side                                    # streets() draws on a V.W x V.H canvas
+    st = V.streets()
+    V.W, V.H = saved
+    keep = ImageChops.invert(radial_fade(side, side / 2, band=0.4))
+    st.putalpha(ImageChops.multiply(st.split()[3].point(lambda v: int(v * 0.8)), keep))  # 0.8: as on the website
+    out = Image.new("RGBA", (side, side)); out.alpha_composite(st)
+    logo = Image.new("RGBA", (V.W, V.H))                # variants.build("C") minus the fade
+    V.particles(logo); logo.alpha_composite(V.logo, (V.M, V.M)); V.particles(logo, seed=5, n=14)
+    out.alpha_composite(logo, ((side - V.W) // 2, (side - V.H) // 2))
+    return out
+
+FULL_LOGO = full_logo_square()
+
+def look_up(rects):
+    """Move each pupil from the bottom to the top of its eye (swap it with the white cell above)."""
+    cells = {(x, y): c for x, y, c in rects}
+    out = dict(cells)
+    for (x, y), c in cells.items():
+        if c.upper() == "#0A0F1E" and cells.get((x, y - 10), "").upper() == "#FFFFFF":
+            out[(x, y)], out[(x, y - 10)] = cells[(x, y - 10)], c
+    return [(x, y, c) for (x, y), c in out.items()]
+
+# In the app icons the cyan looks up-right, at the red (which looks down-left): they face each
+# other. The splash above keeps the website logo as is, so this comes after FULL_LOGO.
+C.CYAN_RECTS = look_up(C.CYAN_RECTS)
+C.cyan = C.sprite(C.CYAN_RECTS, s=C.S)
+C.cyan_r = C.cyan.rotate(C.cfg["tilt_l"], expand=True, resample=Image.NEAREST)
+C.cyan_g = C.glowed(C.cyan_r, (0, 47, 167), int(C.cfg["glow_r"] * C.S))
 ART, PLACES, CORE = duo_art()
+# Prod adaptive icon: the duo a little bigger, overlapping more, so it fills the circle.
+ADAPTIVE = duo_art(overlap=0.58)
 
 def fit(im, max_w, max_h, core=None):
     """Resize `im` so that `core` (a box inside it, default: all of it) fits max_w x max_h."""
@@ -100,6 +146,30 @@ def background(tint=None):
         bg = Image.blend(bg, Image.new("RGBA", (SIZE, SIZE), tint + (255,)), 0.45)
     bg.alpha_composite(st)
     return bg
+
+def dust_cluster(bg, n=14, seed=23):
+    """A small cloud of dust straight above the centre, at half the visible radius (the gap
+    between the cyan's top and the red's antenna): 70 % red, 30 % cyan. Drawn on the
+    background, so dots that meet an invader go behind it."""
+    R = SIZE * 72 / 108 / 2
+    cx, cy, spread = SIZE / 2, SIZE / 2 - R / 2, R * 0.16
+    rnd = random.Random(seed); bg = bg.copy()
+    for i in range(n):
+        x, y = rnd.gauss(cx, spread), rnd.gauss(cy, spread * 0.8)
+        sz = rnd.choice([6, 8, 8, 10, 12, 14])
+        blur = rnd.choice([0, 0, 1.5, 3])
+        col = V.COL["red" if i < round(n * 0.7) else "cyan"] + (int(rnd.uniform(150, 235) * DUST["alpha"]),)
+        pad = int(blur * 3) + 2
+        dot = Image.new("RGBA", (sz + 2 * pad, sz + 2 * pad))
+        ImageDraw.Draw(dot).rectangle((pad, pad, pad + sz - 1, pad + sz - 1), fill=col)
+        bg.alpha_composite(dot.filter(ImageFilter.GaussianBlur(blur)) if blur else dot, (int(x) - pad, int(y) - pad))
+    return bg
+
+def edge_fade(bg, band=0.2):
+    """Fade `bg` to navy over the outer `band` of the radius a round launcher shows
+    (72/108 of the layer), so the streets melt into the icon's edge."""
+    m = radial_fade(SIZE, SIZE * 72 / 108 / 2, band)
+    return Image.composite(Image.new("RGBA", (SIZE, SIZE), NAVY + (255,)), bg, m)
 
 # ── Labels for dev / staging builds ─────────────────────────────────────────────
 VARIANTS = {"dev": ((206, 26, 40), "DEV"), "stag": ((32, 96, 210), "STAG")}
@@ -138,18 +208,18 @@ def punched(sp, gap):
     tone_line = ImageChops.multiply(shade, body.filter(ImageFilter.MaxFilter(gap)))
     return ImageChops.subtract(sp.split()[3], ImageChops.lighter(ImageChops.lighter(outline, pupils), tone_line))
 
-def silhouette(scale_to):
-    """White silhouettes laid out like the artwork, resized by the same factor as `scale_to`."""
-    canvas = Image.new("L", ART.size, 0)
+def silhouette(scale_to, art=ART, places=PLACES):
+    """White silhouettes laid out like `art`, resized by the same factor as `scale_to`."""
+    canvas = Image.new("L", art.size, 0)
     gap = max(3, int(C.S * 1.5)) | 1
-    for _, sp, x, y in PLACES:
+    for _, sp, x, y in places:
         a = sp.split()[3]
         mask = punched(sp, gap)
         hole = Image.new("L", canvas.size, 0); hole.paste(a.filter(ImageFilter.MaxFilter(gap)), (x, y))
         canvas = ImageChops.subtract(canvas, hole)
         layer = Image.new("L", canvas.size, 0); layer.paste(mask, (x, y))
         canvas = ImageChops.lighter(canvas, layer)
-    k = scale_to.width / ART.width
+    k = scale_to.width / art.width
     canvas = canvas.resize((round(canvas.width * k), round(canvas.height * k)), Image.LANCZOS).point(lambda v: 255 if v > 127 else 0)
     out = Image.new("RGBA", canvas.size, (255, 255, 255, 0)); out.putalpha(canvas)
     return out
@@ -178,11 +248,12 @@ icon = bg.copy(); icon.alpha_composite(centered(icon_art))
 save(icon, "icon.png", rgb=True)
 
 # Adaptive icon: the launcher masks a 1024 layer down to the central ~66 % circle.
-fg_art = fit(ART, SIZE * 0.60, SIZE * 0.40, CORE)
-fg = centered(fg_art)
+fg_art = fit(ART, SIZE * 0.60, SIZE * 0.40, CORE)           # dev / staging (room for the label)
+prod_fg_art = fit(ADAPTIVE[0], SIZE * 0.64, SIZE * 0.46, ADAPTIVE[2])
+fg = centered(prod_fg_art)
 save(fg, "android-icon-foreground.png")
-save(bg, "android-icon-background.png", rgb=True)
-save(centered(silhouette(fg_art)), "android-icon-monochrome.png")
+save(dust_cluster(edge_fade(bg)), "android-icon-background.png", rgb=True)
+save(centered(silhouette(prod_fg_art, *ADAPTIVE[:2])), "android-icon-monochrome.png")
 
 for key, (tint, text) in VARIANTS.items():
     tinted = background(tint)
@@ -191,8 +262,7 @@ for key, (tint, text) in VARIANTS.items():
     save(label(centered(fg_art, dy=-int(SIZE * 0.05)), text, 0.07, 0.60), f"android-icon-foreground-{key}.png")
     save(tinted, f"android-icon-background-{key}.png", rgb=True)
 
-# Splash: the full logo; its streets fade out to transparent, so the oval melts into the navy
-# background and nothing important sits where Android 12+ crops the image to a circle.
+# Splash: the full logo over the street grid, faded at the edge. Android 12+ crops it to a circle.
 save(centered(fit(FULL_LOGO, SIZE, SIZE)), "splash-icon.png")
 save(cyan_silhouette(9), "notification-icon.png")
 Image.open(HERE / "out/favicon-48.png").save(DST / "favicon.png"); print("wrote favicon.png")
