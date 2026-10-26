@@ -17,7 +17,7 @@ import requests
 
 BASE_URL = "https://raw.githubusercontent.com/marcoclsn-bit/invader-map/main/data"
 TIMEOUT_S = 30
-USER_AGENT = "InvadersHunter-sync/1.0 (+https://github.com/artdrou)"
+USER_AGENT = "HintVaders-sync/1.0 (+https://github.com/artdrou)"
 
 # Real invader ids only: the city files also hold doc/comment entries (e.g. "_DOC_SIGNALEMENTS")
 INVADER_ID_RE = re.compile(r"^([A-Z]+)_(\d+)$")

@@ -15,14 +15,14 @@
 
 const variants = {
   development: {
-    name: 'InvaderHunter Dev',
+    name: 'HintVaders Dev',
     androidPackage: 'com.invaderhunter.app.dev',
     icon: './assets/images/icon-dev.png',
     adaptiveForeground: './assets/images/android-icon-foreground-dev.png',
     adaptiveBackground: './assets/images/android-icon-background-dev.png',
   },
   staging: {
-    name: 'InvaderHunter Stag',
+    name: 'HintVaders Stag',
     androidPackage: 'com.invaderhunter.app.stag',
     icon: './assets/images/icon-stag.png',
     adaptiveForeground: './assets/images/android-icon-foreground-stag.png',

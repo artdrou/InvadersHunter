@@ -1,6 +1,6 @@
 """Transactional emails, sent through Brevo's HTTP API: reset code, welcome,
 account deleted, admin role granted / revoked, username / password changed,
-personal data.
+personal data, and the in-app contact form (to the team).
 
 Railway's Hobby plan blocks outbound SMTP, hence the API. The sender domain
 (hintvaders.app) is authenticated in Brevo. The header image is served by the
@@ -166,7 +166,8 @@ def _layout(title: str, body: str, preheader: str, t: dict) -> str:
 </body></html>"""
 
 
-def _send(to_email: str, subject: str, text: str, html: str, attachments: list | None = None):
+def _send(to_email: str, subject: str, text: str, html: str, attachments: list | None = None,
+          reply_to: str | None = None):
     """attachments: [(filename, bytes)]. No key (local dev, tests) → nothing is sent."""
     api_key = os.getenv("BREVO_API_KEY")
     if not api_key:
@@ -174,6 +175,8 @@ def _send(to_email: str, subject: str, text: str, html: str, attachments: list |
         return
     payload = {"sender": SENDER, "to": [{"email": to_email}], "subject": subject,
                "textContent": text, "htmlContent": html}
+    if reply_to:
+        payload["replyTo"] = {"email": reply_to}
     if attachments:
         payload["attachment"] = [{"name": name, "content": base64.b64encode(data).decode()}
                                  for name, data in attachments]
@@ -274,11 +277,36 @@ def personal_data_email(username: str, summary: dict, filename: str,
     return t["data_subject"], text, _layout(t["data_title"], body, t["data_title"], t)
 
 
+
+def contact_message_email(subject: str, message: str, sender: dict) -> tuple[str, str, str]:
+    """Message from the in-app contact form, to the team (always in French).
+    sender: {username, email, user_id, app_version, platform, environment}; missing values are None."""
+    t = {**_texts("fr"), "footer": "Message envoyé depuis le formulaire de contact de l'app."}
+    env = sender.get("environment")
+    full_subject = f"[Contact{' ' + env if env and env != 'production' else ''}] {subject}"
+    labels = {"username": "Pseudo", "email": "Email", "user_id": "ID", "app_version": "Version",
+              "platform": "Plateforme", "environment": "Environnement"}
+    rows = "".join(
+        f'<tr><td style="padding:4px 0;color:{TEXT_SOFT};font-size:13px;">{label}</td>'
+        f'<td align="right" style="padding:4px 0;color:{TEXT};font-size:13px;">{escape(str(sender[key]))}</td></tr>'
+        for key, label in labels.items() if sender.get(key) is not None
+    )
+    body = (_p(f"<b>{escape(subject)}</b>")
+            + _box(escape(message).replace("\n", "<br>"), f"color:{TEXT};font-size:15px;line-height:1.5;")
+            + _box(f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>')
+            + _p("Répondez directement à cet email pour écrire à l'utilisateur." if sender.get("email")
+                 else "Utilisateur sans email : impossible de lui répondre.", TEXT_MUTED, 13))
+    meta = "\n".join(f"{label}: {sender[key]}" for key, label in labels.items() if sender.get(key) is not None)
+    text = f"{subject}\n\n{message}\n\n{meta}"
+    return full_subject, text, _layout("Nouveau message", body, escape(subject), t)
+
+
 # ── Senders (run as background tasks; never raise) ──────────────────────────────
 
-def _safe_send(to_email: str, built: tuple[str, str, str], attachments: list | None = None):
+def _safe_send(to_email: str, built: tuple[str, str, str], attachments: list | None = None,
+               reply_to: str | None = None):
     try:
-        _send(to_email, *built, attachments=attachments)
+        _send(to_email, *built, attachments=attachments, reply_to=reply_to)
     except Exception:
         log.exception("Email '%s' to %s failed", built[0], to_email)
 
@@ -310,3 +338,7 @@ async def send_password_changed_email(email: str, username: str, language: str =
 async def send_personal_data_email(email: str, username: str, summary: dict, filename: str,
                                    data: bytes, language: str = "fr"):
     _safe_send(email, personal_data_email(username, summary, filename, language), [(filename, data)])
+
+
+async def send_contact_email(to_email: str, subject: str, message: str, sender: dict):
+    _safe_send(to_email, contact_message_email(subject, message, sender), reply_to=sender.get("email"))

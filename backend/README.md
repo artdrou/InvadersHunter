@@ -1,4 +1,4 @@
-# InvadersHunter — Backend
+# HintVaders — Backend
 
 FastAPI REST API backed by a PostgreSQL database hosted on Neon. Deployed automatically to Railway on every push to main.
 
