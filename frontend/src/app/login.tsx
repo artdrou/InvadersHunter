@@ -1,16 +1,12 @@
 import { useState } from 'react';
-import { View, TextInput, Pressable, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, loginUser } from '@/features/auth';
+import { useAuthStore, loginUser, AuthLayout } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, LIGHT_THEMES } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
-const LOGO_DARK = require('../../assets/images/hintvaders-logo-stacked.png');
-const LOGO_LIGHT = require('../../assets/images/hintvaders-logo-stacked-light.png');
-const STREETS = require('../../assets/images/login-streets.png');
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -21,10 +17,8 @@ export default function LoginScreen() {
   const enterGuestMode = useAuthStore((s) => s.enterGuestMode);
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, themeName, appFont, fontScale } = useTheme();
-  const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont, fontScale, insets.top, insets.bottom);
-  const light = LIGHT_THEMES.has(themeName);
+  const { theme, appFont, fontScale } = useTheme();
+  const styles = makeStyles(theme, appFont, fontScale);
 
   async function handleLogin() {
     if (!username || !password) return;
@@ -42,22 +36,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Street grid behind the whole screen, fading out towards the bottom (baked into the image) */}
-      <Image
-        source={STREETS}
-        style={[styles.streets, light && styles.streetsLight]}
-        resizeMode="cover"
-      />
-
-      <View style={styles.hero}>
-        <Image
-          source={light ? LOGO_LIGHT : LOGO_DARK}
-          style={styles.logo}
-          resizeMode="contain"
-          accessibilityLabel={t('auth.appTitle')}
-        />
-      </View>
+    <AuthLayout>
 
       <View style={styles.form}>
         <TextInput
@@ -105,43 +84,13 @@ export default function LoginScreen() {
           <Text style={styles.registerText}><Text style={styles.registerHighlight}>{t('auth.login.guestMode')}</Text></Text>
         </Pressable>
       </View>
-    </View>
+    </AuthLayout>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: number, bottomInset: number) {
+function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.bg,
-      alignItems: 'center',
-      paddingHorizontal: Spacing.five,
-      paddingTop: topInset + Spacing.three,
-      paddingBottom: bottomInset + Spacing.five,
-    },
-    streets: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      aspectRatio: 780 / 1688,
-    },
-    streetsLight: { opacity: 0.5 },
-    // Takes all the room above the form; the logo shrinks on short screens.
-    hero: {
-      flex: 1,
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingBottom: Spacing.four,
-    },
-    logo: {
-      width: '92%',
-      maxWidth: 440,
-      maxHeight: '100%',
-      aspectRatio: 1050 / 1353,
-    },
     form: {
       width: '100%',
       maxWidth: 360,

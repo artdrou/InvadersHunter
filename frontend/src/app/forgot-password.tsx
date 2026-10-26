@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
+import { forgotPassword, verifyResetCode, resetPassword, AuthLayout } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
@@ -72,8 +72,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
+    <AuthLayout>
 
       {step === 'request' && (
         <View style={styles.form}>
@@ -166,27 +165,13 @@ export default function ForgotPasswordScreen() {
       <Pressable onPress={() => router.back()} style={styles.backLink}>
         <Text style={styles.backText}>{t('auth.forgot.backToLogin')}</Text>
       </Pressable>
-    </View>
+    </AuthLayout>
   );
 }
 
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.bg,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: Spacing.five,
-    },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.xl),
-      fontFamily: font,
-      marginBottom: 48,
-      letterSpacing: 2,
-    },
     subtitle: {
       color: t.text,
       fontSize: sz(FontSize.md),

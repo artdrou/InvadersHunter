@@ -14,6 +14,7 @@ import { useListEditing } from "@/features/invaders/hooks/use-list-editing";
 import { useNewsUnreadCount } from "@/features/news";
 import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { StreetsBackground } from "@/components/StreetsBackground";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
 
@@ -227,6 +228,7 @@ export default function InvadersScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.bg }]}>
+      <StreetsBackground intensity="faint" />
       <MosaicToolbar
         state={toolbar}
         onChange={setToolbar}

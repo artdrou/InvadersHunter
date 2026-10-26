@@ -95,18 +95,9 @@ def full_logo_square():
 
 FULL_LOGO = full_logo_square()
 
-def look_up(rects):
-    """Move each pupil from the bottom to the top of its eye (swap it with the white cell above)."""
-    cells = {(x, y): c for x, y, c in rects}
-    out = dict(cells)
-    for (x, y), c in cells.items():
-        if c.upper() == "#0A0F1E" and cells.get((x, y - 10), "").upper() == "#FFFFFF":
-            out[(x, y)], out[(x, y - 10)] = cells[(x, y - 10)], c
-    return [(x, y, c) for (x, y), c in out.items()]
-
 # In the app icons the cyan looks up-right, at the red (which looks down-left): they face each
 # other. The splash above keeps the website logo as is, so this comes after FULL_LOGO.
-C.CYAN_RECTS = look_up(C.CYAN_RECTS)
+C.CYAN_RECTS = C.look_up(C.CYAN_RECTS)
 C.cyan = C.sprite(C.CYAN_RECTS, s=C.S)
 C.cyan_r = C.cyan.rotate(C.cfg["tilt_l"], expand=True, resample=Image.NEAREST)
 C.cyan_g = C.glowed(C.cyan_r, (0, 47, 167), int(C.cfg["glow_r"] * C.S))

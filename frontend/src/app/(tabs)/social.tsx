@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAuthStore, useRequireAccount } from '@/features/auth';
 import { hapticTap, hapticSuccess } from '@/features/settings';
@@ -151,6 +152,7 @@ export default function SocialScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <Text style={styles.title}>{t('social.title')}</Text>
 
       <ScrollView
