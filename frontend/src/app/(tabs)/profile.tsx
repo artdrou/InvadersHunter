@@ -18,6 +18,7 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from "@
 import { SettingsSection, SettingsRow, SettingsToggleRow, useHapticsStore, hapticTap } from "@/features/settings";
 import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/notifications";
 import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
+import { StreetsBackground } from "@/components/StreetsBackground";
 
 export default function SettingsLanding() {
   const router = useRouter();
@@ -67,6 +68,7 @@ export default function SettingsLanding() {
 
   return (
     <View style={styles.container}>
+      <StreetsBackground intensity="faint" />
       <Text style={styles.title}>{t('settings.title')}</Text>
 
       <View style={styles.body}>

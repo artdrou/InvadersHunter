@@ -59,6 +59,15 @@ gold = sprite(rects(open(f"{ROOT}/dev/markers/src/shape-100.svg", encoding="utf-
 S = int(cfg["scale"])
 PAD = int(8 * S * max(1, cfg["glow_r"] / 3))  # room for the glow
 
+def look_up(rects):
+    """Move each pupil from the bottom to the top of its eye (swap it with the white cell above)."""
+    cells = {(x, y): c for x, y, c in rects}
+    out = dict(cells)
+    for (x, y), c in cells.items():
+        if c.upper() == "#0A0F1E" and cells.get((x, y - 10), "").upper() == "#FFFFFF":
+            out[(x, y)], out[(x, y - 10)] = cells[(x, y - 10)], c
+    return [(x, y, c) for (x, y), c in out.items()]
+
 def glowed(im, color, radius):
     """(glow layer, sprite layer) on the same padded canvas."""
     sprite_l = Image.new("RGBA", (im.width + 2 * PAD, im.height + 2 * PAD))

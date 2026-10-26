@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
 import { Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useNewsData, useNewsStore, NewsListItem, newsItemKey } from '@/features/news';
 import { useLocateStore } from '@/features/map';
@@ -51,6 +52,7 @@ export default function NewsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={[styles.backText, { color: theme.textMuted }]}>{`< ${t('common.back')}`}</Text>

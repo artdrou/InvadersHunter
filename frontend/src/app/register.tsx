@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, registerUser } from '@/features/auth';
+import { useAuthStore, registerUser, AuthLayout } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
@@ -36,8 +36,7 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
+    <AuthLayout>
 
       <View style={styles.form}>
         <TextInput
@@ -83,27 +82,13 @@ export default function RegisterScreen() {
           <Text style={styles.loginText}>{t('auth.register.alreadyAccount')} <Text style={styles.loginHighlight}>{t('auth.register.loginLink')}</Text></Text>
         </Pressable>
       </View>
-    </View>
+    </AuthLayout>
   );
 }
 
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.bg,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: Spacing.five,
-    },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.xl),
-      fontFamily: font,
-      marginBottom: 48,
-      letterSpacing: 2,
-    },
     form: {
       width: '100%',
       maxWidth: 360,

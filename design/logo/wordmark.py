@@ -9,9 +9,8 @@ dark shade, a soft glow and a little pixel dust.
                                                  + login-streets.png (login screen background)
     python design/logo/wordmark.py OUT.png    → somewhere else
 
-Stacked logo = the app-icon duo (android-icon-foreground.png) over "Hint" over
-"Vaders", Hint a bit bigger and overlapping Vaders; the duo's halo is softened to
-match the text's.
+Stacked logo = the app-icon duo (rebuilt from the raw sprites) over "Hint" over
+"Vaders", Hint a bit bigger and overlapping Vaders; the duo gets the text's glow.
 """
 import random
 import sys
@@ -21,15 +20,16 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 FONT = ROOT / "frontend/assets/fonts/pixelmania/Pixelmania.ttf"
-DUO = ROOT / "frontend/assets/images/android-icon-foreground.png"
 OUT = ROOT / "frontend/assets/images/hintvaders-logo-stacked.png"
 STREETS_OUT = ROOT / "frontend/assets/images/login-streets.png"
 LOGO_PX, STREETS_PX = 1050, 780     # widths shipped in the app (~3x / 2x a phone screen)
 
-CYAN = dict(stroke=(28, 240, 255), inner=(6, 102, 166), glow=(0, 90, 255))
-RED = dict(stroke=(255, 0, 98), inner=(138, 0, 64), glow=(255, 0, 140))
+CYAN = dict(stroke=(28, 240, 255), inner=(6, 102, 166), glow=(0, 90, 255), glow_light=(90, 215, 255))
+RED = dict(stroke=(255, 0, 98), inner=(138, 0, 64), glow=(255, 0, 140), glow_light=(255, 110, 180))
 
 BIG, SMALL = 320, 220          # font sizes of the initial and the other capitals
+GLOW_R = 45                    # text glow radius at that size (the duo gets the same, scaled)
+GLOW_GAIN = 1.3                # glow intensity (the icons use 2.2)
 
 
 def _fill_holes(mask: Image.Image) -> Image.Image:
@@ -42,8 +42,58 @@ def _fill_holes(mask: Image.Image) -> Image.Image:
     return ImageChops.invert(outside)
 
 
+def _glow(alpha: Image.Image, colour, radius: float) -> Image.Image:
+    layer = Image.new("RGBA", alpha.size, tuple(colour) + (0,))
+    layer.putalpha(alpha.filter(ImageFilter.GaussianBlur(radius)).point(lambda v: min(255, int(v * GLOW_GAIN))))
+    return layer
+
+
+def _variants():
+    """design/logo/variants.py (street generator, and compose.py's sprites as V.C)."""
+    import os
+    os.environ.setdefault("LOGO_SCALE", "6")
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    saved_argv = sys.argv
+    sys.argv = ["x", str(ROOT), str(Path(__file__).resolve().parent / "out")]
+    import variants as V
+    sys.argv = saved_argv
+    return V
+
+
+def duo(width: int, glow_radius: float, seed: int = 5, light: bool = False) -> Image.Image:
+    """The app-icon duo (red behind, cyan in front looking up at it) from the raw sprites,
+    with the same glow as the text instead of the icon's baked halo."""
+    C = _variants().C
+    cyan = C.sprite(C.look_up(C.CYAN_RECTS), s=C.S).rotate(C.cfg["tilt_l"], expand=True, resample=Image.NEAREST)
+    red = C.red_r
+    xr, yc = int(cyan.width * 0.58), int(red.height * 0.22)       # same layout as the prod icon
+    w, h = max(xr + red.width, cyan.width), max(red.height, yc + cyan.height)
+    k = width / w
+    size = (width, round(h * k))
+    pad = int(glow_radius * 3) + 40
+    layers = []
+    for sp, pos in ((red, (xr, 0)), (cyan, (0, yc))):
+        layer = Image.new("RGBA", (w, h))
+        layer.alpha_composite(sp, pos)
+        layer = layer.resize(size, Image.LANCZOS)
+        padded = Image.new("RGBA", (size[0] + 2 * pad, size[1] + 2 * pad))
+        padded.alpha_composite(layer, (pad, pad))
+        layers.append(padded)
+    red_l, cyan_l = layers
+    out = Image.new("RGBA", red_l.size)
+    key = "glow_light" if light else "glow"
+    out.alpha_composite(_glow(red_l.split()[3], RED[key], glow_radius))
+    out.alpha_composite(_glow(cyan_l.split()[3], CYAN[key], glow_radius))
+    box = (pad, pad, pad + size[0], pad + size[1])
+    out.alpha_composite(_dust(box, out.size, CYAN["stroke"], seed, n=14))
+    out.alpha_composite(_dust(box, out.size, RED["stroke"], seed + 1, n=10))
+    out.alpha_composite(red_l)
+    out.alpha_composite(cyan_l)
+    return out.crop(out.getbbox())
+
+
 def word(initial: str, rest: str, colours: dict, seed: int, inverted: bool = False) -> Image.Image:
-    """inverted (light theme): dark strokes, bright counters."""
+    """inverted (light theme): dark strokes, bright counters, lighter glow."""
     big, small = ImageFont.truetype(str(FONT), BIG), ImageFont.truetype(str(FONT), SMALL)
     pad = BIG   # generous: the glyphs reach well past their nominal box
     width = int(ImageDraw.Draw(Image.new("L", (1, 1))).textlength(initial, font=big)
@@ -67,8 +117,7 @@ def word(initial: str, rest: str, colours: dict, seed: int, inverted: bool = Fal
     glyph.paste(inner + (255,), mask=solid)
     glyph.paste(stroke + (255,), mask=mask)
 
-    glow = Image.new("RGBA", (width, height), colours["glow"] + (0,))
-    glow.putalpha(solid.filter(ImageFilter.GaussianBlur(18)).point(lambda v: int(v * 0.9)))
+    glow = _glow(solid, colours["glow_light" if inverted else "glow"], GLOW_R)
 
     out = Image.new("RGBA", (width, height))
     out.alpha_composite(glow)
@@ -98,33 +147,22 @@ def _dust(box, size, colour, seed, n=26):
     return layer
 
 
-def _soften_glow(img: Image.Image, keep: float) -> Image.Image:
-    """Scale down the semi-transparent pixels (halo, dust) and keep the opaque sprite pixels,
-    so the icon duo's bloom matches the text's."""
-    r, g, b, a = img.split()
-    a = a.point(lambda v: v if v >= 250 else int(v * keep))
-    return Image.merge("RGBA", (r, g, b, a))
-
-
-def stacked(width=1200, hint_scale=1.12, overlap=0.35, duo_glow=0.5, duo_width=0.95,
-            inverted=False) -> Image.Image:
+def stacked(width=1200, hint_scale=1.12, overlap=0.35, duo_width=0.78, inverted=False) -> Image.Image:
     hint = word("H", "INT", CYAN, seed=3, inverted=inverted)
     vaders = word("V", "ADERS", RED, seed=8, inverted=inverted)
-    vw = int(width * 0.86)
+    vw = int(width * 0.97)     # the text spans (almost) the whole logo width
+    text_k = vw / vaders.width                      # how much the text glow gets scaled
     vaders = vaders.resize((vw, round(vaders.height * vw / vaders.width)), Image.LANCZOS)
     k = vaders.height * hint_scale / hint.height
     hint = hint.resize((round(hint.width * k), round(hint.height * k)), Image.LANCZOS)
-    duo = _soften_glow(Image.open(DUO).convert("RGBA"), duo_glow)
-    duo = duo.crop(duo.getbbox())
-    dw = int(width * duo_width)
-    duo = duo.resize((dw, round(duo.height * dw / duo.width)), Image.LANCZOS)
+    duo_img = duo(int(width * duo_width), GLOW_R * text_k, light=inverted)
 
-    gap, lap = int(width * 0.01), int(vaders.height * overlap)
+    gap, lap = -int(width * 0.15), int(vaders.height * overlap)   # gap < 0: the glow / dust margins overlap
     W = max(width, hint.width, vaders.width)
-    H = duo.height + gap + hint.height + vaders.height - lap
+    H = duo_img.height + gap + hint.height + vaders.height - lap
     out = Image.new("RGBA", (W, H))
-    out.alpha_composite(duo, ((W - duo.width) // 2, 0))
-    y_hint = duo.height + gap
+    out.alpha_composite(duo_img, ((W - duo_img.width) // 2, 0))
+    y_hint = duo_img.height + gap
     out.alpha_composite(vaders, ((W - vaders.width) // 2, y_hint + hint.height - lap))
     out.alpha_composite(hint, ((W - hint.width) // 2, y_hint))     # Hint over Vaders
     return out.crop(out.getbbox())
@@ -133,13 +171,7 @@ def stacked(width=1200, hint_scale=1.12, overlap=0.35, duo_glow=0.5, duo_width=0
 def streets_background(width=1170, height=2532, top=0.85, bottom=0.0, fade_end=0.9) -> Image.Image:
     """Full-screen street grid for the login screen (same generator as the logo / splash
     streets): `top` opacity at the top, fading linearly to `bottom` at `fade_end` of the height."""
-    import os
-    os.environ.setdefault("LOGO_SCALE", "6")
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    saved_argv = sys.argv
-    sys.argv = ["x", str(ROOT), str(Path(__file__).resolve().parent / "out")]
-    import variants as V
-    sys.argv = saved_argv
+    V = _variants()
     saved = V.W, V.H
     V.W, V.H = width, height
     st = V.streets()

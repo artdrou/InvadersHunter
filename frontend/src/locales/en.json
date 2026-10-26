@@ -237,7 +237,6 @@
   },
   "auth": {
     "appTitle": "HINTVADERS",
-    "appTitleSmall": "HintVaders",
     "username": "Username",
     "password": "Password",
     "email": "Email",

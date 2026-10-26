@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
 
 type Props = {
   title: string;
@@ -32,6 +33,7 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
