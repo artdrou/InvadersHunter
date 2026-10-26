@@ -1,35 +1,82 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
-import { SettingsShell } from '@/features/settings';
+import { useAuthStore, requestMyDataExport, deleteMyAccount } from '@/features/auth';
+import { SettingsShell, SettingsSection, SettingsRow } from '@/features/settings';
+import { useNotificationsStore } from '@/features/notifications';
 
 export default function SecurityScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
-  const styles = useThemedStyles(makeStyles);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const [busy, setBusy] = useState(false);
+
+  async function handleExport() {
+    if (!user || busy) return;
+    setBusy(true);
+    try {
+      await requestMyDataExport(user.id);
+      Alert.alert(t('settings.exportDataSentTitle'), t('settings.exportDataSentBody'));
+    } catch {
+      Alert.alert(t('settings.exportData'), t('settings.actionFailed'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteAccount() {
+    if (!user) return;
+    setBusy(true);
+    try {
+      await deleteMyAccount(user.id);
+    } catch {
+      setBusy(false);
+      Alert.alert(t('settings.deleteAccount'), t('settings.actionFailed'));
+      return;
+    }
+    // The server already dropped the push tokens and sessions with the account.
+    useNotificationsStore.getState().setCurrentToken(null);
+    logout();
+    router.replace('/login');
+    Alert.alert(t('settings.deleteAccountDoneTitle'), t('settings.deleteAccountDoneBody'));
+  }
+
+  function handleDelete() {
+    if (!user || busy) return;
+    Alert.alert(
+      t('settings.deleteAccountConfirmTitle'),
+      t('settings.deleteAccountConfirmBody', { username: user.username }),
+      [
+        { text: t('settings.cancel'), style: 'cancel' },
+        { text: t('settings.deleteAccountConfirm'), style: 'destructive', onPress: deleteAccount },
+      ],
+    );
+  }
 
   return (
     <SettingsShell title={t('settings.security')}>
-      <View style={styles.placeholderBlock}>
-        <Text style={styles.placeholderText}>{t('settings.comingSoon')}</Text>
-        <Text style={styles.placeholderBody}>{t('settings.comingSoonBody')}</Text>
-      </View>
+      <SettingsSection title={t('settings.sectionMyData')}>
+        <SettingsRow
+          icon="mail-outline"
+          label={t('settings.exportData')}
+          subtitle={t('settings.exportDataSubtitle')}
+          onPress={handleExport}
+          hideChevron
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sectionDanger')}>
+        <SettingsRow
+          icon="trash-outline"
+          label={t('settings.deleteAccount')}
+          subtitle={t('settings.deleteAccountSubtitle')}
+          onPress={handleDelete}
+          destructive
+          hideChevron
+        />
+      </SettingsSection>
     </SettingsShell>
   );
-}
-
-function makeStyles(t: ThemeTokens) {
-  return StyleSheet.create({
-    placeholderBlock: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
-      padding: Spacing.four,
-      gap: Spacing.two,
-      alignItems: 'center',
-    },
-    placeholderText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
-    placeholderBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20, textAlign: 'center' },
-  });
 }
