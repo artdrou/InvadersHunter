@@ -100,7 +100,7 @@ async def request_password_reset(db: Session, username: str, email: str) -> None
     user.reset_code = code
     user.reset_code_expires = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.commit()
-    await send_reset_password_email(email, code)
+    await send_reset_password_email(email, code, user.username, user.language)
 
 
 def verify_reset_code(db: Session, email: str, token: str) -> None:

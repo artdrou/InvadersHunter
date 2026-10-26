@@ -5,6 +5,7 @@ Account creation triggers a background welcome email — the router schedules th
 task, the service hands back the email address (and the function reference) so
 nothing is sent before the row is committed.
 """
+from functools import partial
 from typing import List, Optional, Tuple, Callable
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -96,7 +97,8 @@ def register(db: Session, username: str, email: str, password: str) -> Tuple[Use
     db.add(user)
     safe_commit(db)
     db.refresh(user)
-    return user, send_account_created_email, user.email
+    welcome = partial(send_account_created_email, username=user.username, language=user.language)
+    return user, welcome, user.email
 
 
 def update(
