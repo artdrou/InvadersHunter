@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, TextInput, Pressable, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TextInput, Pressable, Text, Image, StyleSheet, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,9 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, LIGHT_TH
 const LOGO_DARK = require('../../assets/images/hintvaders-logo-stacked.png');
 const LOGO_LIGHT = require('../../assets/images/hintvaders-logo-stacked-light.png');
 const STREETS = require('../../assets/images/login-streets.png');
+const LOGO_RATIO = 1050 / 1353;     // width / height of the stacked logo
+const STREETS_RATIO = 780 / 1688;
+const LOGO_MAX_W = 440;
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -25,6 +28,10 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const styles = makeStyles(theme, appFont, fontScale, insets.top, insets.bottom);
   const light = LIGHT_THEMES.has(themeName);
+  // Explicit sizes: percentage sizes ignored the screen padding (streets cut short, logo overflowing).
+  const window = useWindowDimensions();
+  const [hero, setHero] = useState({ width: 0, height: 0 });
+  const logoWidth = Math.min(hero.width * 0.92, LOGO_MAX_W, (hero.height - Spacing.four) * LOGO_RATIO);
 
   async function handleLogin() {
     if (!username || !password) return;
@@ -46,17 +53,26 @@ export default function LoginScreen() {
       {/* Street grid behind the whole screen, fading out towards the bottom (baked into the image) */}
       <Image
         source={STREETS}
-        style={[styles.streets, light && styles.streetsLight]}
-        resizeMode="cover"
+        style={[
+          styles.streets,
+          { width: window.width, height: window.width / STREETS_RATIO },
+          light && styles.streetsLight,
+        ]}
+        resizeMode="stretch"
       />
 
-      <View style={styles.hero}>
-        <Image
-          source={light ? LOGO_LIGHT : LOGO_DARK}
-          style={styles.logo}
-          resizeMode="contain"
-          accessibilityLabel={t('auth.appTitle')}
-        />
+      <View
+        style={styles.hero}
+        onLayout={(e) => setHero({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+      >
+        {logoWidth > 0 && (
+          <Image
+            source={light ? LOGO_LIGHT : LOGO_DARK}
+            style={{ width: logoWidth, height: logoWidth / LOGO_RATIO }}
+            resizeMode="contain"
+            accessibilityLabel={t('auth.appTitle')}
+          />
+        )}
       </View>
 
       <View style={styles.form}>
@@ -124,23 +140,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%',
-      aspectRatio: 780 / 1688,
     },
     streetsLight: { opacity: 0.5 },
-    // Takes all the room above the form; the logo shrinks on short screens.
+    // Takes all the room above the form; the logo is sized to fit it (see logoWidth).
     hero: {
       flex: 1,
       width: '100%',
       alignItems: 'center',
       justifyContent: 'center',
       paddingBottom: Spacing.four,
-    },
-    logo: {
-      width: '92%',
-      maxWidth: 440,
-      maxHeight: '100%',
-      aspectRatio: 1050 / 1353,
     },
     form: {
       width: '100%',
