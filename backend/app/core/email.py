@@ -2,7 +2,7 @@ import os
 import requests
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-SENDER = {"name": "Invader Hunter", "email": "invaderhunter.app@gmail.com"}
+SENDER = {"name": "Invader Hunter", "email": "noreply@hintvaders.app"}
 
 def _send(to_email: str, subject: str, text: str):
     requests.post(
