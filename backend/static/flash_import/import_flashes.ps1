@@ -1,9 +1,9 @@
-# InvadersHunter - Flash Import (PowerShell)
+# HintVaders - Flash Import (PowerShell)
 # ===========================================
 # Self-contained: no Python required. Auto-downloads Android platform-tools (adb)
 # on first run into the user's local app data.
 #
-# Invoked via import_flashes.bat which the user downloads from the InvadersHunter app.
+# Invoked via import_flashes.bat which the user downloads from the HintVaders app.
 
 $ErrorActionPreference = 'Stop'
 
@@ -62,7 +62,7 @@ function Invoke-Adb {
 
 # ---- main -------------------------------------------------------------------
 Write-Host "============================================================"
-Write-Host " InvadersHunter - Flash Import"
+Write-Host " HintVaders - Flash Import"
 Write-Host "============================================================"
 
 $apiUrl = $ApiUrl.TrimEnd('/')
@@ -130,7 +130,7 @@ if (-not $names -or $names.Count -eq 0) {
   Pause-And-Exit 1
 }
 
-Write-Step "Logging in to InvadersHunter..."
+Write-Step "Logging in to HintVaders..."
 try {
   $login = Invoke-RestMethod -Method Post -Uri "$apiUrl/auth/login" `
     -ContentType 'application/json' `
@@ -164,7 +164,7 @@ $mode = Read-Host "Choice [1/2]"
 $mirror = ($mode.Trim() -eq '2')
 
 if ($mirror) {
-  Write-Step "Comparing the phone with your InvadersHunter account (nothing is changed yet)..."
+  Write-Step "Comparing the phone with your HintVaders account (nothing is changed yet)..."
   try { $preview = Send-Import $true $false } catch { Write-Err "comparison failed: $($_.Exception.Message)"; Pause-And-Exit 1 }
 
   Write-Host ""
@@ -217,6 +217,6 @@ Show-List "Unknown names " $res.unknown
 Write-Host ""
 Write-Host "Flashes synced. Re-run this whenever you want to sync new flashes." -ForegroundColor Green
 Write-Host ""
-Write-Host "IMPORTANT: open the InvadersHunter app on your phone and tap 'Sync now'" -ForegroundColor Yellow
+Write-Host "IMPORTANT: open the HintVaders app on your phone and tap 'Sync now'" -ForegroundColor Yellow
 Write-Host "           on the Profile page to pull the changes into the app." -ForegroundColor Yellow
 Pause-And-Exit 0

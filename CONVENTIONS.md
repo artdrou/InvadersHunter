@@ -1,6 +1,6 @@
 # Conventions
 
-Engineering conventions for InvadersHunter. Keep this short and enforced — ESLint
+Engineering conventions for HintVaders. Keep this short and enforced — ESLint
 (frontend) and the layered backend structure exist to back these rules up.
 
 ## Golden rules

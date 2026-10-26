@@ -1,4 +1,4 @@
-# Builds one InvadersHunter-FlashImport exe per backend environment.
+# Builds one HintVaders-FlashImport exe per backend environment.
 #
 # Each exe has its environment's API URL baked in, so a user always imports
 # into the database of the app they downloaded the tool from. The backend
@@ -21,7 +21,7 @@ foreach ($envName in 'development', 'staging', 'production') {
 
   $tmp = Join-Path $env:TEMP "import_flashes.$envName.ps1"
   Set-Content -Path $tmp -Value $patched -Encoding UTF8
-  $out = Join-Path $outDir "InvadersHunter-FlashImport-$envName.exe"
+  $out = Join-Path $outDir "HintVaders-FlashImport-$envName.exe"
   Invoke-ps2exe -inputFile $tmp -outputFile $out | Out-Null
   Remove-Item $tmp
   Write-Host "$envName -> $out"

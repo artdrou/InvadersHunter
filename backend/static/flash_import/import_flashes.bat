@@ -1,9 +1,9 @@
 @echo off
 setlocal
-title InvadersHunter - Flash Import
+title HintVaders - Flash Import
 
 set "SCRIPT_URL=https://invader-hunter-development.up.railway.app/static/flash_import/import_flashes.ps1"
-set "SCRIPT_PATH=%TEMP%\invadershunter_import_flashes.ps1"
+set "SCRIPT_PATH=%TEMP%\hintvaders_import_flashes.ps1"
 
 echo Downloading import script...
 powershell -NoProfile -Command "try { Invoke-WebRequest -UseBasicParsing -Uri '%SCRIPT_URL%' -OutFile '%SCRIPT_PATH%' } catch { Write-Host $_; exit 1 }"

@@ -1,4 +1,4 @@
-# InvadersHunter — Frontend
+# HintVaders — Frontend
 
 React Native app built with Expo. Uses MapLibre for the map, Zustand for state management, and expo-sqlite for local offline storage.
 

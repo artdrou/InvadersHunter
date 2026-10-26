@@ -5,9 +5,10 @@ POST /flash-import/  — bulk-create user progress from a list of invader names
 (with `mirror`, also remove the flashes the phone doesn't list: preview, then
 `confirm`). Authenticated; uses the JWT subject as the user_id.
 
-GET /static/flash_import/InvadersHunter-FlashImport.exe — the PC tool built for
+GET /static/flash_import/HintVaders-FlashImport.exe — the PC tool built for
 this backend's environment. Registered before the /static mount in main.py so
-it shadows the static path the app already links to.
+it shadows the static path. The old InvadersHunter-FlashImport.exe path stays
+for app versions released before the rename.
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -40,11 +41,12 @@ def import_flashes(
 tool_router = APIRouter(tags=["Flash Import"])
 
 
+@tool_router.get("/static/flash_import/HintVaders-FlashImport.exe", include_in_schema=False)
 @tool_router.get("/static/flash_import/InvadersHunter-FlashImport.exe", include_in_schema=False)
 def download_tool(request: Request):
     path = flash_import_service.tool_exe_for_host(request.url.hostname or "")
     return FileResponse(
         path,
         media_type="application/octet-stream",
-        filename="InvadersHunter-FlashImport.exe",
+        filename="HintVaders-FlashImport.exe",
     )

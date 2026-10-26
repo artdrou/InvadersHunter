@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TextInput, Pressable, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore, loginUser } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, TitleFont, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -36,7 +36,12 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.appTitle')}</Text>
+      <Image
+        source={require('../../assets/images/hintvaders-logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+        accessibilityLabel={t('auth.appTitle')}
+      />
 
       <View style={styles.form}>
         <TextInput
@@ -98,13 +103,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
       padding: Spacing.five,
     },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.xl),
-      fontFamily: TitleFont,
+    logo: {
+      width: '100%',
+      maxWidth: 360,
+      aspectRatio: 1200 / 242,
+      alignSelf: 'center',
       marginBottom: 48,
-      letterSpacing: 2,
-      textAlign: 'center',
     },
     form: {
       width: '100%',

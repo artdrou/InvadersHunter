@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import users, invaders, user_progress, auth, user_requests, admin_requests, upload, flash_import, apk, news, notifications, account, comments, friends
+from app.api.routers import users, invaders, user_progress, auth, user_requests, admin_requests, upload, flash_import, apk, news, notifications, account, comments, friends, contact
 from app.migrate import run as run_migrations
 
 
@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Invaders Hunter Backend", lifespan=lifespan)
+app = FastAPI(title="HintVaders Backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,6 +38,7 @@ app.include_router(notifications.router)
 app.include_router(account.router)
 app.include_router(comments.router)
 app.include_router(friends.router)
+app.include_router(contact.router)
 
 # Serve the Flash Import PC script (and any future static assets) as downloads.
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
@@ -46,4 +47,4 @@ if _STATIC_DIR.exists():
 
 @app.get("/")
 def root():
-    return {"message": "Backend Invaders Hunter fonctionne"}
+    return {"message": "Backend HintVaders fonctionne"}
