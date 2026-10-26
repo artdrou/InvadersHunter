@@ -3,6 +3,9 @@ import os
 # Must be set before any app import — database.py and security.py raise at module level otherwise
 os.environ.setdefault("DATABASE_URL", "postgresql://fake:fake@localhost/fake")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-tests-only")
+# Set (not setdefault) so a key in backend/.env never makes tests send real emails;
+# load_dotenv() doesn't override variables that already exist.
+os.environ["BREVO_API_KEY"] = ""
 
 import pytest
 from sqlalchemy import create_engine

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.schemas.auth import (
@@ -53,9 +53,11 @@ def verify_reset_code(data: VerifyResetCodeRequest, db: Session = Depends(get_db
 
 
 @router.post("/reset-password")
-def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+def reset_password(data: ResetPasswordRequest, background_tasks: BackgroundTasks,
+                   db: Session = Depends(get_db)):
     try:
-        auth_service.reset_password(db, data.email, data.token, data.new_password)
+        auth_service.reset_password(db, data.email, data.token, data.new_password,
+                                    schedule=background_tasks.add_task)
     except InvalidResetCode:
         raise HTTPException(status_code=400, detail="Invalid or expired code")
     return {"message": "Password updated successfully"}
