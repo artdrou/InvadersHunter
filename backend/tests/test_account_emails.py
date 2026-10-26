@@ -1,6 +1,8 @@
 """Account emails: username changed, admin role granted / revoked, account deleted,
 personal data export. Sends are patched; we check who gets what."""
+import io
 import json
+import zipfile
 from unittest.mock import patch, AsyncMock
 
 import pytest
@@ -71,7 +73,9 @@ def test_data_export_goes_to_the_account_email(client, db, user, admin):
     to, username, summary, filename, payload = m.await_args.args
     assert to == "alice@test.com" and username == "alice"   # never the admin's address
     assert summary["flashes"] == 1
-    data = json.loads(payload)
+    assert filename == "hintvaders-data-alice.zip"
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        data = json.loads(archive.read("hintvaders-data-alice.json"))
     assert data["flashes"][0]["invader"] == "PA_01"
     assert "hashed_password" not in json.dumps(data)
 

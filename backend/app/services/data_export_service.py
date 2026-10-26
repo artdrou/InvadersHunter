@@ -1,11 +1,13 @@
 """
 Personal data export (GDPR right of access, art. 15): everything stored about a user,
-emailed to the account's own address as a JSON attachment.
+emailed to the account's own address as a zipped JSON attachment.
 
 Never includes secrets (password hash, reset code, refresh / push tokens).
 """
+import io
 import json
 import re
+import zipfile
 from datetime import date, datetime
 from typing import Callable
 
@@ -94,7 +96,10 @@ def send_personal_data(db: Session, user_id: int, schedule: Callable) -> None:
         "friends": sum(1 for f in data["friends"] if f["status"] == "accepted"),
         "devices": len(data["devices"]),
     }
-    filename = f"hintvaders-data-{re.sub(r'[^A-Za-z0-9_-]', '_', user.username)}.json"
-    payload = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
-    schedule(send_personal_data_email, user.email, user.username, summary, filename, payload,
-             language=user.language)
+    # Brevo refuses .json attachments (fixed list of extensions), .zip is allowed.
+    name = f"hintvaders-data-{re.sub(r'[^A-Za-z0-9_-]', '_', user.username)}"
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(f"{name}.json", json.dumps(data, ensure_ascii=False, indent=2))
+    schedule(send_personal_data_email, user.email, user.username, summary, f"{name}.zip",
+             buffer.getvalue(), language=user.language)
