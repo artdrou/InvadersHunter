@@ -75,12 +75,7 @@ export default function ForgotPasswordScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
 
-      <View style={styles.form}>
-        <Text style={[styles.subtitle, { textAlign: 'center' }]}>{t('auth.forgot.unavailable')}</Text>
-        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: FontSize.sm }]}>{t('auth.forgot.contactSupport')}</Text>
-      </View>
-
-      {false && step === 'request' && (
+      {step === 'request' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.resetTitle')}</Text>
           <TextInput
@@ -110,7 +105,7 @@ export default function ForgotPasswordScreen() {
         </View>
       )}
 
-      {false && step === 'verify' && (
+      {step === 'verify' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.codePrompt')}</Text>
           <TextInput
@@ -132,7 +127,7 @@ export default function ForgotPasswordScreen() {
         </View>
       )}
 
-      {false && step === 'new-password' && (
+      {step === 'new-password' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.newPasswordTitle')}</Text>
           <TextInput

@@ -232,8 +232,6 @@
       "loginLink": "Connexion"
     },
     "forgot": {
-      "unavailable": "La réinitialisation du mot de passe est temporairement indisponible.",
-      "contactSupport": "Veuillez contacter le support pour réinitialiser votre mot de passe.",
       "backToLogin": "Retour à la connexion",
       "resetTitle": "Réinitialiser votre mot de passe",
       "sendCode": "Envoyer le code",
