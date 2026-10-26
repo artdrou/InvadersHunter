@@ -72,8 +72,8 @@ def _layout(title: str, body: str, preheader: str, t: dict) -> str:
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{BG};">
 <tr><td align="center" style="padding:24px 12px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;font-family:Arial,Helvetica,sans-serif;">
-    <tr><td><img src="{HEADER_URL}" width="600" alt="{BRAND}" style="display:block;width:100%;height:auto;border:0;border-radius:12px 12px 0 0;"></td></tr>
-    <tr><td style="background:{CARD};border:1px solid {BORDER};border-top:0;border-radius:0 0 12px 12px;padding:32px 28px;">
+    <tr><td style="padding-bottom:8px;"><img src="{HEADER_URL}" width="600" alt="{BRAND}" style="display:block;width:100%;height:auto;border:0;"></td></tr>
+    <tr><td style="background:{CARD};border:1px solid {BORDER};border-radius:12px;padding:32px 28px;">
       <h1 style="margin:0 0 20px;font-size:22px;color:{TEXT};">{title}</h1>
       {body}
     </td></tr>
