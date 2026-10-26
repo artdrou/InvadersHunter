@@ -19,15 +19,16 @@ import { SettingsSection, SettingsRow, SettingsToggleRow, useHapticsStore, hapti
 import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/notifications";
 import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
 import { StreetsBackground } from "@/components/StreetsBackground";
+import { ArcadeTitle } from "@/components/ArcadeTitle";
 
 export default function SettingsLanding() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const isGuest = useAuthStore((s) => s.isGuest);
   const requireAccount = useRequireAccount();
-  const styles = makeStyles(theme, appFont, insets.top);
+  const styles = makeStyles(theme, insets.top);
 
   // Haptics — local store, instant
   const hapticsEnabled = useHapticsStore((s) => s.enabled);
@@ -69,7 +70,7 @@ export default function SettingsLanding() {
   return (
     <View style={styles.container}>
       <StreetsBackground intensity="faint" />
-      <Text style={styles.title}>{t('settings.title')}</Text>
+      <ArcadeTitle text={t('settings.title')} />
 
       <View style={styles.body}>
       <SettingsSection title={t('settings.sectionAccount')}>
@@ -198,7 +199,7 @@ export default function SettingsLanding() {
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, topInset: number) {
+function makeStyles(t: ThemeTokens, topInset: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -213,12 +214,6 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       flex: 1,
       justifyContent: 'center',
       gap: Spacing.two,
-    },
-    title: {
-      color: t.accent,
-      fontFamily: font,
-      fontSize: FontSize.xl,
-      letterSpacing: 1,
     },
     langGroup: {
       flexDirection: 'row',

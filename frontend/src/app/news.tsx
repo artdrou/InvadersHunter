@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useNewsData, useNewsStore, NewsListItem, newsItemKey } from '@/features/news';
 import { useLocateStore } from '@/features/map';
@@ -57,7 +58,7 @@ export default function NewsScreen() {
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={[styles.backText, { color: theme.textMuted }]}>{`< ${t('common.back')}`}</Text>
         </Pressable>
-        <Text style={[styles.title, { color: theme.accent, fontFamily: appFont }]}>{t('news.title')}</Text>
+        <ArcadeTitle text={t('news.title')} />
       </View>
 
       {loading && items.length === 0 ? (
@@ -96,7 +97,6 @@ const styles = StyleSheet.create({
   },
   backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
   backText: { fontFamily: ButtonFont, fontSize: FontSize.md },
-  title: { fontSize: FontSize.xxl, letterSpacing: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four },
   emptyContainer: { flexGrow: 1 },
   emptyText: { fontSize: FontSize.sm, textAlign: 'center' },

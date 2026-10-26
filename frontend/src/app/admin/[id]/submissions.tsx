@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
@@ -65,13 +67,12 @@ export default function AdminSubmissionsScreen() {
 
   return (
     <View style={styles.container}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('admin.submissions', { count: subs.length })}
-        </Text>
+        <ArcadeTitle text={t('admin.submissions', { count: subs.length })} size={18} style={styles.headerTitle} />
       </View>
 
       {loading ? (
@@ -100,7 +101,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
     },
     backBtn:     { paddingRight: Spacing.two },
     backText:    { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
-    headerTitle: { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
+    headerTitle: { flexShrink: 1 },
     list: { padding: Spacing.three, gap: Spacing.two },
     card: {
       backgroundColor: t.bgElement, borderRadius: BorderRadius.md,

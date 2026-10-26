@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useInvaderData, mapInvadersWithProgress, cityOf } from '@/features/invaders';
 import type { InvaderWithState } from '@/features/invaders';
@@ -147,11 +149,12 @@ export default function IncompleteInvadersScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={styles.backText}>{`< ${t('common.back')}`}</Text>
         </Pressable>
-        <Text style={styles.title}>{t('incomplete.title')}</Text>
+        <ArcadeTitle text={t('incomplete.title')} />
         <Text style={styles.intro}>{t('incomplete.intro')}</Text>
       </View>
 
@@ -205,7 +208,6 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     header: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.two, gap: Spacing.two },
     backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
     backText: { fontFamily: ButtonFont, fontSize: FontSize.md, color: t.textMuted },
-    title: { fontSize: FontSize.xxl, letterSpacing: 1, color: t.accent, fontFamily: font },
     intro: { fontSize: sz(FontSize.xs), color: t.textMuted, fontFamily: font },
     // A horizontal ScrollView in a column otherwise stretches with a short list
     // (giant chips) or gets squeezed by a long one (clipped labels): keep its height.

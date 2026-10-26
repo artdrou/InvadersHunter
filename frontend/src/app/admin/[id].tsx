@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import {
   fetchAdminRequest, fetchAdminSubmissions, fetchInvader,
@@ -165,6 +166,7 @@ export default function AdminDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <StreetsBackground intensity="faint" />
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>

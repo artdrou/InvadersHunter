@@ -301,7 +301,30 @@
     "mapLite": "Carte allegee",
     "mapLiteSubtitle": "Moins de details pour une navigation plus fluide sur appareils anciens",
     "map3d": "Batiments 3D",
-    "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)"
+    "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)",
+    "previewButton": "Bouton",
+    "classicThemeNote": "Les themes classiques ont leurs couleurs fixes. Pour choisir les votres, prenez Perso.",
+    "customTheme": "Theme perso",
+    "base": "Base",
+    "baseSubtitle": "Fond, textes et cartes",
+    "accentSubtitle": "Boutons, liens, onglet actif",
+    "routeSubtitle": "Trace sur la carte",
+    "titles": "Titres",
+    "titleStyle": "Style",
+    "titleStyleSubtitle": "Grande initiale ou arcade",
+    "titleInitial": "Initiale",
+    "titleArcade": "Arcade",
+    "titleStroke": "Contour",
+    "titleInner": "Interieur",
+    "titleShadow": "Ombre",
+    "otherColor": "Autre couleur",
+    "pick": {
+      "accent": "Couleur d'accent",
+      "routePath": "Couleur du trace",
+      "titleStroke": "Contour des titres",
+      "titleInner": "Interieur des titres",
+      "titleShadow": "Ombre des titres"
+    }
   },
   "markerCustomization": {
     "title": "Personnalisation des markers",
@@ -329,9 +352,12 @@
   },
   "themeNames": {
     "dark": "Sombre",
+    "darkAlt": "Sombre alt",
     "light": "Clair",
+    "lightAlt": "Clair alt",
     "amber": "Ambre",
-    "matrix": "Matrix"
+    "matrix": "Matrix",
+    "custom": "Perso"
   },
   "languageNames": {
     "fr": "Français",

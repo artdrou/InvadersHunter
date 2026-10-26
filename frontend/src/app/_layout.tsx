@@ -42,6 +42,7 @@ export default function RootLayout() {
     FreePixel:  require('../../assets/fonts/free_pixel/FreePixel.ttf'),
     // ↑ kept registered so future OTAs can switch to it without a rebuild
     Pixelmania: require('../../assets/fonts/pixelmania/Pixelmania.ttf'),
+    PixelmaniaSolid: require('../../assets/fonts/pixelmania/PixelmaniaSolid.ttf'),
     Pixelmix:   require('../../assets/fonts/pixelmix/pixelmix.ttf'),
     Pixelade:   require('../../assets/fonts/pixelade/pixelade.ttf'),
   });

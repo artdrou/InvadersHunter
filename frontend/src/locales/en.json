@@ -301,7 +301,30 @@
     "mapLite": "Lite map",
     "mapLiteSubtitle": "Fewer map details for smoother panning on older devices",
     "map3d": "3D buildings",
-    "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)"
+    "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)",
+    "previewButton": "Button",
+    "classicThemeNote": "Classic themes have fixed colours. To pick your own, choose Custom.",
+    "customTheme": "Custom theme",
+    "base": "Base",
+    "baseSubtitle": "Background, text and cards",
+    "accentSubtitle": "Buttons, links, active tab",
+    "routeSubtitle": "Route on the map",
+    "titles": "Titles",
+    "titleStyle": "Style",
+    "titleStyleSubtitle": "Big initial or arcade",
+    "titleInitial": "Initial",
+    "titleArcade": "Arcade",
+    "titleStroke": "Outline",
+    "titleInner": "Inside",
+    "titleShadow": "Shadow",
+    "otherColor": "Other colour",
+    "pick": {
+      "accent": "Accent colour",
+      "routePath": "Route colour",
+      "titleStroke": "Title outline",
+      "titleInner": "Title inside",
+      "titleShadow": "Title shadow"
+    }
   },
   "markerCustomization": {
     "title": "Marker customization",
@@ -329,9 +352,12 @@
   },
   "themeNames": {
     "dark": "Dark",
+    "darkAlt": "Dark alt",
     "light": "Light",
+    "lightAlt": "Light alt",
     "amber": "Amber",
-    "matrix": "Matrix"
+    "matrix": "Matrix",
+    "custom": "Custom"
   },
   "languageNames": {
     "fr": "Français",
