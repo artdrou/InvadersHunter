@@ -6,7 +6,7 @@ Routers handle HTTP and translate the domain exceptions below.
 """
 import random
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from ..models.user import User
@@ -14,7 +14,7 @@ from ..models.refresh_token import RefreshToken
 from ..core.security import (
     verify_password, create_access_token, create_refresh_token, hash_password,
 )
-from ..core.email import send_reset_password_email
+from ..core.email import send_password_changed_email, send_reset_password_email
 
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ async def request_password_reset(db: Session, username: str, email: str) -> None
     user.reset_code = code
     user.reset_code_expires = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.commit()
-    await send_reset_password_email(email, code)
+    await send_reset_password_email(email, code, user.username, user.language)
 
 
 def verify_reset_code(db: Session, email: str, token: str) -> None:
@@ -114,7 +114,10 @@ def verify_reset_code(db: Session, email: str, token: str) -> None:
         raise InvalidResetCode()
 
 
-def reset_password(db: Session, email: str, token: str, new_password: str) -> None:
+def reset_password(db: Session, email: str, token: str, new_password: str,
+                   schedule: Optional[Callable] = None) -> None:
+    """`schedule(fn, *args, **kwargs)` (e.g. BackgroundTasks.add_task) receives the
+    "password changed" email, sent after the commit."""
     user = db.query(User).filter(User.email == email).first()
     if (
         not user
@@ -128,3 +131,5 @@ def reset_password(db: Session, email: str, token: str, new_password: str) -> No
     user.reset_code = None
     user.reset_code_expires = None
     db.commit()
+    if schedule:
+        schedule(send_password_changed_email, user.email, user.username, language=user.language)

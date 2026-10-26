@@ -232,8 +232,6 @@
       "loginLink": "Login"
     },
     "forgot": {
-      "unavailable": "Password reset is temporarily unavailable.",
-      "contactSupport": "Please contact support to reset your password.",
       "backToLogin": "Back to login",
       "resetTitle": "Reset your password",
       "sendCode": "Send code",

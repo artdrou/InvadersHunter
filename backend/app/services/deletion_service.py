@@ -8,12 +8,13 @@ foreign keys at all, so every dependent row is removed explicitly, children firs
 """
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Set
+from typing import Callable, Dict, List, Optional, Set
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..core import r2
+from ..core.email import send_account_deleted_email
 from ..core.db_utils import safe_commit
 from ..models.admin_request import AdminRequest
 from ..models.comment_reaction import CommentReaction
@@ -132,13 +133,16 @@ def _refresh_pending_admin_requests(db: Session, report: DeletionReport, admin_i
             aggregate_request(db, remaining)  # recomputes votes, confidence and proposals
 
 
-def delete_user(db: Session, user_id: int) -> DeletionReport:
+def delete_user(db: Session, user_id: int, schedule: Optional[Callable] = None) -> DeletionReport:
     """Delete a user and everything they own. Approved admin requests stay (they are
-    the invaders' history / News feed); only the links to the user are cleared."""
+    the invaders' history / News feed); only the links to the user are cleared.
+    `schedule(fn, *args, **kwargs)` (e.g. BackgroundTasks.add_task) receives the
+    "account deleted" email, sent after the commit."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise UserMissing()
     report = DeletionReport()
+    farewell = (user.email, user.username, user.language)
 
     user_reqs = db.query(UserRequest).filter(UserRequest.user_id == user_id)
     touched_admin_ids = {a for (a,) in user_reqs.with_entities(UserRequest.admin_request_id) if a}
@@ -170,4 +174,7 @@ def delete_user(db: Session, user_id: int) -> DeletionReport:
     report.add("users", 1)
     safe_commit(db)
     _prune_photos(photos)
+    if schedule:
+        email, username, language = farewell
+        schedule(send_account_deleted_email, email, username, language=language)
     return report

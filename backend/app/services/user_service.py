@@ -5,6 +5,7 @@ Account creation triggers a background welcome email — the router schedules th
 task, the service hands back the email address (and the function reference) so
 nothing is sent before the row is committed.
 """
+from functools import partial
 from typing import List, Optional, Tuple, Callable
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -16,7 +17,10 @@ from ..models.admin_request import AdminRequest
 from ..models.invader_comment import InvaderComment
 from ..models.refresh_token import RefreshToken
 from ..core.security import hash_password
-from ..core.email import send_account_created_email
+from ..core.email import (
+    send_account_created_email, send_admin_role_email, send_password_changed_email,
+    send_username_changed_email,
+)
 from ..core.db_utils import safe_commit
 
 
@@ -96,7 +100,8 @@ def register(db: Session, username: str, email: str, password: str) -> Tuple[Use
     db.add(user)
     safe_commit(db)
     db.refresh(user)
-    return user, send_account_created_email, user.email
+    welcome = partial(send_account_created_email, username=user.username, language=user.language)
+    return user, welcome, user.email
 
 
 def update(
@@ -106,14 +111,19 @@ def update(
     email: Optional[str] = None,
     password: Optional[str] = None,
     is_admin: Optional[bool] = None,
+    schedule: Optional[Callable] = None,
 ) -> User:
+    """`schedule(fn, *args, **kwargs)` (e.g. BackgroundTasks.add_task) receives the
+    emails to send after the commit: username / password changed, admin role granted / revoked."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise UserMissing()
+    emails = []
 
     if username and username != user.username:
         if db.query(User).filter(User.username == username).first():
             raise UsernameTaken()
+        emails.append(partial(send_username_changed_email, old=user.username, new=username))
         user.username = username
 
     if email and email != user.email:
@@ -123,12 +133,17 @@ def update(
 
     if password:
         user.hashed_password = hash_password(password)
+        emails.append(partial(send_password_changed_email, username=user.username))
 
-    if is_admin is not None:
+    if is_admin is not None and is_admin != bool(user.is_admin):
+        emails.append(partial(send_admin_role_email, username=user.username, granted=is_admin))
         user.is_admin = is_admin
 
     safe_commit(db)
     db.refresh(user)
+    if schedule:
+        for email_fn in emails:
+            schedule(email_fn, user.email, language=user.language)
     return user
 
 
