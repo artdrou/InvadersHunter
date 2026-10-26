@@ -169,6 +169,9 @@ export const themeLabels: Record<ThemeName, string> = {
 
 export type ThemeName = keyof typeof themes;
 
+/** Themes with a light background (artwork switches to its inverted / lighter variant). */
+export const LIGHT_THEMES: ReadonlySet<ThemeName> = new Set<ThemeName>(['light', 'amber']);
+
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
 /**
