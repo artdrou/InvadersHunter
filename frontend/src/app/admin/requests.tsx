@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, Brand } from '@/constants/theme';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import { logger } from '@/services/logger';
@@ -112,6 +113,7 @@ export default function RequestsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StreetsBackground intensity="faint" />
 
       {/* Back + filter toggle */}
       <View style={styles.header}>

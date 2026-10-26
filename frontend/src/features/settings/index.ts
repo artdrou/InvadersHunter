@@ -8,3 +8,4 @@ export { useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX } from '
 export { useMarkerCustomizationStore, DEFAULT_SHAPE_FOR_TIER, DEFAULT_MARKER_COLORS, DEFAULT_MARKER_OPACITY, DEFAULT_MARKER_BLOOM } from './marker-customization-store';
 export { tap as hapticTap, success as hapticSuccess, disappoint as hapticDisappoint } from './haptics';
 export { ColorPickerModal } from './components/ColorPickerModal';
+export { ThemePicker } from './components/ThemePicker';

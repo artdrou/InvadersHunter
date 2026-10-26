@@ -1,17 +1,19 @@
-import { Alert , ScrollView, View, Text, StyleSheet } from 'react-native';
+import { Alert , ScrollView, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, Spacing, FontSize } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
+import { type ThemeTokens, Spacing } from '@/constants/theme';
 import { SettingsSection, SettingsRow } from '@/features/settings';
 
 export default function AdminMenuScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont, insets.top);
+  const styles = makeStyles(theme, insets.top);
 
   function soon() {
     Alert.alert(t('settings.comingSoon'), t('settings.comingSoonBody'));
@@ -19,7 +21,8 @@ export default function AdminMenuScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('tabs.admin')}</Text>
+      <StreetsBackground intensity="faint" />
+      <ArcadeTitle text={t('tabs.admin')} />
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
@@ -100,7 +103,7 @@ export default function AdminMenuScreen() {
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, topInset: number) {
+function makeStyles(t: ThemeTokens, topInset: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -109,12 +112,6 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       paddingHorizontal: Spacing.four,
       paddingBottom: Spacing.three,
       gap: Spacing.two,
-    },
-    title: {
-      color: t.accent,
-      fontFamily: font,
-      fontSize: FontSize.xl,
-      letterSpacing: 1,
     },
     body: {
       gap: Spacing.two,

@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { fetchGlobalNotificationSettings, updateGlobalNotificationSettings } from '@/features/notifications';
 import type { GlobalNotificationSettings } from '@/features/notifications';
@@ -13,9 +15,9 @@ type SwitchKey = 'enabled' | 'notify_on_create' | 'notify_on_update';
 export default function AdminNotificationsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont);
+  const styles = makeStyles(theme);
 
   const [settings, setSettings] = useState<GlobalNotificationSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,11 +47,12 @@ export default function AdminNotificationsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={styles.backText}>{`< ${t('common.back')}`}</Text>
         </Pressable>
-        <Text style={styles.title}>{t('admin.notificationSettings')}</Text>
+        <ArcadeTitle text={t('admin.notificationSettings')} />
       </View>
 
       {loading || !settings ? (
@@ -133,13 +136,12 @@ function SwitchRow({
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string) {
+function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     header: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three, gap: Spacing.two },
     backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
     backText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
-    title: { color: t.accent, fontFamily: font, fontSize: FontSize.xl, letterSpacing: 1 },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     body: { paddingHorizontal: Spacing.four, gap: Spacing.three },
     row: {

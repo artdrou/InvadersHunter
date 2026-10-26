@@ -10,7 +10,6 @@
  */
 import { Image, StyleSheet, useWindowDimensions } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
-import { LIGHT_THEMES } from '@/constants/theme';
 
 const STREETS = require('../../assets/images/login-streets.png');
 const { width: W, height: H } = Image.resolveAssetSource(STREETS);
@@ -22,9 +21,9 @@ const OPACITY = {
 } as const;
 
 export function StreetsBackground({ intensity = 'full' }: { intensity?: keyof typeof OPACITY }) {
-  const { themeName } = useTheme();
+  const { theme } = useTheme();
   const window = useWindowDimensions();
-  const opacity = OPACITY[intensity][LIGHT_THEMES.has(themeName) ? 'light' : 'dark'];
+  const opacity = OPACITY[intensity][theme.isLight ? 'light' : 'dark'];
   // Pixel sizes: a percentage width resolves against the parent's padded box.
   return (
     <Image

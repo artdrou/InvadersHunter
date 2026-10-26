@@ -11,7 +11,7 @@ import { View, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { Spacing, LIGHT_THEMES } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { StreetsBackground } from '@/components/StreetsBackground';
 
 const LOGO_DARK = require('../../../../assets/images/hintvaders-logo-stacked.png');
@@ -26,7 +26,7 @@ const PAD_TOP = Spacing.four, PAD_BOTTOM = Spacing.five, LOGO_GAP = Spacing.five
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { theme, themeName } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   // Almost the whole width, but the form must stay on screen: the logo gets the height left above it.
@@ -47,7 +47,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         showsVerticalScrollIndicator={false}
       >
         <Image
-          source={LIGHT_THEMES.has(themeName) ? LOGO_LIGHT : LOGO_DARK}
+          source={theme.isLight ? LOGO_LIGHT : LOGO_DARK}
           style={[styles.logo, { width: logoWidth, height: (logoWidth * LH) / LW }]}
           resizeMode="contain"
           accessibilityLabel={t('auth.appTitle')}

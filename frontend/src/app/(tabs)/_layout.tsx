@@ -12,6 +12,38 @@ import { useFriendsStore } from "@/features/friends/store";
 import { usePickerChromeStore } from "@/features/map/store";
 import { FontSize } from "@/constants/theme";
 
+/** Tab icon; the active one gets an arcade offset shadow in the theme's title-shadow
+ *  colour, like the screen titles. */
+function ArcadeIcon({ icon, color, size, focused }: {
+  icon: (color: string) => React.ReactNode; color: string; size: number; focused: boolean;
+}) {
+  const { theme } = useTheme();
+  const offset = Math.max(2, Math.round(size / 12));
+  return (
+    <View style={{ width: size + offset, height: size + offset }}>
+      {focused && (
+        <View style={{ position: 'absolute', left: offset, top: offset }}>
+          {icon(theme.titleShadow)}
+        </View>
+      )}
+      {icon(color)}
+    </View>
+  );
+}
+
+/** Tab label; the active one gets the same arcade offset shadow as its icon. Drawn as two
+ *  stacked texts (a textShadow with no blur isn't drawn on Android). */
+function ArcadeLabel({ children, color, focused }: { children: string; color: string; focused: boolean }) {
+  const { theme, appFont } = useTheme();
+  const style = { fontFamily: appFont, fontSize: FontSize.xxs };
+  return (
+    <View>
+      {focused && <Text style={[style, styles.labelShadow, { color: theme.titleShadow }]}>{children}</Text>}
+      <Text style={[style, { color }]}>{children}</Text>
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { appFont, theme } = useTheme();
@@ -92,7 +124,7 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarLabelStyle: { fontFamily: appFont, fontSize: FontSize.xxs },
+          tabBarLabel: (p) => <ArcadeLabel {...p} />,
           tabBarActiveTintColor: theme.accent,
           tabBarInactiveTintColor: theme.textMuted,
           tabBarStyle: [
@@ -105,14 +137,14 @@ export default function TabsLayout() {
           name="map"
           options={{
             title: t('tabs.map'),
-            tabBarIcon: ({ color, size }) => <Fontisto name="map" size={size} color={color} />,
+            tabBarIcon: (p) => <ArcadeIcon {...p} icon={(c) => <Fontisto name="map" size={p.size} color={c} />} />,
           }}
         />
         <Tabs.Screen
           name="invader"
           options={{
             title: t('tabs.invaders'),
-            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="space-invaders" size={size} color={color} />,
+            tabBarIcon: (p) => <ArcadeIcon {...p} icon={(c) => <MaterialCommunityIcons name="space-invaders" size={p.size} color={c} />} />,
           }}
         />
         <Tabs.Screen
@@ -121,14 +153,14 @@ export default function TabsLayout() {
             title: t('tabs.social'),
             tabBarBadge: invitesCount > 0 ? invitesCount : undefined,
             tabBarBadgeStyle: { backgroundColor: theme.danger, fontSize: FontSize.xxs },
-            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account-group" size={size} color={color} />,
+            tabBarIcon: (p) => <ArcadeIcon {...p} icon={(c) => <MaterialCommunityIcons name="account-group" size={p.size} color={c} />} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: t('tabs.profile'),
-            tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="cog" size={size} color={color} />,
+            tabBarIcon: (p) => <ArcadeIcon {...p} icon={(c) => <MaterialCommunityIcons name="cog" size={p.size} color={c} />} />,
           }}
         />
         <Tabs.Screen
@@ -136,7 +168,7 @@ export default function TabsLayout() {
           options={{
             title: t('tabs.admin'),
             href: isAdmin ? undefined : null,
-            tabBarIcon: ({ color, size }) => <MaterialIcons name="admin-panel-settings" size={size} color={color} />,
+            tabBarIcon: (p) => <ArcadeIcon {...p} icon={(c) => <MaterialIcons name="admin-panel-settings" size={p.size} color={c} />} />,
           }}
         />
       </Tabs>
@@ -162,6 +194,7 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  labelShadow: { position: 'absolute', left: 1, top: 1 },
   root: { flex: 1 },
   offlinePill: {
     position: "absolute",

@@ -8,6 +8,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAuthStore, useRequireAccount } from '@/features/auth';
 import { hapticTap, hapticSuccess } from '@/features/settings';
@@ -153,7 +154,7 @@ export default function SocialScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
       <StreetsBackground intensity="faint" />
-      <Text style={styles.title}>{t('social.title')}</Text>
+      <ArcadeTitle text={t('social.title')} style={styles.title} />
 
       <ScrollView
         contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + Spacing.five }]}
@@ -313,10 +314,7 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     centered: { alignItems: 'center', justifyContent: 'center', gap: Spacing.three, paddingHorizontal: Spacing.five },
-    title: {
-      color: t.accent, fontFamily: font, fontSize: sz(FontSize.xl), letterSpacing: 1,
-      paddingHorizontal: Spacing.four, paddingBottom: Spacing.two,
-    },
+    title: { marginHorizontal: Spacing.four, marginBottom: Spacing.two },
     body: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.four },
     section: { gap: Spacing.two },
     sectionLabel: {

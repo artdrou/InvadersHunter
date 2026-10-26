@@ -1,52 +1,66 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { themes, type ThemeName, type ThemeTokens, AppFont, AppFontScale } from '@/constants/theme';
+import {
+  themes, buildCustomTheme, DEFAULT_CUSTOM_THEME,
+  type ThemeName, type ThemeTokens, type CustomThemeSettings, AppFont, AppFontScale,
+} from '@/constants/theme';
 
-const THEME_KEY       = 'app-theme';
-const ACCENT_KEY      = 'app-accent-override';
-const ROUTE_PATH_KEY  = 'app-route-path-override';
+const THEME_KEY        = 'app-theme';
+const CUSTOM_KEY       = 'app-custom-theme';
+// Before the custom theme, accent / route colours were overrides on any theme.
+const LEGACY_ACCENT    = 'app-accent-override';
+const LEGACY_ROUTE     = 'app-route-path-override';
 const FALLBACK_THEME: ThemeName = 'dark';
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 type ThemeContextValue = {
-  /** Effective theme tokens — includes any active overrides. */
+  /** Effective theme tokens (the custom theme is built from `custom`). */
   theme: ThemeTokens;
   themeName: ThemeName;
   setTheme: (name: ThemeName) => void;
-  /** User-picked accent override (null = use the theme's default). */
-  accentOverride: string | null;
-  setAccentOverride: (color: string | null) => void;
-  /** Default accent for the current theme (ignores override). Useful as a reset target. */
-  defaultAccent: string;
-  /** User-picked route path color override (null = use the theme's default). */
-  routePathOverride: string | null;
-  setRoutePathOverride: (color: string | null) => void;
-  /** Default route path color for the current theme (ignores override). */
-  defaultRoutePath: string;
+  /** Settings of the custom theme (kept even while a built-in theme is active). */
+  custom: CustomThemeSettings;
+  setCustom: (patch: Partial<CustomThemeSettings>) => void;
   appFont: string;
   fontScale: number;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+const isThemeName = (v: string | null): v is ThemeName => !!v && (v === 'custom' || v in themes);
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeName, setThemeNameState]           = useState<ThemeName>(FALLBACK_THEME);
-  const [accentOverride, setAccentOverrideState] = useState<string | null>(null);
-  const [routePathOverride, setRoutePathOverrideState] = useState<string | null>(null);
+  const [themeName, setThemeNameState] = useState<ThemeName>(FALLBACK_THEME);
+  const [custom, setCustomState] = useState<CustomThemeSettings>(DEFAULT_CUSTOM_THEME);
 
   // Hydrate from AsyncStorage on mount.
   useEffect(() => {
     (async () => {
       try {
-        const [storedTheme, storedAccent, storedRoute] = await Promise.all([
+        const [storedTheme, storedCustom, legacyAccent, legacyRoute] = await Promise.all([
           AsyncStorage.getItem(THEME_KEY),
-          AsyncStorage.getItem(ACCENT_KEY),
-          AsyncStorage.getItem(ROUTE_PATH_KEY),
+          AsyncStorage.getItem(CUSTOM_KEY),
+          AsyncStorage.getItem(LEGACY_ACCENT),
+          AsyncStorage.getItem(LEGACY_ROUTE),
         ]);
-        if (storedTheme && storedTheme in themes) setThemeNameState(storedTheme as ThemeName);
-        if (storedAccent) setAccentOverrideState(storedAccent);
-        if (storedRoute)  setRoutePathOverrideState(storedRoute);
+        if (isThemeName(storedTheme)) setThemeNameState(storedTheme);
+        if (storedCustom) {
+          setCustomState({ ...DEFAULT_CUSTOM_THEME, ...JSON.parse(storedCustom) });
+        } else if (legacyAccent || legacyRoute) {
+          // Keep the colours the user picked: they seed the custom theme.
+          const base = isThemeName(storedTheme) && storedTheme !== 'custom' && themes[storedTheme].isLight
+            ? 'light' : 'dark';
+          const seeded = {
+            ...DEFAULT_CUSTOM_THEME,
+            base,
+            ...(legacyAccent && { accent: legacyAccent }),
+            ...(legacyRoute && { routePath: legacyRoute }),
+          } as CustomThemeSettings;
+          setCustomState(seeded);
+          AsyncStorage.setItem(CUSTOM_KEY, JSON.stringify(seeded)).catch(() => {});
+        }
+        if (legacyAccent || legacyRoute) AsyncStorage.multiRemove([LEGACY_ACCENT, LEGACY_ROUTE]).catch(() => {});
       } catch {}
     })();
   }, []);
@@ -56,36 +70,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     AsyncStorage.setItem(THEME_KEY, name).catch(() => {});
   }
 
-  function setAccentOverride(color: string | null) {
-    setAccentOverrideState(color);
-    if (color) AsyncStorage.setItem(ACCENT_KEY, color).catch(() => {});
-    else        AsyncStorage.removeItem(ACCENT_KEY).catch(() => {});
+  function setCustom(patch: Partial<CustomThemeSettings>) {
+    setCustomState((prev) => {
+      const next = { ...prev, ...patch };
+      AsyncStorage.setItem(CUSTOM_KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
   }
 
-  function setRoutePathOverride(color: string | null) {
-    setRoutePathOverrideState(color);
-    if (color) AsyncStorage.setItem(ROUTE_PATH_KEY, color).catch(() => {});
-    else        AsyncStorage.removeItem(ROUTE_PATH_KEY).catch(() => {});
-  }
-
-  const baseTheme = themes[themeName];
-  const theme: ThemeTokens = {
-    ...baseTheme,
-    ...(accentOverride   && { accent: accentOverride, locationDot: accentOverride }),
-    ...(routePathOverride && { routePath: routePathOverride }),
-  };
+  const theme: ThemeTokens = themeName === 'custom' ? buildCustomTheme(custom) : themes[themeName];
 
   return (
     <ThemeContext.Provider value={{
       theme,
       themeName,
       setTheme,
-      accentOverride,
-      setAccentOverride,
-      defaultAccent: baseTheme.accent,
-      routePathOverride,
-      setRoutePathOverride,
-      defaultRoutePath: baseTheme.routePath,
+      custom,
+      setCustom,
       appFont: AppFont,
       fontScale: AppFontScale,
     }}>
