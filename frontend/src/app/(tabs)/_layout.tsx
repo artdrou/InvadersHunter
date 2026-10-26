@@ -20,7 +20,8 @@ function ArcadeIcon({ icon, color, size, focused }: {
   const { theme } = useTheme();
   const offset = Math.max(2, Math.round(size / 12));
   return (
-    <View style={{ width: size + offset, height: size + offset }}>
+    // No fixed size: some glyphs (Fontisto's map) are wider than `size`; the icon sizes the box
+    <View style={{ paddingRight: offset, paddingBottom: offset }}>
       {focused && (
         <View style={{ position: 'absolute', left: offset, top: offset }}>
           {icon(theme.titleShadow)}
