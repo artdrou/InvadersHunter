@@ -15,6 +15,7 @@ import { hapticTap, hapticSuccess } from '@/features/settings';
 import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
 import {
   useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
+  MyFriendCodeCard,
 } from '@/features/friends';
 import type { FriendEntry, FriendLookup } from '@/features/friends';
 import { useInvaderStore } from '@/features/invaders';
@@ -26,7 +27,7 @@ import { ShadowText } from '@/components/ShadowText';
 
 type Feedback = { ok: boolean; text: string } | null;
 
-/** Social tab: add a friend by username, answer invites, list friends. */
+/** Social tab: my friend code, add a friend by code or username, answer invites, list friends. */
 export default function SocialScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -186,6 +187,7 @@ export default function SocialScreen() {
         {/* ── Add a friend ── */}
         <View style={styles.section}>
           <ArcadeSectionLabel title={t('social.addTitle')} />
+          <MyFriendCodeCard />
           <View style={styles.addRow}>
             <View style={[styles.inputWrap, confirmed && { borderColor: theme.success }]}>
               <TextInput

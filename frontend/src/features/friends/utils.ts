@@ -18,12 +18,15 @@ export function applyFriendView(invaders: InvaderWithState[], view: FriendMapVie
   return invaders.map((i) => ({ ...i, friendCaptured: theirs.has(i.id) }));
 }
 
-export type FriendRequestError = 'user_not_found' | 'self' | 'already_friends' | 'already_sent' | 'network';
+export type FriendRequestError = 'user_not_found' | 'self' | 'already_friends' | 'already_sent' | 'too_many' | 'network';
 
 /** Backend `detail` code of a failed invite → the message to show. */
 export function friendRequestError(err: unknown): FriendRequestError {
   const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
-  if (detail === 'user_not_found' || detail === 'self' || detail === 'already_friends' || detail === 'already_sent') {
+  if (
+    detail === 'user_not_found' || detail === 'self' || detail === 'already_friends'
+    || detail === 'already_sent' || detail === 'too_many'
+  ) {
     return detail;
   }
   return 'network';

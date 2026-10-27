@@ -7,31 +7,27 @@ Rate-limited in memory (one backend instance): MAX_MESSAGES per WINDOW per user,
 or per IP for guests.
 """
 import os
-import time
-from collections import defaultdict, deque
 from typing import Callable, Optional
 
 from ..core.email import send_contact_email
+from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 from ..models.user import User
 
 CONTACT_INBOX = "contact@hintvaders.app"
 MAX_MESSAGES = 3
 WINDOW_S = 15 * 60
 
-_recent: dict[str, deque] = defaultdict(deque)
+_limiter = SlidingWindowLimiter(MAX_MESSAGES, WINDOW_S)
 
 
 class TooManyMessages(Exception): ...
 
 
 def _check_rate(key: str) -> None:
-    now = time.monotonic()
-    sent = _recent[key]
-    while sent and now - sent[0] > WINDOW_S:
-        sent.popleft()
-    if len(sent) >= MAX_MESSAGES:
+    try:
+        _limiter.hit(key)
+    except RateLimited:
         raise TooManyMessages()
-    sent.append(now)
 
 
 def send_message(

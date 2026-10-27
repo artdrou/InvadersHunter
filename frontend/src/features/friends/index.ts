@@ -5,6 +5,7 @@ export type {
 } from './types';
 export {
   fetchFriendsOverview,
+  fetchFriendCode,
   lookupUsername,
   sendFriendRequest,
   acceptFriendRequest,
@@ -17,3 +18,4 @@ export { applyFriendView, friendRequestError } from './utils';
 export type { FriendRequestError } from './utils';
 export { FriendMapPicker } from './components/FriendMapPicker';
 export { FriendMapBanner } from './components/FriendMapBanner';
+export { MyFriendCodeCard } from './components/MyFriendCodeCard';

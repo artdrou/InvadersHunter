@@ -4,7 +4,12 @@ from typing import List, Optional
 
 
 class FriendRequestCreate(BaseModel):
+    """`username` also takes a friend code ("K7QM-3XPA", any case, dash optional)."""
     username: str = Field(..., min_length=1, max_length=50)
+
+
+class FriendCodeOut(BaseModel):
+    code: str
 
 
 class FriendEntry(BaseModel):
