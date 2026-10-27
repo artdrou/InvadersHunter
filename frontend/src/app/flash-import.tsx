@@ -23,6 +23,8 @@ import { type ThemeTokens, FontSize, BorderRadius, Spacing, AppFont } from '@/co
 import { importFlashes, SCRIPT_DOWNLOAD_URL, type FlashImportResponse } from '@/features/flash-import';
 import { apiErrorDetail } from '@/services/api-client';
 import { useInvaderStore } from '@/features/invaders';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 export default function FlashImportScreen() {
   const router = useRouter();
@@ -131,7 +133,7 @@ export default function FlashImportScreen() {
         disabled={submitting}>
         {submitting
           ? <ActivityIndicator color={theme.accent} />
-          : <Text style={styles.secondaryBtnText}>{t('flashImport.importBtn')}</Text>}
+          : <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('flashImport.importBtn')}</ShadowText>}
       </Pressable>
 
       {result && (
@@ -184,17 +186,17 @@ function makeStyles(t: ThemeTokens, _appFont: string, scale: number, top: number
     stepTitle: { color: t.text, fontFamily: font, fontSize: sz(FontSize.md) },
     stepText:  { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm), lineHeight: 17 },
     primaryBtn: {
-      borderWidth: 1, borderColor: t.accent, backgroundColor: t.bgElement,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14, alignItems: 'center',
     },
-    primaryBtnText: { color: t.accent, fontFamily: AppFont, fontSize: FontSize.md },
+    primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
     secondaryBtn: {
-      borderWidth: 1, borderColor: t.border, backgroundColor: t.bgElement,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
       paddingVertical: 12, alignItems: 'center',
     },
-    secondaryBtnText: { color: t.accent, fontFamily: AppFont, fontSize: FontSize.md },
+    secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     note: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.xs), lineHeight: 15 },
     divider: { height: 1, backgroundColor: t.bgDivider, marginVertical: Spacing.two },
     sectionTitle: {

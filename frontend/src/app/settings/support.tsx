@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 // TODO: replace REPLACE_ME with the real Ko-fi handle once the account is created.
 const DONATION_URL = 'https://ko-fi.com/drouuu';
@@ -50,11 +51,11 @@ function makeStyles(t: ThemeTokens) {
     btn: {
       paddingVertical: 12,
       borderRadius: BorderRadius.sm,
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       alignItems: 'center',
       marginTop: Spacing.two,
     },
-    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
+    btnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
   });
 }

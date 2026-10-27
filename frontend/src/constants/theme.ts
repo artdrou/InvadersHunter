@@ -338,6 +338,9 @@ export const AppFontScale = 0.9;
 
 /** Font for interactive controls (buttons, pills, selectors). */
 export const ButtonFont = 'FreePixel';
+/** Bold FreePixel (design/logo/bold_font.py): never use fontWeight on the pixel fonts,
+ *  the system would swap in its own bold font. */
+export const ButtonFontBold = 'FreePixelBold';
 
 /** Arcade screen titles (components/ArcadeTitle): outline font + its filled silhouette. */
 export const TitleFont = 'Pixelmania';

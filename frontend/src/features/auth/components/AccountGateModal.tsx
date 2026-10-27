@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useAccountGateStore } from '../gate-store';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 /**
  * App-styled replacement for the native alert shown when a guest taps an
@@ -47,7 +49,7 @@ export function AccountGateModal() {
           <Pressable
             style={({ pressed }) => [styles.outlineBtn, pressed && styles.pressed]}
             onPress={handleLogin}>
-            <Text style={styles.outlineBtnText}>{t('guest.gateLogin')}</Text>
+            <ShadowText shadowColor={theme.titleShadow} style={styles.outlineBtnText}>{t('guest.gateLogin')}</ShadowText>
           </Pressable>
 
           <Pressable
@@ -95,27 +97,24 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       lineHeight: 20,
     },
     primaryBtn: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
       marginTop: Spacing.two,
     },
     primaryBtnText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     outlineBtn: {
-      borderWidth: 1,
-      borderColor: t.border,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
       paddingVertical: 12,
       alignItems: 'center',
     },
     outlineBtnText: {
-      color: t.text,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t, 'outline'),
       fontSize: FontSize.xl,
     },
     secondaryBtn: {

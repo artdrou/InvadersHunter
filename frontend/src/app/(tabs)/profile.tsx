@@ -1,13 +1,13 @@
 /**
  * Settings landing screen (mounted as the "Profile" tab — name kept for route
- * stability; the user-facing label is "Reglages"/"Settings" via t('tabs.profile')).
+ * stability; the user-facing label is "Options"/"Settings" via t('tabs.profile')).
  *
  * Categorized list. Rich settings navigate to `src/app/settings/<id>.tsx`;
  * simple booleans (haptics, notifications) and the language picker live
  * inline right here.
  */
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/
 import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
 import { StreetsBackground } from "@/components/StreetsBackground";
 import { ArcadeTitle } from "@/components/ArcadeTitle";
+import { PlayerCard } from "@/features/settings/components/PlayerCard";
 
 export default function SettingsLanding() {
   const router = useRouter();
@@ -72,7 +73,9 @@ export default function SettingsLanding() {
       <StreetsBackground intensity="faint" />
       <ArcadeTitle text={t('settings.title')} />
 
-      <View style={styles.body}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <PlayerCard />
+
       <SettingsSection title={t('settings.sectionAccount')}>
         {isGuest ? (
           <>
@@ -193,7 +196,7 @@ export default function SettingsLanding() {
           onPress={() => router.push('/settings/support')}
         />
       </SettingsSection>
-      </View>
+      </ScrollView>
 
     </View>
   );
@@ -209,9 +212,11 @@ function makeStyles(t: ThemeTokens, topInset: number) {
       paddingBottom: Spacing.three,
       gap: Spacing.two,
     },
+    scroll: { flex: 1 },
     body: {
-      // Everything below the title, centered vertically in the remaining space.
-      flex: 1,
+      // Everything below the title, centered vertically in the remaining space
+      // (scrolls when it doesn't fit, e.g. small phones or big font scale).
+      flexGrow: 1,
       justifyContent: 'center',
       gap: Spacing.two,
     },

@@ -10,6 +10,8 @@ import * as haptics from '@/features/settings/haptics';
 import { setUserAdmin, deleteUser } from '../services/admin.api';
 import type { AdminUserProfile } from '../types';
 import { DangerConfirmScreen, DANGER_RED } from './DangerConfirmScreen';
+import { arcadeButton, arcadeButtonLabel, arcadeDangerShadow } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 type Props = {
   profile: AdminUserProfile;
@@ -71,7 +73,7 @@ export function UserAdminActions({ profile, onChanged, onDeleted }: Props) {
   return (
     <View style={styles.actions}>
       <Pressable
-        style={({ pressed }) => [styles.btn, { borderColor: theme.accent }, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.btn, arcadeButton(theme, 'outline'), pressed && styles.pressed]}
         onPress={askRoleChange}
         disabled={roleBusy}
       >
@@ -80,19 +82,19 @@ export function UserAdminActions({ profile, onChanged, onDeleted }: Props) {
         ) : (
           <>
             <Ionicons name={promoting ? 'shield-checkmark-outline' : 'shield-outline'} size={18} color={theme.accent} />
-            <Text style={[styles.btnText, { color: theme.accent }]}>
+            <ShadowText shadowColor={theme.titleShadow} style={[styles.btnText, arcadeButtonLabel(theme, 'outline')]}>
               {t(promoting ? 'adminUsers.promote' : 'adminUsers.demote')}
-            </Text>
+            </ShadowText>
           </>
         )}
       </Pressable>
 
       <Pressable
-        style={({ pressed }) => [styles.btn, { borderColor: DANGER_RED }, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.btn, arcadeButton(theme, 'danger'), { borderColor: DANGER_RED, boxShadow: arcadeDangerShadow(DANGER_RED) }, pressed && styles.pressed]}
         onPress={() => { haptics.disappoint(); setConfirmDelete(true); }}
       >
         <Ionicons name="trash-outline" size={18} color={DANGER_RED} />
-        <Text style={[styles.btnText, { color: DANGER_RED }]}>{t('adminUsers.deleteUser')}</Text>
+        <Text style={[styles.btnText, arcadeButtonLabel(theme, 'danger'), { color: DANGER_RED }]}>{t('adminUsers.deleteUser')}</Text>
       </Pressable>
 
       {confirmDelete ? (

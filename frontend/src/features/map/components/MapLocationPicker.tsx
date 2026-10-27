@@ -5,6 +5,8 @@ import { Spacing, BorderRadius, FontSize, ZIndex } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CenterPin } from "./CenterPin";
 import { CoordinateInput } from "./CoordinateInput";
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 /** Height of the Cancel / Validate bar — map buttons sit above it while picking. */
 export const PICKER_BAR_HEIGHT = 48;
@@ -35,16 +37,16 @@ export function MapLocationPicker({ onCancel, onValidate, onGoTo }: Props) {
       )}
       <View style={styles.bar}>
         <TouchableOpacity
-          style={[styles.btn, { borderColor: theme.border, backgroundColor: theme.bgElement }]}
+          style={[styles.btn, arcadeButton(theme, 'outline'), { backgroundColor: theme.bgElement }]}
           onPress={onCancel}
         >
-          <Text style={[styles.btnText, { color: theme.textMuted }]}>{t("common.cancel")}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={[styles.btnText, arcadeButtonLabel(theme, 'outline')]}>{t("common.cancel")}</ShadowText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.btn, { backgroundColor: theme.accent }]}
+          style={[styles.btn, arcadeButton(theme)]}
           onPress={onValidate}
         >
-          <Text style={[styles.btnText, { color: theme.bg }]}>{t("common.validate")}</Text>
+          <Text style={[styles.btnText, arcadeButtonLabel(theme)]}>{t("common.validate")}</Text>
         </TouchableOpacity>
       </View>
     </>

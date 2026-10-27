@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { useChangelogStore } from '../store';
 import { latestRelease, notesForLanguage } from '../releases';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 type Props = {
   /** Only show once the user is actually in the app (authenticated or guest). */
@@ -126,15 +127,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       flex: 1,
     },
     primaryBtn: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
       marginTop: Spacing.two,
     },
     primaryBtnText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     pressed: { opacity: 0.7 },

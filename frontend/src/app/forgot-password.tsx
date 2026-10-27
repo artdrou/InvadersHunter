@@ -6,6 +6,7 @@ import { forgotPassword, verifyResetCode, resetPassword, AuthLayout } from '@/fe
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
 
 type Step = 'request' | 'verify' | 'new-password';
 
@@ -99,7 +100,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleRequest}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.sendCode')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.sendCode')}</Text>}
           </Pressable>
         </View>
       )}
@@ -121,7 +122,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleVerify}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.verify')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.verify')}</Text>}
           </Pressable>
         </View>
       )}
@@ -157,7 +158,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleReset}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.updatePassword')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.updatePassword')}</Text>}
           </Pressable>
         </View>
       )}
@@ -209,7 +210,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       textAlign: 'center',
     },
     button: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
@@ -219,8 +220,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.8,
     },
     buttonText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     backLink: {

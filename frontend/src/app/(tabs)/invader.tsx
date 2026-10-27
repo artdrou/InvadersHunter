@@ -220,7 +220,7 @@ export default function InvadersScreen() {
           borderRadius: 8,
           borderWidth: 1,
           borderColor: theme.border,
-        });
+        }, { showTitle: true });
     }
   }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);
 

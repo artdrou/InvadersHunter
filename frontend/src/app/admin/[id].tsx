@@ -24,6 +24,8 @@ import { logger } from '@/services/logger';
 import { Diff } from '@/features/admin/components/Diff';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 /** Pull the year out of an ISO date string (YYYY-...) for compact display. */
 function yearOf(date?: string | null): number | null {
@@ -225,7 +227,7 @@ export default function AdminDetailScreen() {
                 {pickedCoords ? ` ${t('admin.byAdmin')}` : ` ${t('admin.byBary')}`}
               </Text>
               <Pressable style={({ pressed }) => [styles.mapBtn, pressed && styles.pressed]} onPress={openPositionPicker}>
-                <Text style={styles.mapBtnText}>{t('admin.reviewOnMap')}</Text>
+                <ShadowText shadowColor={theme.titleShadow} style={styles.mapBtnText}>{t('admin.reviewOnMap')}</ShadowText>
               </Pressable>
             </View>
           )}
@@ -331,10 +333,10 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },
     diffLabel:    { color: t.textMuted, fontSize: sz(11), fontFamily: font, marginBottom: 2 },
     mapBtn: {
-      marginTop: Spacing.two, borderWidth: 1, borderColor: t.accent,
+      marginTop: Spacing.two, ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm, paddingVertical: 8, alignItems: 'center',
     },
-    mapBtnText:   { color: t.accent, fontSize: FontSize.lg, fontFamily: ButtonFont },
+    mapBtnText:   { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.lg },
     submissionsCta: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
       backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
@@ -366,14 +368,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     },
     rejectBtn: {
       flex: 1, paddingVertical: 14, borderRadius: BorderRadius.sm,
-      borderWidth: 1, borderColor: t.danger, alignItems: 'center',
+      ...arcadeButton(t, 'danger'), alignItems: 'center',
     },
-    rejectBtnText: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.xl },
+    rejectBtnText: { ...arcadeButtonLabel(t, 'danger'), fontSize: FontSize.xl },
     approveBtn: {
       flex: 1, paddingVertical: 14, borderRadius: BorderRadius.sm,
-      backgroundColor: t.accent, alignItems: 'center',
+      ...arcadeButton(t), alignItems: 'center',
     },
-    approveBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.xl },
+    approveBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.xl },
     pressed:      { opacity: 0.7 },
   });
 }

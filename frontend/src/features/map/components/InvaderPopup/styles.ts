@@ -1,8 +1,11 @@
 import { StyleSheet } from "react-native";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from "@/constants/theme";
+import { arcadeButton, arcadeButtonLabel, arcadeShadow } from "@/constants/arcade-button";
 
 /** Fixed popup card width (px). */
 export const POPUP_WIDTH = 300;
+/** Room for the invader name in the header: card padding and the close button taken out. */
+export const POPUP_NAME_WIDTH = POPUP_WIDTH - 2 * Spacing.four - 32;
 
 export function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
@@ -33,6 +36,9 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontSize: sz(FontSize.xl),
       fontFamily: font,
       letterSpacing: 1,
+      flexShrink: 1,
+    },
+    titleName: {
       flexShrink: 1,
     },
     closeBtn: {
@@ -87,27 +93,45 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       marginTop: Spacing.one,
     },
     doFlashBtn: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
     },
     validateBtnDisabled: {
       backgroundColor: t.bgDivider,
+      boxShadow: 'none',
       opacity: 0.6,
     },
-    unflashBtn: {
-      backgroundColor: "transparent",
-      borderWidth: 1,
-      borderColor: t.danger,
+    flashedState: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: t.success,
+      boxShadow: arcadeShadow(t),
+      borderRadius: BorderRadius.sm,
+      paddingVertical: 12,
+      paddingHorizontal: Spacing.three,
+      marginTop: Spacing.one,
+    },
+    flashedStateText: {
+      fontFamily: ButtonFontBold,
+      fontSize: FontSize.xl,
+      color: t.titleShadow,
+    },
+    unflashLink: {
+      paddingVertical: 2,
+      paddingHorizontal: Spacing.one,
+    },
+    unflashLinkText: {
+      fontFamily: ButtonFontBold,
+      fontSize: FontSize.sm,
+      color: t.titleShadow,
+      opacity: 0.8,
     },
     btnPressed: {
       opacity: 0.7,
     },
     flashBtnText: {
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xl,
-      color: t.bg,
-    },
-    unflashBtnText: {
-      color: t.danger,
     },
     linksRow: {
       flexDirection: "row",

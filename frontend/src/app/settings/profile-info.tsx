@@ -10,6 +10,7 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@
 import { SettingsShell, StatSection, StatCell, CollectionStatsSection, hapticTap } from '@/features/settings';
 import { useInvaderData, computeCollectionStats } from '@/features/invaders';
 import { unregisterPushToken, useNotificationsStore } from '@/features/notifications';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 export default function ProfileInfoScreen() {
   const router = useRouter();
@@ -88,12 +89,11 @@ function makeStyles(t: ThemeTokens) {
     logoutBtn: {
       paddingVertical: 14,
       borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.danger,
+      ...arcadeButton(t, 'danger'),
       alignItems: 'center',
       marginTop: Spacing.three,
     },
-    logoutText: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.md },
+    logoutText: { ...arcadeButtonLabel(t, 'danger'), fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
   });
 }

@@ -7,6 +7,8 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { useAuthStore } from '@/features/auth';
 import { sendContactMessage } from '@/features/contact';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 const SUBJECT_MAX = 120;
 const MESSAGE_MAX = 4000;
@@ -60,7 +62,7 @@ export default function ContactScreen() {
             style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
             onPress={() => setSent(false)}
           >
-            <Text style={styles.secondaryBtnText}>{t('settings.contactNewMessage')}</Text>
+            <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('settings.contactNewMessage')}</ShadowText>
           </Pressable>
         </View>
       </SettingsShell>
@@ -111,7 +113,7 @@ export default function ContactScreen() {
           disabled={sending}
         >
           {sending
-            ? <ActivityIndicator color={theme.bg} />
+            ? <ActivityIndicator color={arcadeLabelColor(theme)} />
             : <Text style={styles.btnText}>{t('settings.contactSend')}</Text>}
         </Pressable>
       </View>
@@ -156,18 +158,17 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     btn: {
       paddingVertical: 12,
       borderRadius: BorderRadius.sm,
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       alignItems: 'center',
     },
-    btnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
+    btnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
     secondaryBtn: {
       paddingVertical: 12,
       borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-      borderColor: t.accent,
+      ...arcadeButton(t, 'outline'),
       alignItems: 'center',
     },
-    secondaryBtnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
+    secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
     notice: {
       color: t.danger,

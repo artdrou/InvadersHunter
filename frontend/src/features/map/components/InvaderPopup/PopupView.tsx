@@ -18,7 +18,8 @@ import { missingFields, type EditField } from "@/features/invaders/edit-fields";
 import { MissingChip } from "@/features/invaders/components/MissingChip";
 import { formatDate } from "./format";
 import { InvaderSpotterModal } from "./InvaderSpotterModal";
-import type { PopupStyles } from "./styles";
+import { ArcadeTitle } from "@/components/ArcadeTitle";
+import { POPUP_NAME_WIDTH, type PopupStyles } from "./styles";
 
 type Props = {
   invader: InvaderWithState;
@@ -59,7 +60,7 @@ export function PopupView({ invader, isISS, pendingFields, onFlash, onUnflash, o
   return (
     <>
       <View style={styles.header}>
-        <Text style={styles.name}>{invader.name}</Text>
+        <ArcadeTitle text={invader.name} size={20} fitWidth={POPUP_NAME_WIDTH} style={styles.titleName} />
         <Pressable onPress={onClose} style={styles.closeBtn}>
           <Text style={styles.closeText}>✕</Text>
         </Pressable>
@@ -182,18 +183,26 @@ export function PopupView({ invader, isISS, pendingFields, onFlash, onUnflash, o
         </View>
       )}
 
-      <Pressable
-        style={({ pressed }) => [
-          styles.flashBtn,
-          invader.isCaptured ? styles.unflashBtn : styles.doFlashBtn,
-          pressed && styles.btnPressed,
-        ]}
-        onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
-      >
-        <Text style={[styles.flashBtnText, invader.isCaptured && styles.unflashBtnText]}>
-          {invader.isCaptured ? t('popup.unflash') : t('popup.flash')}
-        </Text>
-      </Pressable>
+      {invader.isCaptured ? (
+        // Flashed: the state stays visible, un-flashing is a small secondary action
+        <View style={styles.flashedState}>
+          <Text style={styles.flashedStateText}>✓ {t('popup.flashed')}</Text>
+          <Pressable
+            onPress={() => onUnflash(invader)}
+            style={({ pressed }) => [styles.unflashLink, pressed && styles.btnPressed]}
+            hitSlop={8}
+          >
+            <Text style={styles.unflashLinkText}>{t('popup.unflash')}</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          style={({ pressed }) => [styles.flashBtn, styles.doFlashBtn, pressed && styles.btnPressed]}
+          onPress={() => onFlash(invader)}
+        >
+          <Text style={styles.flashBtnText}>{t('popup.flash')}</Text>
+        </Pressable>
+      )}
 
       {!isISS && (
         <Pressable

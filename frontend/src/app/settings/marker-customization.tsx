@@ -11,6 +11,8 @@ import { SettingsShell, hapticTap, ColorPickerModal, useMarkerCustomizationStore
 import { SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
 import { TIER_VALUES, type TierPts, type CustomizableState } from '@/features/marker-customization/types';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 // Carousel geometry. ITEM is the vertical snap height (one shape per page);
 // CAROUSEL_W is kept small enough that all 6 tiers fit one row down to a ~320pt
@@ -313,18 +315,18 @@ export default function MarkerCustomizationScreen() {
           disabled={isGenerating}
           onPress={() => { hapticTap(); reset().catch(() => {}); }}
         >
-          <Text style={styles.secondaryBtnText}>{t('markerCustomization.reset')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('markerCustomization.reset')}</ShadowText>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
             styles.primaryBtn,
-            { backgroundColor: theme.accent },
+            arcadeButton(theme),
             (pressed || isGenerating || !isDirty) && styles.pressed,
           ]}
           disabled={isGenerating || !isDirty}
           onPress={() => { hapticTap(); regenerate().catch(() => {}); }}
         >
-          {isGenerating ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.primaryBtnText}>{t('markerCustomization.validate')}</Text>}
+          {isGenerating ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.primaryBtnText}>{t('markerCustomization.validate')}</Text>}
         </Pressable>
       </View>
 
@@ -426,10 +428,10 @@ function makeStyles(t: ThemeTokens) {
     actionsRow: { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.two },
     secondaryBtn: {
       flex: 1, paddingVertical: 14, alignItems: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border,
+      borderRadius: BorderRadius.sm, ...arcadeButton(t, 'outline'),
     },
-    secondaryBtnText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
+    secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     primaryBtn: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: BorderRadius.sm },
-    primaryBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
+    primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
   });
 }

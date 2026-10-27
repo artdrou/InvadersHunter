@@ -19,6 +19,7 @@ import type { FriendEntry, FriendLookup } from '@/features/friends';
 import { useInvaderStore } from '@/features/invaders';
 import { missingFields } from '@/features/invaders/edit-fields';
 import { ISS_INVADER_NAME } from '@/features/iss/constants';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -202,7 +203,7 @@ export default function SocialScreen() {
               disabled={!confirmed || sending}
             >
               {sending
-                ? <ActivityIndicator size="small" color={theme.bg} />
+                ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
                 : <Text style={styles.primaryBtnText}>{t('social.addButton')}</Text>}
             </Pressable>
           </View>
@@ -330,11 +331,11 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     input: { flex: 1, color: t.text, fontFamily: font, fontSize: sz(FontSize.sm), paddingVertical: 10 },
     suggestion: { borderColor: t.accent },
     primaryBtn: {
-      backgroundColor: t.accent, borderRadius: BorderRadius.sm,
+      ...arcadeButton(t), borderRadius: BorderRadius.sm,
       paddingVertical: 10, paddingHorizontal: Spacing.four, alignItems: 'center', justifyContent: 'center',
     },
     sendBtn: { minWidth: 90 },
-    primaryBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
+    primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
     feedback: { fontFamily: font, fontSize: sz(FontSize.xs), paddingHorizontal: Spacing.two },
     card: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.three,
@@ -354,9 +355,9 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
       borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
       paddingVertical: 6, paddingHorizontal: Spacing.two,
     },
-    smallBtnPrimary: { backgroundColor: t.accent, borderColor: t.accent },
+    smallBtnPrimary: { ...arcadeButton(t) },
     smallBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
-    smallBtnTextPrimary: { color: t.bg },
+    smallBtnTextPrimary: { ...arcadeButtonLabel(t) },
     muted: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm), textAlign: 'center', paddingVertical: Spacing.three },
     guestText: { color: t.text, fontFamily: font, fontSize: sz(FontSize.md), textAlign: 'center' },
     disabled: { opacity: 0.5 },

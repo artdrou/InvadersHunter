@@ -1,6 +1,7 @@
 /** Shared look of the app-update prompts (new APK, OTA ready to apply). */
 import { StyleSheet } from 'react-native';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 export function makeUpdateModalStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
@@ -43,15 +44,14 @@ export function makeUpdateModalStyles(t: ThemeTokens, font: string, scale: numbe
       marginTop: Spacing.one,
     },
     primaryBtn: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
       marginTop: Spacing.two,
     },
     primaryBtnText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     secondaryBtn: {

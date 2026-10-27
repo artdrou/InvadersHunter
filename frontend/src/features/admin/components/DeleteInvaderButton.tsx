@@ -4,13 +4,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont, FontSize, Spacing, BorderRadius } from '@/constants/theme';
+import { ButtonFontBold, FontSize, Spacing, BorderRadius } from '@/constants/theme';
 import { deleteInvadersByIds } from '@/services/db';
 import { useAuthStore } from '@/features/auth/store';
 import { useInvaderStore } from '@/features/invaders/store';
 import * as haptics from '@/features/settings/haptics';
 import { deleteInvader } from '../services/admin.api';
 import { DangerConfirmScreen, DANGER_RED } from './DangerConfirmScreen';
+import { arcadeDangerShadow } from '@/constants/arcade-button';
 
 type Props = {
   invaderId: number;
@@ -46,11 +47,11 @@ export function DeleteInvaderButton({ invaderId, invaderName, onDeleted }: Props
   return (
     <>
       <Pressable
-        style={({ pressed }) => [styles.triggerBtn, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.triggerBtn, { boxShadow: arcadeDangerShadow(DANGER_RED) }, pressed && styles.pressed]}
         onPress={() => { haptics.disappoint(); setOpen(true); }}
       >
         <MaterialCommunityIcons name="trash-can-outline" size={18} color={DANGER_RED} />
-        <Text style={[styles.triggerText, { fontFamily: ButtonFont, fontSize: sz(FontSize.sm) }]}>
+        <Text style={[styles.triggerText, { fontFamily: ButtonFontBold, fontSize: sz(FontSize.sm) }]}>
           {t('adminDelete.button')}
         </Text>
       </Pressable>
