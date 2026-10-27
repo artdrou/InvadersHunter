@@ -2,10 +2,13 @@
   "expo": {
     "name": "HintVaders",
     "slug": "frontend",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["frontend", "hintvaders"],
+    "scheme": [
+      "frontend",
+      "hintvaders"
+    ],
     "userInterfaceStyle": "automatic",
     "android": {
       "icon": "./assets/images/icon.png",
