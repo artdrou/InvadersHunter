@@ -1,6 +1,7 @@
 """
 Business logic for authentication: login, refresh-token rotation, logout,
-and the password-reset flow (request code, verify code, set new password).
+the password-reset flow (request code, verify code, set new password) and
+changing the password while signed in (checks the current one).
 
 Routers handle HTTP and translate the domain exceptions below.
 """
@@ -15,6 +16,7 @@ from ..core.security import (
     verify_password, create_access_token, create_refresh_token, hash_password,
 )
 from ..core.email import send_password_changed_email, send_reset_password_email
+from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
@@ -22,6 +24,12 @@ from ..core.email import send_password_changed_email, send_reset_password_email
 class InvalidCredentials(Exception): ...
 class InvalidRefreshToken(Exception): ...
 class InvalidResetCode(Exception): ...
+class TooManyAttempts(Exception): ...
+
+
+# Wrong current passwords allowed per account before a pause (stops guessing it
+# from an unlocked phone)
+CHANGE_PASSWORD_LIMIT = SlidingWindowLimiter(5, 15 * 60)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -112,6 +120,23 @@ def verify_reset_code(db: Session, email: str, token: str) -> None:
         or _is_expired(user.reset_code_expires)
     ):
         raise InvalidResetCode()
+
+
+def change_password(db: Session, user: User, current_password: str, new_password: str,
+                    schedule: Optional[Callable] = None) -> None:
+    """Signed-in password change: the current password must match. `schedule`
+    receives the "password changed" email, as for reset_password."""
+    try:
+        CHANGE_PASSWORD_LIMIT.hit(f"user:{user.id}")
+    except RateLimited:
+        raise TooManyAttempts()
+    if not verify_password(current_password, user.hashed_password):
+        raise InvalidCredentials()
+
+    user.hashed_password = hash_password(new_password)
+    db.commit()
+    if schedule:
+        schedule(send_password_changed_email, user.email, user.username, language=user.language)
 
 
 def reset_password(db: Session, email: str, token: str, new_password: str,

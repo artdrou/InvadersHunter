@@ -4,17 +4,29 @@
  */
 import { useEffect, useState } from 'react';
 import { View, Text, Pressable, Share, StyleSheet } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { ButtonFont, ButtonFontBold, FontSize, Spacing, BorderRadius } from '@/constants/theme';
 import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
-import { ShadowText } from '@/components/ShadowText';
+import { FloatingText, useFloatingText } from '@/components/FloatingText';
 import { tap as hapticTap, success as hapticSuccess } from '@/features/settings/haptics';
 import { useFriendsStore } from '../store';
 
 const COPIED_MS = 1500;
+
+/** expo-clipboard is a native module: loaded on first copy, so an APK built without
+ *  it only loses the Copy button instead of crashing on start (the friends barrel is
+ *  imported by the map tab). */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    const Clipboard = require('expo-clipboard') as typeof import('expo-clipboard');
+    await Clipboard.setStringAsync(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function MyFriendCodeCard() {
   const { t } = useTranslation();
@@ -22,14 +34,19 @@ export function MyFriendCodeCard() {
   const code = useFriendsStore((s) => s.myCode);
   const loadCode = useFriendsStore((s) => s.loadCode);
   const [copied, setCopied] = useState(false);
+  const floating = useFloatingText();
 
   useEffect(() => { if (!code) loadCode(); }, [code, loadCode]);
 
   async function copy() {
     if (!code) return;
-    await Clipboard.setStringAsync(code);
+    if (!(await copyToClipboard(code))) {
+      share();  // no clipboard in this build: the share sheet still gets the code out
+      return;
+    }
     hapticSuccess();
     setCopied(true);
+    floating.show();
     setTimeout(() => setCopied(false), COPIED_MS);
   }
 
@@ -48,14 +65,18 @@ export function MyFriendCodeCard() {
         <Text style={[styles.code, { color: theme.accent }]} selectable>{code ?? '····-····'}</Text>
       </View>
       <View style={styles.actions}>
-        <Pressable
-          style={({ pressed }) => [styles.btn, arcadeButton(theme, 'outline'), (!code) && styles.disabled, pressed && styles.pressed]}
-          onPress={copy}
-          disabled={!code}
-          accessibilityLabel={t('social.codeCopy')}
-        >
-          <Ionicons name={copied ? 'checkmark' : 'copy'} size={18} color={outline.color} />
-        </Pressable>
+        <View>
+          <Pressable
+            style={({ pressed }) => [styles.btn, arcadeButton(theme, 'outline'), (!code) && styles.disabled, pressed && styles.pressed]}
+            onPress={copy}
+            disabled={!code}
+            accessibilityLabel={t('social.codeCopy')}
+          >
+            <Ionicons name={copied ? 'checkmark' : 'copy'} size={18} color={outline.color} />
+          </Pressable>
+          {/* Floats up from the button, over the layout (nothing moves) */}
+          <FloatingText progress={floating.progress} text={t('social.codeCopied')} style={styles.floating} />
+        </View>
         <Pressable
           style={({ pressed }) => [styles.btn, styles.shareBtn, arcadeButton(theme), (!code) && styles.disabled, pressed && styles.pressed]}
           onPress={share}
@@ -65,11 +86,6 @@ export function MyFriendCodeCard() {
           <Text style={[arcadeButtonLabel(theme), styles.btnText]}>{t('social.codeShare')}</Text>
         </Pressable>
       </View>
-      {copied ? (
-        <ShadowText shadowColor={theme.titleShadow} style={[styles.copied, { color: theme.accent }]}>
-          {t('social.codeCopied')}
-        </ShadowText>
-      ) : null}
     </View>
   );
 }
@@ -77,7 +93,6 @@ export function MyFriendCodeCard() {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.two,
     padding: Spacing.three,
@@ -95,7 +110,7 @@ const styles = StyleSheet.create({
   },
   shareBtn: { flexDirection: 'row', gap: Spacing.one },
   btnText: { fontSize: FontSize.sm },
-  copied: { fontFamily: ButtonFontBold, fontSize: FontSize.xs, width: '100%' },
+  floating: { bottom: '100%', left: -80, right: -80, marginBottom: Spacing.one },
   disabled: { opacity: 0.5 },
   pressed: { opacity: 0.6 },
 });

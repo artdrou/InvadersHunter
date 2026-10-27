@@ -198,26 +198,41 @@
     "roadmap": "Roadmap",
     "roadmapSubtitle": "Upcoming features",
     "roadmapIntro": "A preview of the features in preparation for upcoming versions of the app.",
+    "sectionLogin": "Sign-in",
+    "changePassword": "Change password",
+    "changePasswordSubtitle": "Pick a new password",
+    "changePasswordCurrent": "Current password",
+    "changePasswordNew": "New password",
+    "changePasswordConfirm": "Confirm the new password",
+    "changePasswordSave": "Save",
+    "changePasswordTooShort": "The new password must be at least {{count}} characters.",
+    "changePasswordMismatch": "The two passwords don't match.",
+    "changePasswordWrong": "Current password is incorrect.",
+    "changePasswordTooMany": "Too many tries, try again in a few minutes.",
+    "changePasswordDoneTitle": "Password changed",
+    "changePasswordDoneBody": "Your new password is active. A confirmation email has been sent to you.",
+    "syncNowInfo": "Gets the latest invaders and their updates, and sends the flashes you made offline. This also happens on its own when the app opens: this button forces an update.",
+    "importFlashesInfo": "Copies all your flashes from the official FlashInvaders app (Android) into HintVaders in one go, with a small tool you run on a computer. Handy at the start, or if you flashed without HintVaders.",
     "roadmapItems": {
-      "guestMode": {
-        "title": "Guest mode",
-        "body": "Use the app without an account. Flashes stay on your phone and transfer when you sign up."
+      "arcadeLook": {
+        "title": "New arcade look",
+        "body": "Titles, buttons, lists and menus redone in an arcade-cabinet spirit, with new themes."
+      },
+      "friendCodes": {
+        "title": "Friend codes",
+        "body": "Every player has a friend code to share, to add each other without knowing the exact name."
       },
       "customInvaders": {
         "title": "Personal invaders",
         "body": "Add your own invaders to your map."
       },
-      "friends": {
-        "title": "Friends",
-        "body": "Connect with other hunters, see their flashes on the map and compare collections."
+      "website": {
+        "title": "Website",
+        "body": "Your stats, your map and your account from a computer."
       },
-      "commentWall": {
-        "title": "Comment wall",
-        "body": "Leave descriptions and tips on each invader."
-      },
-      "discoveredBy": {
-        "title": "Discoverers",
-        "body": "See who discovered or updated each invader."
+      "offlinePhotos": {
+        "title": "Offline photos",
+        "body": "Download the invader photos to hunt without a connection."
       },
       "gamification": {
         "title": "Gamification",
@@ -225,10 +240,11 @@
       },
       "radarMode": {
         "title": "Radar mode",
-        "body": "Spot invaders around you."
+        "body": "Spot the invaders around you."
       }
     },
     "roadmapStatus": {
+      "new": "New",
       "soon": "Soon",
       "wip": "In progress",
       "planned": "Planned"
