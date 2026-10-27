@@ -327,8 +327,8 @@ export const ZIndex = {
 export const Motion = {
   sheetIn: 220,   // bottom-sheet / sub-sheet slide-in
   sheetOut: 260,  // bottom-sheet slide-out
-  toastHold: 2000,// how long a toast stays fully visible before fading
-  toastFade: 600, // toast fade-out
+  floatText: 1600,     // floating confirmation text (components/FloatingText): rise + fade
+  floatTextLong: 2800, // same, for a message read from further away (map "modification sent")
   reassert: 500,  // delay before re-asserting a camera move after a transition
 } as const;
 
