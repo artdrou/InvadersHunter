@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from "@/constants/theme";
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 /** Fixed create-modal card width (px). */
 export const CARD_WIDTH = 300;
@@ -120,7 +121,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: ButtonFont,
     },
     submitBtn: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 13,
       alignItems: "center",
@@ -128,15 +129,15 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     submitBtnDisabled: {
       backgroundColor: t.bgDivider,
+      boxShadow: 'none',
       opacity: 0.6,
     },
     btnPressed: {
       opacity: 0.7,
     },
     submitBtnText: {
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
-      color: t.bg,
     },
     cancelBtn: {
       alignItems: "center",

@@ -19,9 +19,15 @@ describe('computeCollectionStats', () => {
     expect(s.topCity).toEqual({ name: 'PA', captured: 2, total: 3 });
   });
 
+  it('sums the points of flashed invaders (unknown points count 0)', () => {
+    const withPoints = [{ ...inv(1, 'PA_1'), points: 20 }, { ...inv(2, 'PA_2'), points: null }, { ...inv(3, 'PA_3'), points: 50 }] as Invader[];
+    expect(computeCollectionStats(withPoints, new Set([1, 2])).score).toBe(20);
+  });
+
   it('handles a user with no flash', () => {
     const s = computeCollectionStats(invaders, new Set());
     expect(s.flashed).toBe(0);
+    expect(s.score).toBe(0);
     expect(s.topCity).toBeNull();
     expect(s.remaining).toBe(3);
   });

@@ -9,6 +9,8 @@ import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useNewsData, useNewsStore, NewsListItem, newsItemKey } from '@/features/news';
 import { useLocateStore } from '@/features/map';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 export default function NewsScreen() {
   const router = useRouter();
@@ -41,12 +43,12 @@ export default function NewsScreen() {
       <Pressable
         onPress={loadMore}
         disabled={loadingMore}
-        style={({ pressed }) => [styles.moreBtn, { borderColor: theme.border }, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.moreBtn, arcadeButton(theme, 'outline'), pressed && styles.pressed]}
       >
         {loadingMore ? (
           <ActivityIndicator size="small" color={theme.accent} />
         ) : (
-          <Text style={[styles.moreText, { color: theme.accent, fontFamily: appFont }]}>{t('news.more')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={[styles.moreText, arcadeButtonLabel(theme, 'outline')]}>{t('news.more')}</ShadowText>
         )}
       </Pressable>
     ) : null;

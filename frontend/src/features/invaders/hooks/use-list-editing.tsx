@@ -89,7 +89,7 @@ export function useListEditing({
     setEditing((prev) => (prev && prev.invaderId !== expandedInvaderId ? null : prev));
   }, [expandedInvaderId]);
 
-  const renderPanel = useCallback((invader: InvaderWithState, containerStyle: object) => {
+  const renderPanel = useCallback((invader: InvaderWithState, containerStyle: object, opts?: { showTitle?: boolean }) => {
     if (editing?.invaderId === invader.id) {
       return (
         <View style={[styles.editPanel, { backgroundColor: theme.bgElement }, containerStyle]}>
@@ -115,6 +115,7 @@ export function useListEditing({
         onLocate={onLocate}
         onModify={handleModify}
         containerStyle={containerStyle}
+        showTitle={opts?.showTitle}
       />
     );
   }, [editing, panelVersion, theme, popupStyles, pickLocation, onSubmitModifyRequest, onFlash, onUnflash, onLocate, handleModify]);

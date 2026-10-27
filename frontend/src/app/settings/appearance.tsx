@@ -1,17 +1,17 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { arcadeRowDivider } from '@/constants/arcade-button';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import {
   SettingsShell, SettingsSection, SettingsToggleRow, ThemePicker,
   hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX,
 } from '@/features/settings';
+import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
 
 export default function AppearanceScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   const routeGlowEnabled    = useAppearanceStore((s) => s.routeGlowEnabled);
@@ -33,7 +33,7 @@ export default function AppearanceScreen() {
   return (
     <SettingsShell title={t('settings.appearance')}>
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>{t('appearance.sectionTheme')}</Text>
+        <ArcadeSectionLabel title={t('appearance.sectionTheme')} />
         <ThemePicker />
       </View>
 
@@ -59,7 +59,7 @@ export default function AppearanceScreen() {
         {/* Clustering zoom threshold — only relevant while clustering is on */}
         {clusteringEnabled && (
           <View style={styles.row}>
-            <Ionicons name="search-outline" size={20} color={theme.accent} style={styles.icon} />
+            <SettingsRowIcon icon="search-outline" />
             <View style={styles.labelWrap}>
               <Text style={styles.label}>{t('appearance.clusterZoom')}</Text>
               <Text style={styles.subtitle}>{t('appearance.clusterZoomSubtitle')}</Text>
@@ -128,37 +128,27 @@ export default function AppearanceScreen() {
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     // Same label as SettingsSection's (the theme picker brings its own cards)
-    section: { gap: Spacing.one },
-    sectionLabel: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xs,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-      paddingHorizontal: Spacing.two,
-    },
+    section: { gap: Spacing.two },
     pressed: { opacity: 0.6 },
 
     // Row matching SettingsToggleRow, with a stepper instead of a switch
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.two,
+      gap: Spacing.three,
       paddingHorizontal: Spacing.three,
-      paddingVertical: Spacing.two,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: t.bgDivider,
+      paddingVertical: Spacing.two + 2,
+      ...arcadeRowDivider(t),
     },
-    icon: { width: 24, textAlign: 'center' },
     labelWrap: { flex: 1, gap: 2 },
-    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    label: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
 
     // Stepper (−/+ around a numeric value)
     stepper:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     stepperBtn: {
       width: 36, height: 36, alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 1,
+      borderRadius: BorderRadius.sm, borderWidth: 2,
       borderColor: t.border, backgroundColor: t.bg,
     },
     stepperBtnDisabled: { opacity: 0.35 },

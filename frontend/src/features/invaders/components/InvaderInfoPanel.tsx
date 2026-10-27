@@ -4,7 +4,9 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
+import { BorderRadius, Spacing, ButtonFontBold, FontSize } from "@/constants/theme";
+import { ShadowText } from "@/components/ShadowText";
+import { ArcadeTitle } from "@/components/ArcadeTitle";
 import { hapticTap } from "@/features/settings";
 import {
   InvaderCommentsModal,
@@ -18,6 +20,7 @@ import { usePendingFields } from "../hooks/use-pending-modify";
 import { missingFields, type EditField } from "../edit-fields";
 import { MissingChip } from "./MissingChip";
 import type { InvaderWithState } from "../types";
+import { arcadeButton, arcadeButtonLabel, arcadeFlashed, flashedColors } from "@/constants/arcade-button";
 
 type Props = {
   invader: InvaderWithState;
@@ -27,6 +30,8 @@ type Props = {
   /** Propose changes: `field` is the missing detail whose "+ Add" was tapped, null for "Modify". */
   onModify?: (inv: InvaderWithState, field: EditField | null) => void;
   containerStyle?: object;
+  /** Invader name as an arcade title on top (grid mode: the cell only shows a thumbnail). */
+  showTitle?: boolean;
 };
 
 const STATE_KEYS: Record<string, string> = {
@@ -39,10 +44,11 @@ const STATE_KEYS: Record<string, string> = {
   "Unknown": "states.Unknown",
 };
 
-export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModify, containerStyle }: Props) {
+export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModify, containerStyle, showTitle }: Props) {
   const { t } = useTranslation();
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+  const flashed = flashedColors(theme);
   const [commentsOpen, setCommentsOpen] = useState(false);
   // One request for the popup payload: contributors + comment summary
   const { overview, refresh: refreshSummary } = useInvaderOverview(invader.id);
@@ -70,6 +76,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bgElement }, containerStyle]}>
+      {showTitle && <ArcadeTitle text={invader.name} size={15} />}
       {invader.image_url && (
         <Image
           source={invader.image_url}
@@ -96,7 +103,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
         <InfoRow
           label={t('popup.flashed')}
           value={formatDate(invader.capturedAt)}
-          valueColor={invader.isCaptured ? theme.success : theme.text}
+          valueColor={invader.isCaptured ? flashed.ink : theme.text}
           sz={sz}
         />
       </View>
@@ -125,35 +132,50 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
       <View style={[styles.divider, { backgroundColor: theme.bgDivider }]} />
 
       <View style={styles.btnRow}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionBtn,
-            styles.btnFlex,
-            invader.isCaptured
-              ? { borderWidth: 1, borderColor: theme.danger, backgroundColor: "transparent" }
-              : { backgroundColor: theme.accent },
-            pressed && styles.btnPressed,
-          ]}
-          onPress={() => invader.isCaptured ? onUnflash(invader) : onFlash(invader)}
-        >
-          <Text style={[styles.actionBtnText, { color: invader.isCaptured ? theme.danger : theme.bg, fontFamily: ButtonFont, fontSize: FontSize.lg }]}>
-            {invader.isCaptured ? t('popup.unflash') : t('popup.flash')}
-          </Text>
-        </Pressable>
+        {invader.isCaptured ? (
+          // Flashed: the state stays visible, un-flashing is a small secondary action
+          <View style={[styles.actionBtn, styles.btnFlex, styles.flashedState, arcadeFlashed(theme)]}>
+            <Text style={[styles.actionBtnText, { color: flashed.ink, fontFamily: ButtonFontBold, fontSize: FontSize.lg }]}>
+              ✓ {t('popup.flashed')}
+            </Text>
+            <Pressable onPress={() => onUnflash(invader)} hitSlop={8} style={({ pressed }) => pressed && styles.btnPressed}>
+              <Text style={{ color: flashed.ink, opacity: 0.8, fontFamily: ButtonFontBold, fontSize: FontSize.sm }}>
+                {t('popup.unflash')}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionBtn,
+              styles.btnFlex,
+              arcadeButton(theme),
+              pressed && styles.btnPressed,
+            ]}
+            onPress={() => onFlash(invader)}
+          >
+            <Text style={[styles.actionBtnText, arcadeButtonLabel(theme), { fontSize: FontSize.lg }]}>
+              {t('popup.flash')}
+            </Text>
+          </Pressable>
+        )}
 
         {onLocate && hasLocation && (
           <Pressable
             style={({ pressed }) => [
               styles.actionBtn,
               styles.btnFlex,
-              { borderWidth: 1, borderColor: theme.accent, backgroundColor: "transparent" },
+              arcadeButton(theme, 'outline'),
               pressed && styles.btnPressed,
             ]}
             onPress={() => { hapticTap(); onLocate(invader); }}
           >
-            <Text style={[styles.actionBtnText, { color: theme.accent, fontFamily: ButtonFont, fontSize: FontSize.lg }]}>
+            <ShadowText
+              shadowColor={theme.titleShadow}
+              style={[styles.actionBtnText, arcadeButtonLabel(theme, 'outline'), { fontSize: FontSize.lg }]}
+            >
               {t('popup.localiser')}
-            </Text>
+            </ShadowText>
           </Pressable>
         )}
       </View>
@@ -246,6 +268,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: {},
+  // Half-width here (next to Localiser): "Déflasher" goes under the state, not beside it
+  flashedState: {
+    justifyContent: "center",
+    paddingVertical: 6,
+    gap: 2,
+  },
   updateLink: { alignItems: "center", paddingVertical: Spacing.one },
   updateLinkText: {},
   commentsBtn: {

@@ -6,6 +6,7 @@ import { useAuthStore, loginUser, AuthLayout } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 
 export default function LoginScreen() {
@@ -114,7 +115,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       textAlign: 'center',
     },
     button: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
@@ -124,8 +125,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.8,
     },
     buttonText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     registerLink: {

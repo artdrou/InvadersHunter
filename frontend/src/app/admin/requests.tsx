@@ -9,7 +9,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, Brand } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold, Brand } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import { logger } from '@/services/logger';
 import type { AdminRequest } from '@/features/admin/types';
@@ -278,10 +279,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
 
     list: { padding: Spacing.three, gap: Spacing.two },
 
+    // Arcade card, its border in the request type's colour (set inline)
     card: {
-      backgroundColor: t.bgElement,
-      borderRadius: BorderRadius.md,
-      borderWidth: 1.5,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.one,
     },
@@ -292,7 +292,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       flex: 1,
       color: t.text,
       fontSize: sz(FontSize.md),
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
     },
 
     row2: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },

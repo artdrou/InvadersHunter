@@ -7,6 +7,7 @@ import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
@@ -72,7 +73,7 @@ export default function RegisterScreen() {
           onPress={handleRegister}
           disabled={loading}>
           {loading ? (
-            <ActivityIndicator color={theme.bg} />
+            <ActivityIndicator color={arcadeLabelColor(theme)} />
           ) : (
             <Text style={styles.buttonText}>{t('auth.register.button')}</Text>
           )}
@@ -112,7 +113,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       textAlign: 'center',
     },
     button: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
@@ -122,8 +123,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.8,
     },
     buttonText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     loginLink: {

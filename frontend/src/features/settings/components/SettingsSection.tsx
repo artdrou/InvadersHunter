@@ -1,11 +1,14 @@
 /**
- * A grouped card of settings rows, with a small uppercase label on top.
+ * A grouped card of settings rows, with a section label on top: arcade style, the label
+ * in the accent colour followed by a dotted line, the card outlined with a hard shadow.
  * Designed for the settings landing screen.
  */
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, Spacing } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 
 type Props = {
   title: string;
@@ -16,29 +19,19 @@ export function SettingsSection({ title, children }: Props) {
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
-      <Text style={styles.label}>{title}</Text>
-      <View style={styles.card}>{children}</View>
+      <ArcadeSectionLabel title={title} />
+      <View style={styles.card}>
+        {/* Rows draw their divider on top: the first one's is tucked under the card edge */}
+        <View style={styles.rows}>{children}</View>
+      </View>
     </View>
   );
 }
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
-    section: { gap: Spacing.one },
-    label: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xs,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-      paddingHorizontal: Spacing.two,
-    },
-    card: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
-      overflow: 'hidden',
-    },
+    section: { gap: Spacing.two },
+    card: { ...arcadeCard(t), overflow: 'hidden' },
+    rows: { marginTop: -2 },
   });
 }

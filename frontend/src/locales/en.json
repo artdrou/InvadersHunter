@@ -102,6 +102,12 @@
     "changeDescription": "Description"
   },
   "settings": {
+    "playerScore": "Score",
+    "playerFlashes": "Flashes",
+    "playerCities": "Cities",
+    "playerGuest": "Guest",
+    "playerSeeProfile": "See my profile",
+    "playerCreateAccount": "Create an account to keep your flashes",
     "title": "Settings",
     "sectionAccount": "Account",
     "sectionPersonalization": "Personalization & Haptics",
@@ -303,6 +309,7 @@
     "map3d": "3D buildings",
     "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)",
     "previewButton": "Button",
+    "previewOutline": "Outline",
     "classicThemeNote": "Classic themes have fixed colours. To pick your own, choose Custom.",
     "customTheme": "Custom theme",
     "base": "Base",
@@ -411,6 +418,7 @@
     "start": "Start"
   },
   "invaders": {
+    "total": "TOTAL",
     "searchPlaceholder": "Search invaders…",
     "noInternetTitle": "No internet connection",
     "noInternetSub": "Connect to load invaders",

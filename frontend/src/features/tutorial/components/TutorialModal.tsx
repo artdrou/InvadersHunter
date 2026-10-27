@@ -12,6 +12,7 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize, Fonts } 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 export type StepItem    = { type: 'step';    title: string; body?: string };
 export type SectionItem = { type: 'section'; label: string; body: string };
@@ -131,10 +132,10 @@ export function TutorialModal({ visible, onClose, title, pages }: Props) {
               </View>
             )}
             <Pressable
-              style={({ pressed }) => [s.gotItBtn, { backgroundColor: theme.accent }, pressed && s.pressed]}
+              style={({ pressed }) => [s.gotItBtn, arcadeButton(theme), pressed && s.pressed]}
               onPress={handleClose}
             >
-              <Text style={[s.gotItText, { color: theme.bg }]}>{t('tutorial.gotIt')}</Text>
+              <Text style={[s.gotItText, arcadeButtonLabel(theme)]}>{t('tutorial.gotIt')}</Text>
             </Pressable>
           </View>
 

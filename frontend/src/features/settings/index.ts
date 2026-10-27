@@ -2,6 +2,7 @@ export { SettingsShell } from './components/SettingsShell';
 export { SettingsSection } from './components/SettingsSection';
 export { SettingsRow } from './components/SettingsRow';
 export { SettingsToggleRow } from './components/SettingsToggleRow';
+export { ArcadeSegmented } from './components/ArcadeSegmented';
 export { StatSection, StatCell, InfoCell, CollectionStatsSection } from './components/StatCards';
 export { useHapticsStore } from './haptics-store';
 export { useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX } from './appearance-store';

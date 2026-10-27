@@ -10,6 +10,7 @@ import { useInvaderStore } from '@/features/invaders/store';
 import { formatServerDate } from '@/features/admin/utils';
 import { fetchFriendProfile, removeFriendship, useFriendsStore } from '@/features/friends';
 import type { FriendProfile } from '@/features/friends';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 
 /**
  * A friend's profile: the same collection stats as your own profile (computed
@@ -102,13 +103,13 @@ export default function FriendProfileScreen() {
 
       {friendshipId ? (
         <Pressable
-          style={({ pressed }) => [styles.removeBtn, { borderColor: theme.danger }, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.removeBtn, arcadeButton(theme, 'danger'), pressed && styles.pressed]}
           onPress={confirmRemove}
           disabled={removing}
         >
           {removing
             ? <ActivityIndicator color={theme.danger} />
-            : <Text style={[styles.removeText, { color: theme.danger }]}>{t('social.removeFriend')}</Text>}
+            : <Text style={[styles.removeText, arcadeButtonLabel(theme, 'danger')]}>{t('social.removeFriend')}</Text>}
         </Pressable>
       ) : null}
     </SettingsShell>
@@ -120,7 +121,6 @@ const styles = StyleSheet.create({
   removeBtn: {
     paddingVertical: 14,
     borderRadius: BorderRadius.sm,
-    borderWidth: 1,
     alignItems: 'center',
     marginTop: Spacing.three,
   },

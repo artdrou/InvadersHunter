@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { Spacing, BorderRadius, FontSize, ZIndex } from "@/constants/theme";
 import { CenterPin } from "./CenterPin";
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 type Props = {
   onCreate: () => void;
@@ -25,14 +27,14 @@ export function CreateHerePopup({ onCreate, onAddLocation, onCancel }: Props) {
       <View style={styles.wrapper} pointerEvents="box-none">
         <View style={[styles.card, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
           <Text style={[styles.label, { color: theme.text }]}>{t("map.createHere")}</Text>
-          <TouchableOpacity style={[styles.btn, { backgroundColor: theme.accent }]} onPress={onCreate}>
-            <Text style={[styles.btnText, { color: theme.bg }]}>{t("map.createBtn")}</Text>
+          <TouchableOpacity style={[styles.btn, arcadeButton(theme)]} onPress={onCreate}>
+            <Text style={[styles.btnText, arcadeButtonLabel(theme)]}>{t("map.createBtn")}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { borderColor: theme.accent, borderWidth: 1 }]} onPress={onAddLocation}>
-            <Text style={[styles.btnText, { color: theme.accent }]}>{t("map.addLocationBtn")}</Text>
+          <TouchableOpacity style={[styles.btn, arcadeButton(theme, 'outline')]} onPress={onAddLocation}>
+            <ShadowText shadowColor={theme.titleShadow} style={[styles.btnText, arcadeButtonLabel(theme, 'outline')]}>{t("map.addLocationBtn")}</ShadowText>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, { borderColor: theme.border, borderWidth: 1 }]} onPress={onCancel}>
-            <Text style={[styles.btnText, { color: theme.textMuted }]}>{t("common.cancel")}</Text>
+          <TouchableOpacity style={[styles.btn, arcadeButton(theme, 'outline')]} onPress={onCancel}>
+            <ShadowText shadowColor={theme.titleShadow} style={[styles.btnText, arcadeButtonLabel(theme, 'outline')]}>{t("common.cancel")}</ShadowText>
           </TouchableOpacity>
         </View>
       </View>

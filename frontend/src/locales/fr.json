@@ -37,7 +37,7 @@
     "requestsPending": "Modifications en attente",
     "comments": "Commentaires",
     "sectionActions": "Actions",
-    "selfNote": "C'est votre compte : utilisez Réglages > Profil pour le gérer.",
+    "selfNote": "C'est votre compte : utilisez Options > Profil pour le gérer.",
     "promote": "Promouvoir admin",
     "demote": "Retirer le statut admin",
     "promoteTitle": "Promouvoir {{name}} admin ?",
@@ -73,7 +73,7 @@
     "map": "Carte",
     "invaders": "Invaders",
     "social": "Social",
-    "profile": "Reglages",
+    "profile": "Options",
     "admin": "Admin"
   },
   "news": {
@@ -102,7 +102,13 @@
     "changeDescription": "Description"
   },
   "settings": {
-    "title": "Reglages",
+    "playerScore": "Score",
+    "playerFlashes": "Flashs",
+    "playerCities": "Villes",
+    "playerGuest": "Invité",
+    "playerSeeProfile": "Voir mon profil",
+    "playerCreateAccount": "Crée un compte pour garder tes flashs",
+    "title": "Options",
     "sectionAccount": "Compte",
     "sectionPersonalization": "Personnalisation & Haptique",
     "sectionData": "Donnees",
@@ -303,6 +309,7 @@
     "map3d": "Batiments 3D",
     "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)",
     "previewButton": "Bouton",
+    "previewOutline": "Contour",
     "classicThemeNote": "Les themes classiques ont leurs couleurs fixes. Pour choisir les votres, prenez Perso.",
     "customTheme": "Theme perso",
     "base": "Base",
@@ -411,6 +418,7 @@
     "start": "Démarrer"
   },
   "invaders": {
+    "total": "TOTAL",
     "searchPlaceholder": "Rechercher des invaders…",
     "noInternetTitle": "Pas de connexion internet",
     "noInternetSub": "Connectez-vous pour charger les invaders",

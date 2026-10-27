@@ -16,6 +16,8 @@ import {
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { tap } from '../haptics';
 import { ColorPickerModal } from './ColorPickerModal';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 const PREVIEW_TEXT = 'ABC';
 
@@ -57,6 +59,9 @@ export function ThemePicker() {
         </View>
         <View style={styles.previewRow}>
           <View style={styles.previewBtn}><Text style={styles.previewBtnText}>{t('appearance.previewButton')}</Text></View>
+          <View style={[styles.previewBtn, styles.previewBtnOutline]}>
+            <ShadowText shadowColor={theme.titleShadow} style={styles.previewBtnOutlineText}>{t('appearance.previewOutline')}</ShadowText>
+          </View>
           <View style={[styles.previewRoute, { backgroundColor: theme.routePath, shadowColor: theme.routePath }]} />
         </View>
       </View>
@@ -175,10 +180,12 @@ function makeStyles(t: ThemeTokens) {
     pressed: { opacity: 0.6 },
     previewRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
     previewBtn: {
-      flex: 1, backgroundColor: t.accent, borderRadius: BorderRadius.sm,
+      flex: 1, ...arcadeButton(t), borderRadius: BorderRadius.sm,
       paddingVertical: 10, alignItems: 'center',
     },
-    previewBtnText: { color: t.bg, fontFamily: ButtonFont, fontSize: FontSize.md },
+    previewBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
+    previewBtnOutline: arcadeButton(t, 'outline'),
+    previewBtnOutlineText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     previewRoute: {
       flex: 1, height: 6, borderRadius: 3,
       shadowOpacity: 0.9, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 3,
