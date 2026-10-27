@@ -3,11 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
 from app.schemas.friend import (
-    FriendRequestCreate, FriendRequestResult, FriendsOverview, FriendProfileOut, FriendLookupOut,
+    FriendRequestCreate, FriendRequestResult, FriendsOverview, FriendProfileOut, FriendLookupOut, FriendCodeOut,
 )
 from app.services import friend_service
 from app.services.friend_service import (
     FriendUserMissing, CannotFriendSelf, AlreadyFriends, InviteAlreadySent, FriendshipMissing, NotFriends,
+    TooManyRequests,
 )
 from app.services.user_service import UserMissing
 
@@ -20,13 +21,21 @@ def get_overview(db: Session = Depends(get_db), current_user=Depends(get_current
     return friend_service.overview(db, current_user)
 
 
+@router.get("/code", response_model=FriendCodeOut)
+def get_code(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """My friend code, to share (created on first call)."""
+    return {"code": friend_service.get_friend_code(db, current_user)}
+
+
 @router.get("/lookup", response_model=FriendLookupOut)
 def lookup(username: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    """Exact username (case-insensitive) → the user, so the app can suggest it while typing."""
+    """Friend code or exact username (case-insensitive) → the user, so the app can suggest it while typing."""
     try:
         return friend_service.lookup(db, current_user, username)
     except FriendUserMissing:
         raise HTTPException(status_code=404, detail="user_not_found")
+    except TooManyRequests:
+        raise HTTPException(status_code=429, detail="too_many")
 
 
 @router.post("/requests", response_model=FriendRequestResult)
@@ -46,6 +55,8 @@ def send_request(
         raise HTTPException(status_code=409, detail="already_friends")
     except InviteAlreadySent:
         raise HTTPException(status_code=409, detail="already_sent")
+    except TooManyRequests:
+        raise HTTPException(status_code=429, detail="too_many")
 
 
 @router.post("/requests/{friendship_id}/accept")

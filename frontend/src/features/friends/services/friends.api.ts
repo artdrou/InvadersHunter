@@ -6,7 +6,13 @@ export async function fetchFriendsOverview(): Promise<FriendsOverview> {
   return res.data;
 }
 
-/** Exact (case-insensitive) username → the user, or null when nobody has that name. */
+/** My friend code ("K7QM-3XPA"), to share. */
+export async function fetchFriendCode(): Promise<string> {
+  const res = await api.get('/friends/code');
+  return res.data.code;
+}
+
+/** Friend code or exact (case-insensitive) username → the user, or null when nobody has that name. */
 export async function lookupUsername(username: string): Promise<FriendLookup | null> {
   try {
     const res = await api.get('/friends/lookup', { params: { username } });
@@ -17,6 +23,7 @@ export async function lookupUsername(username: string): Promise<FriendLookup | n
   }
 }
 
+/** `username` may also be a friend code. */
 export async function sendFriendRequest(username: string): Promise<FriendRequestResult> {
   const res = await api.post('/friends/requests', { username });
   return res.data;

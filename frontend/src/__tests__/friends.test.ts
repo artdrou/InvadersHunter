@@ -66,7 +66,7 @@ describe('friendRequestError', () => {
   const apiError = (detail: unknown) => ({ response: { data: { detail } } });
 
   it('maps known backend codes', () => {
-    for (const code of ['user_not_found', 'self', 'already_friends', 'already_sent']) {
+    for (const code of ['user_not_found', 'self', 'already_friends', 'already_sent', 'too_many']) {
       expect(friendRequestError(apiError(code))).toBe(code);
     }
   });

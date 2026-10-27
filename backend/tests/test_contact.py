@@ -15,7 +15,7 @@ MSG = {"subject": "Bug carte", "message": "La carte ne charge plus à Lyon.", "a
 
 @pytest.fixture(autouse=True)
 def reset_rate_limit():
-    contact_service._recent.clear()
+    contact_service._limiter.clear()
 
 
 @pytest.fixture()

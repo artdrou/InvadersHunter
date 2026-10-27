@@ -1,12 +1,17 @@
 """
-Friends: invites by username, accept / decline / cancel / unfriend, the Social
-tab overview, and a friend's game-stats profile.
+Friends: invites by username or friend code, accept / decline / cancel / unfriend,
+the Social tab overview, and a friend's game-stats profile.
+
+Friend code: 8 characters from an alphabet without look-alikes (no I/O/0/1), shown
+as "K7QM-3XPA". Wherever a username is accepted, a code works too (dash, spaces and
+case don't matter); a code wins over a username that happens to look like one.
 
 One `Friendship` row per pair of users, whatever the direction. Inviting
 someone who already invited you accepts their invite instead of creating a
 second row. Every "no" (decline, cancel, unfriend) simply deletes the row, so
 the pair can start over later.
 """
+import secrets
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -14,6 +19,7 @@ from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import Session
 
 from ..core.db_utils import safe_commit
+from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 from ..models.friendship import Friendship
 from ..models.user import User
 from ..models.user_progress import UserProgress
@@ -35,6 +41,16 @@ NOTIFICATION_COPY = {
 }
 NOTIFICATION_DATA = {"screen": "/social"}
 
+# Anti-spam, per account (in memory, see core/rate_limit). Lookups run while typing
+# (debounced), so the limit is loose; it still stops guessing friend codes in bulk.
+# Invites: a burst limit plus a cap on invites left unanswered.
+LOOKUP_LIMIT = SlidingWindowLimiter(30, 60)
+INVITE_LIMIT = SlidingWindowLimiter(20, 60 * 60)
+MAX_PENDING_SENT = 50
+
+CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+CODE_LENGTH = 8
+
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
 
@@ -44,6 +60,14 @@ class AlreadyFriends(Exception): ...
 class InviteAlreadySent(Exception): ...
 class FriendshipMissing(Exception): ...
 class NotFriends(Exception): ...
+class TooManyRequests(Exception): ...
+
+
+def _limit(limiter: SlidingWindowLimiter, me: User) -> None:
+    try:
+        limiter.hit(f"user:{me.id}")
+    except RateLimited:
+        raise TooManyRequests()
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -64,6 +88,29 @@ def _find_user_by_username(db: Session, username: str) -> Optional[User]:
         return user
     matches = db.query(User).filter(func.lower(User.username) == name.lower()).limit(2).all()
     return matches[0] if len(matches) == 1 else None
+
+
+def normalize_code(text: str) -> Optional[str]:
+    """A typed friend code without dash / spaces, upper-cased; None if it can't be one."""
+    code = "".join(text.split()).replace("-", "").upper()
+    if len(code) != CODE_LENGTH or any(ch not in CODE_ALPHABET for ch in code):
+        return None
+    return code
+
+
+def format_code(code: str) -> str:
+    half = CODE_LENGTH // 2
+    return f"{code[:half]}-{code[half:]}"
+
+
+def _find_target(db: Session, query: str) -> Optional[User]:
+    """The user a typed friend code or username points to."""
+    code = normalize_code(query)
+    if code:
+        user = db.query(User).filter(User.friend_code == code).first()
+        if user:
+            return user
+    return _find_user_by_username(db, query)
 
 
 def _notify(db: Session, kind: str, to_user_id: int, from_username: str) -> None:
@@ -124,11 +171,24 @@ def overview(db: Session, me: User) -> dict:
     return result
 
 
+def get_friend_code(db: Session, me: User) -> str:
+    """My friend code ("K7QM-3XPA"), created the first time it's asked for."""
+    if not me.friend_code:
+        while True:
+            code = "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
+            if not db.query(User.id).filter(User.friend_code == code).first():
+                break
+        me.friend_code = code
+        safe_commit(db)
+    return format_code(me.friend_code)
+
+
 def lookup(db: Session, me: User, username: str) -> dict:
-    """Confirm a typed username exists (same exact / case-insensitive match as
-    send_request — no partial search) and tell where we stand with that user:
+    """Confirm a typed friend code or username exists (exact / case-insensitive
+    match, as send_request — no partial search) and tell where we stand with that user:
     "none" | "friends" | "sent" (I invited them) | "received" (they invited me) | "self"."""
-    target = _find_user_by_username(db, username)
+    _limit(LOOKUP_LIMIT, me)
+    target = _find_target(db, username)
     if target is None:
         raise FriendUserMissing()
     if target.id == me.id:
@@ -145,7 +205,9 @@ def lookup(db: Session, me: User, username: str) -> dict:
 
 
 def send_request(db: Session, me: User, username: str) -> dict:
-    target = _find_user_by_username(db, username)
+    """Invite by username or friend code."""
+    _limit(INVITE_LIMIT, me)
+    target = _find_target(db, username)
     if target is None:
         raise FriendUserMissing()
     if target.id == me.id:
@@ -160,6 +222,12 @@ def send_request(db: Session, me: User, username: str) -> dict:
         # They already invited me: saying "add" back is a yes.
         _accept(db, existing, me)
         return {"id": existing.id, "status": ACCEPTED, "accepted": True}
+
+    pending_sent = db.query(func.count(Friendship.id)).filter(
+        Friendship.requester_id == me.id, Friendship.status == PENDING,
+    ).scalar()
+    if pending_sent >= MAX_PENDING_SENT:
+        raise TooManyRequests()
 
     link = Friendship(requester_id=me.id, addressee_id=target.id, status=PENDING)
     db.add(link)

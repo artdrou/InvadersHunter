@@ -205,6 +205,10 @@ MIGRATIONS = [
     # all held the same devices (dev pushes reached prod phones).
     "ALTER TABLE push_tokens ADD COLUMN IF NOT EXISTS app_variant VARCHAR",
 
+    # Friend codes: assigned on first request (friend_service.get_friend_code), so no backfill
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS friend_code VARCHAR(8)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_friend_code ON users (friend_code)",
+
     # Scheduled jobs' memory (e.g. InvaderQuest sync: last data versions seen).
     """CREATE TABLE IF NOT EXISTS sync_state (
         key        VARCHAR PRIMARY KEY,
