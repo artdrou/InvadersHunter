@@ -1,11 +1,12 @@
 /**
- * A grouped card of settings rows, with a small uppercase label on top.
+ * A grouped card of settings rows, with a section label on top: arcade style, the label
+ * in the accent colour followed by a dotted line, the card outlined with a hard shadow.
  * Designed for the settings landing screen.
  */
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
 
 type Props = {
   title: string;
@@ -16,29 +17,49 @@ export function SettingsSection({ title, children }: Props) {
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
-      <Text style={styles.label}>{title}</Text>
-      <View style={styles.card}>{children}</View>
+      <View style={styles.header}>
+        <Text style={styles.label}>{title}</Text>
+        <View style={styles.rule} />
+      </View>
+      <View style={styles.card}>
+        {/* Rows draw their divider on top: the first one's is tucked under the card edge */}
+        <View style={styles.rows}>{children}</View>
+      </View>
     </View>
   );
 }
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
-    section: { gap: Spacing.one },
+    section: { gap: Spacing.two },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.one,
+      marginTop: Spacing.one,
+    },
     label: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
+      color: t.accent,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.xs,
       letterSpacing: 1,
       textTransform: 'uppercase',
-      paddingHorizontal: Spacing.two,
+    },
+    rule: {
+      flex: 1,
+      borderTopWidth: 2,
+      borderTopColor: t.bgDivider,
+      borderStyle: 'dotted',
     },
     card: {
       backgroundColor: t.bgElement,
-      borderWidth: 1,
+      borderWidth: 2,
       borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      borderRadius: 6,
       overflow: 'hidden',
+      boxShadow: `3px 3px 0px ${t.isLight ? t.border : 'rgba(0, 0, 0, 0.6)'}`,
     },
+    rows: { marginTop: -2 },
   });
 }

@@ -28,9 +28,24 @@ function darken(hex: string, factor: number): string {
   return `#${ch(16)}${ch(8)}${ch(0)}`;
 }
 
-/** Shadow for a red (destructive) button: its red, darkened — the shadow pink is often that same red. */
+/** Shadow colour for red (destructive) things: their red, darkened — the shadow pink is often that same red. */
+export function dangerShadowColor(red: string): string {
+  return darken(red, 0.45);
+}
+
 export function arcadeDangerShadow(red: string): string {
-  return `${ARCADE_SHADOW}px ${ARCADE_SHADOW}px 0px ${darken(red, 0.45)}`;
+  return `${ARCADE_SHADOW}px ${ARCADE_SHADOW}px 0px ${dangerShadowColor(red)}`;
+}
+
+/** Flashed state colours: the theme's own, else its title inside (fill) and outline (ink). */
+export function flashedColors(t: ThemeTokens): { fill: string; ink: string } {
+  return { fill: t.flashedFill ?? t.titleInner, ink: t.flashedInk ?? t.titleStroke };
+}
+
+/** The flashed state block (where the Flash button was): title-coloured, outlined, shadowed. */
+export function arcadeFlashed(t: ThemeTokens): ViewStyle {
+  const { fill, ink } = flashedColors(t);
+  return { backgroundColor: fill, borderWidth: 2, borderColor: ink, boxShadow: arcadeShadow(t) };
 }
 
 export function arcadeButton(t: ThemeTokens, kind: ArcadeButtonKind = 'filled'): ViewStyle {

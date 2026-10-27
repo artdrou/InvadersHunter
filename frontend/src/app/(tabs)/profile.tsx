@@ -7,15 +7,15 @@
  * inline right here.
  */
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/contexts/theme-context";
 import { useAuthStore, useRequireAccount } from "@/features/auth";
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from "@/constants/theme";
-import { SettingsSection, SettingsRow, SettingsToggleRow, useHapticsStore, hapticTap } from "@/features/settings";
+import { type ThemeTokens, Spacing } from "@/constants/theme";
+import { SettingsSection, SettingsRow, SettingsToggleRow, ArcadeSegmented, useHapticsStore, hapticTap } from "@/features/settings";
 import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/notifications";
 import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
 import { StreetsBackground } from "@/components/StreetsBackground";
@@ -128,26 +128,11 @@ export default function SettingsLanding() {
           label={t('settings.language')}
           hideChevron
           rightAccessory={
-            <View style={styles.langGroup}>
-              {SUPPORTED_LANGUAGES.map((lang) => {
-                const isActive = lang.code === i18n.language;
-                return (
-                  <Pressable
-                    key={lang.code}
-                    style={({ pressed }) => [
-                      styles.langPill,
-                      isActive && { borderColor: theme.accent },
-                      pressed && { opacity: 0.6 },
-                    ]}
-                    onPress={() => { hapticTap(); setLanguage(lang.code); }}
-                  >
-                    <Text style={[styles.langPillText, isActive && { color: theme.accent }]}>
-                      {lang.code.toUpperCase()}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <ArcadeSegmented
+              options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang.code, label: lang.code.toUpperCase() }))}
+              value={i18n.language as typeof SUPPORTED_LANGUAGES[number]["code"]}
+              onChange={(code) => { hapticTap(); setLanguage(code); }}
+            />
           }
         />
         <SettingsToggleRow
@@ -219,23 +204,6 @@ function makeStyles(t: ThemeTokens, topInset: number) {
       flexGrow: 1,
       justifyContent: 'center',
       gap: Spacing.two,
-    },
-    langGroup: {
-      flexDirection: 'row',
-      gap: Spacing.one,
-    },
-    langPill: {
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 4,
-      backgroundColor: t.bgElement,
-    },
-    langPillText: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xs,
     },
   });
 }

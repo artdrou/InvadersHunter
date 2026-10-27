@@ -418,6 +418,7 @@
     "start": "Démarrer"
   },
   "invaders": {
+    "total": "TOTAL",
     "searchPlaceholder": "Rechercher des invaders…",
     "noInternetTitle": "Pas de connexion internet",
     "noInternetSub": "Connectez-vous pour charger les invaders",

@@ -72,6 +72,14 @@ export type ThemeTokens = {
   titleShadow: string;
   /** "initial": big first letter (like the logo) · "arcade": plain capitals */
   titleStyle: TitleStyle;
+
+  /**
+   * Flashed state (popup, list, progress bars): fill + outline / text. Default to the
+   * title inside + outline (constants/arcade-button `flashedColors`); set them only when
+   * those would read as an error (red) or as the Flash button (same colour as the accent).
+   */
+  flashedFill?: string;
+  flashedInk?: string;
 };
 
 export type TitleStyle = 'initial' | 'arcade';
@@ -113,6 +121,9 @@ export const darkAltTheme: ThemeTokens = {
   titleStroke: Brand.yellow,
   titleInner: Brand.pink,
   titleShadow: Brand.pink,
+  // Flashed in the dark theme's blue: its title is pink (reads as an error) and yellow (the Flash button)
+  flashedFill: darkTheme.titleInner,
+  flashedInk: darkTheme.titleStroke,
 };
 
 export const lightTheme: ThemeTokens = {
@@ -149,6 +160,9 @@ export const lightAltTheme: ThemeTokens = {
   titleStroke: '#d1004f',
   titleInner: Brand.yellow,
   titleShadow: '#0a0f1e',
+  // Flashed in the light theme's blue: its red title would read as an error
+  flashedFill: lightTheme.titleInner,
+  flashedInk: lightTheme.titleStroke,
 };
 
 // Amber theme — warm light map (peach land, orange buildings, rose roads).

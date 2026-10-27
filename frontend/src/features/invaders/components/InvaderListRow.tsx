@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/theme-context";
 import { Spacing, FontSize } from "@/constants/theme";
+import { flashedColors } from "@/constants/arcade-button";
 import type { InvaderWithState } from "../types";
 
 type Props = {
@@ -15,7 +16,7 @@ const LEADER = " " + ".".repeat(80);
 export function InvaderListRow({ invader, expanded, onPress }: Props) {
   const { theme, appFont, fontScale } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
-  const nameColor = invader.isPending ? theme.textMuted : invader.isCaptured ? theme.success : theme.text;
+  const nameColor = invader.isPending ? theme.textMuted : invader.isCaptured ? flashedColors(theme).ink : theme.text;
 
   return (
     <Pressable

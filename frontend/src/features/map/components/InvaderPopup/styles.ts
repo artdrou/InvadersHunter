@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from "@/constants/theme";
-import { arcadeButton, arcadeButtonLabel, arcadeShadow } from "@/constants/arcade-button";
+import { arcadeButton, arcadeButtonLabel, arcadeFlashed, flashedColors } from "@/constants/arcade-button";
 
 /** Fixed popup card width (px). */
 export const POPUP_WIDTH = 300;
@@ -84,7 +84,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       borderRadius: BorderRadius.sm,
     },
     flashedDate: {
-      color: t.success,
+      color: flashedColors(t).ink,
     },
     flashBtn: {
       borderRadius: BorderRadius.sm,
@@ -104,8 +104,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: t.success,
-      boxShadow: arcadeShadow(t),
+      ...arcadeFlashed(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 12,
       paddingHorizontal: Spacing.three,
@@ -114,7 +113,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     flashedStateText: {
       fontFamily: ButtonFontBold,
       fontSize: FontSize.xl,
-      color: t.titleShadow,
+      color: flashedColors(t).ink,
     },
     unflashLink: {
       paddingVertical: 2,
@@ -123,7 +122,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     unflashLinkText: {
       fontFamily: ButtonFontBold,
       fontSize: FontSize.sm,
-      color: t.titleShadow,
+      color: flashedColors(t).ink,
       opacity: 0.8,
     },
     btnPressed: {

@@ -23,6 +23,7 @@ const GRID_GAP = 4;
 // ── flat list item types ─────────────────────────────────────────────────────
 
 type FlatItem =
+  | { type: "total";     key: string; capturedCount: number; total: number }
   | { type: "header";    key: string; groupKey: string; capturedCount: number; total: number; expanded: boolean }
   | { type: "row";       key: string; invader: InvaderWithState; isExpanded: boolean }
   | { type: "info";      key: string; invader: InvaderWithState }
@@ -81,6 +82,16 @@ export default function InvadersScreen() {
   const flatData = useMemo<FlatItem[]>(() => {
     const items: FlatItem[] = [];
 
+    // Grouped list: an overall count on top, in the same look as the group headers
+    if (groups.some(([groupKey]) => groupKey !== "")) {
+      items.push({
+        type: "total",
+        key: "total",
+        capturedCount: filtered.filter((i) => i.isCaptured).length,
+        total: filtered.length,
+      });
+    }
+
     for (const [groupKey, groupInvaders] of groups) {
       const hasHeader  = groupKey !== "";
       const isExpanded = !hasHeader || isSearching || expandedCities.has(groupKey);
@@ -120,7 +131,7 @@ export default function InvadersScreen() {
     }
 
     return items;
-  }, [groups, expandedCities, expandedInvaderId, isSearching, toolbar.viewMode, toolbar.gridCols]);
+  }, [groups, filtered, expandedCities, expandedInvaderId, isSearching, toolbar.viewMode, toolbar.gridCols]);
 
   // ── handlers ─────────────────────────────────────────────────────────────
 
@@ -171,6 +182,16 @@ export default function InvadersScreen() {
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
     switch (item.type) {
+      case "total":
+        return (
+          <CityHeader
+            city={t('invaders.total')}
+            capturedCount={item.capturedCount}
+            total={item.total}
+            expanded={false}
+          />
+        );
+
       case "header":
         return (
           <CityHeader
@@ -222,7 +243,7 @@ export default function InvadersScreen() {
           borderColor: theme.border,
         }, { showTitle: true });
     }
-  }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);
+  }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId, t]);
 
   // ── render ───────────────────────────────────────────────────────────────
 

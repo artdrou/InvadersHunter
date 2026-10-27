@@ -20,7 +20,7 @@ import { usePendingFields } from "../hooks/use-pending-modify";
 import { missingFields, type EditField } from "../edit-fields";
 import { MissingChip } from "./MissingChip";
 import type { InvaderWithState } from "../types";
-import { arcadeButton, arcadeButtonLabel, arcadeShadow } from "@/constants/arcade-button";
+import { arcadeButton, arcadeButtonLabel, arcadeFlashed, flashedColors } from "@/constants/arcade-button";
 
 type Props = {
   invader: InvaderWithState;
@@ -48,6 +48,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
   const { t } = useTranslation();
   const { theme, fontScale, appFont } = useTheme();
   const sz = (n: number) => Math.round(n * fontScale);
+  const flashed = flashedColors(theme);
   const [commentsOpen, setCommentsOpen] = useState(false);
   // One request for the popup payload: contributors + comment summary
   const { overview, refresh: refreshSummary } = useInvaderOverview(invader.id);
@@ -102,7 +103,7 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
         <InfoRow
           label={t('popup.flashed')}
           value={formatDate(invader.capturedAt)}
-          valueColor={invader.isCaptured ? theme.success : theme.text}
+          valueColor={invader.isCaptured ? flashed.ink : theme.text}
           sz={sz}
         />
       </View>
@@ -133,12 +134,12 @@ export function InvaderInfoPanel({ invader, onFlash, onUnflash, onLocate, onModi
       <View style={styles.btnRow}>
         {invader.isCaptured ? (
           // Flashed: the state stays visible, un-flashing is a small secondary action
-          <View style={[styles.actionBtn, styles.btnFlex, styles.flashedState, { backgroundColor: theme.success, boxShadow: arcadeShadow(theme) }]}>
-            <Text style={[styles.actionBtnText, { color: theme.titleShadow, fontFamily: ButtonFontBold, fontSize: FontSize.lg }]}>
+          <View style={[styles.actionBtn, styles.btnFlex, styles.flashedState, arcadeFlashed(theme)]}>
+            <Text style={[styles.actionBtnText, { color: flashed.ink, fontFamily: ButtonFontBold, fontSize: FontSize.lg }]}>
               ✓ {t('popup.flashed')}
             </Text>
             <Pressable onPress={() => onUnflash(invader)} hitSlop={8} style={({ pressed }) => pressed && styles.btnPressed}>
-              <Text style={{ color: theme.titleShadow, opacity: 0.8, fontFamily: ButtonFontBold, fontSize: FontSize.sm }}>
+              <Text style={{ color: flashed.ink, opacity: 0.8, fontFamily: ButtonFontBold, fontSize: FontSize.sm }}>
                 {t('popup.unflash')}
               </Text>
             </Pressable>
