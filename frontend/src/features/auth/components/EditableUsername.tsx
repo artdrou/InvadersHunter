@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { useAuthStore } from '../store';
 import { updateMyUsername } from '../services/account.api';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 // Same bounds as the backend (UserUpdate.username).
 const MIN_LENGTH = 3;
@@ -91,14 +93,14 @@ export function EditableUsername() {
           onPress={() => setEditing(false)}
           disabled={saving}
         >
-          <Text style={styles.btnText}>{t('common.cancel')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.btnText}>{t('common.cancel')}</ShadowText>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
           onPress={save}
           disabled={saving}
         >
-          <Text style={[styles.btnText, { color: theme.accent }]}>{t('profile.usernameSave')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.btnText}>{t('profile.usernameSave')}</ShadowText>
         </Pressable>
       </View>
     </View>
@@ -112,14 +114,11 @@ function makeStyles(t: ThemeTokens) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: Spacing.two,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
     },
-    value: { flex: 1, color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
+    value: { flex: 1, color: t.accent, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     input: { padding: 0 },
     editWrap: { gap: Spacing.two },
     error: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.xs, paddingHorizontal: Spacing.two },
@@ -127,12 +126,11 @@ function makeStyles(t: ThemeTokens) {
     btn: {
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
-      borderWidth: 1,
-      borderColor: t.border,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
     },
     btnPrimary: { borderColor: t.accent },
-    btnText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm },
+    btnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.sm },
     pressed: { opacity: 0.6 },
   });
 }

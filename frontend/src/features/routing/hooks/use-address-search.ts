@@ -28,7 +28,7 @@ export function useAddressSearch(userLocation?: [number, number] | null) {
           ? `&viewbox=${userLon - 0.15},${userLat - 0.15},${userLon + 0.15},${userLat + 0.15}&bounded=0`
           : ''
         const url = `${NOMINATIM_SEARCH_URL}?q=${encodeURIComponent(text)}&format=json&limit=5&addressdetails=0&accept-language=fr${proximity}`
-        const res  = await fetch(url, { headers: { 'User-Agent': 'InvaderHunter/1.0' } })
+        const res  = await fetch(url, { headers: { 'User-Agent': 'HintVaders/1.0' } })
         const data = await res.json() as { display_name: string; lon: string; lat: string }[]
         const mapped = data.map((item) => ({
           label:  item.display_name,

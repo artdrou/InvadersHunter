@@ -4,7 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeCard, arcadeSectionLabel } from '@/constants/arcade-button';
 import { fetchAdminSubmissions, fetchInvader } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { Diff } from '@/features/admin/components/Diff';
@@ -64,11 +67,12 @@ export default function AdminSubmissionDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{t('admin.submissionDetailTitle')}</Text>
+        <ArcadeTitle text={t('admin.submissionDetailTitle')} size={18} style={styles.headerTitle} />
         <TypeBadge type={sub.request_type as 'create' | 'modify' | 'delete'} />
       </View>
 
@@ -124,14 +128,13 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
     },
     backBtn:      { paddingRight: Spacing.two },
     backText:     { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
-    headerTitle:  { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
+    headerTitle:  { flexShrink: 1 },
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three },
     section: {
-      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
-      borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
+      ...arcadeCard(t), padding: Spacing.three, gap: 6,
     },
-    sectionTitle: { color: t.textMuted, fontSize: FontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+    sectionTitle: { ...arcadeSectionLabel(t), marginBottom: 4 },
     row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     metaLabel:    { color: t.textMuted, fontSize: sz(13), fontFamily: font },
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },

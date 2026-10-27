@@ -4,9 +4,13 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
 import { useNewsData, useNewsStore, NewsListItem, newsItemKey } from '@/features/news';
 import { useLocateStore } from '@/features/map';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 export default function NewsScreen() {
   const router = useRouter();
@@ -39,23 +43,24 @@ export default function NewsScreen() {
       <Pressable
         onPress={loadMore}
         disabled={loadingMore}
-        style={({ pressed }) => [styles.moreBtn, { borderColor: theme.border }, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.moreBtn, arcadeButton(theme, 'outline'), pressed && styles.pressed]}
       >
         {loadingMore ? (
           <ActivityIndicator size="small" color={theme.accent} />
         ) : (
-          <Text style={[styles.moreText, { color: theme.accent, fontFamily: appFont }]}>{t('news.more')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={[styles.moreText, arcadeButtonLabel(theme, 'outline')]}>{t('news.more')}</ShadowText>
         )}
       </Pressable>
     ) : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg, paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={[styles.backText, { color: theme.textMuted }]}>{`< ${t('common.back')}`}</Text>
         </Pressable>
-        <Text style={[styles.title, { color: theme.accent, fontFamily: appFont }]}>{t('news.title')}</Text>
+        <ArcadeTitle text={t('news.title')} />
       </View>
 
       {loading && items.length === 0 ? (
@@ -94,7 +99,6 @@ const styles = StyleSheet.create({
   },
   backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
   backText: { fontFamily: ButtonFont, fontSize: FontSize.md },
-  title: { fontSize: FontSize.xxl, letterSpacing: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four },
   emptyContainer: { flexGrow: 1 },
   emptyText: { fontSize: FontSize.sm, textAlign: 'center' },

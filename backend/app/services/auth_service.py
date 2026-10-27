@@ -1,12 +1,13 @@
 """
 Business logic for authentication: login, refresh-token rotation, logout,
-and the password-reset flow (request code, verify code, set new password).
+the password-reset flow (request code, verify code, set new password) and
+changing the password while signed in (checks the current one).
 
 Routers handle HTTP and translate the domain exceptions below.
 """
 import random
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from ..models.user import User
@@ -14,7 +15,8 @@ from ..models.refresh_token import RefreshToken
 from ..core.security import (
     verify_password, create_access_token, create_refresh_token, hash_password,
 )
-from ..core.email import send_reset_password_email
+from ..core.email import send_password_changed_email, send_reset_password_email
+from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
@@ -22,6 +24,12 @@ from ..core.email import send_reset_password_email
 class InvalidCredentials(Exception): ...
 class InvalidRefreshToken(Exception): ...
 class InvalidResetCode(Exception): ...
+class TooManyAttempts(Exception): ...
+
+
+# Wrong current passwords allowed per account before a pause (stops guessing it
+# from an unlocked phone)
+CHANGE_PASSWORD_LIMIT = SlidingWindowLimiter(5, 15 * 60)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -100,7 +108,7 @@ async def request_password_reset(db: Session, username: str, email: str) -> None
     user.reset_code = code
     user.reset_code_expires = datetime.now(timezone.utc) + timedelta(minutes=15)
     db.commit()
-    await send_reset_password_email(email, code)
+    await send_reset_password_email(email, code, user.username, user.language)
 
 
 def verify_reset_code(db: Session, email: str, token: str) -> None:
@@ -114,7 +122,27 @@ def verify_reset_code(db: Session, email: str, token: str) -> None:
         raise InvalidResetCode()
 
 
-def reset_password(db: Session, email: str, token: str, new_password: str) -> None:
+def change_password(db: Session, user: User, current_password: str, new_password: str,
+                    schedule: Optional[Callable] = None) -> None:
+    """Signed-in password change: the current password must match. `schedule`
+    receives the "password changed" email, as for reset_password."""
+    try:
+        CHANGE_PASSWORD_LIMIT.hit(f"user:{user.id}")
+    except RateLimited:
+        raise TooManyAttempts()
+    if not verify_password(current_password, user.hashed_password):
+        raise InvalidCredentials()
+
+    user.hashed_password = hash_password(new_password)
+    db.commit()
+    if schedule:
+        schedule(send_password_changed_email, user.email, user.username, language=user.language)
+
+
+def reset_password(db: Session, email: str, token: str, new_password: str,
+                   schedule: Optional[Callable] = None) -> None:
+    """`schedule(fn, *args, **kwargs)` (e.g. BackgroundTasks.add_task) receives the
+    "password changed" email, sent after the commit."""
     user = db.query(User).filter(User.email == email).first()
     if (
         not user
@@ -128,3 +156,5 @@ def reset_password(db: Session, email: str, token: str, new_password: str) -> No
     user.reset_code = None
     user.reset_code_expires = None
     db.commit()
+    if schedule:
+        schedule(send_password_changed_email, user.email, user.username, language=user.language)

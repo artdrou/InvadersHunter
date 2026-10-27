@@ -5,8 +5,12 @@ import * as Updates from 'expo-updates';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
+import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
+import { ShadowText } from '@/components/ShadowText';
 import { fetchVersionManifest, getCurrentVersion, isNewer, useAppUpdateStore } from '@/features/app-update';
 import { getDateLocale } from '@/services/i18n';
 
@@ -61,35 +65,35 @@ export default function AboutScreen() {
         style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
         onPress={handleCheckForUpdates}
       >
-        <Text style={styles.btnText}>{t('settings.checkForUpdates')}</Text>
+        <ShadowText shadowColor={theme.titleShadow} style={styles.btnText}>{t('settings.checkForUpdates')}</ShadowText>
       </Pressable>
 
       <Pressable
         style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
         onPress={() => { hapticTap(); router.push('/settings/roadmap'); }}
       >
-        <Ionicons name="rocket-outline" size={20} color={theme.accent} />
+        <SettingsRowIcon icon="rocket-outline" />
         <View style={styles.navLabelWrap}>
           <Text style={styles.navLabel}>{t('settings.roadmap')}</Text>
           <Text style={styles.navSubtitle}>{t('settings.roadmapSubtitle')}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+        <Ionicons name="caret-forward" size={14} color={theme.accent} />
       </Pressable>
 
       <Pressable
         style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
         onPress={() => { hapticTap(); router.push('/settings/changelog'); }}
       >
-        <Ionicons name="document-text-outline" size={20} color={theme.accent} />
+        <SettingsRowIcon icon="document-text-outline" />
         <View style={styles.navLabelWrap}>
           <Text style={styles.navLabel}>{t('settings.changelog')}</Text>
           <Text style={styles.navSubtitle}>{t('settings.changelogSubtitle')}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+        <Ionicons name="caret-forward" size={14} color={theme.accent} />
       </Pressable>
 
       <View style={styles.creditsBlock}>
-        <Text style={styles.creditsTitle}>{t('settings.credits')}</Text>
+        <ArcadeSectionLabel title={t('settings.credits')} />
         <Text style={styles.creditsBody}>{t('settings.creditsBody')}</Text>
       </View>
     </SettingsShell>
@@ -99,44 +103,33 @@ export default function AboutScreen() {
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     infoBlock: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.two,
     },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     infoLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
-    infoValue: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    infoValue: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     btn: {
       paddingVertical: 12,
-      borderWidth: 1,
-      borderColor: t.border,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
       alignItems: 'center',
     },
-    btnText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
+    btnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     navRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing.two,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      gap: Spacing.three,
+      ...arcadeCard(t),
       paddingHorizontal: Spacing.three,
-      paddingVertical: Spacing.two,
+      paddingVertical: Spacing.two + 2,
     },
     navLabelWrap: { flex: 1, gap: 2 },
-    navLabel: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    navLabel: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     navSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
     pressed: { opacity: 0.6 },
     creditsBlock: { gap: Spacing.two, paddingTop: Spacing.three },
-    creditsTitle: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm,
-      letterSpacing: 1, textTransform: 'uppercase',
-    },
     creditsBody: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm, lineHeight: 22 },
   });
 }

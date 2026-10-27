@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
+import { arcadeCard } from '@/constants/arcade-button';
 import { publishedReleases, notesForLanguage } from '@/features/changelog';
 
 /** Full release-notes history — one card per stamped release. */
@@ -36,10 +37,7 @@ function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     list: { gap: Spacing.two },
     card: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.two,
     },
@@ -50,7 +48,7 @@ function makeStyles(t: ThemeTokens) {
     },
     cardVersion: {
       color: t.accent,
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.md,
     },
     cardDate: {

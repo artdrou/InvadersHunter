@@ -20,6 +20,10 @@ class VerifyResetCodeRequest(BaseModel):
     email: EmailStr
     token: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=4)
+
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
     token: str

@@ -231,3 +231,54 @@ def test_reset_password_old_password_no_longer_works(client, db, user):
 
     old_login = client.post("/auth/login", json={"username": "alice", "password": "secret"})
     assert old_login.status_code == 401
+
+
+# ── change-password (signed in) ───────────────────────────────────────────────
+
+@pytest.fixture()
+def _no_change_limit():
+    from app.services import auth_service
+    auth_service.CHANGE_PASSWORD_LIMIT.clear()
+    yield
+    auth_service.CHANGE_PASSWORD_LIMIT.clear()
+
+
+def _change(client, user, current, new):
+    from tests.conftest import auth_headers
+    return client.post(
+        "/auth/change-password",
+        json={"current_password": current, "new_password": new},
+        headers=auth_headers(user),
+    )
+
+
+def test_change_password_success(client, user, _no_change_limit):
+    with patch("app.services.auth_service.send_password_changed_email", new_callable=AsyncMock) as mail:
+        res = _change(client, user, "secret", "newpass")
+    assert res.status_code == 200
+    mail.assert_called_once()
+    assert client.post("/auth/login", json={"username": "alice", "password": "newpass"}).status_code == 200
+    assert client.post("/auth/login", json={"username": "alice", "password": "secret"}).status_code == 401
+
+
+def test_change_password_wrong_current(client, user, _no_change_limit):
+    res = _change(client, user, "nope", "newpass")
+    assert res.status_code == 400
+    assert res.json()["detail"] == "wrong_password"
+
+
+def test_change_password_too_short(client, user, _no_change_limit):
+    assert _change(client, user, "secret", "abc").status_code == 422
+
+
+def test_change_password_requires_auth(client):
+    res = client.post("/auth/change-password", json={"current_password": "a", "new_password": "bbbb"})
+    assert res.status_code == 401
+
+
+def test_change_password_limits_attempts(client, user, _no_change_limit):
+    from app.services import auth_service
+    for _ in range(auth_service.CHANGE_PASSWORD_LIMIT.max_hits):
+        _change(client, user, "nope", "newpass")
+    res = _change(client, user, "secret", "newpass")
+    assert res.status_code == 429

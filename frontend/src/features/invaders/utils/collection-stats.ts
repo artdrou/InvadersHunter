@@ -4,6 +4,8 @@ import { cityOf } from './invader-list';
 
 export type CollectionStats = {
   flashed: number;
+  /** Sum of the points of the flashed invaders (unknown points count 0). */
+  score: number;
   citiesWithFlashes: number;
   completeCities: number;
   destroyedFlashed: number;
@@ -19,6 +21,7 @@ export function computeCollectionStats(invaders: Invader[], flashedIds: Set<numb
   // City breakdown — total invaders per city + captured per city.
   const byCity = new Map<string, { captured: number; total: number }>();
   let flashed = 0;
+  let score = 0;
   let destroyedFlashed = 0;
   let remaining = 0;
   for (const inv of invaders) {
@@ -29,6 +32,7 @@ export function computeCollectionStats(invaders: Invader[], flashedIds: Set<numb
     if (isCaptured) {
       e.captured++;
       flashed++;
+      score += inv.points ?? 0;
       if ((inv.state ?? '').toLowerCase() === 'destroyed') destroyedFlashed++;
     } else if (!isNonFlashable(inv.state)) {
       remaining++;
@@ -49,5 +53,5 @@ export function computeCollectionStats(invaders: Invader[], flashedIds: Set<numb
     }
   }
 
-  return { flashed, citiesWithFlashes, completeCities, destroyedFlashed, remaining, topCity };
+  return { flashed, score, citiesWithFlashes, completeCities, destroyedFlashed, remaining, topCity };
 }

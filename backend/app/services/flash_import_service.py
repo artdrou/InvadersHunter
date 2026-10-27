@@ -184,4 +184,4 @@ def tool_exe_for_host(host: str) -> Path:
     Unknown hosts (localhost, LAN IP) get the development build.
     """
     env = environment_for_host(host) or "development"
-    return _TOOL_BUILDS_DIR / f"InvadersHunter-FlashImport-{env}.exe"
+    return _TOOL_BUILDS_DIR / f"HintVaders-FlashImport-{env}.exe"

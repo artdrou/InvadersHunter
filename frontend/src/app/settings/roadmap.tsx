@@ -1,30 +1,30 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
+import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
+import { arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 
-type RoadmapStatus = 'soon' | 'wip' | 'planned';
+type RoadmapStatus = 'new' | 'soon' | 'wip' | 'planned';
 
 // Items to show on the roadmap screen. Each `key` must match a sub-entry under
 // `settings.roadmapItems.<key>` in the locale files (title + body).
-// Status: 'soon' = built, ships next release; 'wip' = in development;
+// Status: 'new' = just shipped (in this version); 'soon' = built, ships next release; 'wip' = in development;
 // 'planned' = on the roadmap, not started.
 const ROADMAP_ITEMS: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; status: RoadmapStatus }[] = [
-  { key: 'guestMode',       icon: 'person-add-outline',  status: 'soon' },
-  { key: 'customInvaders',  icon: 'add-circle-outline',  status: 'wip' },
-  { key: 'friends',         icon: 'people-outline',      status: 'wip' },
-  { key: 'commentWall',     icon: 'chatbubbles-outline', status: 'wip' },
-  { key: 'discoveredBy',    icon: 'ribbon-outline',      status: 'wip' },
-  { key: 'gamification',    icon: 'trophy-outline',      status: 'planned' },
-  { key: 'radarMode',       icon: 'radio-outline',       status: 'planned' },
+  { key: 'arcadeLook',      icon: 'color-palette-outline',  status: 'new' },
+  { key: 'friendCodes',     icon: 'qr-code-outline',        status: 'new' },
+  { key: 'customInvaders',  icon: 'add-circle-outline',     status: 'wip' },
+  { key: 'website',         icon: 'globe-outline',          status: 'wip' },
+  { key: 'offlinePhotos',   icon: 'cloud-download-outline', status: 'planned' },
+  { key: 'gamification',    icon: 'trophy-outline',         status: 'planned' },
+  { key: 'radarMode',       icon: 'radio-outline',          status: 'planned' },
 ];
 
 export default function RoadmapScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   return (
@@ -35,7 +35,7 @@ export default function RoadmapScreen() {
         {ROADMAP_ITEMS.map((item) => (
           <View key={item.key} style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name={item.icon} size={20} color={theme.accent} />
+              <SettingsRowIcon icon={item.icon} />
               <Text style={styles.cardTitle}>{t(`settings.roadmapItems.${item.key}.title`)}</Text>
               <View style={[styles.badge, styles[`badge_${item.status}`]]}>
                 <Text style={[styles.badgeText, styles[`badgeText_${item.status}`]]}>
@@ -61,17 +61,14 @@ function makeStyles(t: ThemeTokens) {
     },
     list: { gap: Spacing.two },
     card: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.two,
     },
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     cardTitle: {
       color: t.text,
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.md,
       flexShrink: 1,
     },
@@ -82,6 +79,7 @@ function makeStyles(t: ThemeTokens) {
       paddingHorizontal: Spacing.two,
       paddingVertical: 2,
     },
+    badge_new:     { borderColor: t.accent,    backgroundColor: t.accent },
     badge_soon:    { borderColor: t.accent,    backgroundColor: 'transparent' },
     badge_wip:     { borderColor: t.textMuted, backgroundColor: 'transparent' },
     badge_planned: { borderColor: t.border,    backgroundColor: 'transparent' },
@@ -90,6 +88,7 @@ function makeStyles(t: ThemeTokens) {
       fontSize: FontSize.xxs,
       letterSpacing: 0.5,
     },
+    badgeText_new:     { color: arcadeLabelColor(t) },
     badgeText_soon:    { color: t.accent },
     badgeText_wip:     { color: t.textMuted },
     badgeText_planned: { color: t.textMuted },

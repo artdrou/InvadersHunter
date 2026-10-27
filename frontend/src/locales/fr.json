@@ -37,7 +37,7 @@
     "requestsPending": "Modifications en attente",
     "comments": "Commentaires",
     "sectionActions": "Actions",
-    "selfNote": "C'est votre compte : utilisez Réglages > Profil pour le gérer.",
+    "selfNote": "C'est votre compte : utilisez Options > Profil pour le gérer.",
     "promote": "Promouvoir admin",
     "demote": "Retirer le statut admin",
     "promoteTitle": "Promouvoir {{name}} admin ?",
@@ -73,7 +73,7 @@
     "map": "Carte",
     "invaders": "Invaders",
     "social": "Social",
-    "profile": "Reglages",
+    "profile": "Options",
     "admin": "Admin"
   },
   "news": {
@@ -102,7 +102,13 @@
     "changeDescription": "Description"
   },
   "settings": {
-    "title": "Reglages",
+    "playerScore": "Score",
+    "playerFlashes": "Flashs",
+    "playerCities": "Villes",
+    "playerGuest": "Invité",
+    "playerSeeProfile": "Voir mon profil",
+    "playerCreateAccount": "Crée un compte pour garder tes flashs",
+    "title": "Options",
     "sectionAccount": "Compte",
     "sectionPersonalization": "Personnalisation & Haptique",
     "sectionData": "Donnees",
@@ -114,7 +120,7 @@
     "profileInfo": "Profil",
     "profileInfoSubtitle": "Nom d'utilisateur, statistiques",
     "security": "Securite",
-    "securitySubtitle": "Email, mot de passe",
+    "securitySubtitle": "Mes donnees, suppression du compte",
     "appearance": "Apparence",
     "appearanceSubtitle": "Theme et couleur",
     "markerCustomization": "Markers",
@@ -135,6 +141,21 @@
     "supportSubtitle": "Offrir un cafe au dev",
     "comingSoon": "Bientot disponible",
     "comingSoonBody": "Cette section sera disponible dans une prochaine mise a jour.",
+    "sectionMyData": "Mes donnees",
+    "exportData": "Recevoir mes donnees",
+    "exportDataSubtitle": "Une copie de toutes vos donnees, envoyee par email",
+    "exportDataSentTitle": "Email envoye",
+    "exportDataSentBody": "Vos donnees arrivent sur l'adresse email de votre compte (pensez a regarder les spams).",
+    "sectionDanger": "Zone de danger",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteAccountSubtitle": "Definitif : flashes, propositions, commentaires et amis",
+    "deleteAccountConfirmTitle": "Supprimer votre compte ?",
+    "deleteAccountConfirmBody": "Votre compte {{username}} et toutes ses donnees seront supprimes definitivement. Cette action est irreversible.",
+    "deleteAccountConfirm": "Supprimer",
+    "deleteAccountDoneTitle": "Compte supprime",
+    "deleteAccountDoneBody": "Votre compte a ete supprime. Un email de confirmation vous a ete envoye.",
+    "actionFailed": "Echec, verifiez votre connexion et reessayez.",
+    "cancel": "Annuler",
     "syncNow": "Synchroniser maintenant",
     "syncing": "Synchronisation...",
     "importFlashes": "Importer mes flashes",
@@ -149,8 +170,17 @@
     "supportFree": "L'application est gratuite et le restera, avec 100% des fonctionnalites accessibles a tous.",
     "supportBtn": "Soutenir sur Ko-fi",
     "supportLinkUnavailable": "Impossible d'ouvrir le lien de don.",
-    "contactBody": "Pour toute question ou suggestion, contactez le developpeur.",
-    "contactEmail": "Envoyer un email",
+    "contactBody": "Une question, un bug, une idee ? Ecrivez-nous, on vous repond par email.",
+    "contactSubject": "Sujet",
+    "contactMessage": "Votre message",
+    "contactGuestEmail": "Votre email (pour vous repondre)",
+    "contactSend": "Envoyer",
+    "contactSentTitle": "Message envoye",
+    "contactSentBody": "Merci ! On vous repond des que possible par email.",
+    "contactNewMessage": "Nouveau message",
+    "contactTooShort": "Sujet : 3 caracteres min. Message : 10 caracteres min.",
+    "contactTooMany": "Trop de messages envoyes, reessayez dans quelques minutes.",
+    "contactFailed": "Echec de l'envoi, verifiez votre connexion et reessayez.",
     "contactNotice": "Merci de garder vos messages courts et pertinents. L'app est developpee en solo, un traitement rapide est plus facile avec peu de bruit.",
     "stats": "Statistiques",
     "statsCollection": "Collection",
@@ -168,26 +198,41 @@
     "roadmap": "Feuille de route",
     "roadmapSubtitle": "Fonctionnalites a venir",
     "roadmapIntro": "Voici un aperçu des fonctionnalités en préparation pour les prochaines versions de l'application.",
+    "sectionLogin": "Connexion",
+    "changePassword": "Modifier le mot de passe",
+    "changePasswordSubtitle": "Choisir un nouveau mot de passe",
+    "changePasswordCurrent": "Mot de passe actuel",
+    "changePasswordNew": "Nouveau mot de passe",
+    "changePasswordConfirm": "Confirmer le nouveau mot de passe",
+    "changePasswordSave": "Enregistrer",
+    "changePasswordTooShort": "Le nouveau mot de passe doit faire au moins {{count}} caractères.",
+    "changePasswordMismatch": "Les deux mots de passe ne correspondent pas.",
+    "changePasswordWrong": "Mot de passe actuel incorrect.",
+    "changePasswordTooMany": "Trop d'essais, réessaie dans quelques minutes.",
+    "changePasswordDoneTitle": "Mot de passe modifié",
+    "changePasswordDoneBody": "Ton nouveau mot de passe est actif. Un email de confirmation t'a été envoyé.",
+    "syncNowInfo": "Récupère les derniers invaders et leurs mises à jour, et envoie les flashs faits hors connexion. Ça se fait aussi tout seul à l'ouverture de l'app : ce bouton sert à forcer une mise à jour.",
+    "importFlashesInfo": "Copie en une fois tous tes flashs de l'app officielle FlashInvaders (Android) dans HintVaders, avec un petit outil à lancer sur un ordinateur. Utile au début, ou si tu as flashé sans HintVaders.",
     "roadmapItems": {
-      "guestMode": {
-        "title": "Mode invité",
-        "body": "Utiliser l'app sans compte. Les flashs restent sur le téléphone et sont transférés à la création du compte."
+      "arcadeLook": {
+        "title": "Nouveau look arcade",
+        "body": "Titres, boutons, listes et menus refaits dans l'esprit borne d'arcade, avec de nouveaux thèmes."
+      },
+      "friendCodes": {
+        "title": "Codes ami",
+        "body": "Chaque joueur a un code ami à partager pour s'ajouter sans connaître le nom exact."
       },
       "customInvaders": {
         "title": "Invaders personnels",
         "body": "Ajouter ses propres invaders sur sa carte."
       },
-      "friends": {
-        "title": "Amis",
-        "body": "Se connecter à d'autres chasseurs, voir leurs flashs sur la carte et comparer les collections."
+      "website": {
+        "title": "Site web",
+        "body": "Retrouver ses stats, sa carte et gérer son compte depuis un ordinateur."
       },
-      "commentWall": {
-        "title": "Mur de commentaires",
-        "body": "Laisser des descriptions et astuces sur chaque invader."
-      },
-      "discoveredBy": {
-        "title": "Découvreurs",
-        "body": "Voir qui a découvert ou mis à jour chaque invader."
+      "offlinePhotos": {
+        "title": "Photos hors ligne",
+        "body": "Télécharger les photos des invaders pour chasser sans réseau."
       },
       "gamification": {
         "title": "Gamification",
@@ -199,6 +244,7 @@
       }
     },
     "roadmapStatus": {
+      "new": "Nouveau",
       "soon": "Bientôt",
       "wip": "En cours",
       "planned": "Prévu"
@@ -212,8 +258,7 @@
     "reconnected": "Reconnecté"
   },
   "auth": {
-    "appTitle": "INVADERS HUNTER",
-    "appTitleSmall": "Invaders Hunter",
+    "appTitle": "HINTVADERS",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
     "email": "E-mail",
@@ -232,8 +277,6 @@
       "loginLink": "Connexion"
     },
     "forgot": {
-      "unavailable": "La réinitialisation du mot de passe est temporairement indisponible.",
-      "contactSupport": "Veuillez contacter le support pour réinitialiser votre mot de passe.",
       "backToLogin": "Retour à la connexion",
       "resetTitle": "Réinitialiser votre mot de passe",
       "sendCode": "Envoyer le code",
@@ -280,7 +323,31 @@
     "mapLite": "Carte allegee",
     "mapLiteSubtitle": "Moins de details pour une navigation plus fluide sur appareils anciens",
     "map3d": "Batiments 3D",
-    "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)"
+    "map3dSubtitle": "Afficher les batiments en 3D en zoomant (plus lourd a afficher)",
+    "previewButton": "Bouton",
+    "previewOutline": "Contour",
+    "classicThemeNote": "Les themes classiques ont leurs couleurs fixes. Pour choisir les votres, prenez Perso.",
+    "customTheme": "Theme perso",
+    "base": "Base",
+    "baseSubtitle": "Fond, textes et cartes",
+    "accentSubtitle": "Boutons, liens, onglet actif",
+    "routeSubtitle": "Trace sur la carte",
+    "titles": "Titres",
+    "titleStyle": "Style",
+    "titleStyleSubtitle": "Grande initiale ou arcade",
+    "titleInitial": "Initiale",
+    "titleArcade": "Arcade",
+    "titleStroke": "Contour",
+    "titleInner": "Interieur",
+    "titleShadow": "Ombre",
+    "otherColor": "Autre couleur",
+    "pick": {
+      "accent": "Couleur d'accent",
+      "routePath": "Couleur du trace",
+      "titleStroke": "Contour des titres",
+      "titleInner": "Interieur des titres",
+      "titleShadow": "Ombre des titres"
+    }
   },
   "markerCustomization": {
     "title": "Personnalisation des markers",
@@ -308,9 +375,12 @@
   },
   "themeNames": {
     "dark": "Sombre",
+    "darkAlt": "Sombre alt",
     "light": "Clair",
+    "lightAlt": "Clair alt",
     "amber": "Ambre",
-    "matrix": "Matrix"
+    "matrix": "Matrix",
+    "custom": "Perso"
   },
   "languageNames": {
     "fr": "Français",
@@ -364,6 +434,7 @@
     "start": "Démarrer"
   },
   "invaders": {
+    "total": "TOTAL",
     "searchPlaceholder": "Rechercher des invaders…",
     "noInternetTitle": "Pas de connexion internet",
     "noInternetSub": "Connectez-vous pour charger les invaders",
@@ -546,14 +617,14 @@
   "flashImport": {
     "title": "Importer mes flashes",
     "intro": "Récupérez automatiquement vos flashes depuis l'application officielle FlashInvaders installée sur votre téléphone Android, via votre PC.",
-    "step1Title": "Connectez-vous à InvadersHunter",
+    "step1Title": "Connectez-vous à HintVaders",
     "step1Body": "Avec le compte sur lequel vous voulez importer vos flashes.",
     "step2Title": "Branchez votre téléphone au PC",
     "step2Body": "Câble USB. Autorisez le transfert de données si demandé.",
     "step3Title": "Activez le débogage USB",
     "step3Body": "Réglages → À propos → tapez 7 fois sur \"Numéro de build\" pour activer les options développeur, puis activez \"Débogage USB\". Acceptez la demande sur le téléphone.",
     "step4Title": "Téléchargez et lancez l'application",
-    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants InvadersHunter quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).",
+    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants HintVaders quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).",
     "step5Title": "IMPORTANT : synchronisez l'app",
     "step5Body": "Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur \"Synchroniser\" pour récupérer les flashes importés dans l'application.",
     "downloadBtn": "Télécharger l'application (Windows)",
@@ -683,11 +754,17 @@
   "social": {
     "title": "Social",
     "addTitle": "Ajouter un ami",
-    "addPlaceholder": "Son nom d'utilisateur exact",
+    "myCode": "Mon code ami",
+    "codeCopy": "Copier",
+    "codeShare": "Partager",
+    "codeCopied": "Code copié !",
+    "codeShareMessage": "Ajoute-moi en ami sur HintVaders ! Mon code ami : {{code}}\n{{link}}",
+    "addPlaceholder": "Code ami ou nom d'utilisateur",
     "addButton": "Envoyer",
     "sent": "Invitation envoyée à {{username}}",
     "acceptedNow": "{{username}} t'avait déjà invité : vous êtes maintenant amis !",
     "error": {
+      "too_many": "Trop de demandes, réessaie un peu plus tard.",
       "user_not_found": "Aucun utilisateur avec ce nom",
       "self": "C'est toi !",
       "already_friends": "Vous êtes déjà amis",
@@ -702,7 +779,7 @@
     "cancel": "Annuler",
     "pending": "En attente de réponse",
     "flashedCount": "Invaders flashés : {{count}}",
-    "noFriends": "Pas encore d'amis. Ajoute-en un avec son nom d'utilisateur ci-dessus.",
+    "noFriends": "Pas encore d'amis. Partage ton code ami, ou ajoute quelqu'un avec son code ou son nom d'utilisateur.",
     "loadFailed": "Chargement impossible. Touche pour réessayer.",
     "guestMessage": "Crée un compte pour ajouter des amis et comparer vos cartes.",
     "guestButton": "Créer un compte",

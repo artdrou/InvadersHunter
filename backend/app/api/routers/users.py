@@ -4,7 +4,7 @@ from typing import List
 
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserAdminProfileOut
 from app.dependencies import get_db, get_current_user, require_admin
-from app.services import user_service, deletion_service
+from app.services import user_service, deletion_service, data_export_service
 from app.services.user_service import UserMissing, UsernameTaken, EmailTaken
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -54,6 +54,7 @@ async def create_user(
 def update_user(
     user_id: int,
     user_update: UserUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -71,6 +72,7 @@ def update_user(
             email=user_update.email,
             password=user_update.password,
             is_admin=user_update.is_admin,
+            schedule=background_tasks.add_task,
         )
     except UserMissing:
         raise HTTPException(status_code=404, detail="User not found")
@@ -83,6 +85,7 @@ def update_user(
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -90,7 +93,24 @@ def delete_user(
     reactions and tokens (approved admin requests stay as invader history)."""
     _check_owner_or_admin(user_id, current_user)
     try:
-        report = deletion_service.delete_user(db, user_id)
+        report = deletion_service.delete_user(db, user_id, schedule=background_tasks.add_task)
     except UserMissing:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully", "deleted": report.deleted}
+
+
+@router.post("/{user_id}/data-export", status_code=202)
+def export_personal_data(
+    user_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Owner or admin. Emails a copy of all the user's data (GDPR right of access)
+    to the account's own address."""
+    _check_owner_or_admin(user_id, current_user)
+    try:
+        data_export_service.send_personal_data(db, user_id, schedule=background_tasks.add_task)
+    except UserMissing:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "Personal data sent by email"}

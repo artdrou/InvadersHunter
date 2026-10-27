@@ -1,4 +1,4 @@
-# InvadersHunter
+# HintVaders
 
 A mobile app for hunting Space Invaders street art. Browse a map of known invaders, flash the ones you find in real life, and contribute sightings to a shared database.
 

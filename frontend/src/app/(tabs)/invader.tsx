@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
   mapInvadersWithProgress, buildGroups,
-  CityHeader, InvaderListRow, InvaderGridCell,
+  CityHeader, TotalHeader, InvaderListRow, InvaderGridCell,
   MosaicToolbar, DEFAULT_TOOLBAR_STATE,
 } from "@/features/invaders";
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
@@ -14,6 +14,7 @@ import { useListEditing } from "@/features/invaders/hooks/use-list-editing";
 import { useNewsUnreadCount } from "@/features/news";
 import { useAuthStore, GUEST_USER_ID } from "@/features/auth";
 import { useTheme } from "@/contexts/theme-context";
+import { StreetsBackground } from "@/components/StreetsBackground";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
 
@@ -22,6 +23,7 @@ const GRID_GAP = 4;
 // ── flat list item types ─────────────────────────────────────────────────────
 
 type FlatItem =
+  | { type: "total";     key: string; capturedCount: number; total: number }
   | { type: "header";    key: string; groupKey: string; capturedCount: number; total: number; expanded: boolean }
   | { type: "row";       key: string; invader: InvaderWithState; isExpanded: boolean }
   | { type: "info";      key: string; invader: InvaderWithState }
@@ -80,6 +82,16 @@ export default function InvadersScreen() {
   const flatData = useMemo<FlatItem[]>(() => {
     const items: FlatItem[] = [];
 
+    // Grouped list: an overall count on top, in the same look as the group headers
+    if (groups.some(([groupKey]) => groupKey !== "")) {
+      items.push({
+        type: "total",
+        key: "total",
+        capturedCount: filtered.filter((i) => i.isCaptured).length,
+        total: filtered.length,
+      });
+    }
+
     for (const [groupKey, groupInvaders] of groups) {
       const hasHeader  = groupKey !== "";
       const isExpanded = !hasHeader || isSearching || expandedCities.has(groupKey);
@@ -119,7 +131,7 @@ export default function InvadersScreen() {
     }
 
     return items;
-  }, [groups, expandedCities, expandedInvaderId, isSearching, toolbar.viewMode, toolbar.gridCols]);
+  }, [groups, filtered, expandedCities, expandedInvaderId, isSearching, toolbar.viewMode, toolbar.gridCols]);
 
   // ── handlers ─────────────────────────────────────────────────────────────
 
@@ -170,6 +182,11 @@ export default function InvadersScreen() {
 
   const renderItem = useCallback(({ item }: { item: FlatItem }) => {
     switch (item.type) {
+      case "total":
+        return (
+          <TotalHeader capturedCount={item.capturedCount} total={item.total} />
+        );
+
       case "header":
         return (
           <CityHeader
@@ -219,7 +236,7 @@ export default function InvadersScreen() {
           borderRadius: 8,
           borderWidth: 1,
           borderColor: theme.border,
-        });
+        }, { showTitle: true });
     }
   }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);
 
@@ -227,6 +244,7 @@ export default function InvadersScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.bg }]}>
+      <StreetsBackground intensity="faint" />
       <MosaicToolbar
         state={toolbar}
         onChange={setToolbar}

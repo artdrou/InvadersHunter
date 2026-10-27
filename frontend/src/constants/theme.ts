@@ -62,7 +62,27 @@ export type ThemeTokens = {
   success: string;     // captured / success state
   locationDot: string; // GPS position marker & cone
   routePath: string;   // navigation route line color
+
+  /** Light background: artwork switches to its inverted / lighter variant. */
+  isLight: boolean;
+
+  // Arcade screen titles (components/ArcadeTitle): outline, inside, offset shadow
+  titleStroke: string;
+  titleInner: string;
+  titleShadow: string;
+  /** "initial": big first letter (like the logo) · "arcade": plain capitals */
+  titleStyle: TitleStyle;
+
+  /**
+   * Flashed state (popup, list, progress bars): fill + outline / text. Default to the
+   * title inside + outline (constants/arcade-button `flashedColors`); set them only when
+   * those would read as an error (red) or as the Flash button (same colour as the accent).
+   */
+  flashedFill?: string;
+  flashedInk?: string;
 };
+
+export type TitleStyle = 'initial' | 'arcade';
 
 // ─── Built-in themes ──────────────────────────────────────────────────────────
 
@@ -81,11 +101,29 @@ export const darkTheme: ThemeTokens = {
   borderInputValid: Brand.cyan,
   borderInputInvalid: Brand.pink,
 
-  accent: '#ccff00',
+  accent: '#1cf0ff',            // the logo / title cyan
   danger: Brand.pink,
   success: Brand.cyan,
   locationDot: Brand.cyan,
   routePath: '#3effa0',
+
+  isLight: false,
+  titleStroke: '#1cf0ff',
+  titleInner: '#0666a6',
+  titleShadow: Brand.pink,
+  titleStyle: 'initial',
+};
+
+// Dark alt — same as dark with the original arcade title colours (yellow, pink inside and shadow).
+export const darkAltTheme: ThemeTokens = {
+  ...darkTheme,
+  accent: Brand.yellow,
+  titleStroke: Brand.yellow,
+  titleInner: Brand.pink,
+  titleShadow: Brand.pink,
+  // Flashed in the dark theme's blue: its title is pink (reads as an error) and yellow (the Flash button)
+  flashedFill: darkTheme.titleInner,
+  flashedInk: darkTheme.titleStroke,
 };
 
 export const lightTheme: ThemeTokens = {
@@ -107,6 +145,24 @@ export const lightTheme: ThemeTokens = {
   success: Brand.cyan,
   locationDot: '#4a90e2',
   routePath: '#00aa66',
+
+  isLight: true,
+  titleStroke: '#0a3d8f',
+  titleInner: '#1cf0ff',
+  titleShadow: Brand.pink,
+  titleStyle: 'initial',
+};
+
+// Light alt — same as light with arcade title colours (pink outline, yellow inside, navy shadow).
+export const lightAltTheme: ThemeTokens = {
+  ...lightTheme,
+  accent: '#d1004f',
+  titleStroke: '#d1004f',
+  titleInner: Brand.yellow,
+  titleShadow: '#0a0f1e',
+  // Flashed in the light theme's blue: its red title would read as an error
+  flashedFill: lightTheme.titleInner,
+  flashedInk: lightTheme.titleStroke,
 };
 
 // Amber theme — warm light map (peach land, orange buildings, rose roads).
@@ -129,6 +185,12 @@ export const amberTheme: ThemeTokens = {
   success: Brand.cyan,
   locationDot: '#c05a72',
   routePath: '#2a8fa0',
+
+  isLight: true,
+  titleStroke: '#7a1f3d',
+  titleInner: '#f7a6b8',
+  titleShadow: '#e07b39',
+  titleStyle: 'initial',
 };
 
 // Matrix theme — near-black with desaturated green, raw terminal vibe.
@@ -151,23 +213,62 @@ export const matrixTheme: ThemeTokens = {
   success: '#5aa06e',
   locationDot: '#5aa06e',
   routePath: '#5fb083',
+
+  isLight: false,
+  titleStroke: '#39ff14',
+  titleInner: '#0b4d14',
+  titleShadow: '#1f8a2a',
+  titleStyle: 'initial',
 };
 
+/** Built-in themes: fixed colours. Picking colours is what the custom theme is for. */
 export const themes = {
   dark: darkTheme,
+  darkAlt: darkAltTheme,
   light: lightTheme,
+  lightAlt: lightAltTheme,
   amber: amberTheme,
   matrix: matrixTheme,
 } as const;
 
-export const themeLabels: Record<ThemeName, string> = {
-  dark: 'Dark',
-  light: 'Light',
-  amber: 'Amber',
-  matrix: 'Matrix',
+export type BuiltInThemeName = keyof typeof themes;
+export type ThemeName = BuiltInThemeName | 'custom';
+
+// ─── Custom theme ─────────────────────────────────────────────────────────────
+
+/** What the user sets in the custom theme; everything else comes from its base. */
+export type CustomThemeSettings = {
+  base: 'dark' | 'light';
+  accent: string;
+  routePath: string;
+  titleStyle: TitleStyle;
+  titleStroke: string;
+  titleInner: string;
+  titleShadow: string;
 };
 
-export type ThemeName = keyof typeof themes;
+export const DEFAULT_CUSTOM_THEME: CustomThemeSettings = {
+  base: 'dark',
+  accent: '#1cf0ff',
+  routePath: Brand.yellow,
+  titleStyle: 'initial',
+  titleStroke: '#1cf0ff',
+  titleInner: '#0666a6',
+  titleShadow: Brand.pink,
+};
+
+export function buildCustomTheme(c: CustomThemeSettings): ThemeTokens {
+  return { ...themes[c.base], ...c, locationDot: c.accent };
+}
+
+/** Suggested swatches in the custom theme editor (plus a free colour picker). */
+export const CUSTOM_PRESETS: Record<'accent' | 'routePath' | 'titleStroke' | 'titleInner' | 'titleShadow', string[]> = {
+  accent: ['#ccff00', '#1cf0ff', Brand.pink, Brand.yellow, '#002fa7', '#5aa06e'],
+  routePath: ['#3effa0', '#1cf0ff', Brand.yellow, Brand.pink, '#00aa66', '#b06bff'],
+  titleStroke: ['#1cf0ff', Brand.yellow, Brand.pink, '#0a3d8f', '#39ff14', '#ffffff'],
+  titleInner: ['#0666a6', Brand.pink, '#1cf0ff', Brand.yellow, '#0b4d14', '#0a0f1e'],
+  titleShadow: [Brand.pink, '#1cf0ff', Brand.yellow, '#0a0f1e', '#e07b39', '#1f8a2a'],
+};
 
 // ─── Scale tokens ─────────────────────────────────────────────────────────────
 
@@ -226,8 +327,8 @@ export const ZIndex = {
 export const Motion = {
   sheetIn: 220,   // bottom-sheet / sub-sheet slide-in
   sheetOut: 260,  // bottom-sheet slide-out
-  toastHold: 2000,// how long a toast stays fully visible before fading
-  toastFade: 600, // toast fade-out
+  floatText: 1600,     // floating confirmation text (components/FloatingText): rise + fade
+  floatTextLong: 2800, // same, for a message read from further away (map "modification sent")
   reassert: 500,  // delay before re-asserting a camera move after a transition
 } as const;
 
@@ -251,9 +352,13 @@ export const AppFontScale = 0.9;
 
 /** Font for interactive controls (buttons, pills, selectors). */
 export const ButtonFont = 'FreePixel';
+/** Bold FreePixel (design/logo/bold_font.py): never use fontWeight on the pixel fonts,
+ *  the system would swap in its own bold font. */
+export const ButtonFontBold = 'FreePixelBold';
 
-/** Used exclusively for the app title on the login screen. */
+/** Arcade screen titles (components/ArcadeTitle): outline font + its filled silhouette. */
 export const TitleFont = 'Pixelmania';
+export const TitleSolidFont = 'PixelmaniaSolid';
 
 // ─── Misc ─────────────────────────────────────────────────────────────────────
 

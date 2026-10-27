@@ -1,20 +1,22 @@
 {
   "expo": {
-    "name": "Invader Hunter",
+    "name": "HintVaders",
     "slug": "frontend",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "orientation": "portrait",
-    "icon": "./assets/images/InvaderHunterIcon.png",
-    "scheme": "frontend",
+    "icon": "./assets/images/icon.png",
+    "scheme": [
+      "frontend",
+      "hintvaders"
+    ],
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
-      "icon": "./assets/images/InvaderHunterIcon.png",
+      "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/InvaderHunterIcon.png",
-        "backgroundColor": "#E6F4FE"
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "backgroundColor": "#0a0f1e"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.invaderhunter.app",
@@ -29,10 +31,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+          "backgroundColor": "#0a0f1e",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 280,
+          "dark": {
+            "backgroundColor": "#0a0f1e",
+            "image": "./assets/images/splash-icon.png"
           }
         }
       ],
@@ -41,8 +45,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Invader Hunter to access your photos.",
-          "cameraPermission": "Allow Invader Hunter to take photos of invaders."
+          "photosPermission": "Allow HintVaders to access your photos.",
+          "cameraPermission": "Allow HintVaders to take photos of invaders."
         }
       ],
       "expo-secure-store",
@@ -52,8 +56,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/InvaderHunterIcon.png",
-          "color": "#208AEF"
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#1CF0FF"
         }
       ]
     ],

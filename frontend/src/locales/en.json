@@ -102,6 +102,12 @@
     "changeDescription": "Description"
   },
   "settings": {
+    "playerScore": "Score",
+    "playerFlashes": "Flashes",
+    "playerCities": "Cities",
+    "playerGuest": "Guest",
+    "playerSeeProfile": "See my profile",
+    "playerCreateAccount": "Create an account to keep your flashes",
     "title": "Settings",
     "sectionAccount": "Account",
     "sectionPersonalization": "Personalization & Haptics",
@@ -114,7 +120,7 @@
     "profileInfo": "Profile",
     "profileInfoSubtitle": "Username, stats",
     "security": "Security",
-    "securitySubtitle": "Email, password",
+    "securitySubtitle": "My data, account deletion",
     "appearance": "Appearance",
     "appearanceSubtitle": "Theme and color",
     "markerCustomization": "Markers",
@@ -135,6 +141,21 @@
     "supportSubtitle": "Buy the dev a coffee",
     "comingSoon": "Coming soon",
     "comingSoonBody": "This section will be available in a future update.",
+    "sectionMyData": "My data",
+    "exportData": "Get my data",
+    "exportDataSubtitle": "A copy of all your data, sent by email",
+    "exportDataSentTitle": "Email sent",
+    "exportDataSentBody": "Your data is on its way to your account's email address (check your spam folder too).",
+    "sectionDanger": "Danger zone",
+    "deleteAccount": "Delete my account",
+    "deleteAccountSubtitle": "Permanent: flashes, proposals, comments and friends",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmBody": "Your account {{username}} and all its data will be permanently deleted. This can't be undone.",
+    "deleteAccountConfirm": "Delete",
+    "deleteAccountDoneTitle": "Account deleted",
+    "deleteAccountDoneBody": "Your account has been deleted. A confirmation email is on its way.",
+    "actionFailed": "Failed, check your connection and try again.",
+    "cancel": "Cancel",
     "syncNow": "Sync now",
     "syncing": "Syncing…",
     "importFlashes": "Import flashes",
@@ -149,8 +170,17 @@
     "supportFree": "The app is free and will stay free, with 100% of the features available to everyone.",
     "supportBtn": "Support on Ko-fi",
     "supportLinkUnavailable": "Could not open the donation link.",
-    "contactBody": "For any question or suggestion, reach out to the developer.",
-    "contactEmail": "Send an email",
+    "contactBody": "A question, a bug, an idea? Write to us, we'll answer by email.",
+    "contactSubject": "Subject",
+    "contactMessage": "Your message",
+    "contactGuestEmail": "Your email (so we can answer)",
+    "contactSend": "Send",
+    "contactSentTitle": "Message sent",
+    "contactSentBody": "Thanks! We'll get back to you by email as soon as we can.",
+    "contactNewMessage": "New message",
+    "contactTooShort": "Subject: 3 characters min. Message: 10 characters min.",
+    "contactTooMany": "Too many messages sent, try again in a few minutes.",
+    "contactFailed": "Sending failed, check your connection and try again.",
     "contactNotice": "Please keep messages short and relevant. The app is built by one person - quick handling is easier with low noise.",
     "stats": "Statistics",
     "statsCollection": "Collection",
@@ -168,26 +198,41 @@
     "roadmap": "Roadmap",
     "roadmapSubtitle": "Upcoming features",
     "roadmapIntro": "A preview of the features in preparation for upcoming versions of the app.",
+    "sectionLogin": "Sign-in",
+    "changePassword": "Change password",
+    "changePasswordSubtitle": "Pick a new password",
+    "changePasswordCurrent": "Current password",
+    "changePasswordNew": "New password",
+    "changePasswordConfirm": "Confirm the new password",
+    "changePasswordSave": "Save",
+    "changePasswordTooShort": "The new password must be at least {{count}} characters.",
+    "changePasswordMismatch": "The two passwords don't match.",
+    "changePasswordWrong": "Current password is incorrect.",
+    "changePasswordTooMany": "Too many tries, try again in a few minutes.",
+    "changePasswordDoneTitle": "Password changed",
+    "changePasswordDoneBody": "Your new password is active. A confirmation email has been sent to you.",
+    "syncNowInfo": "Gets the latest invaders and their updates, and sends the flashes you made offline. This also happens on its own when the app opens: this button forces an update.",
+    "importFlashesInfo": "Copies all your flashes from the official FlashInvaders app (Android) into HintVaders in one go, with a small tool you run on a computer. Handy at the start, or if you flashed without HintVaders.",
     "roadmapItems": {
-      "guestMode": {
-        "title": "Guest mode",
-        "body": "Use the app without an account. Flashes stay on your phone and transfer when you sign up."
+      "arcadeLook": {
+        "title": "New arcade look",
+        "body": "Titles, buttons, lists and menus redone in an arcade-cabinet spirit, with new themes."
+      },
+      "friendCodes": {
+        "title": "Friend codes",
+        "body": "Every player has a friend code to share, to add each other without knowing the exact name."
       },
       "customInvaders": {
         "title": "Personal invaders",
         "body": "Add your own invaders to your map."
       },
-      "friends": {
-        "title": "Friends",
-        "body": "Connect with other hunters, see their flashes on the map and compare collections."
+      "website": {
+        "title": "Website",
+        "body": "Your stats, your map and your account from a computer."
       },
-      "commentWall": {
-        "title": "Comment wall",
-        "body": "Leave descriptions and tips on each invader."
-      },
-      "discoveredBy": {
-        "title": "Discoverers",
-        "body": "See who discovered or updated each invader."
+      "offlinePhotos": {
+        "title": "Offline photos",
+        "body": "Download the invader photos to hunt without a connection."
       },
       "gamification": {
         "title": "Gamification",
@@ -195,10 +240,11 @@
       },
       "radarMode": {
         "title": "Radar mode",
-        "body": "Spot invaders around you."
+        "body": "Spot the invaders around you."
       }
     },
     "roadmapStatus": {
+      "new": "New",
       "soon": "Soon",
       "wip": "In progress",
       "planned": "Planned"
@@ -212,8 +258,7 @@
     "reconnected": "Reconnected"
   },
   "auth": {
-    "appTitle": "INVADERS HUNTER",
-    "appTitleSmall": "Invaders Hunter",
+    "appTitle": "HINTVADERS",
     "username": "Username",
     "password": "Password",
     "email": "Email",
@@ -232,8 +277,6 @@
       "loginLink": "Login"
     },
     "forgot": {
-      "unavailable": "Password reset is temporarily unavailable.",
-      "contactSupport": "Please contact support to reset your password.",
       "backToLogin": "Back to login",
       "resetTitle": "Reset your password",
       "sendCode": "Send code",
@@ -280,7 +323,31 @@
     "mapLite": "Lite map",
     "mapLiteSubtitle": "Fewer map details for smoother panning on older devices",
     "map3d": "3D buildings",
-    "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)"
+    "map3dSubtitle": "Show buildings in 3D when zoomed in (heavier to render)",
+    "previewButton": "Button",
+    "previewOutline": "Outline",
+    "classicThemeNote": "Classic themes have fixed colours. To pick your own, choose Custom.",
+    "customTheme": "Custom theme",
+    "base": "Base",
+    "baseSubtitle": "Background, text and cards",
+    "accentSubtitle": "Buttons, links, active tab",
+    "routeSubtitle": "Route on the map",
+    "titles": "Titles",
+    "titleStyle": "Style",
+    "titleStyleSubtitle": "Big initial or arcade",
+    "titleInitial": "Initial",
+    "titleArcade": "Arcade",
+    "titleStroke": "Outline",
+    "titleInner": "Inside",
+    "titleShadow": "Shadow",
+    "otherColor": "Other colour",
+    "pick": {
+      "accent": "Accent colour",
+      "routePath": "Route colour",
+      "titleStroke": "Title outline",
+      "titleInner": "Title inside",
+      "titleShadow": "Title shadow"
+    }
   },
   "markerCustomization": {
     "title": "Marker customization",
@@ -308,9 +375,12 @@
   },
   "themeNames": {
     "dark": "Dark",
+    "darkAlt": "Dark alt",
     "light": "Light",
+    "lightAlt": "Light alt",
     "amber": "Amber",
-    "matrix": "Matrix"
+    "matrix": "Matrix",
+    "custom": "Custom"
   },
   "languageNames": {
     "fr": "Français",
@@ -364,6 +434,7 @@
     "start": "Start"
   },
   "invaders": {
+    "total": "TOTAL",
     "searchPlaceholder": "Search invaders…",
     "noInternetTitle": "No internet connection",
     "noInternetSub": "Connect to load invaders",
@@ -546,14 +617,14 @@
   "flashImport": {
     "title": "Import my flashes",
     "intro": "Automatically retrieve your flashes from the official FlashInvaders app installed on your Android phone, via your PC.",
-    "step1Title": "Log in to InvadersHunter",
+    "step1Title": "Log in to HintVaders",
     "step1Body": "With the account you want to import your flashes into.",
     "step2Title": "Connect your phone to the PC",
     "step2Body": "USB cable. Allow data transfer if prompted.",
     "step3Title": "Enable USB debugging",
     "step3Body": "Settings → About → tap 7 times on \"Build number\" to enable developer options, then enable \"USB debugging\". Accept the prompt on your phone.",
     "step4Title": "Download and launch the app",
-    "step4Body": "On your Windows PC, double-click the downloaded .exe. Windows SmartScreen will show a warning (unsigned app): click \"More info\" → \"Run anyway\". Enter your InvadersHunter credentials when prompted. Then choose [1] to only add the missing flashes, or [2] for a full sync that also removes the flashes the phone doesn't have (preview of the account and totals, then confirmation).",
+    "step4Body": "On your Windows PC, double-click the downloaded .exe. Windows SmartScreen will show a warning (unsigned app): click \"More info\" → \"Run anyway\". Enter your HintVaders credentials when prompted. Then choose [1] to only add the missing flashes, or [2] for a full sync that also removes the flashes the phone doesn't have (preview of the account and totals, then confirmation).",
     "step5Title": "IMPORTANT: sync the app",
     "step5Body": "Once the import is done, return to the Profile screen and tap \"Sync now\" to pull the imported flashes into the app.",
     "downloadBtn": "Download the app (Windows)",
@@ -683,11 +754,17 @@
   "social": {
     "title": "Social",
     "addTitle": "Add a friend",
-    "addPlaceholder": "Their exact username",
+    "myCode": "My friend code",
+    "codeCopy": "Copy",
+    "codeShare": "Share",
+    "codeCopied": "Code copied!",
+    "codeShareMessage": "Add me as a friend on HintVaders! My friend code: {{code}}\n{{link}}",
+    "addPlaceholder": "Friend code or username",
     "addButton": "Send",
     "sent": "Invite sent to {{username}}",
     "acceptedNow": "{{username}} had already invited you: you're now friends!",
     "error": {
+      "too_many": "Too many requests, try again a bit later.",
       "user_not_found": "No user with this username",
       "self": "That's you!",
       "already_friends": "You're already friends",
@@ -702,7 +779,7 @@
     "cancel": "Cancel",
     "pending": "Waiting for an answer",
     "flashedCount": "Invaders flashed: {{count}}",
-    "noFriends": "No friends yet. Add one with their username above.",
+    "noFriends": "No friends yet. Share your friend code, or add someone with their code or username.",
     "loadFailed": "Couldn't load. Tap to retry.",
     "guestMessage": "Create an account to add friends and compare your maps.",
     "guestButton": "Create an account",

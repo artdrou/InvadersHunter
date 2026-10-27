@@ -1,32 +1,35 @@
 /**
  * Settings landing screen (mounted as the "Profile" tab — name kept for route
- * stability; the user-facing label is "Reglages"/"Settings" via t('tabs.profile')).
+ * stability; the user-facing label is "Options"/"Settings" via t('tabs.profile')).
  *
  * Categorized list. Rich settings navigate to `src/app/settings/<id>.tsx`;
  * simple booleans (haptics, notifications) and the language picker live
  * inline right here.
  */
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/contexts/theme-context";
 import { useAuthStore, useRequireAccount } from "@/features/auth";
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from "@/constants/theme";
-import { SettingsSection, SettingsRow, SettingsToggleRow, useHapticsStore, hapticTap } from "@/features/settings";
+import { type ThemeTokens, Spacing } from "@/constants/theme";
+import { SettingsSection, SettingsRow, SettingsToggleRow, ArcadeSegmented, useHapticsStore, hapticTap } from "@/features/settings";
 import { fetchMyNotificationPrefs, updateMyNotificationPrefs } from "@/features/notifications";
 import { SUPPORTED_LANGUAGES, setLanguage } from "@/services/i18n";
+import { StreetsBackground } from "@/components/StreetsBackground";
+import { ArcadeTitle } from "@/components/ArcadeTitle";
+import { PlayerCard } from "@/features/settings/components/PlayerCard";
 
 export default function SettingsLanding() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const isGuest = useAuthStore((s) => s.isGuest);
   const requireAccount = useRequireAccount();
-  const styles = makeStyles(theme, appFont, insets.top);
+  const styles = makeStyles(theme, insets.top);
 
   // Haptics — local store, instant
   const hapticsEnabled = useHapticsStore((s) => s.enabled);
@@ -67,9 +70,12 @@ export default function SettingsLanding() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('settings.title')}</Text>
+      <StreetsBackground intensity="faint" />
+      <ArcadeTitle text={t('settings.title')} />
 
-      <View style={styles.body}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <PlayerCard />
+
       <SettingsSection title={t('settings.sectionAccount')}>
         {isGuest ? (
           <>
@@ -122,26 +128,11 @@ export default function SettingsLanding() {
           label={t('settings.language')}
           hideChevron
           rightAccessory={
-            <View style={styles.langGroup}>
-              {SUPPORTED_LANGUAGES.map((lang) => {
-                const isActive = lang.code === i18n.language;
-                return (
-                  <Pressable
-                    key={lang.code}
-                    style={({ pressed }) => [
-                      styles.langPill,
-                      isActive && { borderColor: theme.accent },
-                      pressed && { opacity: 0.6 },
-                    ]}
-                    onPress={() => { hapticTap(); setLanguage(lang.code); }}
-                  >
-                    <Text style={[styles.langPillText, isActive && { color: theme.accent }]}>
-                      {lang.code.toUpperCase()}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <ArcadeSegmented
+              options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang.code, label: lang.code.toUpperCase() }))}
+              value={i18n.language as typeof SUPPORTED_LANGUAGES[number]["code"]}
+              onChange={(code) => { hapticTap(); setLanguage(code); }}
+            />
           }
         />
         <SettingsToggleRow
@@ -190,13 +181,13 @@ export default function SettingsLanding() {
           onPress={() => router.push('/settings/support')}
         />
       </SettingsSection>
-      </View>
+      </ScrollView>
 
     </View>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, topInset: number) {
+function makeStyles(t: ThemeTokens, topInset: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -206,34 +197,13 @@ function makeStyles(t: ThemeTokens, font: string, topInset: number) {
       paddingBottom: Spacing.three,
       gap: Spacing.two,
     },
+    scroll: { flex: 1 },
     body: {
-      // Everything below the title, centered vertically in the remaining space.
-      flex: 1,
+      // Everything below the title, centered vertically in the remaining space
+      // (scrolls when it doesn't fit, e.g. small phones or big font scale).
+      flexGrow: 1,
       justifyContent: 'center',
       gap: Spacing.two,
-    },
-    title: {
-      color: t.accent,
-      fontFamily: font,
-      fontSize: FontSize.xl,
-      letterSpacing: 1,
-    },
-    langGroup: {
-      flexDirection: 'row',
-      gap: Spacing.one,
-    },
-    langPill: {
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      paddingHorizontal: Spacing.two,
-      paddingVertical: 4,
-      backgroundColor: t.bgElement,
-    },
-    langPillText: {
-      color: t.textMuted,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.xs,
     },
   });
 }

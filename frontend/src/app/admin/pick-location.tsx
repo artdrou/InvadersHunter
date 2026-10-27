@@ -18,6 +18,8 @@ import { locateOnce } from '@/features/map/locate-once';
 import { MapZoom } from '@/features/map/constants';
 
 import type { AdminSubmission } from '@/features/admin/types';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 export default function AdminPickLocationScreen() {
   const router = useRouter();
@@ -217,16 +219,16 @@ export default function AdminPickLocationScreen() {
       {/* Buttons */}
       <View style={[styles.bar, { bottom: 32 + insets.bottom }]}>
         <Pressable
-          style={({ pressed }) => [styles.btn, { borderColor: theme.border, backgroundColor: theme.bgElement }, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.btn, arcadeButton(theme, 'outline'), { backgroundColor: theme.bgElement }, pressed && styles.pressed]}
           onPress={handleCancel}
         >
-          <Text style={[styles.btnText, { color: theme.textMuted, fontFamily: ButtonFont }]}>{t('common.cancel')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={[styles.btnText, arcadeButtonLabel(theme, 'outline')]}>{t('common.cancel')}</ShadowText>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.btn, { backgroundColor: theme.accent }, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.btn, arcadeButton(theme), pressed && styles.pressed]}
           onPress={handleValidate}
         >
-          <Text style={[styles.btnText, { color: theme.bg, fontFamily: ButtonFont }]}>{t('common.validatePosition')}</Text>
+          <Text style={[styles.btnText, arcadeButtonLabel(theme)]}>{t('common.validatePosition')}</Text>
         </Pressable>
       </View>
     </View>

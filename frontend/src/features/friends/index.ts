@@ -5,6 +5,7 @@ export type {
 } from './types';
 export {
   fetchFriendsOverview,
+  fetchFriendCode,
   lookupUsername,
   sendFriendRequest,
   acceptFriendRequest,
@@ -13,7 +14,8 @@ export {
 } from './services/friends.api';
 export { useFriendsStore } from './store';
 export { useUsernameLookup } from './hooks/use-username-lookup';
-export { applyFriendView, friendRequestError } from './utils';
+export { applyFriendView, friendRequestError, friendLink } from './utils';
 export type { FriendRequestError } from './utils';
 export { FriendMapPicker } from './components/FriendMapPicker';
 export { FriendMapBanner } from './components/FriendMapBanner';
+export { MyFriendCodeCard } from './components/MyFriendCodeCard';

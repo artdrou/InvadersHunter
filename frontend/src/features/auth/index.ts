@@ -3,5 +3,6 @@ export { useAuthStore } from './store';
 export { GUEST_USER_ID } from './guest';
 export { useRequireAccount } from './hooks/use-require-account';
 export { AccountGateModal } from './components/AccountGateModal';
+export { AuthLayout } from './components/AuthLayout';
 export { loginUser, registerUser, logoutUser, forgotPassword, verifyResetCode, resetPassword } from './services/auth.api';
-export { claimCaptures } from './services/account.api';
+export { claimCaptures, requestMyDataExport, deleteMyAccount, changeMyPassword } from './services/account.api';

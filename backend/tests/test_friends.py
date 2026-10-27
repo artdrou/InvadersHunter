@@ -216,3 +216,91 @@ def test_lookup_relations(client, alice, bob):
     assert _lookup(client, bob, "alice").json()["relation"] == "received"
     client.post(f"/friends/requests/{fid}/accept", headers=auth_headers(bob))
     assert _lookup(client, alice, "Bob").json()["relation"] == "friends"
+
+
+# ── friend codes ──────────────────────────────────────────────────────────────
+
+def _code(client, user):
+    res = client.get("/friends/code", headers=auth_headers(user))
+    assert res.status_code == 200
+    return res.json()["code"]
+
+
+def test_friend_code_is_stable_and_formatted(client, alice):
+    code = _code(client, alice)
+    assert len(code) == 9 and code[4] == "-"
+    assert all(ch in "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" for ch in code.replace("-", ""))
+    assert _code(client, alice) == code
+
+
+def test_friend_codes_are_unique(client, alice, bob):
+    assert _code(client, alice) != _code(client, bob)
+
+
+def test_invite_by_code_any_format(client, alice, bob):
+    code = _code(client, bob)
+    typed = " " + code.replace("-", "").lower() + " "
+    res = _invite(client, alice, typed)
+    assert res.status_code == 200
+    assert _overview(client, bob)["incoming"][0]["username"] == "alice"
+
+
+def test_lookup_by_code(client, alice, bob):
+    code = _code(client, bob)
+    res = client.get("/friends/lookup", params={"username": code}, headers=auth_headers(alice))
+    assert res.status_code == 200
+    assert res.json()["username"] == "Bob"
+    assert res.json()["relation"] == "none"
+
+
+def test_unknown_code_is_not_found(client, alice, bob):
+    _code(client, bob)
+    res = _invite(client, alice, "ZZZZ-ZZZZ")
+    assert res.status_code == 404
+
+
+def test_username_shaped_like_a_code_still_works(client, db, alice):
+    _user(db, "Hunterzz")  # 8 letters from the code alphabet, but nobody has it as a code
+    res = _invite(client, alice, "Hunterzz")
+    assert res.status_code == 200
+
+
+def test_code_requires_auth(client):
+    assert client.get("/friends/code").status_code == 401
+
+
+# ── anti-spam ─────────────────────────────────────────────────────────────────
+
+@pytest.fixture(autouse=True)
+def _reset_limits():
+    from app.services import friend_service
+    friend_service.LOOKUP_LIMIT.clear()
+    friend_service.INVITE_LIMIT.clear()
+    yield
+
+
+def test_lookup_is_rate_limited(client, alice, bob):
+    from app.services import friend_service
+    for _ in range(friend_service.LOOKUP_LIMIT.max_hits):
+        client.get("/friends/lookup", params={"username": "nobody"}, headers=auth_headers(alice))
+    res = client.get("/friends/lookup", params={"username": "Bob"}, headers=auth_headers(alice))
+    assert res.status_code == 429
+    assert res.json()["detail"] == "too_many"
+
+
+def test_invites_are_rate_limited(client, alice):
+    from app.services import friend_service
+    for _ in range(friend_service.INVITE_LIMIT.max_hits):
+        _invite(client, alice, "nobody")
+    res = _invite(client, alice, "nobody")
+    assert res.status_code == 429
+
+
+def test_pending_invites_are_capped(client, db, alice):
+    from app.services import friend_service
+    with patch.object(friend_service, "MAX_PENDING_SENT", 2):
+        _user(db, "c1"); _user(db, "c2"); _user(db, "c3")
+        assert _invite(client, alice, "c1").status_code == 200
+        assert _invite(client, alice, "c2").status_code == 200
+        res = _invite(client, alice, "c3")
+    assert res.status_code == 429

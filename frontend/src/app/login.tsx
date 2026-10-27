@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, loginUser } from '@/features/auth';
+import { useAuthStore, loginUser, AuthLayout } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, TitleFont, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -35,8 +37,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.appTitle')}</Text>
+    <AuthLayout>
 
       <View style={styles.form}>
         <TextInput
@@ -84,28 +85,13 @@ export default function LoginScreen() {
           <Text style={styles.registerText}><Text style={styles.registerHighlight}>{t('auth.login.guestMode')}</Text></Text>
         </Pressable>
       </View>
-    </View>
+    </AuthLayout>
   );
 }
 
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.bg,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: Spacing.five,
-    },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.xl),
-      fontFamily: TitleFont,
-      marginBottom: 48,
-      letterSpacing: 2,
-      textAlign: 'center',
-    },
     form: {
       width: '100%',
       maxWidth: 360,
@@ -129,7 +115,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       textAlign: 'center',
     },
     button: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
@@ -139,8 +125,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.8,
     },
     buttonText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     registerLink: {

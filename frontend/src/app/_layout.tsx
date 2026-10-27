@@ -41,7 +41,9 @@ export default function RootLayout() {
     Pixeled:    require('../../assets/fonts/pixeled/Pixeled.ttf'),
     FreePixel:  require('../../assets/fonts/free_pixel/FreePixel.ttf'),
     // ↑ kept registered so future OTAs can switch to it without a rebuild
+    FreePixelBold: require('../../assets/fonts/free_pixel/FreePixelBold.ttf'),   // design/logo/bold_font.py
     Pixelmania: require('../../assets/fonts/pixelmania/Pixelmania.ttf'),
+    PixelmaniaSolid: require('../../assets/fonts/pixelmania/PixelmaniaSolid.ttf'),
     Pixelmix:   require('../../assets/fonts/pixelmix/pixelmix.ttf'),
     Pixelade:   require('../../assets/fonts/pixelade/pixelade.ttf'),
   });

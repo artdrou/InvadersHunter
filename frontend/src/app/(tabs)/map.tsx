@@ -16,8 +16,7 @@ import type { WebMapHandle } from "@/features/map/components/WebMap.native";
 import { MapLocationPicker, PICKER_BAR_HEIGHT } from "@/features/map/components/MapLocationPicker";
 import { CreateHerePopup } from "@/features/map/components/CreateHerePopup";
 import { MissingLocationList } from "@/features/map/components/MissingLocationList";
-import { MapToast } from "@/features/map/components/MapToast";
-import { useToast } from "@/features/map/hooks/use-toast";
+import { FloatingText, useFloatingText } from "@/components/FloatingText";
 import { useMapRouting } from "@/features/map/hooks/use-map-routing";
 import { useMapCreateFlow } from "@/features/map/hooks/use-map-create-flow";
 import { useHeadingStore, usePickerChromeStore, PICK_RETURN_ROUTES, type PickReturnTarget } from "@/features/map/store";
@@ -60,7 +59,7 @@ export default function MapScreen() {
   // Self-contained flows (routing / create-invader / toast) live in their own hooks.
   const routing = useMapRouting(mapRef);
   const create = useMapCreateFlow(mapRef);
-  const toast = useToast();
+  const toast = useFloatingText(Motion.floatTextLong);
 
   const pendingInvaderId = useLocateStore((s) => s.pendingInvaderId);
   const pickForList = useLocateStore((s) => s.pickForList);
@@ -427,7 +426,7 @@ export default function MapScreen() {
         </View>
       )}
 
-      <MapToast opacity={toast.opacity} message={t("map.modificationSent")} />
+      <FloatingText progress={toast.progress} text={t("map.modificationSent")} size={FontSize.md} style={styles.sentToast} />
 
       {/* ── Create-invader: initial pin + "create here" card ── */}
       {create.pickerOpen && (
@@ -508,6 +507,8 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
+  // "Modification sent": floats up from above the tab bar, centred
+  sentToast: { bottom: 40, left: 0, right: 0, zIndex: ZIndex.overlay },
   container: {
     flex: 1,
   },

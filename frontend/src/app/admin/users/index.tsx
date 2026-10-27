@@ -7,7 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
 import { fetchUsers } from '@/features/admin/services/admin.api';
 import { formatServerDate } from '@/features/admin/utils';
 import type { AdminUser } from '@/features/admin/types';
@@ -66,18 +69,19 @@ export default function AdminUsersScreen() {
           <Text style={styles.email} numberOfLines={1}>{item.email}</Text>
           <Text style={styles.meta}>{t('adminUsers.joined', { date: formatServerDate(item.created_at) })}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+        <Ionicons name="caret-forward" size={14} color={theme.accent} />
       </Pressable>
     );
   }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
-        <Text style={styles.title}>{t('adminUsers.title')}</Text>
+        <ArcadeTitle text={t('adminUsers.title')} />
       </View>
 
       <View style={styles.searchRow}>
@@ -129,7 +133,6 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     header: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.two },
     backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
     backText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
-    title: { color: t.accent, fontFamily: font, fontSize: sz(FontSize.xl), letterSpacing: 1 },
     searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -153,10 +156,7 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
       alignItems: 'center',
       gap: Spacing.three,
       padding: Spacing.three,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
     },
     cardPressed: { opacity: 0.7 },
     avatar: {
@@ -167,7 +167,7 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     avatarText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.lg },
     cardBody: { flex: 1, gap: 2 },
     row1: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    username: { flexShrink: 1, color: t.text, fontFamily: font, fontSize: sz(FontSize.md) },
+    username: { flexShrink: 1, color: t.text, fontFamily: ButtonFontBold, fontSize: sz(FontSize.md) },
     adminBadge: {
       color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.xxs,
       borderWidth: 1, borderColor: t.accent, borderRadius: BorderRadius.sm,

@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, Switch, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
+import { ArcadeSegmented } from '@/features/settings/components/ArcadeSegmented';
 import { fetchGlobalNotificationSettings, updateGlobalNotificationSettings } from '@/features/notifications';
 import type { GlobalNotificationSettings } from '@/features/notifications';
 
 type SwitchKey = 'enabled' | 'notify_on_create' | 'notify_on_update';
 
+const ON_OFF = [{ value: true, label: 'ON' }, { value: false, label: 'OFF' }];
+
 export default function AdminNotificationsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont);
+  const styles = makeStyles(theme);
 
   const [settings, setSettings] = useState<GlobalNotificationSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,11 +51,12 @@ export default function AdminNotificationsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}>
           <Text style={styles.backText}>{`< ${t('common.back')}`}</Text>
         </Pressable>
-        <Text style={styles.title}>{t('admin.notificationSettings')}</Text>
+        <ArcadeTitle text={t('admin.notificationSettings')} />
       </View>
 
       {loading || !settings ? (
@@ -121,40 +128,30 @@ function SwitchRow({
       {saving ? (
         <ActivityIndicator size="small" color={theme.accent} />
       ) : (
-        <Switch
-          value={value}
-          onValueChange={onChange}
-          disabled={disabled}
-          trackColor={{ false: theme.border, true: theme.accent }}
-          thumbColor={theme.bgElement}
-        />
+        <ArcadeSegmented options={ON_OFF} value={value} onChange={onChange} disabled={disabled} />
       )}
     </View>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string) {
+function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     header: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three, gap: Spacing.two },
     backBtn: { alignSelf: 'flex-start', paddingVertical: 4 },
     backText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md },
-    title: { color: t.accent, fontFamily: font, fontSize: FontSize.xl, letterSpacing: 1 },
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     body: { paddingHorizontal: Spacing.four, gap: Spacing.three },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: Spacing.three,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
     },
     rowDisabled: { opacity: 0.5 },
     labelWrap: { flex: 1, gap: 4 },
-    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    label: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
     pressed: { opacity: 0.6 },
   });

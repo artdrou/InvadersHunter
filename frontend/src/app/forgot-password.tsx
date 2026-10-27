@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { forgotPassword, verifyResetCode, resetPassword } from '@/features/auth';
+import { forgotPassword, verifyResetCode, resetPassword, AuthLayout } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
 
 type Step = 'request' | 'verify' | 'new-password';
 
@@ -72,15 +73,9 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.appTitleSmall')}</Text>
+    <AuthLayout>
 
-      <View style={styles.form}>
-        <Text style={[styles.subtitle, { textAlign: 'center' }]}>{t('auth.forgot.unavailable')}</Text>
-        <Text style={[styles.subtitle, { textAlign: 'center', fontSize: FontSize.sm }]}>{t('auth.forgot.contactSupport')}</Text>
-      </View>
-
-      {false && step === 'request' && (
+      {step === 'request' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.resetTitle')}</Text>
           <TextInput
@@ -105,12 +100,12 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleRequest}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.sendCode')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.sendCode')}</Text>}
           </Pressable>
         </View>
       )}
 
-      {false && step === 'verify' && (
+      {step === 'verify' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.codePrompt')}</Text>
           <TextInput
@@ -127,12 +122,12 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleVerify}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.verify')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.verify')}</Text>}
           </Pressable>
         </View>
       )}
 
-      {false && step === 'new-password' && (
+      {step === 'new-password' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.newPasswordTitle')}</Text>
           <TextInput
@@ -163,7 +158,7 @@ export default function ForgotPasswordScreen() {
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
             onPress={handleReset}
             disabled={loading}>
-            {loading ? <ActivityIndicator color={theme.bg} /> : <Text style={styles.buttonText}>{t('auth.forgot.updatePassword')}</Text>}
+            {loading ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.buttonText}>{t('auth.forgot.updatePassword')}</Text>}
           </Pressable>
         </View>
       )}
@@ -171,27 +166,13 @@ export default function ForgotPasswordScreen() {
       <Pressable onPress={() => router.back()} style={styles.backLink}>
         <Text style={styles.backText}>{t('auth.forgot.backToLogin')}</Text>
       </Pressable>
-    </View>
+    </AuthLayout>
   );
 }
 
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: t.bg,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: Spacing.five,
-    },
-    title: {
-      color: t.accent,
-      fontSize: sz(FontSize.xl),
-      fontFamily: font,
-      marginBottom: 48,
-      letterSpacing: 2,
-    },
     subtitle: {
       color: t.text,
       fontSize: sz(FontSize.md),
@@ -229,7 +210,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       textAlign: 'center',
     },
     button: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       borderRadius: BorderRadius.sm,
       paddingVertical: 14,
       alignItems: 'center',
@@ -239,8 +220,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       opacity: 0.8,
     },
     buttonText: {
-      color: t.bg,
-      fontFamily: ButtonFont,
+      ...arcadeButtonLabel(t),
       fontSize: FontSize.xxl,
     },
     backLink: {

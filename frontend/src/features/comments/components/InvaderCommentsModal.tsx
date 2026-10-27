@@ -20,6 +20,7 @@ import { useAccountGateStore } from '@/features/auth/gate-store';
 import { useInvaderComments } from '../hooks/use-invader-comments';
 import { useCommentSeenStore } from '../seen-store';
 import type { Comment, ReactionValue } from '../types';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
 
 /**
  * Highest-liked comment, ties break newest-first. A lone comment is the top by
@@ -239,8 +240,8 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
               accessibilityLabel={t('comments.send')}
             >
               {sending
-                ? <ActivityIndicator size="small" color={theme.bg} />
-                : <Ionicons name="send" size={18} color={theme.bg} />}
+                ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
+                : <Ionicons name="send" size={18} color={arcadeLabelColor(theme)} />}
             </Pressable>
           </View>
         )}
@@ -427,7 +428,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       width: 42,
       height: 42,
       borderRadius: BorderRadius.sm,
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
       alignItems: 'center',
       justifyContent: 'center',
     },

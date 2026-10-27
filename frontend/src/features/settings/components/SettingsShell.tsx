@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
 
 type Props = {
   title: string;
@@ -26,12 +28,13 @@ type Props = {
 export function SettingsShell({ title, children, scrollable = true }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, appFont } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = makeStyles(theme, appFont);
+  const styles = makeStyles(theme);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
@@ -39,7 +42,7 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
         >
           <Text style={styles.backText}>{'< ' + t('common.back')}</Text>
         </Pressable>
-        <Text style={styles.title}>{title}</Text>
+        <ArcadeTitle text={title} />
       </View>
       {scrollable ? (
         <ScrollView contentContainerStyle={styles.body}>
@@ -52,7 +55,7 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string) {
+function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -68,12 +71,6 @@ function makeStyles(t: ThemeTokens, font: string) {
       color: t.textMuted,
       fontFamily: ButtonFont,
       fontSize: FontSize.md,
-    },
-    title: {
-      color: t.accent,
-      fontFamily: font,
-      fontSize: FontSize.xl,
-      letterSpacing: 1,
     },
     body: {
       // Center the content vertically in the space below the title; flexGrow lets it

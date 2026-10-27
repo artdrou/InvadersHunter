@@ -4,7 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { StreetsBackground } from '@/components/StreetsBackground';
+import { ArcadeTitle } from '@/components/ArcadeTitle';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
 import { fetchAdminSubmissions } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { logger } from '@/services/logger';
@@ -65,13 +68,12 @@ export default function AdminSubmissionsScreen() {
 
   return (
     <View style={styles.container}>
+      <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('common.backArrow')}</Text>
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('admin.submissions', { count: subs.length })}
-        </Text>
+        <ArcadeTitle text={t('admin.submissions', { count: subs.length })} size={18} style={styles.headerTitle} />
       </View>
 
       {loading ? (
@@ -100,18 +102,17 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
     },
     backBtn:     { paddingRight: Spacing.two },
     backText:    { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
-    headerTitle: { flex: 1, color: t.text, fontSize: sz(FontSize.md), fontFamily: font },
+    headerTitle: { flexShrink: 1 },
     list: { padding: Spacing.three, gap: Spacing.two },
     card: {
-      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
-      borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: Spacing.two,
+      ...arcadeCard(t), padding: Spacing.three, gap: Spacing.two,
     },
     cardPressed: { opacity: 0.7 },
     cardRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     thumb: { width: 40, height: 40, borderRadius: BorderRadius.sm, backgroundColor: t.bg },
     thumbPlaceholder: { width: 40, height: 40, borderRadius: BorderRadius.sm, backgroundColor: t.bg, borderWidth: 1, borderColor: t.border },
     cardInfo: { flex: 1 },
-    username: { color: t.text, fontSize: sz(FontSize.sm), fontFamily: font },
+    username: { color: t.text, fontSize: sz(FontSize.sm), fontFamily: ButtonFontBold },
     date: { color: t.textMuted, fontSize: sz(11), fontFamily: font },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     chip: {

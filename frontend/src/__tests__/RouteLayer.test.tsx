@@ -20,7 +20,10 @@ jest.mock('@maplibre/maplibre-react-native', () => {
 // constants/theme imports global.css — stub the whole module
 jest.mock('@/constants/theme', () => ({
   ButtonFont: 'System',
+  ButtonFontBold: 'System',
   FontSize: { xs: 13, xl: 27 },
+  // components/ArcadeSectionLabel builds its StyleSheet at import time
+  Spacing: { half: 2, one: 4, two: 8, three: 16, four: 24, five: 32, six: 64 },
 }))
 
 // Theme context re-exports theme tokens — stub to avoid indirect CSS import

@@ -14,4 +14,7 @@ class User(Base):
     reset_code = Column(String, nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
     notifications_enabled = Column(Boolean, nullable=False, default=True)
+    # Friend code (e.g. "K7QM-3XPA", stored without the dash): shared to be added as a
+    # friend. Given on first request (friend_service.get_friend_code)
+    friend_code = Column(String(8), unique=True, index=True, nullable=True)
     language = Column(String, nullable=False, default="fr")  # "fr" | "en" — drives push notification text

@@ -7,4 +7,4 @@ export async function importFlashes(names: string[]): Promise<FlashImportRespons
 }
 
 /** Public URL for the PC-side Python script served by the backend. */
-export const SCRIPT_DOWNLOAD_URL = `${BASE_URL}/static/flash_import/InvadersHunter-FlashImport.exe`;
+export const SCRIPT_DOWNLOAD_URL = `${BASE_URL}/static/flash_import/HintVaders-FlashImport.exe`;
