@@ -11,6 +11,7 @@ export { cityOf, numOf, buildGroups, formatDate, SORT_OPTIONS_BY_GROUP, SORT_DEF
 export type { SortOption, GroupMode, SortDir } from './utils/invader-list';
 export { InvaderInfoPanel } from './components/InvaderInfoPanel';
 export { CityHeader } from './components/CityHeader';
+export { TotalHeader } from './components/TotalHeader';
 export { InvaderListRow } from './components/InvaderListRow';
 export { InvaderGridCell } from './components/InvaderGridCell';
 export { MosaicToolbar, DEFAULT_TOOLBAR_STATE } from './components/MosaicToolbar';

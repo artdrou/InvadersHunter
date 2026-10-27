@@ -8,8 +8,7 @@ type Props = {
   capturedCount: number;
   total: number;
   expanded: boolean;
-  /** Without it the row is a plain summary (the total on top): not tappable, no arrow. */
-  onPress?: () => void;
+  onPress: () => void;
 };
 
 /** City codes are up to 5 characters: every chip gets that width, so the bars line up. */
@@ -36,7 +35,6 @@ export function CityHeader({ city, capturedCount, total, expanded, onPress }: Pr
     <Pressable
       style={[styles.row, { borderBottomColor: theme.bgDivider, backgroundColor: theme.bgElement }]}
       onPress={onPress}
-      disabled={!onPress}
     >
       <View style={[styles.chip, { minWidth: chipWidth, backgroundColor: theme.accent, boxShadow: arcadeShadow(theme, 2) }]}>
         <Text style={[styles.chipText, { color: chipText, fontFamily: ButtonFontBold, fontSize: chipFont }]} numberOfLines={1}>
@@ -50,7 +48,7 @@ export function CityHeader({ city, capturedCount, total, expanded, onPress }: Pr
         {capturedCount}/{total}
       </Text>
       <Text style={[styles.chevron, { color: theme.textMuted }]}>
-        {onPress ? (expanded ? "▲" : "▼") : ""}
+        {expanded ? "▲" : "▼"}
       </Text>
     </Pressable>
   );

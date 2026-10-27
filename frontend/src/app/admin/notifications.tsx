@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, Switch, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
+import { ArcadeSegmented } from '@/features/settings/components/ArcadeSegmented';
 import { fetchGlobalNotificationSettings, updateGlobalNotificationSettings } from '@/features/notifications';
 import type { GlobalNotificationSettings } from '@/features/notifications';
 
 type SwitchKey = 'enabled' | 'notify_on_create' | 'notify_on_update';
+
+const ON_OFF = [{ value: true, label: 'ON' }, { value: false, label: 'OFF' }];
 
 export default function AdminNotificationsScreen() {
   const router = useRouter();
@@ -124,13 +128,7 @@ function SwitchRow({
       {saving ? (
         <ActivityIndicator size="small" color={theme.accent} />
       ) : (
-        <Switch
-          value={value}
-          onValueChange={onChange}
-          disabled={disabled}
-          trackColor={{ false: theme.border, true: theme.accent }}
-          thumbColor={theme.bgElement}
-        />
+        <ArcadeSegmented options={ON_OFF} value={value} onChange={onChange} disabled={disabled} />
       )}
     </View>
   );
@@ -148,15 +146,12 @@ function makeStyles(t: ThemeTokens) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: Spacing.three,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
     },
     rowDisabled: { opacity: 0.5 },
     labelWrap: { flex: 1, gap: 4 },
-    label: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    label: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     subtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
     pressed: { opacity: 0.6 },
   });

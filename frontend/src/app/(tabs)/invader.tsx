@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   useInvaderData,
   mapInvadersWithProgress, buildGroups,
-  CityHeader, InvaderListRow, InvaderGridCell,
+  CityHeader, TotalHeader, InvaderListRow, InvaderGridCell,
   MosaicToolbar, DEFAULT_TOOLBAR_STATE,
 } from "@/features/invaders";
 import type { InvaderWithState, ToolbarState } from "@/features/invaders";
@@ -184,12 +184,7 @@ export default function InvadersScreen() {
     switch (item.type) {
       case "total":
         return (
-          <CityHeader
-            city={t('invaders.total')}
-            capturedCount={item.capturedCount}
-            total={item.total}
-            expanded={false}
-          />
+          <TotalHeader capturedCount={item.capturedCount} total={item.total} />
         );
 
       case "header":
@@ -243,7 +238,7 @@ export default function InvadersScreen() {
           borderColor: theme.border,
         }, { showTitle: true });
     }
-  }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId, t]);
+  }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);
 
   // ── render ───────────────────────────────────────────────────────────────
 

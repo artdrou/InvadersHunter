@@ -9,9 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
 import { useAuthStore, useRequireAccount } from '@/features/auth';
 import { hapticTap, hapticSuccess } from '@/features/settings';
+import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
 import {
   useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
 } from '@/features/friends';
@@ -19,7 +20,9 @@ import type { FriendEntry, FriendLookup } from '@/features/friends';
 import { useInvaderStore } from '@/features/invaders';
 import { missingFields } from '@/features/invaders/edit-fields';
 import { ISS_INVADER_NAME } from '@/features/iss/constants';
-import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
+import { ShadowText } from '@/components/ShadowText';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -139,7 +142,9 @@ export default function SocialScreen() {
         onPress={onPress}
         disabled={busyId !== null}
       >
-        <Text style={[styles.smallBtnText, primary && styles.smallBtnTextPrimary]}>{label}</Text>
+        {primary
+          ? <Text style={[styles.smallBtnText, styles.smallBtnTextPrimary]}>{label}</Text>
+          : <ShadowText shadowColor={theme.titleShadow} style={styles.smallBtnText}>{label}</ShadowText>}
       </Pressable>
     );
   }
@@ -164,23 +169,23 @@ export default function SocialScreen() {
       >
         {/* ── Community: complete the catalogue ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('social.communityTitle')}</Text>
+          <ArcadeSectionLabel title={t('social.communityTitle')} />
           <Pressable
             style={({ pressed }) => [styles.card, pressed && styles.pressed]}
             onPress={() => { hapticTap(); router.push('/incomplete'); }}
           >
-            <Ionicons name="construct-outline" size={22} color={theme.accent} />
+            <SettingsRowIcon icon="construct-outline" />
             <View style={styles.cardBody}>
               <Text style={styles.username}>{t('incomplete.title')}</Text>
               <Text style={styles.meta}>{t('social.incompleteSub', { count: incompleteCount })}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+            <Ionicons name="caret-forward" size={14} color={theme.accent} />
           </Pressable>
         </View>
 
         {/* ── Add a friend ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('social.addTitle')}</Text>
+          <ArcadeSectionLabel title={t('social.addTitle')} />
           <View style={styles.addRow}>
             <View style={[styles.inputWrap, confirmed && { borderColor: theme.success }]}>
               <TextInput
@@ -246,7 +251,7 @@ export default function SocialScreen() {
             {/* ── Invites received ── */}
             {overview.incoming.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>{t('social.incoming', { count: overview.incoming.length })}</Text>
+                <ArcadeSectionLabel title={t('social.incoming', { count: overview.incoming.length })} />
                 {overview.incoming.map((e) => (
                   <View key={e.id} style={styles.card}>
                     {avatar(e.username)}
@@ -267,7 +272,7 @@ export default function SocialScreen() {
             {/* ── Invites sent ── */}
             {overview.outgoing.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>{t('social.outgoing')}</Text>
+                <ArcadeSectionLabel title={t('social.outgoing')} />
                 {overview.outgoing.map((e) => (
                   <View key={e.id} style={styles.card}>
                     {avatar(e.username)}
@@ -285,7 +290,7 @@ export default function SocialScreen() {
 
             {/* ── Friends ── */}
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{t('social.friends', { count: overview.friends.length })}</Text>
+              <ArcadeSectionLabel title={t('social.friends', { count: overview.friends.length })} />
               {overview.friends.length === 0 ? (
                 <Text style={styles.muted}>{t('social.noFriends')}</Text>
               ) : overview.friends.map((e) => (
@@ -299,7 +304,7 @@ export default function SocialScreen() {
                     <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
                     <Text style={styles.meta}>{t('social.flashedCount', { count: e.flashed_count })}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+                  <Ionicons name="caret-forward" size={14} color={theme.accent} />
                 </Pressable>
               ))}
             </View>
@@ -318,10 +323,6 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     title: { marginHorizontal: Spacing.four, marginBottom: Spacing.two },
     body: { paddingHorizontal: Spacing.four, paddingTop: Spacing.two, gap: Spacing.four },
     section: { gap: Spacing.two },
-    sectionLabel: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs,
-      letterSpacing: 1, textTransform: 'uppercase', paddingHorizontal: Spacing.two,
-    },
     addRow: { flexDirection: 'row', gap: Spacing.two },
     inputWrap: {
       flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.two,
@@ -340,7 +341,7 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     card: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.three,
       padding: Spacing.three,
-      backgroundColor: t.bgElement, borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
     },
     avatar: {
       width: 36, height: 36, borderRadius: 18,
@@ -349,14 +350,14 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     },
     avatarText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.lg },
     cardBody: { flex: 1, gap: 2 },
-    username: { color: t.text, fontFamily: font, fontSize: sz(FontSize.md) },
+    username: { color: t.text, fontFamily: ButtonFontBold, fontSize: sz(FontSize.md) },
     meta: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
     smallBtn: {
-      borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
+      ...arcadeButton(t, 'outline'), borderRadius: BorderRadius.sm,
       paddingVertical: 6, paddingHorizontal: Spacing.two,
     },
     smallBtnPrimary: { ...arcadeButton(t) },
-    smallBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
+    smallBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.sm },
     smallBtnTextPrimary: { ...arcadeButtonLabel(t) },
     muted: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm), textAlign: 'center', paddingVertical: Spacing.three },
     guestText: { color: t.text, fontFamily: font, fontSize: sz(FontSize.md), textAlign: 'center' },

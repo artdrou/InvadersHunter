@@ -6,13 +6,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, ColorPickerModal, useMarkerCustomizationStore } from '@/features/settings';
 import { SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
 import { TIER_VALUES, type TierPts, type CustomizableState } from '@/features/marker-customization/types';
-import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 
 // Carousel geometry. ITEM is the vertical snap height (one shape per page);
 // CAROUSEL_W is kept small enough that all 6 tiers fit one row down to a ~320pt
@@ -191,7 +192,7 @@ export default function MarkerCustomizationScreen() {
   return (
     <SettingsShell title={t('markerCustomization.title')} scrollable={false}>
       {/* ── Formes ── */}
-      <Text style={styles.subcategoryLabel}>{t('markerCustomization.sectionShapes')}</Text>
+      <ArcadeSectionLabel title={t('markerCustomization.sectionShapes')} />
       <Text style={styles.sectionSubtitle}>{t('markerCustomization.sectionShapesSubtitle')}</Text>
       <View style={styles.carouselRow}>
         {TIER_VALUES.map((tier) => (
@@ -209,7 +210,7 @@ export default function MarkerCustomizationScreen() {
 
       {/* ── Couleurs ── */}
       <View style={styles.colorsHeader}>
-        <Text style={[styles.subcategoryLabel, styles.subcategoryLabelSpaced]}>{t('markerCustomization.sectionColors')}</Text>
+        <ArcadeSectionLabel title={t('markerCustomization.sectionColors')} style={styles.colorsLabel} />
         {/* Switch which silhouette the state previews are drawn on. */}
         <View style={styles.previewShapeSwitch}>
           <Pressable onPress={() => cyclePreviewShape(-1)} hitSlop={8} style={({ pressed }) => [styles.arrowBtnH, pressed && styles.pressed]}>
@@ -346,14 +347,6 @@ export default function MarkerCustomizationScreen() {
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     pressed: { opacity: 0.6 },
-    subcategoryLabel: {
-      color: t.accent,
-      fontFamily: ButtonFont,
-      fontSize: FontSize.md,
-      letterSpacing: 2,
-      textTransform: 'uppercase',
-    },
-    subcategoryLabelSpaced: { marginTop: Spacing.two },
     sectionSubtitle: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 20 },
 
     // ── Shapes carousels ──
@@ -380,7 +373,8 @@ function makeStyles(t: ThemeTokens) {
     carouselLabel: { fontFamily: ButtonFont, fontSize: FontSize.xs },
 
     // ── Colors header + preview-shape switch ──
-    colorsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    colorsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+    colorsLabel: { flex: 1, marginTop: Spacing.two },
     previewShapeSwitch: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.two },
     arrowBtnH: { paddingHorizontal: 4, paddingVertical: 4 },
     arrowLeft: {
@@ -399,7 +393,7 @@ function makeStyles(t: ThemeTokens) {
     stateRow: { flexDirection: 'row', gap: Spacing.two },
     statePreview: {
       flex: 1, alignItems: 'center', gap: 4, paddingVertical: Spacing.two,
-      borderRadius: BorderRadius.md, borderWidth: 1, borderColor: t.border, backgroundColor: t.bgElement,
+      ...arcadeCard(t),
     },
     statePreviewImg: { width: 44, height: 44 },
     statePreviewLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xxs },
@@ -407,10 +401,9 @@ function makeStyles(t: ThemeTokens) {
     // ── Params encart (2×2: body / gloom / opacity / bloom) ──
     encart: {
       gap: Spacing.three,
-      backgroundColor: t.bgElement, borderWidth: 1, borderColor: t.border,
-      borderRadius: BorderRadius.md, padding: Spacing.three,
+      ...arcadeCard(t), padding: Spacing.three,
     },
-    encartTitle: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md, letterSpacing: 1 },
+    encartTitle: { color: t.text, fontFamily: ButtonFontBold, fontSize: FontSize.md, letterSpacing: 1 },
     encartParams: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: Spacing.three },
     param: { width: '47%', alignItems: 'center', gap: Spacing.two },
     paramLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, textAlign: 'center' },
@@ -419,7 +412,7 @@ function makeStyles(t: ThemeTokens) {
     stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     stepperBtn: {
       width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 1, borderColor: t.border, backgroundColor: t.bg,
+      borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bg,
     },
     stepperBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg, lineHeight: 22 },
     stepperValue: { minWidth: 42, textAlign: 'center', color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },

@@ -9,7 +9,7 @@
  * Keep each button's own size / padding / radius; spread these on top.
  */
 import type { TextStyle, ViewStyle } from 'react-native';
-import { type ThemeTokens, ButtonFontBold } from './theme';
+import { type ThemeTokens, ButtonFontBold, FontSize } from './theme';
 
 export type ArcadeButtonKind = 'filled' | 'outline' | 'danger';
 
@@ -46,6 +46,29 @@ export function flashedColors(t: ThemeTokens): { fill: string; ink: string } {
 export function arcadeFlashed(t: ThemeTokens): ViewStyle {
   const { fill, ink } = flashedColors(t);
   return { backgroundColor: fill, borderWidth: 2, borderColor: ink, boxShadow: arcadeShadow(t) };
+}
+
+// ─── Cards, section labels, row dividers (settings-style screens) ────────────
+
+/** Info / list card: thick border, small radius, hard shadow (dark on dark themes, border colour on light). */
+export function arcadeCard(t: ThemeTokens): ViewStyle {
+  return {
+    backgroundColor: t.bgElement,
+    borderWidth: 2,
+    borderColor: t.border,
+    borderRadius: 6,
+    boxShadow: `${ARCADE_SHADOW}px ${ARCADE_SHADOW}px 0px ${t.isLight ? t.border : 'rgba(0, 0, 0, 0.6)'}`,
+  };
+}
+
+/** Section label above a card: accent, bold, spaced capitals (components/ArcadeSectionLabel adds the dotted rule). */
+export function arcadeSectionLabel(t: ThemeTokens): TextStyle {
+  return { color: t.accent, fontFamily: ButtonFontBold, fontSize: FontSize.xs, letterSpacing: 1, textTransform: 'uppercase' };
+}
+
+/** Divider between the rows of a card: dotted, on top of each row after the first. */
+export function arcadeRowDivider(t: ThemeTokens): ViewStyle {
+  return { borderTopWidth: 2, borderTopColor: t.bgDivider, borderStyle: 'dotted' };
 }
 
 export function arcadeButton(t: ThemeTokens, kind: ArcadeButtonKind = 'filled'): ViewStyle {

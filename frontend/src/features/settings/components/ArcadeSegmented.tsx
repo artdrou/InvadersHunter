@@ -17,6 +17,8 @@ type Props<T> = {
 };
 
 const RADIUS = 4;
+const BOLD_ADVANCE = 0.5625;  // FreePixel Bold glyph width, in em
+const CHIP_WIDTH = Math.ceil(3 * FontSize.xs * BOLD_ADVANCE) + 2 * 7 + 2 * 2;
 
 export function ArcadeSegmented<T>({ options, value, onChange, disabled }: Props<T>) {
   const { theme } = useTheme();
@@ -53,7 +55,8 @@ export function ArcadeSegmented<T>({ options, value, onChange, disabled }: Props
 
 const styles = StyleSheet.create({
   group: { flexDirection: 'row' },
-  chip: { borderWidth: 2, paddingHorizontal: 7, paddingVertical: 3 },
+  // Same chip width everywhere (FR | EN lines up with ON | OFF): room for 3 bold characters
+  chip: { borderWidth: 2, paddingHorizontal: 7, paddingVertical: 3, minWidth: CHIP_WIDTH, alignItems: 'center' },
   notFirst: { marginLeft: -2 },   // neighbours share one border
   onTop: { zIndex: 1 },
   label: { fontFamily: ButtonFontBold, fontSize: FontSize.xs },

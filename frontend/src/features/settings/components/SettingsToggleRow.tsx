@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
+import { arcadeRowDivider } from '@/constants/arcade-button';
 import { SettingsRowIcon } from './SettingsRow';
 import { ArcadeSegmented } from './ArcadeSegmented';
 
@@ -51,9 +52,7 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.three,
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two + 2,
-      borderTopWidth: 2,
-      borderTopColor: t.bgDivider,
-      borderStyle: 'dotted',
+      ...arcadeRowDivider(t),
     },
     labelWrap: { flex: 1, gap: 2 },
     label: {

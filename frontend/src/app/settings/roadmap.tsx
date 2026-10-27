@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell } from '@/features/settings';
+import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
+import { arcadeCard } from '@/constants/arcade-button';
 
 type RoadmapStatus = 'soon' | 'wip' | 'planned';
 
@@ -24,7 +25,6 @@ const ROADMAP_ITEMS: { key: string; icon: React.ComponentProps<typeof Ionicons>[
 
 export default function RoadmapScreen() {
   const { t } = useTranslation();
-  const { theme } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
   return (
@@ -35,7 +35,7 @@ export default function RoadmapScreen() {
         {ROADMAP_ITEMS.map((item) => (
           <View key={item.key} style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name={item.icon} size={20} color={theme.accent} />
+              <SettingsRowIcon icon={item.icon} />
               <Text style={styles.cardTitle}>{t(`settings.roadmapItems.${item.key}.title`)}</Text>
               <View style={[styles.badge, styles[`badge_${item.status}`]]}>
                 <Text style={[styles.badgeText, styles[`badgeText_${item.status}`]]}>
@@ -61,17 +61,14 @@ function makeStyles(t: ThemeTokens) {
     },
     list: { gap: Spacing.two },
     card: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.two,
     },
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     cardTitle: {
       color: t.text,
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.md,
       flexShrink: 1,
     },

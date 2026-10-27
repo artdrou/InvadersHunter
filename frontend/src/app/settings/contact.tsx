@@ -3,11 +3,11 @@ import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 
 import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap } from '@/features/settings';
 import { useAuthStore } from '@/features/auth';
 import { sendContactMessage } from '@/features/contact';
-import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 const SUBJECT_MAX = 120;
@@ -126,15 +126,12 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     block: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       padding: Spacing.four,
       gap: Spacing.three,
     },
     body: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md, lineHeight: 22 },
-    sentTitle: { color: t.success, fontFamily: ButtonFont, fontSize: FontSize.lg },
+    sentTitle: { color: t.success, fontFamily: ButtonFontBold, fontSize: FontSize.lg },
     input: {
       backgroundColor: t.bg,
       color: t.text,

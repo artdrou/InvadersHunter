@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeCard, arcadeSectionLabel } from '@/constants/arcade-button';
 import { fetchAdminSubmissions, fetchInvader } from '@/features/admin/services/admin.api';
 import { TypeBadge } from '@/features/admin/components/TypeBadge';
 import { Diff } from '@/features/admin/components/Diff';
@@ -131,10 +132,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, topInset: numbe
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three },
     section: {
-      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
-      borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
+      ...arcadeCard(t), padding: Spacing.three, gap: 6,
     },
-    sectionTitle: { color: t.textMuted, fontSize: FontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+    sectionTitle: { ...arcadeSectionLabel(t), marginBottom: 4 },
     row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     metaLabel:    { color: t.textMuted, fontSize: sz(13), fontFamily: font },
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },

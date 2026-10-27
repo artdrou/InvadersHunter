@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { useAuthStore } from '../store';
 import { updateMyUsername } from '../services/account.api';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 // Same bounds as the backend (UserUpdate.username).
@@ -114,14 +114,11 @@ function makeStyles(t: ThemeTokens) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: Spacing.two,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
     },
-    value: { flex: 1, color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
+    value: { flex: 1, color: t.accent, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     input: { padding: 0 },
     editWrap: { gap: Spacing.two },
     error: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.xs, paddingHorizontal: Spacing.two },

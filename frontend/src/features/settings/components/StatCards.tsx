@@ -8,7 +8,9 @@ import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import type { CollectionStats } from '@/features/invaders/utils/collection-stats';
 
 /** The "Collection" section (flashed, cities, remaining…) shared by every profile screen. */
@@ -35,7 +37,7 @@ export function StatSection({ title, children, grid = true }: { title: string; c
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>{title}</Text>
+      <ArcadeSectionLabel title={title} />
       {grid ? <View style={styles.grid}>{children}</View> : children}
     </View>
   );
@@ -66,11 +68,7 @@ export function InfoCell({ value, label }: { value: string; label?: string }) {
 
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
-    section: { gap: Spacing.one },
-    sectionLabel: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs,
-      letterSpacing: 1, textTransform: 'uppercase', paddingHorizontal: Spacing.two,
-    },
+    section: { gap: Spacing.two },
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -80,26 +78,20 @@ function makeStyles(t: ThemeTokens) {
       // 2-column grid: each cell takes ~half the row width minus the gap.
       flexBasis: '48%',
       flexGrow: 1,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
       gap: 2,
     },
     cellFull: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.md,
+      ...arcadeCard(t),
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
       gap: 2,
     },
     cellValue: {
       color: t.accent,
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.md,
     },
     cellSub: {

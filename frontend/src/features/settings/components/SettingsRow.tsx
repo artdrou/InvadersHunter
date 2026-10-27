@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
-import { dangerShadowColor } from '@/constants/arcade-button';
+import { arcadeRowDivider, dangerShadowColor } from '@/constants/arcade-button';
 import { ShadowIcon } from '@/components/ShadowIcon';
 import { tap } from '../haptics';
 
@@ -81,9 +81,7 @@ function makeStyles(t: ThemeTokens) {
       gap: Spacing.three,
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two + 2,
-      borderTopWidth: 2,
-      borderTopColor: t.bgDivider,
-      borderStyle: 'dotted',
+      ...arcadeRowDivider(t),
     },
     rowPressed: { opacity: 0.5 },
     labelWrap: { flex: 1, gap: 2 },

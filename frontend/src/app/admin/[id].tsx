@@ -3,12 +3,13 @@ import {
   View, Text, ScrollView, Pressable, StyleSheet,
   ActivityIndicator, Alert, Image, Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
 import {
   fetchAdminRequest, fetchAdminSubmissions, fetchInvader,
   approveAdminRequest, rejectAdminRequest,
@@ -24,7 +25,7 @@ import { logger } from '@/services/logger';
 import { Diff } from '@/features/admin/components/Diff';
 import type { AdminRequest, AdminSubmission } from '@/features/admin/types';
 import type { Invader } from '@/features/invaders/types';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeSectionLabel } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 /** Pull the year out of an ISO date string (YYYY-...) for compact display. */
@@ -270,7 +271,7 @@ export default function AdminDetailScreen() {
             onPress={() => router.push(`/admin/${req.id}/submissions`)}
           >
             <Text style={styles.submissionsCtaText}>{t('admin.viewSubmissions', { count: subs.length })}</Text>
-            <Text style={styles.submissionsCtaArrow}>›</Text>
+            <Ionicons name="caret-forward" size={14} color={theme.accent} />
           </Pressable>
         )}
 
@@ -324,10 +325,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     scroll:       { flex: 1 },
     scrollContent: { padding: Spacing.three, gap: Spacing.three, paddingBottom: 120 + bottomInset },
     section: {
-      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
-      borderWidth: 1, borderColor: t.border, padding: Spacing.three, gap: 6,
+      ...arcadeCard(t), padding: Spacing.three, gap: 6,
     },
-    sectionTitle: { color: t.textMuted, fontSize: FontSize.md, fontFamily: ButtonFont, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+    sectionTitle: { ...arcadeSectionLabel(t), marginBottom: 4 },
     row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     metaLabel:    { color: t.textMuted, fontSize: sz(13), fontFamily: font },
     metaValue:    { color: t.text, fontSize: sz(13), fontFamily: font },
@@ -339,11 +339,9 @@ function makeStyles(t: ThemeTokens, font: string, scale: number, bottomInset: nu
     mapBtnText:   { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.lg },
     submissionsCta: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: t.bgElement, borderRadius: BorderRadius.md,
-      borderWidth: 1, borderColor: t.border, padding: Spacing.three,
+      ...arcadeCard(t), padding: Spacing.three,
     },
-    submissionsCtaText: { color: t.text, fontSize: sz(FontSize.sm), fontFamily: font },
-    submissionsCtaArrow: { color: t.accent, fontSize: FontSize.xl, fontFamily: ButtonFont },
+    submissionsCtaText: { color: t.text, fontSize: sz(FontSize.sm), fontFamily: ButtonFontBold },
     photoStrip:   { gap: Spacing.two, paddingVertical: 4 },
     photoFrame: {
       borderWidth: 2, borderColor: 'transparent', borderRadius: BorderRadius.sm,
