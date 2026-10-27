@@ -18,6 +18,11 @@ export function applyFriendView(invaders: InvaderWithState[], view: FriendMapVie
   return invaders.map((i) => ({ ...i, friendCaptured: theirs.has(i.id) }));
 }
 
+/** Shareable friend link, served by the backend (`/f/<code>` landing page, opens the app). */
+export function friendLink(baseUrl: string, code: string): string {
+  return `${baseUrl.replace(/\/+$/, '')}/f/${code}`;
+}
+
 export type FriendRequestError = 'user_not_found' | 'self' | 'already_friends' | 'already_sent' | 'too_many' | 'network';
 
 /** Backend `detail` code of a failed invite → the message to show. */

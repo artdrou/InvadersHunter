@@ -12,6 +12,9 @@ type FriendsStore = {
   /** My friend code, once fetched (it never changes). */
   myCode: string | null;
   loadCode: () => Promise<void>;
+  /** Friend code from an opened friend link, waiting for the Social tab to pick it up. */
+  pendingCode: string | null;
+  setPendingCode: (code: string | null) => void;
   /** Whose map the map tab shows (null = my own). Not persisted. */
   mapView: FriendMapView | null;
   setMapView: (view: FriendMapView | null) => void;
@@ -37,6 +40,8 @@ export const useFriendsStore = create<FriendsStore>()((set) => ({
       // offline: the card keeps its placeholder, retried on the next focus
     }
   },
+  pendingCode: null,
+  setPendingCode: (pendingCode) => set({ pendingCode }),
   mapView: null,
   setMapView: (mapView) => set({ mapView }),
   reset: () => set({ overview: EMPTY, loaded: false, myCode: null, mapView: null }),

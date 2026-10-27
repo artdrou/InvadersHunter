@@ -11,7 +11,9 @@ import { ButtonFont, ButtonFontBold, FontSize, Spacing, BorderRadius } from '@/c
 import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { FloatingText, useFloatingText } from '@/components/FloatingText';
 import { tap as hapticTap, success as hapticSuccess } from '@/features/settings/haptics';
+import { BASE_URL } from '@/services/api-client';
 import { useFriendsStore } from '../store';
+import { friendLink } from '../utils';
 
 const COPIED_MS = 1500;
 
@@ -53,7 +55,7 @@ export function MyFriendCodeCard() {
   function share() {
     if (!code) return;
     hapticTap();
-    Share.share({ message: t('social.codeShareMessage', { code }) });
+    Share.share({ message: t('social.codeShareMessage', { code, link: friendLink(BASE_URL, code) }) });
   }
 
   const outline = arcadeButtonLabel(theme, 'outline');
