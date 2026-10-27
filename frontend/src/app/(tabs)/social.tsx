@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, TextInput, Pressable, ScrollView, StyleSheet, ActivityIndicator, RefreshControl,
 } from 'react-native';
@@ -47,6 +47,8 @@ export default function SocialScreen() {
   const overview = useFriendsStore((s) => s.overview);
   const loaded = useFriendsStore((s) => s.loaded);
   const load = useFriendsStore((s) => s.load);
+  const pendingCode = useFriendsStore((s) => s.pendingCode);
+  const setPendingCode = useFriendsStore((s) => s.setPendingCode);
 
   const [loadFailed, setLoadFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,6 +66,14 @@ export default function SocialScreen() {
   }, [load]);
 
   useFocusEffect(useCallback(() => { if (!isGuest) refresh(); }, [isGuest, refresh]));
+
+  // Opened from a friend link (app/f/[code]): the code goes in the field, the lookup
+  // below then shows who it is
+  useEffect(() => {
+    if (!pendingCode || isGuest) return;
+    onTypeUsername(pendingCode);
+    setPendingCode(null);
+  }, [pendingCode, isGuest, setPendingCode]);
 
   async function onPullRefresh() {
     setRefreshing(true);

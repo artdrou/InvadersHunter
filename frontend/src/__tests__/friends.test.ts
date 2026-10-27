@@ -1,4 +1,4 @@
-import { applyFriendView, friendRequestError } from '../features/friends/utils';
+import { applyFriendView, friendRequestError, friendLink } from '../features/friends/utils';
 import { resolveIconKey } from '../features/map/hooks/use-invader-geojson';
 import type { InvaderWithState } from '../features/invaders/types';
 import type { FriendMapView } from '../features/friends/types';
@@ -75,5 +75,12 @@ describe('friendRequestError', () => {
     expect(friendRequestError(new Error('timeout'))).toBe('network');
     expect(friendRequestError(apiError('Something else'))).toBe('network');
     expect(friendRequestError(undefined)).toBe('network');
+  });
+});
+
+describe('friendLink', () => {
+  it('joins the backend URL and the code', () => {
+    expect(friendLink('https://api.example.app', 'K7QM-3XPA')).toBe('https://api.example.app/f/K7QM-3XPA');
+    expect(friendLink('https://api.example.app/', 'K7QM-3XPA')).toBe('https://api.example.app/f/K7QM-3XPA');
   });
 });

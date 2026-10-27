@@ -758,7 +758,7 @@
     "codeCopy": "Copier",
     "codeShare": "Partager",
     "codeCopied": "Code copié !",
-    "codeShareMessage": "Ajoute-moi en ami sur HintVaders ! Mon code ami : {{code}}",
+    "codeShareMessage": "Ajoute-moi en ami sur HintVaders ! Mon code ami : {{code}}\n{{link}}",
     "addPlaceholder": "Code ami ou nom d'utilisateur",
     "addButton": "Envoyer",
     "sent": "Invitation envoyée à {{username}}",

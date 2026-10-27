@@ -758,7 +758,7 @@
     "codeCopy": "Copy",
     "codeShare": "Share",
     "codeCopied": "Code copied!",
-    "codeShareMessage": "Add me as a friend on HintVaders! My friend code: {{code}}",
+    "codeShareMessage": "Add me as a friend on HintVaders! My friend code: {{code}}\n{{link}}",
     "addPlaceholder": "Friend code or username",
     "addButton": "Send",
     "sent": "Invite sent to {{username}}",
