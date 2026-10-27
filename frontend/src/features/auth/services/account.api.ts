@@ -19,6 +19,14 @@ export async function updateMyUsername(userId: number, username: string): Promis
   await api.put(`/users/${userId}`, { username });
 }
 
+/**
+ * Change the signed-in account's password. Rejects with HTTP 400 `wrong_password`
+ * when the current one doesn't match, 429 `too_many` after repeated wrong tries.
+ */
+export async function changeMyPassword(currentPassword: string, newPassword: string): Promise<void> {
+  await api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword });
+}
+
 /** GDPR right of access: the backend emails a copy of all the account's data to its own address. */
 export async function requestMyDataExport(userId: number): Promise<void> {
   await api.post(`/users/${userId}/data-export`);

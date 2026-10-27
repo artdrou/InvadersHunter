@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.schemas.auth import (
     LoginRequest, TokenResponse, RefreshRequest,
-    ForgotPasswordRequest, VerifyResetCodeRequest, ResetPasswordRequest,
+    ForgotPasswordRequest, VerifyResetCodeRequest, ResetPasswordRequest, ChangePasswordRequest,
 )
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_user
 from app.services import auth_service
 from app.services.auth_service import (
-    InvalidCredentials, InvalidRefreshToken, InvalidResetCode,
+    InvalidCredentials, InvalidRefreshToken, InvalidResetCode, TooManyAttempts,
 )
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -34,6 +34,20 @@ def refresh(data: RefreshRequest, db: Session = Depends(get_db)):
 def logout(data: RefreshRequest, db: Session = Depends(get_db)):
     auth_service.logout(db, data.refresh_token)
     return {"message": "Logged out"}
+
+
+@router.post("/change-password")
+def change_password(data: ChangePasswordRequest, background_tasks: BackgroundTasks,
+                    db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    # `detail` codes are stable: the app maps them to translated messages.
+    try:
+        auth_service.change_password(db, current_user, data.current_password, data.new_password,
+                                     schedule=background_tasks.add_task)
+    except InvalidCredentials:
+        raise HTTPException(status_code=400, detail="wrong_password")
+    except TooManyAttempts:
+        raise HTTPException(status_code=429, detail="too_many")
+    return {"message": "Password updated successfully"}
 
 
 @router.post("/forgot-password")

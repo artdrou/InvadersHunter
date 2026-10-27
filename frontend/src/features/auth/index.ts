@@ -5,4 +5,4 @@ export { useRequireAccount } from './hooks/use-require-account';
 export { AccountGateModal } from './components/AccountGateModal';
 export { AuthLayout } from './components/AuthLayout';
 export { loginUser, registerUser, logoutUser, forgotPassword, verifyResetCode, resetPassword } from './services/auth.api';
-export { claimCaptures, requestMyDataExport, deleteMyAccount } from './services/account.api';
+export { claimCaptures, requestMyDataExport, deleteMyAccount, changeMyPassword } from './services/account.api';

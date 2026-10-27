@@ -198,26 +198,41 @@
     "roadmap": "Feuille de route",
     "roadmapSubtitle": "Fonctionnalites a venir",
     "roadmapIntro": "Voici un aperçu des fonctionnalités en préparation pour les prochaines versions de l'application.",
+    "sectionLogin": "Connexion",
+    "changePassword": "Modifier le mot de passe",
+    "changePasswordSubtitle": "Choisir un nouveau mot de passe",
+    "changePasswordCurrent": "Mot de passe actuel",
+    "changePasswordNew": "Nouveau mot de passe",
+    "changePasswordConfirm": "Confirmer le nouveau mot de passe",
+    "changePasswordSave": "Enregistrer",
+    "changePasswordTooShort": "Le nouveau mot de passe doit faire au moins {{count}} caractères.",
+    "changePasswordMismatch": "Les deux mots de passe ne correspondent pas.",
+    "changePasswordWrong": "Mot de passe actuel incorrect.",
+    "changePasswordTooMany": "Trop d'essais, réessaie dans quelques minutes.",
+    "changePasswordDoneTitle": "Mot de passe modifié",
+    "changePasswordDoneBody": "Ton nouveau mot de passe est actif. Un email de confirmation t'a été envoyé.",
+    "syncNowInfo": "Récupère les derniers invaders et leurs mises à jour, et envoie les flashs faits hors connexion. Ça se fait aussi tout seul à l'ouverture de l'app : ce bouton sert à forcer une mise à jour.",
+    "importFlashesInfo": "Copie en une fois tous tes flashs de l'app officielle FlashInvaders (Android) dans HintVaders, avec un petit outil à lancer sur un ordinateur. Utile au début, ou si tu as flashé sans HintVaders.",
     "roadmapItems": {
-      "guestMode": {
-        "title": "Mode invité",
-        "body": "Utiliser l'app sans compte. Les flashs restent sur le téléphone et sont transférés à la création du compte."
+      "arcadeLook": {
+        "title": "Nouveau look arcade",
+        "body": "Titres, boutons, listes et menus refaits dans l'esprit borne d'arcade, avec de nouveaux thèmes."
+      },
+      "friendCodes": {
+        "title": "Codes ami",
+        "body": "Chaque joueur a un code ami à partager pour s'ajouter sans connaître le nom exact."
       },
       "customInvaders": {
         "title": "Invaders personnels",
         "body": "Ajouter ses propres invaders sur sa carte."
       },
-      "friends": {
-        "title": "Amis",
-        "body": "Se connecter à d'autres chasseurs, voir leurs flashs sur la carte et comparer les collections."
+      "website": {
+        "title": "Site web",
+        "body": "Retrouver ses stats, sa carte et gérer son compte depuis un ordinateur."
       },
-      "commentWall": {
-        "title": "Mur de commentaires",
-        "body": "Laisser des descriptions et astuces sur chaque invader."
-      },
-      "discoveredBy": {
-        "title": "Découvreurs",
-        "body": "Voir qui a découvert ou mis à jour chaque invader."
+      "offlinePhotos": {
+        "title": "Photos hors ligne",
+        "body": "Télécharger les photos des invaders pour chasser sans réseau."
       },
       "gamification": {
         "title": "Gamification",
@@ -229,6 +244,7 @@
       }
     },
     "roadmapStatus": {
+      "new": "Nouveau",
       "soon": "Bientôt",
       "wip": "En cours",
       "planned": "Prévu"

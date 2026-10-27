@@ -57,6 +57,15 @@ export default function SecurityScreen() {
 
   return (
     <SettingsShell title={t('settings.security')}>
+      <SettingsSection title={t('settings.sectionLogin')}>
+        <SettingsRow
+          icon="key-outline"
+          label={t('settings.changePassword')}
+          subtitle={t('settings.changePasswordSubtitle')}
+          onPress={() => router.push('/settings/change-password')}
+        />
+      </SettingsSection>
+
       <SettingsSection title={t('settings.sectionMyData')}>
         <SettingsRow
           icon="mail-outline"
