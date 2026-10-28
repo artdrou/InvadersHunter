@@ -11,7 +11,7 @@ import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
 import { useAuthStore, useRequireAccount } from '@/features/auth';
-import { hapticTap, hapticSuccess } from '@/features/settings';
+import { hapticTap, hapticSuccess, ArcadeSegmented } from '@/features/settings';
 import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
 import {
   useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,
@@ -58,6 +58,7 @@ export default function SocialScreen() {
   const pendingCode = useFriendsStore((s) => s.pendingCode);
   const setPendingCode = useFriendsStore((s) => s.setPendingCode);
 
+  const [tab, setTab] = useState<'friends' | 'community'>('friends');
   const [loadFailed, setLoadFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [username, setUsername] = useState('');
@@ -79,6 +80,7 @@ export default function SocialScreen() {
   // below then shows who it is
   useEffect(() => {
     if (!pendingCode || isGuest) return;
+    setTab('friends');
     onTypeUsername(pendingCode);
     setPendingCode(null);
   }, [pendingCode, isGuest, setPendingCode]);
@@ -182,152 +184,166 @@ export default function SocialScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={theme.accent} />}
       >
-        {/* ── Community: complete the catalogue ── */}
-        <View style={styles.section}>
-          <ArcadeSectionLabel title={t('social.communityTitle')} />
-          <Pressable
-            style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-            onPress={() => { hapticTap(); router.push('/incomplete'); }}
-          >
-            <SettingsRowIcon icon="construct-outline" />
-            <View style={styles.cardBody}>
-              <Text style={styles.username}>{t('incomplete.title')}</Text>
-              <Text style={styles.meta}>{t('social.incompleteSub', { count: incompleteCount })}</Text>
-            </View>
-            <Ionicons name="caret-forward" size={14} color={theme.accent} />
-          </Pressable>
-        </View>
+        <ArcadeSegmented
+          stretch
+          options={[
+            { value: 'friends' as const, label: t('social.tabFriends') },
+            { value: 'community' as const, label: t('social.communityTitle') },
+          ]}
+          value={tab}
+          onChange={(v) => { hapticTap(); setTab(v); }}
+        />
 
-        {/* ── Add a friend ── */}
-        <View style={styles.section}>
-          <ArcadeSectionLabel title={t('social.addTitle')} />
-          <MyFriendCodeCard />
-          <View style={styles.addRow}>
-            <View style={[styles.inputWrap, confirmed && { borderColor: theme.success }]}>
-              <TextInput
-                value={username}
-                onChangeText={onTypeUsername}
-                placeholder={t('social.addPlaceholder')}
-                placeholderTextColor={theme.textMuted}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="send"
-                onSubmitEditing={send}
-                style={styles.input}
-              />
-              {confirmed ? <Ionicons name="checkmark-circle" size={18} color={theme.success} /> : null}
-              {lookup.status === 'checking' ? <ActivityIndicator size="small" color={theme.textMuted} /> : null}
+        {tab === 'friends' && (<>
+          {/* ── Add a friend ── */}
+          <View style={styles.section}>
+            <ArcadeSectionLabel title={t('social.addTitle')} />
+            <MyFriendCodeCard />
+            <View style={styles.addRow}>
+              <View style={[styles.inputWrap, confirmed && { borderColor: theme.success }]}>
+                <TextInput
+                  value={username}
+                  onChangeText={onTypeUsername}
+                  placeholder={t('social.addPlaceholder')}
+                  placeholderTextColor={theme.textMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="send"
+                  onSubmitEditing={send}
+                  style={styles.input}
+                />
+                {confirmed ? <Ionicons name="checkmark-circle" size={18} color={theme.success} /> : null}
+                {lookup.status === 'checking' ? <ActivityIndicator size="small" color={theme.textMuted} /> : null}
+              </View>
+              <Pressable
+                style={({ pressed }) => [styles.primaryBtn, styles.sendBtn, (!confirmed || sending) && styles.disabled, pressed && styles.pressed]}
+                onPress={send}
+                disabled={!confirmed || sending}
+              >
+                {sending
+                  ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
+                  : <Text style={styles.primaryBtnText}>{t('social.addButton')}</Text>}
+              </Pressable>
             </View>
+            {lookup.status === 'found' ? (() => {
+              const { match } = lookup;
+              const selectable = match.relation === 'none' || match.relation === 'received';
+              return (
+                <Pressable
+                  style={({ pressed }) => [styles.card, styles.suggestion, !selectable && styles.disabled, pressed && selectable && styles.pressed]}
+                  onPress={() => pickSuggestion(match)}
+                  disabled={!selectable}
+                >
+                  {avatar(match)}
+                  <View style={styles.cardBody}>
+                    <Text style={styles.username} numberOfLines={1}>{match.username}</Text>
+                    <Text style={styles.meta}>{t(`social.relation.${match.relation}`)}</Text>
+                  </View>
+                  {selectable ? <Ionicons name="add-circle-outline" size={22} color={theme.accent} /> : null}
+                </Pressable>
+              );
+            })() : null}
+            {lookup.status === 'not_found' ? (
+              <Text style={[styles.feedback, { color: theme.textMuted }]}>{t('social.error.user_not_found')}</Text>
+            ) : null}
+            {feedback ? (
+              <Text style={[styles.feedback, { color: feedback.ok ? theme.success : theme.danger }]}>{feedback.text}</Text>
+            ) : null}
+          </View>
+
+          {!loaded ? (
+            loadFailed ? (
+              <Pressable onPress={refresh}>
+                <Text style={styles.muted}>{t('social.loadFailed')}</Text>
+              </Pressable>
+            ) : (
+              <ActivityIndicator color={theme.accent} />
+            )
+          ) : (
+            <>
+              {/* ── Invites received ── */}
+              {overview.incoming.length > 0 && (
+                <View style={styles.section}>
+                  <ArcadeSectionLabel title={t('social.incoming', { count: overview.incoming.length })} />
+                  {overview.incoming.map((e) => (
+                    <View key={e.id} style={styles.card}>
+                      {avatar(e)}
+                      <View style={styles.cardBody}>
+                        <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
+                      </View>
+                      {busyId === e.id ?<ActivityIndicator color={theme.accent} /> : (
+                        <>
+                          {smallButton(e, t('social.decline'), () => act(e, 'remove'))}
+                          {smallButton(e, t('social.accept'), () => act(e, 'accept'), true)}
+                        </>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* ── Invites sent ── */}
+              {overview.outgoing.length > 0 && (
+                <View style={styles.section}>
+                  <ArcadeSectionLabel title={t('social.outgoing')} />
+                  {overview.outgoing.map((e) => (
+                    <View key={e.id} style={styles.card}>
+                      {avatar(e)}
+                      <View style={styles.cardBody}>
+                        <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
+                        <Text style={styles.meta}>{t('social.pending')}</Text>
+                      </View>
+                      {busyId === e.id
+                        ? <ActivityIndicator color={theme.accent} />
+                        : smallButton(e, t('social.cancel'), () => act(e, 'remove'))}
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* ── Friends ── */}
+              <View style={styles.section}>
+                <ArcadeSectionLabel title={t('social.friends', { count: overview.friends.length })} />
+                {overview.friends.length === 0 ? (
+                  <Text style={styles.muted}>{t('social.noFriends')}</Text>
+                ) : overview.friends.map((e) => {
+                  const stats = friendStats.get(e.id);
+                  return (
+                    <PlayerCardView
+                      key={e.id}
+                      avatar={e.avatar}
+                      name={e.username}
+                      subtitle={t('social.seeProfile')}
+                      // Before the invaders load, fall back to the server's flash count
+                      stats={stats ?? { score: 0, flashed: e.flashed_count, citiesWithFlashes: 0 }}
+                      onPress={() => {
+                        hapticTap();
+                        router.push({ pathname: '/friends/[id]', params: { id: String(e.user_id), friendshipId: String(e.id) } });
+                      }}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
+        </>)}
+
+        {/* ── Community: complete the catalogue ── */}
+        {tab === 'community' && (
+          <View style={styles.section}>
+            <ArcadeSectionLabel title={t('social.communityTitle')} />
             <Pressable
-              style={({ pressed }) => [styles.primaryBtn, styles.sendBtn, (!confirmed || sending) && styles.disabled, pressed && styles.pressed]}
-              onPress={send}
-              disabled={!confirmed || sending}
+              style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+              onPress={() => { hapticTap(); router.push('/incomplete'); }}
             >
-              {sending
-                ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
-                : <Text style={styles.primaryBtnText}>{t('social.addButton')}</Text>}
+              <SettingsRowIcon icon="construct-outline" />
+              <View style={styles.cardBody}>
+                <Text style={styles.username}>{t('incomplete.title')}</Text>
+                <Text style={styles.meta}>{t('social.incompleteSub', { count: incompleteCount })}</Text>
+              </View>
+              <Ionicons name="caret-forward" size={14} color={theme.accent} />
             </Pressable>
           </View>
-          {lookup.status === 'found' ? (() => {
-            const { match } = lookup;
-            const selectable = match.relation === 'none' || match.relation === 'received';
-            return (
-              <Pressable
-                style={({ pressed }) => [styles.card, styles.suggestion, !selectable && styles.disabled, pressed && selectable && styles.pressed]}
-                onPress={() => pickSuggestion(match)}
-                disabled={!selectable}
-              >
-                {avatar(match)}
-                <View style={styles.cardBody}>
-                  <Text style={styles.username} numberOfLines={1}>{match.username}</Text>
-                  <Text style={styles.meta}>{t(`social.relation.${match.relation}`)}</Text>
-                </View>
-                {selectable ? <Ionicons name="add-circle-outline" size={22} color={theme.accent} /> : null}
-              </Pressable>
-            );
-          })() : null}
-          {lookup.status === 'not_found' ? (
-            <Text style={[styles.feedback, { color: theme.textMuted }]}>{t('social.error.user_not_found')}</Text>
-          ) : null}
-          {feedback ? (
-            <Text style={[styles.feedback, { color: feedback.ok ? theme.success : theme.danger }]}>{feedback.text}</Text>
-          ) : null}
-        </View>
-
-        {!loaded ? (
-          loadFailed ? (
-            <Pressable onPress={refresh}>
-              <Text style={styles.muted}>{t('social.loadFailed')}</Text>
-            </Pressable>
-          ) : (
-            <ActivityIndicator color={theme.accent} />
-          )
-        ) : (
-          <>
-            {/* ── Invites received ── */}
-            {overview.incoming.length > 0 && (
-              <View style={styles.section}>
-                <ArcadeSectionLabel title={t('social.incoming', { count: overview.incoming.length })} />
-                {overview.incoming.map((e) => (
-                  <View key={e.id} style={styles.card}>
-                    {avatar(e)}
-                    <View style={styles.cardBody}>
-                      <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
-                    </View>
-                    {busyId === e.id ?<ActivityIndicator color={theme.accent} /> : (
-                      <>
-                        {smallButton(e, t('social.decline'), () => act(e, 'remove'))}
-                        {smallButton(e, t('social.accept'), () => act(e, 'accept'), true)}
-                      </>
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* ── Invites sent ── */}
-            {overview.outgoing.length > 0 && (
-              <View style={styles.section}>
-                <ArcadeSectionLabel title={t('social.outgoing')} />
-                {overview.outgoing.map((e) => (
-                  <View key={e.id} style={styles.card}>
-                    {avatar(e)}
-                    <View style={styles.cardBody}>
-                      <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
-                      <Text style={styles.meta}>{t('social.pending')}</Text>
-                    </View>
-                    {busyId === e.id
-                      ? <ActivityIndicator color={theme.accent} />
-                      : smallButton(e, t('social.cancel'), () => act(e, 'remove'))}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* ── Friends ── */}
-            <View style={styles.section}>
-              <ArcadeSectionLabel title={t('social.friends', { count: overview.friends.length })} />
-              {overview.friends.length === 0 ? (
-                <Text style={styles.muted}>{t('social.noFriends')}</Text>
-              ) : overview.friends.map((e) => {
-                const stats = friendStats.get(e.id);
-                return (
-                  <PlayerCardView
-                    key={e.id}
-                    avatar={e.avatar}
-                    name={e.username}
-                    subtitle={t('social.seeProfile')}
-                    // Before the invaders load, fall back to the server's flash count
-                    stats={stats ?? { score: 0, flashed: e.flashed_count, citiesWithFlashes: 0 }}
-                    onPress={() => {
-                      hapticTap();
-                      router.push({ pathname: '/friends/[id]', params: { id: String(e.user_id), friendshipId: String(e.id) } });
-                    }}
-                  />
-                );
-              })}
-            </View>
-          </>
         )}
       </ScrollView>
     </View>

@@ -23,9 +23,12 @@ type Props = {
   // nestedScrollEnabled is a no-op. Content that overflows is clipped, so only
   // opt out when the layout genuinely fits.
   scrollable?: boolean;
+  // When false, content starts at the top instead of being centered: for screens
+  // with tabs, so the tab bar doesn't jump when the tabs differ in height.
+  centered?: boolean;
 };
 
-export function SettingsShell({ title, children, scrollable = true }: Props) {
+export function SettingsShell({ title, children, scrollable = true, centered = true }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -47,11 +50,11 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
         <ArcadeTitle text={title} />
       </View>
       {scrollable ? (
-        <ScrollView contentContainerStyle={styles.body}>
+        <ScrollView contentContainerStyle={[styles.body, !centered && styles.top]}>
           {children}
         </ScrollView>
       ) : (
-        <View style={styles.body}>{children}</View>
+        <View style={[styles.body, !centered && styles.top]}>{children}</View>
       )}
     </KeyboardAvoidingView>
   );
@@ -83,6 +86,7 @@ function makeStyles(t: ThemeTokens) {
       paddingBottom: Spacing.six,
       gap: Spacing.three,
     },
+    top: { justifyContent: 'flex-start' },
     pressed: { opacity: 0.6 },
   });
 }

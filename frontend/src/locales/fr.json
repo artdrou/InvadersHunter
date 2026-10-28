@@ -312,7 +312,6 @@
   },
   "appearance": {
     "sectionTheme": "Theme",
-    "sectionHunt": "Chasse",
     "sectionMap": "Carte",
     "routeGlow": "Lueur de l'itineraire",
     "routeGlowSubtitle": "Effet de lumiere anime sur le trace",
@@ -756,6 +755,7 @@
   "social": {
     "seeProfile": "Voir son profil",
     "title": "Social",
+    "tabFriends": "Amis",
     "addTitle": "Ajouter un ami",
     "myCode": "Mon code ami",
     "codeCopy": "Copier",
