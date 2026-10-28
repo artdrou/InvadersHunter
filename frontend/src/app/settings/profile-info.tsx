@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -10,7 +10,8 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@
 import { SettingsShell, StatSection, StatCell, CollectionStatsSection, hapticTap } from '@/features/settings';
 import { useInvaderData, computeCollectionStats } from '@/features/invaders';
 import { unregisterPushToken, useNotificationsStore } from '@/features/notifications';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
+import { PlayerAvatar, useMyAvatar } from '@/features/avatar';
 
 export default function ProfileInfoScreen() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function ProfileInfoScreen() {
   const styles = useThemedStyles(makeStyles);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const avatar = useMyAvatar();
   const db = useSQLiteContext();
   const { invaders, progress } = useInvaderData();
 
@@ -62,6 +64,18 @@ export default function ProfileInfoScreen() {
   return (
     <SettingsShell title={t('settings.profileInfo')}>
       {user && (
+        <StatSection title={t('avatar.title')} grid={false}>
+          <Pressable
+            style={({ pressed }) => [styles.avatarRow, pressed && styles.pressed]}
+            onPress={() => { hapticTap(); router.push('/settings/profile-icon'); }}
+          >
+            <PlayerAvatar avatar={avatar} size={56} />
+            <Text style={styles.avatarEdit}>{t('avatar.edit')} ›</Text>
+          </Pressable>
+        </StatSection>
+      )}
+
+      {user && (
         <StatSection title={t('auth.username')} grid={false}>
           <EditableUsername />
         </StatSection>
@@ -94,6 +108,11 @@ function makeStyles(t: ThemeTokens) {
       marginTop: Spacing.three,
     },
     logoutText: { ...arcadeButtonLabel(t, 'danger'), fontSize: FontSize.md },
+    avatarRow: {
+      flexDirection: 'row', alignItems: 'center', gap: Spacing.three,
+      ...arcadeCard(t), padding: Spacing.three,
+    },
+    avatarEdit: { flex: 1, color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.md },
     pressed: { opacity: 0.6 },
   });
 }

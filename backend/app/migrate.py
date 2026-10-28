@@ -209,6 +209,9 @@ MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS friend_code VARCHAR(8)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_friend_code ON users (friend_code)",
 
+    # Profile icon (avatar_service): JSON text, NULL = default icon
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT",
+
     # Scheduled jobs' memory (e.g. InvaderQuest sync: last data versions seen).
     """CREATE TABLE IF NOT EXISTS sync_state (
         key        VARCHAR PRIMARY KEY,

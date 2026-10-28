@@ -158,7 +158,19 @@ def test_overview_has_flash_counts(client, db, alice, bob):
     db.add(UserProgress(user_id=bob.id, invader_id=inv.id))
     db.flush()
     _befriend(client, alice, bob)
-    assert _overview(client, alice)["friends"][0]["flashed_count"] == 1
+    friend = _overview(client, alice)["friends"][0]
+    assert friend["flashed_count"] == 1
+    assert friend["flashed_invader_ids"] == [inv.id]
+
+
+def test_invites_do_not_expose_flashes(client, db, alice, bob):
+    inv = Invader(name="PA_01", latitude=48.0, longitude=2.0, points=10, state="Good")
+    db.add(inv)
+    db.flush()
+    db.add(UserProgress(user_id=bob.id, invader_id=inv.id))
+    db.flush()
+    _invite(client, alice, "Bob")
+    assert _overview(client, alice)["outgoing"][0]["flashed_invader_ids"] == []
 
 
 def test_friend_profile_shows_game_stats_only(client, db, alice, bob):
@@ -202,7 +214,7 @@ def _lookup(client, user, username):
 def test_lookup_returns_real_capitalization(client, alice, bob):
     res = _lookup(client, alice, "bob")
     assert res.status_code == 200
-    assert res.json() == {"user_id": bob.id, "username": "Bob", "relation": "none"}
+    assert res.json() == {"user_id": bob.id, "username": "Bob", "relation": "none", "avatar": None}
 
 
 def test_lookup_is_exact_not_partial(client, alice, bob):

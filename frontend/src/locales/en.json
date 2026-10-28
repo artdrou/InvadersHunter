@@ -312,7 +312,6 @@
   },
   "appearance": {
     "sectionTheme": "Theme",
-    "sectionHunt": "Hunt",
     "sectionMap": "Map",
     "routeGlow": "Route glow",
     "routeGlowSubtitle": "Animated shimmer along the itinerary path",
@@ -754,7 +753,9 @@
     "gotIt": "Got it!"
   },
   "social": {
+    "seeProfile": "See profile",
     "title": "Social",
+    "tabFriends": "Friends",
     "addTitle": "Add a friend",
     "myCode": "My friend code",
     "codeCopy": "Copy",
@@ -780,7 +781,6 @@
     "decline": "Decline",
     "cancel": "Cancel",
     "pending": "Waiting for an answer",
-    "flashedCount": "Invaders flashed: {{count}}",
     "noFriends": "No friends yet. Share your friend code, or add someone with their code or username.",
     "loadFailed": "Couldn't load. Tap to retry.",
     "guestMessage": "Create an account to add friends and compare your maps.",
@@ -816,5 +816,12 @@
     "all": "All",
     "count": "{{count}} to complete",
     "empty": "Nothing to complete with this filter."
+  },
+  "avatar": {
+    "title": "Profile icon",
+    "edit": "Edit icon",
+    "sectionShape": "Shape",
+    "sectionColors": "Colors",
+    "saveFailed": "Couldn't save the icon. Check your connection."
   }
 }
