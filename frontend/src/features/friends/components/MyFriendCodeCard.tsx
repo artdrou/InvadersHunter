@@ -12,23 +12,11 @@ import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-
 import { FloatingText, useFloatingText } from '@/components/FloatingText';
 import { tap as hapticTap, success as hapticSuccess } from '@/features/settings/haptics';
 import { BASE_URL } from '@/services/api-client';
+import { copyToClipboard } from '@/services/clipboard';
 import { useFriendsStore } from '../store';
 import { friendLink } from '../utils';
 
 const COPIED_MS = 1500;
-
-/** expo-clipboard is a native module: loaded on first copy, so an APK built without
- *  it only loses the Copy button instead of crashing on start (the friends barrel is
- *  imported by the map tab). */
-async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    const Clipboard = require('expo-clipboard') as typeof import('expo-clipboard');
-    await Clipboard.setStringAsync(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export function MyFriendCodeCard() {
   const { t } = useTranslation();

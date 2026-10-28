@@ -21,3 +21,12 @@ def test_download_serves_exe_for_host(client, url, host, env):
     assert f"invader-hunter-{env}.up.railway.app" in baked
     for other in {"production", "staging", "development"} - {env}:
         assert f"invader-hunter-{other}.up.railway.app" not in baked
+
+
+def test_web_importer_short_address(client):
+    for path in ("/flash-importer", "/flash-import/web"):
+        res = client.get(path, follow_redirects=False)
+        assert res.status_code == 307 and res.headers["location"] == "/flash-importer/"
+    page = client.get("/flash-importer/")
+    assert page.status_code == 200 and "HintVaders" in page.text
+    assert client.get("/flash-importer/app.js").status_code == 200

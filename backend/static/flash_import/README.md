@@ -1,4 +1,19 @@
-# Flash Import Tool (Windows)
+# Flash Import Tool
+
+## Web page (recommended)
+
+`web/` — browser importer, served at `/flash-import/web`. Talks to the phone
+over WebUSB (Chrome / Edge / Opera on desktop), so nothing to install and it
+works on Windows, macOS and Linux. Flow: detect phone → log in → analyse
+(mirror preview) → sync with backup (`GET /flash-import/snapshot`), verify,
+and automatic revert (`POST /flash-import/restore`) on failure.
+
+- `web/phone.js` is generated: edit `dev/flash-import-web/src/phone.js`, then
+  `cd dev/flash-import-web && npm install && npm run build`.
+- Tutorial screenshots go in `web/img/` (see `web/img/README.md`).
+- The page only ever calls the backend that serves it (same origin).
+
+## Windows tool (fallback)
 
 PC-side companion for the HintVaders "Import flashes" feature.
 

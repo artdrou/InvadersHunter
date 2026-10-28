@@ -1,9 +1,9 @@
 /**
  * Flash Import — tutorial screen.
  *
- * Self-contained route for the "Import flashes" feature. Explains the PC-side
- * workflow (USB debugging + adb + Python script) and offers a manual paste
- * fallback that posts directly to /flash-import/.
+ * Self-contained route for the "Import flashes" feature. Points to the browser
+ * importer (hintvaders.app/flash-importer, with Copy / Send for the link), then
+ * the Windows tool and a manual paste fallback that posts to /flash-import/.
  *
  * Feature code lives in @/features/flash-import. Keep all UI/logic for this
  * feature local — do not mix into other screens.
@@ -11,7 +11,7 @@
 import { useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, Pressable, StyleSheet,
-  TextInput, ActivityIndicator, Alert, Linking,
+  TextInput, ActivityIndicator, Alert, Linking, Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,11 +20,17 @@ import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, AppFont } from '@/constants/theme';
-import { importFlashes, SCRIPT_DOWNLOAD_URL, type FlashImportResponse } from '@/features/flash-import';
+import {
+  importFlashes, SCRIPT_DOWNLOAD_URL, WEB_IMPORTER_URL, displayUrl, type FlashImportResponse,
+} from '@/features/flash-import';
 import { apiErrorDetail } from '@/services/api-client';
+import { copyToClipboard } from '@/services/clipboard';
+import { tap as hapticTap, success as hapticSuccess } from '@/features/settings/haptics';
 import { useInvaderStore } from '@/features/invaders';
 import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
+
+const COPIED_MS = 1500;
 
 export default function FlashImportScreen() {
   const router = useRouter();
@@ -35,8 +41,6 @@ export default function FlashImportScreen() {
     { n: 1, title: t('flashImport.step1Title'), body: t('flashImport.step1Body') },
     { n: 2, title: t('flashImport.step2Title'), body: t('flashImport.step2Body') },
     { n: 3, title: t('flashImport.step3Title'), body: t('flashImport.step3Body') },
-    { n: 4, title: t('flashImport.step4Title'), body: t('flashImport.step4Body') },
-    { n: 5, title: t('flashImport.step5Title'), body: t('flashImport.step5Body') },
   ];
   const insets = useSafeAreaInsets();
   const styles = useMemo(
@@ -49,6 +53,22 @@ export default function FlashImportScreen() {
   const [pasted, setPasted]       = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult]       = useState<FlashImportResponse | null>(null);
+  const [copied, setCopied]       = useState(false);
+
+  async function handleCopy() {
+    if (!(await copyToClipboard(WEB_IMPORTER_URL))) {
+      handleShare();  // no clipboard in this build: the share sheet still gets the link out
+      return;
+    }
+    hapticSuccess();
+    setCopied(true);
+    setTimeout(() => setCopied(false), COPIED_MS);
+  }
+
+  function handleShare() {
+    hapticTap();
+    Share.share({ message: t('flashImport.shareMessage', { link: WEB_IMPORTER_URL }) });
+  }
 
   async function handleDownload() {
     const ok = await Linking.canOpenURL(SCRIPT_DOWNLOAD_URL);
@@ -93,6 +113,23 @@ export default function FlashImportScreen() {
 
       <Text style={styles.intro}>{t('flashImport.intro')}</Text>
 
+      <View style={styles.addressCard}>
+        <Text style={styles.addressLabel}>{t('flashImport.addressLabel')}</Text>
+        <Text style={styles.address} selectable>{displayUrl(WEB_IMPORTER_URL)}</Text>
+        <View style={styles.addressActions}>
+          <Pressable
+            style={({ pressed }) => [styles.primaryBtn, styles.addressBtn, pressed && styles.pressed]}
+            onPress={handleCopy}>
+            <Text style={styles.primaryBtnText}>{copied ? t('flashImport.copied') : t('flashImport.copyBtn')}</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.secondaryBtn, styles.addressBtn, pressed && styles.pressed]}
+            onPress={handleShare}>
+            <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('flashImport.shareBtn')}</ShadowText>
+          </Pressable>
+        </View>
+      </View>
+
       {STEPS.map((s) => (
         <View key={s.n} style={styles.step}>
           <View style={styles.stepBadge}>
@@ -105,13 +142,15 @@ export default function FlashImportScreen() {
         </View>
       ))}
 
-      <Pressable
-        style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
-        onPress={handleDownload}>
-        <Text style={styles.primaryBtnText}>{t('flashImport.downloadBtn')}</Text>
-      </Pressable>
+      <View style={styles.divider} />
 
-      <Text style={styles.note}>{t('flashImport.downloadNote')}</Text>
+      <Text style={styles.sectionTitle}>{t('flashImport.windowsTitle')}</Text>
+      <Text style={styles.note}>{t('flashImport.windowsNote')}</Text>
+      <Pressable
+        style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+        onPress={handleDownload}>
+        <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('flashImport.downloadBtn')}</ShadowText>
+      </Pressable>
 
       <View style={styles.divider} />
 
@@ -176,6 +215,18 @@ function makeStyles(t: ThemeTokens, _appFont: string, scale: number, top: number
       borderRadius: BorderRadius.sm,
       padding: Spacing.three,
     },
+    addressCard: {
+      backgroundColor: t.bgElement,
+      borderColor: t.accent,
+      borderWidth: 1,
+      borderRadius: BorderRadius.sm,
+      padding: Spacing.three,
+      gap: Spacing.two,
+    },
+    addressLabel: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm) },
+    address: { color: t.accent, fontFamily: font, fontSize: sz(FontSize.lg), fontWeight: '600' },
+    addressActions: { flexDirection: 'row', gap: Spacing.two },
+    addressBtn: { flex: 1 },
     stepBadge: {
       width: 28, height: 28, borderRadius: 14,
       backgroundColor: t.accent,
