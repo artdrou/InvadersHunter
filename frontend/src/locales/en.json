@@ -816,5 +816,12 @@
     "all": "All",
     "count": "{{count}} to complete",
     "empty": "Nothing to complete with this filter."
+  },
+  "avatar": {
+    "title": "Profile icon",
+    "edit": "Edit icon",
+    "sectionShape": "Shape",
+    "sectionColors": "Colors",
+    "saveFailed": "Couldn't save the icon. Check your connection."
   }
 }

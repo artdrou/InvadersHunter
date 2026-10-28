@@ -202,7 +202,7 @@ def _lookup(client, user, username):
 def test_lookup_returns_real_capitalization(client, alice, bob):
     res = _lookup(client, alice, "bob")
     assert res.status_code == 200
-    assert res.json() == {"user_id": bob.id, "username": "Bob", "relation": "none"}
+    assert res.json() == {"user_id": bob.id, "username": "Bob", "relation": "none", "avatar": None}
 
 
 def test_lookup_is_exact_not_partial(client, alice, bob):

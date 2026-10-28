@@ -816,5 +816,12 @@
     "all": "Tout",
     "count": "{{count}} à compléter",
     "empty": "Rien à compléter avec ce filtre."
+  },
+  "avatar": {
+    "title": "Icône de profil",
+    "edit": "Modifier l'icône",
+    "sectionShape": "Forme",
+    "sectionColors": "Couleurs",
+    "saveFailed": "Impossible d'enregistrer l'icône. Vérifie ta connexion."
   }
 }

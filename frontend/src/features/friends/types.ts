@@ -1,3 +1,5 @@
+import type { Avatar } from '@/features/avatar/types';
+
 /** One row of the Social tab. `id` is the friendship id (accept / remove). */
 export type FriendEntry = {
   id: number;
@@ -5,6 +7,8 @@ export type FriendEntry = {
   username: string;
   flashed_count: number;
   since: string | null;
+  /** null = default icon */
+  avatar: Avatar | null;
 };
 
 export type FriendsOverview = {
@@ -28,6 +32,7 @@ export type FriendLookup = {
   user_id: number;
   username: string;
   relation: FriendRelation;
+  avatar: Avatar | null;
 };
 
 /** A friend's game stats (no email / private settings). */

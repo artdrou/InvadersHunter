@@ -316,7 +316,7 @@ export default function MarkerCustomizationScreen() {
           disabled={isGenerating}
           onPress={() => { hapticTap(); reset().catch(() => {}); }}
         >
-          <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText}>{t('markerCustomization.reset')}</ShadowText>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText} numberOfLines={1}>{t('markerCustomization.reset')}</ShadowText>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -419,12 +419,13 @@ function makeStyles(t: ThemeTokens) {
 
     // ── Actions ──
     actionsRow: { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.two },
+    // Sized to its label (never wraps), Validate takes the rest of the row
     secondaryBtn: {
-      flex: 1, paddingVertical: 14, alignItems: 'center',
+      paddingVertical: 14, paddingHorizontal: Spacing.three, alignItems: 'center',
       borderRadius: BorderRadius.sm, ...arcadeButton(t, 'outline'),
     },
     secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
-    primaryBtn: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: BorderRadius.sm },
+    primaryBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: BorderRadius.sm },
     primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
   });
 }

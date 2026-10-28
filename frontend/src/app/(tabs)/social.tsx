@@ -24,6 +24,7 @@ import { ISS_INVADER_NAME } from '@/features/iss/constants';
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
+import { PlayerAvatar } from '@/features/avatar';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -160,12 +161,8 @@ export default function SocialScreen() {
     );
   }
 
-  function avatar(name: string) {
-    return (
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{name.charAt(0).toUpperCase()}</Text>
-      </View>
-    );
+  function avatar(who: FriendEntry | FriendLookup) {
+    return <PlayerAvatar avatar={who.avatar} size={36} />;
   }
 
   return (
@@ -233,7 +230,7 @@ export default function SocialScreen() {
                 onPress={() => pickSuggestion(match)}
                 disabled={!selectable}
               >
-                {avatar(match.username)}
+                {avatar(match)}
                 <View style={styles.cardBody}>
                   <Text style={styles.username} numberOfLines={1}>{match.username}</Text>
                   <Text style={styles.meta}>{t(`social.relation.${match.relation}`)}</Text>
@@ -266,7 +263,7 @@ export default function SocialScreen() {
                 <ArcadeSectionLabel title={t('social.incoming', { count: overview.incoming.length })} />
                 {overview.incoming.map((e) => (
                   <View key={e.id} style={styles.card}>
-                    {avatar(e.username)}
+                    {avatar(e)}
                     <View style={styles.cardBody}>
                       <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
                     </View>
@@ -287,7 +284,7 @@ export default function SocialScreen() {
                 <ArcadeSectionLabel title={t('social.outgoing')} />
                 {overview.outgoing.map((e) => (
                   <View key={e.id} style={styles.card}>
-                    {avatar(e.username)}
+                    {avatar(e)}
                     <View style={styles.cardBody}>
                       <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
                       <Text style={styles.meta}>{t('social.pending')}</Text>
@@ -311,7 +308,7 @@ export default function SocialScreen() {
                   style={({ pressed }) => [styles.card, pressed && styles.pressed]}
                   onPress={() => router.push({ pathname: '/friends/[id]', params: { id: String(e.user_id), friendshipId: String(e.id) } })}
                 >
-                  {avatar(e.username)}
+                  {avatar(e)}
                   <View style={styles.cardBody}>
                     <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
                     <Text style={styles.meta}>{t('social.flashedCount', { count: e.flashed_count })}</Text>
@@ -355,12 +352,6 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
       padding: Spacing.three,
       ...arcadeCard(t),
     },
-    avatar: {
-      width: 36, height: 36, borderRadius: 18,
-      alignItems: 'center', justifyContent: 'center',
-      borderWidth: 1, borderColor: t.accent,
-    },
-    avatarText: { color: t.accent, fontFamily: ButtonFont, fontSize: FontSize.lg },
     cardBody: { flex: 1, gap: 2 },
     username: { color: t.text, fontFamily: ButtonFontBold, fontSize: sz(FontSize.md) },
     meta: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
