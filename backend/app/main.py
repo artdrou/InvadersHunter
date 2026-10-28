@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api.routers import users, invaders, user_progress, auth, user_requests, admin_requests, upload, flash_import, apk, news, notifications, account, comments, friends, friend_links, contact, avatar
 from app.migrate import run as run_migrations
-from app.core.environment import environment_for_host
 
 
 @asynccontextmanager
@@ -15,10 +14,11 @@ async def lifespan(app: FastAPI):
     yield
 
 
-# Interactive API docs (/docs, /redoc, /openapi.json) stay on dev and staging only:
-# in production they would hand everyone a map of every route.
-_IS_PRODUCTION = environment_for_host(os.getenv("RAILWAY_PUBLIC_DOMAIN")) == "production"
-_DOCS = {"docs_url": None, "redoc_url": None, "openapi_url": None} if _IS_PRODUCTION else {}
+# Interactive API docs (/docs, /redoc, /openapi.json) only when running locally:
+# on a public Railway backend (dev, staging, prod) they would hand everyone a map
+# of every route. Railway sets RAILWAY_PUBLIC_DOMAIN on each deployed service.
+_ON_RAILWAY = bool(os.getenv("RAILWAY_PUBLIC_DOMAIN"))
+_DOCS = {"docs_url": None, "redoc_url": None, "openapi_url": None} if _ON_RAILWAY else {}
 
 app = FastAPI(title="HintVaders Backend", lifespan=lifespan, **_DOCS)
 
