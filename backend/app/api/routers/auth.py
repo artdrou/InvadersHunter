@@ -1,10 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.schemas.auth import (
     LoginRequest, TokenResponse, RefreshRequest,
     ForgotPasswordRequest, VerifyResetCodeRequest, ResetPasswordRequest, ChangePasswordRequest,
 )
+from app.core.client_ip import client_ip
 from app.dependencies import get_db, get_current_user
 from app.services import auth_service
 from app.services.auth_service import (
@@ -20,6 +21,15 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         return auth_service.login(db, data.username, data.password)
     except InvalidCredentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+    except TooManyAttempts:
+        raise HTTPException(status_code=429, detail="too_many")
+
+
+@router.post("/guest")
+def guest(request: Request):
+    """Guest mode: an anonymous pass that opens the invader catalog (no account)."""
+    try:
+        return auth_service.guest_pass(client_ip(request))
     except TooManyAttempts:
         raise HTTPException(status_code=429, detail="too_many")
 

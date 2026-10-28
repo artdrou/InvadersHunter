@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from ..models.user import User
 from ..models.refresh_token import RefreshToken
 from ..core.security import (
-    verify_password, create_access_token, create_refresh_token, hash_password,
+    verify_password, create_access_token, create_refresh_token, create_guest_pass, hash_password,
 )
 from ..core.email import send_password_changed_email, send_reset_password_email
 from ..core.rate_limit import SlidingWindowLimiter, RateLimited
@@ -38,7 +38,10 @@ RESET_CODE_LIMIT = SlidingWindowLimiter(10, 15 * 60)
 # Reset emails per address (stops flooding someone's inbox)
 RESET_EMAIL_LIMIT = SlidingWindowLimiter(3, 60 * 60)
 
-AUTH_LIMITS = (CHANGE_PASSWORD_LIMIT, LOGIN_LIMIT, RESET_CODE_LIMIT, RESET_EMAIL_LIMIT)
+# Guest passes per IP (a pass lasts 30 days: the app only asks again when it expires)
+GUEST_PASS_LIMIT = SlidingWindowLimiter(20, 60 * 60)
+
+AUTH_LIMITS = (CHANGE_PASSWORD_LIMIT, LOGIN_LIMIT, RESET_CODE_LIMIT, RESET_EMAIL_LIMIT, GUEST_PASS_LIMIT)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -80,6 +83,12 @@ def login(db: Session, username: str, password: str) -> dict:
         "refresh_token": refresh_token_value,
         "token_type": "bearer",
     }
+
+
+def guest_pass(client_ip: str) -> dict:
+    """Anonymous pass for guest mode (map catalog only), limited per IP."""
+    _limit(GUEST_PASS_LIMIT, f"ip:{client_ip}")
+    return {"access_token": create_guest_pass(), "token_type": "bearer"}
 
 
 def refresh(db: Session, refresh_token: str) -> dict:

@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.schemas.user import UserCreate, UserOut, UserUpdate, UserAdminProfileOut
+from app.core.client_ip import client_ip
 from app.dependencies import get_db, get_current_user, require_admin
 from app.services import user_service, deletion_service, data_export_service
-from app.services.user_service import UserMissing, UsernameTaken, EmailTaken
+from app.services.user_service import UserMissing, UsernameTaken, EmailTaken, TooManySignups
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -33,18 +34,21 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db), _admin=Depends
 @router.post("/", response_model=UserOut)
 async def create_user(
     user: UserCreate,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     # Public: this is the registration endpoint
     try:
         new_user, welcome_email_fn, email_address = user_service.register(
-            db, user.username, user.email, user.password
+            db, user.username, user.email, user.password, client_ip=client_ip(request),
         )
     except UsernameTaken:
         raise HTTPException(status_code=400, detail="Username already exists")
     except EmailTaken:
         raise HTTPException(status_code=400, detail="Email already exists")
+    except TooManySignups:
+        raise HTTPException(status_code=429, detail="too_many")
 
     background_tasks.add_task(welcome_email_fn, email_address)
     return new_user

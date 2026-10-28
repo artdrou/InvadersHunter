@@ -276,6 +276,7 @@
     "register": {
       "button": "Create account",
       "failed": "Registration failed",
+      "tooMany": "Too many accounts created from this network. Try again in an hour.",
       "alreadyAccount": "Already have an account?",
       "loginLink": "Login"
     },

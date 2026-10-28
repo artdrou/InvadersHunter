@@ -276,6 +276,7 @@
     "register": {
       "button": "Créer un compte",
       "failed": "Inscription échouée",
+      "tooMany": "Trop de comptes créés depuis ce réseau. Réessayez dans une heure.",
       "alreadyAccount": "Déjà un compte ?",
       "loginLink": "Connexion"
     },

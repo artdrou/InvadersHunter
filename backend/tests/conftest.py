@@ -76,8 +76,8 @@ def db():
 def _reset_auth_limits():
     """Login / reset limits are per username or email and live for the whole
     process: without this, tests reusing "alice" would trip them."""
-    from app.services import auth_service
-    for limiter in auth_service.AUTH_LIMITS:
+    from app.services import auth_service, user_service
+    for limiter in (*auth_service.AUTH_LIMITS, user_service.SIGNUP_LIMIT):
         limiter.clear()
 
 
@@ -99,3 +99,9 @@ def make_token(user: User) -> str:
 
 def auth_headers(user: User) -> dict:
     return {"Authorization": f"Bearer {make_token(user)}"}
+
+
+def guest_headers() -> dict:
+    """A guest pass: opens the invader catalog, nothing else."""
+    from app.core.security import create_guest_pass
+    return {"Authorization": f"Bearer {create_guest_pass()}"}
