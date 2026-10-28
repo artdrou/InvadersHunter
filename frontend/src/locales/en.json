@@ -261,6 +261,8 @@
     "appTitle": "HINTVADERS",
     "username": "Username",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "email": "Email",
     "login": {
       "button": "Login",

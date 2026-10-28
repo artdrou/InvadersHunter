@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState('');
@@ -57,11 +58,10 @@ export default function RegisterScreen() {
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder={t('auth.password')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
