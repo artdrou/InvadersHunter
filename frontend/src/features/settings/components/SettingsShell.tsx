@@ -4,7 +4,7 @@
  * setting controls.
  */
 import { ReactNode } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +33,9 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
   const styles = makeStyles(theme);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+    // Edge-to-edge Android no longer resizes the window for the keyboard: pad it ourselves
+    // so a focused field stays above it.
+    <KeyboardAvoidingView style={[styles.container, { paddingTop: insets.top + Spacing.three }]} behavior="padding">
       <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable
@@ -51,7 +53,7 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
       ) : (
         <View style={styles.body}>{children}</View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
