@@ -31,7 +31,8 @@ export default function RegisterScreen() {
       const { accessToken, refreshToken } = await registerUser(username, email, password);
       login(accessToken, refreshToken);
     } catch (err) {
-      setError(apiErrorDetail(err) ?? t('auth.register.failed'));
+      const detail = apiErrorDetail(err);
+      setError(detail === 'too_many' ? t('auth.register.tooMany') : detail ?? t('auth.register.failed'));
     } finally {
       setLoading(false);
     }

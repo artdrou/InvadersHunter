@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
@@ -13,7 +14,13 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="HintVaders Backend", lifespan=lifespan)
+# Interactive API docs (/docs, /redoc, /openapi.json) only when running locally:
+# on a public Railway backend (dev, staging, prod) they would hand everyone a map
+# of every route. Railway sets RAILWAY_PUBLIC_DOMAIN on each deployed service.
+_ON_RAILWAY = bool(os.getenv("RAILWAY_PUBLIC_DOMAIN"))
+_DOCS = {"docs_url": None, "redoc_url": None, "openapi_url": None} if _ON_RAILWAY else {}
+
+app = FastAPI(title="HintVaders Backend", lifespan=lifespan, **_DOCS)
 
 app.add_middleware(
     CORSMiddleware,

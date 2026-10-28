@@ -15,7 +15,7 @@ from app.models.user_request import UserRequest
 from app.models.admin_request import AdminRequest
 from app.services.user_request_service import aggregate_request, compute_confidence
 from app.services import admin_request_service
-from tests.conftest import auth_headers
+from tests.conftest import auth_headers, guest_headers
 
 
 # ── shared fixtures ───────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ def test_confidence_is_integer():
 # ── GET /invaders/{id} ───────────────────────────────────────────────────────
 
 def test_get_invader_by_id_returns_correct_invader(db, client, invader):
-    res = client.get(f"/invaders/{invader.id}")
+    res = client.get(f"/invaders/{invader.id}", headers=guest_headers())
     assert res.status_code == 200
     data = res.json()
     assert data["id"] == invader.id
@@ -278,7 +278,7 @@ def test_get_invader_by_id_returns_correct_invader(db, client, invader):
 
 
 def test_get_invader_by_id_404_for_missing(db, client):
-    res = client.get("/invaders/99999")
+    res = client.get("/invaders/99999", headers=guest_headers())
     assert res.status_code == 404
 
 
@@ -332,7 +332,7 @@ def test_invader_contributors_tracks_creator_and_modifiers(db, client, users):
     admin_request_service.approve(db, modify_ar, admin)
     db.commit()
 
-    res = client.get(f"/invaders/{invader_id}/contributors")
+    res = client.get(f"/invaders/{invader_id}/contributors", headers=guest_headers())
     assert res.status_code == 200
     data = res.json()
     assert data["created_by"]["username"] == "u1"
@@ -341,5 +341,5 @@ def test_invader_contributors_tracks_creator_and_modifiers(db, client, users):
 
 
 def test_invader_contributors_404_for_missing_invader(db, client):
-    res = client.get("/invaders/99999/contributors")
+    res = client.get("/invaders/99999/contributors", headers=guest_headers())
     assert res.status_code == 404

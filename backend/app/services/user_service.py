@@ -22,6 +22,7 @@ from ..core.email import (
     send_username_changed_email,
 )
 from ..core.db_utils import safe_commit
+from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
@@ -29,6 +30,12 @@ from ..core.db_utils import safe_commit
 class UserMissing(Exception): ...
 class UsernameTaken(Exception): ...
 class EmailTaken(Exception): ...
+class TooManySignups(Exception): ...
+
+
+# Accounts created per IP (stops scripted sign-ups). Not lower: mobile carriers
+# put many phones behind one IP.
+SIGNUP_LIMIT = SlidingWindowLimiter(10, 60 * 60)
 
 
 # ── Public service API ───────────────────────────────────────────────────────
@@ -84,13 +91,19 @@ def get_admin_profile(db: Session, user_id: int) -> dict:
     }
 
 
-def register(db: Session, username: str, email: str, password: str) -> Tuple[User, Callable, str]:
+def register(db: Session, username: str, email: str, password: str,
+             client_ip: str = "?") -> Tuple[User, Callable, str]:
     """Create a new user. Returns (user, welcome_email_fn, email_address) so the
-    router can schedule the welcome email as a background task post-commit."""
+    router can schedule the welcome email as a background task post-commit.
+    Only accounts actually created count toward the per-IP limit."""
     if db.query(User).filter(User.username == username).first():
         raise UsernameTaken()
     if db.query(User).filter(User.email == email).first():
         raise EmailTaken()
+    try:
+        SIGNUP_LIMIT.hit(f"ip:{client_ip}")
+    except RateLimited:
+        raise TooManySignups()
 
     user = User(
         username=username,

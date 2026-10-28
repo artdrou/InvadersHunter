@@ -267,6 +267,7 @@
     "login": {
       "button": "Connexion",
       "invalid": "Identifiant ou mot de passe invalide",
+      "tooMany": "Trop de tentatives. Réessayez dans 15 minutes.",
       "noAccount": "Pas de compte ?",
       "createOne": "En créer un",
       "forgotPassword": "Mot de passe oublié ?",
@@ -275,6 +276,7 @@
     "register": {
       "button": "Créer un compte",
       "failed": "Inscription échouée",
+      "tooMany": "Trop de comptes créés depuis ce réseau. Réessayez dans une heure.",
       "alreadyAccount": "Déjà un compte ?",
       "loginLink": "Connexion"
     },

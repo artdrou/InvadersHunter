@@ -11,7 +11,7 @@ from app.models.invader_comment import InvaderComment
 from app.services.moderation_service import ModerationResult
 from app.core.security import hash_password
 
-from tests.conftest import auth_headers
+from tests.conftest import auth_headers, guest_headers
 
 CLEAN = ModerationResult(flagged=False, categories=[])
 FLAGGED = ModerationResult(flagged=True, categories=["harassment", "hate"])
@@ -360,7 +360,7 @@ def test_overview_bundles_contributors_and_comments(client, db, user, other_user
     top = _make_comment(db, invader, user, body="great tip")
     client.post(f"/comments/{top.id}/react", json={"value": 1}, headers=auth_headers(other_user))
 
-    body = client.get(f"/invaders/{invader.id}/overview").json()
+    body = client.get(f"/invaders/{invader.id}/overview", headers=guest_headers()).json()
     assert "contributors" in body and "comments" in body
     assert body["comments"]["count"] == 1
     assert body["comments"]["top"]["body"] == "great tip"
@@ -370,7 +370,7 @@ def test_overview_bundles_contributors_and_comments(client, db, user, other_user
 
 
 def test_overview_unknown_invader_404(client):
-    assert client.get("/invaders/999/overview").status_code == 404
+    assert client.get("/invaders/999/overview", headers=guest_headers()).status_code == 404
 
 
 # ── moderation service unit tests ─────────────────────────────────────────────

@@ -1,13 +1,33 @@
 import axios, { isAxiosError } from 'axios';
 import { useAuthStore } from '@/features/auth/store';
+import { createSingleFlight } from './single-flight';
 
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL!;
 
 export const api = axios.create({ baseURL: BASE_URL });
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+/** The invader catalog isn't public: in guest mode, requests carry an anonymous
+ *  pass (POST /auth/guest, valid 30 days). Fetched on first need, renewed on 401. */
+const guestPassFlight = createSingleFlight();
+
+function fetchGuestPass(): Promise<void> {
+  return guestPassFlight.run(async () => {
+    const res = await axios.post(`${BASE_URL}/auth/guest`);
+    useAuthStore.getState().setGuestToken(res.data.access_token);
+  });
+}
+
+api.interceptors.request.use(async (config) => {
+  const { token, isGuest } = useAuthStore.getState();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  } else if (isGuest) {
+    if (!useAuthStore.getState().guestToken) {
+      await fetchGuestPass().catch(() => {});  // offline: the request fails on its own
+    }
+    const guestToken = useAuthStore.getState().guestToken;
+    if (guestToken) config.headers.Authorization = `Bearer ${guestToken}`;
+  }
   return config;
 });
 
@@ -27,7 +47,18 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const { refreshToken, setTokens, logout } = useAuthStore.getState();
+    const { refreshToken, setTokens, logout, isGuest, setGuestToken } = useAuthStore.getState();
+    if (!refreshToken && isGuest) {
+      // Expired guest pass: get a new one and retry once (never leaves guest mode)
+      original._retry = true;
+      setGuestToken(null);
+      try {
+        await fetchGuestPass();
+      } catch {
+        return Promise.reject(error);
+      }
+      return api(original);
+    }
     if (!refreshToken) {
       logout();
       return Promise.reject(error);

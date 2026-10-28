@@ -267,6 +267,7 @@
     "login": {
       "button": "Login",
       "invalid": "Invalid username or password",
+      "tooMany": "Too many attempts. Try again in 15 minutes.",
       "noAccount": "No account?",
       "createOne": "Create one",
       "forgotPassword": "Forgot password?",
@@ -275,6 +276,7 @@
     "register": {
       "button": "Create account",
       "failed": "Registration failed",
+      "tooMany": "Too many accounts created from this network. Try again in an hour.",
       "alreadyAccount": "Already have an account?",
       "loginLink": "Login"
     },

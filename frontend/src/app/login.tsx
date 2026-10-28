@@ -30,8 +30,9 @@ export default function LoginScreen() {
     try {
       const { accessToken, refreshToken } = await loginUser(username, password);
       login(accessToken, refreshToken);
-    } catch {
-      setError(t('auth.login.invalid'));
+    } catch (e) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      setError(t(status === 429 ? 'auth.login.tooMany' : 'auth.login.invalid'));
     } finally {
       setLoading(false);
     }
