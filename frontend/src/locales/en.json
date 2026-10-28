@@ -442,10 +442,11 @@
     "resultInvaderMany": "{{count}} invaders",
     "resultSuffix": "{{minutes}} min · {{km}} km",
     "detourMinutes": "+{{minutes}} min detour",
-    "start": "Start"
+    "compute": "Route"
   },
   "hunt": {
     "go": "Go!",
+    "start": "Start",
     "recenter": "Recenter",
     "exit": "Exit"
   },

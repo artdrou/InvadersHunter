@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/theme-context'
 import type { InvaderWithState } from '@/features/invaders/types'
 import { isNonFlashable } from '@/features/invaders/types'
 import { InfoButton, TutorialModal } from '@/features/tutorial'
+import { ArcadeTitle } from '@/components/ArcadeTitle'
 import type { RoutingParams, RouteResult } from '../../types'
 import { useAddressSearch } from '../../hooks/use-address-search'
 import { makeStyles } from './styles'
@@ -34,6 +35,8 @@ type Props = {
   onCompute: (params: RoutingParams) => void
   onClear: () => void
   onClearMulti: () => void
+  /** Enters the hunt view along the computed route. */
+  onStartHunt?: () => void
   userLocation: [number, number] | null
 }
 
@@ -42,7 +45,7 @@ export function RoutingSheet({
   onSetCoords, onClearCoords, onPickOnMap,
   allInvaders, multiInvaders,
   loading, error, route,
-  onCompute, onClear, onClearMulti,
+  onCompute, onClear, onClearMulti, onStartHunt,
   userLocation,
 }: Props) {
   const { theme, appFont, fontScale } = useTheme()
@@ -118,7 +121,7 @@ export function RoutingSheet({
         <View pointerEvents="auto">
           {/* Panel title */}
           <View style={[s.titleRow, { borderBottomColor: theme.bgDivider }]}>
-            <Text style={[s.titleText, { color: theme.accent }]}>{t('routing.modeAB')}</Text>
+            <ArcadeTitle text={t('routing.modeAB')} size={18} style={s.titleText} />
             <InfoButton onPress={() => setTutorialVisible(true)} color={theme.accent} />
           </View>
 
@@ -194,7 +197,7 @@ export function RoutingSheet({
               {!optionsOpen && (
                 <ComputeButton
                   route={route} canCompute={canCompute} loading={loading}
-                  onCompute={handleCompute} onCancel={cancelRoute}
+                  onCompute={handleCompute} onCancel={cancelRoute} onStart={onStartHunt}
                   theme={theme} s={s}
                 />
               )}
@@ -218,7 +221,7 @@ export function RoutingSheet({
                 detourMin={detourMin} setDetourMin={setDetourMin}
                 durationMin={durationMin} setDurationMin={setDurationMin}
                 route={route} canCompute={canCompute} loading={loading}
-                onCompute={handleCompute} onCancel={cancelRoute}
+                onCompute={handleCompute} onCancel={cancelRoute} onStart={onStartHunt}
                 theme={theme} s={s}
               />
             )}

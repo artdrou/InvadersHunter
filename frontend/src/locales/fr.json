@@ -442,9 +442,10 @@
     "resultInvaderMany": "{{count}} invaders",
     "resultSuffix": "{{minutes}} min · {{km}} km",
     "detourMinutes": "+{{minutes}} min de détour",
-    "start": "Démarrer"
+    "compute": "Itinéraire"
   },
   "hunt": {
+    "start": "Démarrer",
     "go": "Go !",
     "recenter": "Recentrer",
     "exit": "Quitter"

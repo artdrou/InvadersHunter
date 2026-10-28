@@ -315,6 +315,12 @@ export default function MapScreen() {
     mapRef.current?.centerOn(lat, lon, 0, MapZoom.detail);
   }
 
+  function startHunt() {
+    routing.setSheetOpen(false);
+    setIsFollowing(false);
+    hunt.start();
+  }
+
   const anyCreating = create.anyActive || routing.pickerTarget !== null;
   // Locate / compass buttons move above the pickers' Cancel / Validate bar.
   const pickerBarShown = picking !== null || create.pickLoc !== null || routing.pickerTarget !== null;
@@ -494,7 +500,7 @@ export default function MapScreen() {
 
       {/* ── Hunt view: Go once a route is drawn, then Recenter / Exit ── */}
       {hunt.available && !hunt.hunting && !routing.sheetOpen && !picking && !anyCreating && !selectedInvader && (
-        <HuntGoButton onPress={() => { setIsFollowing(false); hunt.start(); }} />
+        <HuntGoButton onPress={startHunt} />
       )}
       {hunt.hunting && <HuntBar paused={hunt.paused} onRecenter={hunt.recenter} onExit={hunt.stop} />}
 
@@ -524,6 +530,7 @@ export default function MapScreen() {
           onCompute={routing.onCompute}
           onClear={routing.clearRoute}
           onClearMulti={() => routing.setMultiInvaders([])}
+          onStartHunt={hunt.available ? startHunt : undefined}
         />
       )}
 

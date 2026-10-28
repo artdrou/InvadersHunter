@@ -34,7 +34,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingBottom: Spacing.two,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    titleText: { fontFamily: ButtonFont, fontSize: FontSize.xl, letterSpacing: 1 },
+    titleText: { flexShrink: 1 },
 
     // Fields container
     fields: {
@@ -72,6 +72,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingHorizontal: Spacing.two + 2, paddingVertical: 6,
       borderRadius: BorderRadius.sm,
     },
+    actionRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     actionBtnText: { fontFamily: ButtonFont, fontSize: FontSize.xs },
 
     // Collapsible options
