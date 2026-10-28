@@ -3,11 +3,11 @@
  * behind the whole screen, then the stacked HintVaders logo and the screen's form right
  * below it. The logo takes almost the whole width but shrinks so the form stays on
  * screen (same size on screens whose form is not taller than login's); the column
- * scrolls when the keyboard opens.
+ * shrinks above the keyboard and scrolls, so the field being typed in stays visible.
  * Artwork: design/logo/wordmark.py.
  */
 import { ReactNode, useState } from 'react';
-import { View, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Image, ScrollView, KeyboardAvoidingView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
@@ -38,6 +38,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <StreetsBackground />
+      {/* Edge-to-edge Android no longer resizes the window for the keyboard: pad it ourselves */}
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -56,6 +58,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           {children}
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
