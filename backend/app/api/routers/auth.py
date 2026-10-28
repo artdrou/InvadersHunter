@@ -20,6 +20,8 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         return auth_service.login(db, data.username, data.password)
     except InvalidCredentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+    except TooManyAttempts:
+        raise HTTPException(status_code=429, detail="too_many")
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -63,6 +65,8 @@ def verify_reset_code(data: VerifyResetCodeRequest, db: Session = Depends(get_db
         auth_service.verify_reset_code(db, data.email, data.token)
     except InvalidResetCode:
         raise HTTPException(status_code=400, detail="Invalid or expired code")
+    except TooManyAttempts:
+        raise HTTPException(status_code=429, detail="too_many")
     return {"message": "Code is valid"}
 
 
@@ -74,4 +78,6 @@ def reset_password(data: ResetPasswordRequest, background_tasks: BackgroundTasks
                                     schedule=background_tasks.add_task)
     except InvalidResetCode:
         raise HTTPException(status_code=400, detail="Invalid or expired code")
+    except TooManyAttempts:
+        raise HTTPException(status_code=429, detail="too_many")
     return {"message": "Password updated successfully"}

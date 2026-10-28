@@ -72,6 +72,15 @@ def db():
         conn.commit()
 
 
+@pytest.fixture(autouse=True)
+def _reset_auth_limits():
+    """Login / reset limits are per username or email and live for the whole
+    process: without this, tests reusing "alice" would trip them."""
+    from app.services import auth_service
+    for limiter in auth_service.AUTH_LIMITS:
+        limiter.clear()
+
+
 @pytest.fixture()
 def client(db):
     """TestClient wired to the test DB session via dependency override."""

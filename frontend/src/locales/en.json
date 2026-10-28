@@ -267,6 +267,7 @@
     "login": {
       "button": "Login",
       "invalid": "Invalid username or password",
+      "tooMany": "Too many attempts. Try again in 15 minutes.",
       "noAccount": "No account?",
       "createOne": "Create one",
       "forgotPassword": "Forgot password?",

@@ -30,9 +30,25 @@ class TooManyAttempts(Exception): ...
 # Wrong current passwords allowed per account before a pause (stops guessing it
 # from an unlocked phone)
 CHANGE_PASSWORD_LIMIT = SlidingWindowLimiter(5, 15 * 60)
+# Login attempts per username (stops password guessing on one account)
+LOGIN_LIMIT = SlidingWindowLimiter(10, 15 * 60)
+# Reset-code checks per email, verify + reset together (a code has 1M values and
+# lives 15 min: without a cap it can be guessed)
+RESET_CODE_LIMIT = SlidingWindowLimiter(10, 15 * 60)
+# Reset emails per address (stops flooding someone's inbox)
+RESET_EMAIL_LIMIT = SlidingWindowLimiter(3, 60 * 60)
+
+AUTH_LIMITS = (CHANGE_PASSWORD_LIMIT, LOGIN_LIMIT, RESET_CODE_LIMIT, RESET_EMAIL_LIMIT)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _limit(limiter: SlidingWindowLimiter, key: str) -> None:
+    try:
+        limiter.hit(key)
+    except RateLimited:
+        raise TooManyAttempts()
+
 
 def _is_expired(dt) -> bool:
     """Compare a (possibly naive) DB datetime against the current aware UTC clock."""
@@ -52,6 +68,7 @@ def _issue_token_pair(db: Session, user: User) -> Tuple[str, str]:
 # ── Public service API ───────────────────────────────────────────────────────
 
 def login(db: Session, username: str, password: str) -> dict:
+    _limit(LOGIN_LIMIT, f"user:{username.strip().lower()}")
     user = db.query(User).filter(User.username == username).first()
     if not user or not verify_password(password, user.hashed_password):
         raise InvalidCredentials()
@@ -103,6 +120,10 @@ async def request_password_reset(db: Session, username: str, email: str) -> None
     ).first()
     if not user:
         return
+    try:
+        RESET_EMAIL_LIMIT.hit(f"email:{email.strip().lower()}")
+    except RateLimited:
+        return  # silent: same reply as for an unknown account
 
     code = str(random.randint(100000, 999999))
     user.reset_code = code
@@ -112,6 +133,7 @@ async def request_password_reset(db: Session, username: str, email: str) -> None
 
 
 def verify_reset_code(db: Session, email: str, token: str) -> None:
+    _limit(RESET_CODE_LIMIT, f"email:{email.strip().lower()}")
     user = db.query(User).filter(User.email == email).first()
     if (
         not user
@@ -126,10 +148,7 @@ def change_password(db: Session, user: User, current_password: str, new_password
                     schedule: Optional[Callable] = None) -> None:
     """Signed-in password change: the current password must match. `schedule`
     receives the "password changed" email, as for reset_password."""
-    try:
-        CHANGE_PASSWORD_LIMIT.hit(f"user:{user.id}")
-    except RateLimited:
-        raise TooManyAttempts()
+    _limit(CHANGE_PASSWORD_LIMIT, f"user:{user.id}")
     if not verify_password(current_password, user.hashed_password):
         raise InvalidCredentials()
 
@@ -143,6 +162,7 @@ def reset_password(db: Session, email: str, token: str, new_password: str,
                    schedule: Optional[Callable] = None) -> None:
     """`schedule(fn, *args, **kwargs)` (e.g. BackgroundTasks.add_task) receives the
     "password changed" email, sent after the commit."""
+    _limit(RESET_CODE_LIMIT, f"email:{email.strip().lower()}")
     user = db.query(User).filter(User.email == email).first()
     if (
         not user
