@@ -1,5 +1,5 @@
 // On-device marker rasterizer: takes the user's shape/color/opacity choices
-// and produces the same 30 PNG variants (6 point tiers x 5 states) the app
+// and produces the same 42 PNG variants (6 point tiers x 7 states) the app
 // ships with by default, but generated with Skia instead of the offline
 // sharp/Node pipeline in dev/markers/. Mirrors dev/markers/build.mjs's
 // buildMarker() (trim + normalize + center + gaussian-blur glow) so the
@@ -107,7 +107,7 @@ function fitCenteredRect(bbox: { width: number; height: number }, boxPx: number,
 // tintSvg only ever rewrites `fill` colors — it never touches which pixels are
 // opaque — and the SVG is always rasterized at the fixed SVG_RASTER size, so the
 // trimmed bounding box is a pure function of the source SVG (independent of tint color
-// and output size). Caching it means the 5 states sharing a tier's shape only
+// and output size). Caching it means the 7 states sharing a tier's shape only
 // pay for one full pixel scan instead of 5.
 const bboxCache = new Map<string, { x: number; y: number; width: number; height: number }>();
 
@@ -232,22 +232,45 @@ export function renderShapeBase64(
   }
 }
 
-function outputName(tier: TierPts, state: 'rarity' | CustomizableState): string {
+// Shared map with a friend: only I flashed it (green) / only my friend did
+// (orange). Not user-colored — same hues as the bundled sprites and the legend
+// (FriendMarkerColor) — but drawn with the user's shapes.
+type SharedMapState = 'flashMine' | 'flashFriend';
+type GeneratedState = 'rarity' | SharedMapState | CustomizableState;
+
+const SHARED_MAP_PALETTE: Record<SharedMapState, MarkerPalette> = {
+  flashMine: { icon: '#1FFF5A', glow: '#00B32D' },
+  flashFriend: { icon: '#FF7A00', glow: '#B35400' },
+};
+
+function outputName(tier: TierPts, state: GeneratedState): string {
   if (state === 'grey') return `marker-${tier}pts-grey`;
   if (state === 'rarity') return `marker-${tier}pts-rarity`;
   if (state === 'highlight') return `marker-${tier}pts-highlight`;
+  if (state === 'flashMine') return `marker-${tier}pts-flash-mine`;
+  if (state === 'flashFriend') return `marker-${tier}pts-flash-friend`;
   return `marker-${tier}pts-flash-${state === 'flashCaptured' ? 'captured' : 'uncaptured'}`;
 }
 
-const STATE_KEYS: Array<'rarity' | CustomizableState> = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
+const STATE_KEYS: GeneratedState[] = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey', 'flashMine', 'flashFriend'];
 
 // The deterministic set of iconKeys / file basenames a full generation writes.
 export const GENERATED_MARKER_NAMES: string[] = TIER_VALUES.flatMap((tier) =>
   STATE_KEYS.map((state) => outputName(tier, state)),
 );
 
-function paletteFor(state: 'rarity' | CustomizableState, tier: TierPts, colors: MarkerColorPrefs): MarkerPalette {
-  return state === 'rarity' ? RARITY_PALETTE[tier] : colors[state];
+function paletteFor(state: GeneratedState, tier: TierPts, colors: MarkerColorPrefs): MarkerPalette {
+  if (state === 'rarity') return RARITY_PALETTE[tier];
+  if (state === 'flashMine' || state === 'flashFriend') return SHARED_MAP_PALETTE[state];
+  return colors[state];
+}
+
+function bloomIndexFor(state: GeneratedState, bloom: Record<CustomizableState, number>): number {
+  // "rarity" isn't user-customizable — keep it at the default bloom.
+  if (state === 'rarity') return DEFAULT_BLOOM_INDEX;
+  // The bundled shared-map sprites are recolored uncaptured ones: same glow.
+  if (state === 'flashMine' || state === 'flashFriend') return bloom.flashUncaptured;
+  return bloom[state];
 }
 
 export type GeneratedMarkerSet = Record<string, string>; // iconKey -> file:// uri
@@ -260,12 +283,15 @@ const MARKERS_ROOT = new FileSystem.Directory(FileSystem.Paths.document, 'marker
 // and rebuild here, because the absolute document-directory path is not stable
 // across app updates/reinstalls on iOS — persisting the absolute URIs directly
 // would leave them dangling (blank markers) after an update.
+// Only files that exist are returned: a generation from an older app version
+// lacks the newer variants, which then fall back to the bundled sprites.
 export function resolveMarkerSet(dirName: string): GeneratedMarkerSet | null {
   const dir = new FileSystem.Directory(MARKERS_ROOT, dirName);
   if (!dir.exists) return null;
   const markers: GeneratedMarkerSet = {};
   for (const name of GENERATED_MARKER_NAMES) {
-    markers[name] = new FileSystem.File(dir, `${name}.png`).uri;
+    const file = new FileSystem.File(dir, `${name}.png`);
+    if (file.exists) markers[name] = file.uri;
   }
   return markers;
 }
@@ -276,7 +302,7 @@ function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-// Regenerates all 30 marker PNGs from the user's prefs and writes them to a
+// Regenerates all 42 marker PNGs from the user's prefs and writes them to a
 // fresh, timestamped subfolder. Older generations are only pruned *after*
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
@@ -295,9 +321,7 @@ export async function generateMarkerSet(
       const shapeId = shapeForTier[tier] ?? tier;
       for (const state of STATE_KEYS) {
         const { icon, glow } = paletteFor(state, tier, colors);
-        // "rarity" isn't user-customizable — keep it at the default bloom.
-        const bloomIdx = state === 'rarity' ? DEFAULT_BLOOM_INDEX : bloom[state];
-        const base64 = renderMarkerBase64(shapeId, icon, glow, SIZE, bloomIdx);
+        const base64 = renderMarkerBase64(shapeId, icon, glow, SIZE, bloomIndexFor(state, bloom));
         const name = outputName(tier, state);
         const file = new FileSystem.File(dir, `${name}.png`);
         file.write(base64, { encoding: 'base64' });
