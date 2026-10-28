@@ -11,7 +11,7 @@ import {
   WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar,
   applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon,
 } from "@/features/map";
-import type { MapFilter } from "@/features/map";
+import type { MapFilter, MapFilterBarHandle } from "@/features/map";
 import type { WebMapHandle } from "@/features/map/components/WebMap.native";
 import { MapLocationPicker, PICKER_BAR_HEIGHT } from "@/features/map/components/MapLocationPicker";
 import { CreateHerePopup } from "@/features/map/components/CreateHerePopup";
@@ -32,6 +32,8 @@ import { hapticSuccess, hapticDisappoint, hapticTap } from "@/features/settings"
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
 import { RouteLayer } from "@/features/routing/components/RouteLayer";
+
+const MAP_TAP_GUARD_MS = 400;
 
 export default function MapScreen() {
   const { t } = useTranslation();
@@ -55,6 +57,9 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const newsUnread = useNewsUnreadCount();
   const mapRef = useRef<WebMapHandle>(null);
+  const filterBarRef = useRef<MapFilterBarHandle>(null);
+  // A marker tap can also reach the map's own onPress: don't let it close the popup it opens.
+  const lastInvaderTapRef = useRef(0);
 
   // Self-contained flows (routing / create-invader / toast) live in their own hooks.
   const routing = useMapRouting(mapRef);
@@ -157,11 +162,22 @@ export default function MapScreen() {
   const creatingActive = create.anyActive;
   const handleInvaderClick = useCallback((tapped: InvaderWithState) => {
     const invader = ownInvadersById.get(tapped.id) ?? tapped;
+    lastInvaderTapRef.current = Date.now();
     if (routingSheetOpen) { toggleInvaderSelection(invader); return; }
     if (picking || creatingActive) return;
     selectedInvaderRef.current = invader;
     setSelectedInvader(invader);
   }, [ownInvadersById, routingSheetOpen, toggleInvaderSelection, picking, creatingActive]);
+
+  // Tapping the map closes the invader popup and the filter panels.
+  function handleMapPress() {
+    filterBarRef.current?.closePanels();
+    if (Date.now() - lastInvaderTapRef.current < MAP_TAP_GUARD_MS) return;
+    if (!selectedInvaderRef.current) return;
+    selectedInvaderRef.current = null;
+    setSelectedInvader(null);
+    setPendingCoords(null);
+  }
 
   function handleLongPress(lat: number, lon: number) {
     if (picking || create.modal || create.pickLoc) return;
@@ -313,6 +329,7 @@ export default function MapScreen() {
         invaders={filteredInvaders}
         onInvaderClick={handleInvaderClick}
         onLongPress={handleLongPress}
+        onMapPress={handleMapPress}
         isFollowing={isFollowing}
         onHeadingChange={useHeadingStore.getState().setHeading}
         greyMode={greyMode}
@@ -331,7 +348,7 @@ export default function MapScreen() {
 
       {!picking && !anyCreating && (
         <View style={styles.filterBar}>
-          <MapFilterBar value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
+          <MapFilterBar ref={filterBarRef} value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
       )}
 
