@@ -754,6 +754,7 @@
     "gotIt": "Got it!"
   },
   "social": {
+    "seeProfile": "See profile",
     "title": "Social",
     "addTitle": "Add a friend",
     "myCode": "My friend code",
@@ -780,7 +781,6 @@
     "decline": "Decline",
     "cancel": "Cancel",
     "pending": "Waiting for an answer",
-    "flashedCount": "Invaders flashed: {{count}}",
     "noFriends": "No friends yet. Share your friend code, or add someone with their code or username.",
     "loadFailed": "Couldn't load. Tap to retry.",
     "guestMessage": "Create an account to add friends and compare your maps.",

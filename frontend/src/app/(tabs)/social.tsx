@@ -25,6 +25,8 @@ import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
 import { PlayerAvatar } from '@/features/avatar';
+import { PlayerCardView } from '@/features/settings/components/PlayerCard';
+import { computeCollectionStats } from '@/features/invaders/utils/collection-stats';
 
 type Feedback = { ok: boolean; text: string } | null;
 
@@ -46,6 +48,11 @@ export default function SocialScreen() {
   );
 
   const overview = useFriendsStore((s) => s.overview);
+  // Same stats as my own player card, from each friend's flashes
+  const friendStats = useMemo(
+    () => new Map(overview.friends.map((f) => [f.id, computeCollectionStats(allInvaders, new Set(f.flashed_invader_ids))])),
+    [overview.friends, allInvaders],
+  );
   const loaded = useFriendsStore((s) => s.loaded);
   const load = useFriendsStore((s) => s.load);
   const pendingCode = useFriendsStore((s) => s.pendingCode);
@@ -302,20 +309,23 @@ export default function SocialScreen() {
               <ArcadeSectionLabel title={t('social.friends', { count: overview.friends.length })} />
               {overview.friends.length === 0 ? (
                 <Text style={styles.muted}>{t('social.noFriends')}</Text>
-              ) : overview.friends.map((e) => (
-                <Pressable
-                  key={e.id}
-                  style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-                  onPress={() => router.push({ pathname: '/friends/[id]', params: { id: String(e.user_id), friendshipId: String(e.id) } })}
-                >
-                  {avatar(e)}
-                  <View style={styles.cardBody}>
-                    <Text style={styles.username} numberOfLines={1}>{e.username}</Text>
-                    <Text style={styles.meta}>{t('social.flashedCount', { count: e.flashed_count })}</Text>
-                  </View>
-                  <Ionicons name="caret-forward" size={14} color={theme.accent} />
-                </Pressable>
-              ))}
+              ) : overview.friends.map((e) => {
+                const stats = friendStats.get(e.id);
+                return (
+                  <PlayerCardView
+                    key={e.id}
+                    avatar={e.avatar}
+                    name={e.username}
+                    subtitle={t('social.seeProfile')}
+                    // Before the invaders load, fall back to the server's flash count
+                    stats={stats ?? { score: 0, flashed: e.flashed_count, citiesWithFlashes: 0 }}
+                    onPress={() => {
+                      hapticTap();
+                      router.push({ pathname: '/friends/[id]', params: { id: String(e.user_id), friendshipId: String(e.id) } });
+                    }}
+                  />
+                );
+              })}
             </View>
           </>
         )}

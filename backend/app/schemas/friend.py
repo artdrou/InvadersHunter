@@ -23,6 +23,8 @@ class FriendEntry(BaseModel):
     flashed_count: int
     since: Optional[datetime] = None
     avatar: Optional[Avatar] = None
+    # Friends only (empty for invites): the app computes score / cities from it
+    flashed_invader_ids: List[int] = []
 
 
 class FriendsOverview(BaseModel):

@@ -9,6 +9,8 @@ export type FriendEntry = {
   since: string | null;
   /** null = default icon */
   avatar: Avatar | null;
+  /** Friends only (empty for invites): drives the score / cities on their card */
+  flashed_invader_ids: number[];
 };
 
 export type FriendsOverview = {

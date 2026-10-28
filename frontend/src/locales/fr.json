@@ -754,6 +754,7 @@
     "gotIt": "Compris !"
   },
   "social": {
+    "seeProfile": "Voir son profil",
     "title": "Social",
     "addTitle": "Ajouter un ami",
     "myCode": "Mon code ami",
@@ -780,7 +781,6 @@
     "decline": "Refuser",
     "cancel": "Annuler",
     "pending": "En attente de réponse",
-    "flashedCount": "Invaders flashés : {{count}}",
     "noFriends": "Pas encore d'amis. Partage ton code ami, ou ajoute quelqu'un avec son code ou son nom d'utilisateur.",
     "loadFailed": "Chargement impossible. Touche pour réessayer.",
     "guestMessage": "Crée un compte pour ajouter des amis et comparer vos cartes.",

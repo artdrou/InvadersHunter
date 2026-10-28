@@ -133,6 +133,20 @@ def _flash_counts(db: Session, user_ids: List[int]) -> Dict[int, int]:
     return dict(rows)
 
 
+def _flashed_ids(db: Session, user_ids: List[int]) -> Dict[int, List[int]]:
+    out: Dict[int, List[int]] = {uid: [] for uid in user_ids}
+    if not user_ids:
+        return out
+    rows = (
+        db.query(UserProgress.user_id, UserProgress.invader_id)
+        .filter(UserProgress.user_id.in_(user_ids))
+        .all()
+    )
+    for uid, inv_id in rows:
+        out[uid].append(inv_id)
+    return out
+
+
 def are_friends(db: Session, a: int, b: int) -> bool:
     link = _pair(db, a, b)
     return link is not None and link.status == ACCEPTED
@@ -148,6 +162,8 @@ def overview(db: Session, me: User) -> dict:
     other_ids = [l.addressee_id if l.requester_id == me.id else l.requester_id for l in links]
     users = {u.id: u for u in db.query(User).filter(User.id.in_(other_ids)).all()} if other_ids else {}
     counts = _flash_counts(db, other_ids)
+    friend_ids = [o for l, o in zip(links, other_ids) if l.status == ACCEPTED]
+    flashed = _flashed_ids(db, friend_ids)
 
     result = {"friends": [], "incoming": [], "outgoing": []}
     for link, other_id in zip(links, other_ids):
@@ -163,6 +179,7 @@ def overview(db: Session, me: User) -> dict:
             "since": link.accepted_at if link.status == ACCEPTED else link.created_at,
         }
         if link.status == ACCEPTED:
+            entry["flashed_invader_ids"] = flashed.get(other_id, [])
             result["friends"].append(entry)
         elif link.addressee_id == me.id:
             result["incoming"].append(entry)
