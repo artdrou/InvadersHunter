@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@
 import { SettingsShell, hapticTap, hapticSuccess } from '@/features/settings';
 import { changeMyPassword } from '@/features/auth';
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 const MIN_LENGTH = 4;  // same rule as sign-up and password reset (backend schemas)
 
@@ -73,30 +74,24 @@ export default function ChangePasswordScreen() {
   return (
     <SettingsShell title={t('settings.changePassword')}>
       <View style={styles.card}>
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder={t('settings.changePasswordCurrent')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
-          autoCapitalize="none"
           value={current}
           onChangeText={(v) => { setCurrent(v); setError(null); }}
         />
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder={t('settings.changePasswordNew')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
-          autoCapitalize="none"
           value={next}
           onChangeText={(v) => { setNext(v); setError(null); }}
         />
-        <TextInput
+        <PasswordInput
           style={[styles.input, confirm.length > 0 && (mismatch ? styles.inputInvalid : styles.inputValid)]}
           placeholder={t('settings.changePasswordConfirm')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
-          autoCapitalize="none"
           value={confirm}
           onChangeText={(v) => { setConfirm(v); setError(null); }}
           returnKeyType="done"

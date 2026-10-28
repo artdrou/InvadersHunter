@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 
 export default function LoginScreen() {
@@ -48,11 +49,10 @@ export default function LoginScreen() {
           value={username}
           onChangeText={setUsername}
         />
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder={t('auth.password')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
