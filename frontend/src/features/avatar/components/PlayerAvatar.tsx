@@ -4,8 +4,8 @@ import { type Avatar, DEFAULT_AVATAR, sameAvatar, renderAvatarBase64 } from '../
 // The default icon is the bundled sprite: no drawing needed (and it works where Skia can't).
 // Also shown for a shape this app version doesn't know yet.
 const DEFAULT_SPRITE = require('../../../../assets/images/marker-20pts-flash-captured.png');
-// Drawn once at this size, then scaled: crisp up to ~70pt
-const RENDER_SIZE = 144;
+// Drawn once at this size, then scaled (the editor preview is the largest, 160pt)
+const RENDER_SIZE = 192;
 
 // The Social list shows the same few icons on every visit: draw each one once
 const cache = new Map<string, string | null>();
