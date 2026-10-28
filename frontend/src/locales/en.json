@@ -444,6 +444,11 @@
     "detourMinutes": "+{{minutes}} min detour",
     "start": "Start"
   },
+  "hunt": {
+    "go": "Go!",
+    "recenter": "Recenter",
+    "exit": "Exit"
+  },
   "invaders": {
     "total": "TOTAL",
     "searchPlaceholder": "Search invaders…",

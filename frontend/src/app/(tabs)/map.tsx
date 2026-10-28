@@ -32,6 +32,7 @@ import { hapticSuccess, hapticDisappoint, hapticTap } from "@/features/settings"
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
 import { RouteLayer } from "@/features/routing/components/RouteLayer";
+import { useHunt, HuntGoButton, HuntBar } from "@/features/hunt";
 
 const MAP_TAP_GUARD_MS = 400;
 
@@ -63,6 +64,7 @@ export default function MapScreen() {
 
   // Self-contained flows (routing / create-invader / toast) live in their own hooks.
   const routing = useMapRouting(mapRef);
+  const hunt = useHunt(routing.route?.geojson);
   const create = useMapCreateFlow(mapRef);
   const toast = useFloatingText(Motion.floatTextLong);
 
@@ -190,7 +192,8 @@ export default function MapScreen() {
   function handlePopupHeight(height: number) {
     popupHeightRef.current = height;
     const invader = selectedInvaderRef.current;
-    if (!invader) return;
+    // The hunt view keeps the camera on the user
+    if (!invader || hunt.hunting) return;
     const zoom = pendingZoomRef.current;
     pendingZoomRef.current = undefined;
     centerOnInvader(invader, height, zoom);
@@ -319,7 +322,8 @@ export default function MapScreen() {
 
   // Pickers take the full screen: no tab bar (the News button is hidden below).
   const setPickerActive = usePickerChromeStore((s) => s.setPickerActive);
-  useEffect(() => { setPickerActive(pickerBarShown); }, [pickerBarShown, setPickerActive]);
+  // The hunt view too: the map takes the whole screen
+  useEffect(() => { setPickerActive(pickerBarShown || hunt.hunting); }, [pickerBarShown, hunt.hunting, setPickerActive]);
   useEffect(() => () => setPickerActive(false), [setPickerActive]);
 
   return (
@@ -335,6 +339,9 @@ export default function MapScreen() {
         greyMode={greyMode}
         colorMode={colorMode}
         highlightedIds={routing.selectedInvaderIds}
+        huntRoute={hunt.huntRoute}
+        huntPaused={hunt.paused}
+        onHuntInterrupt={hunt.pause}
         routeLayer={
           <RouteLayer
             route={routing.route}
@@ -346,37 +353,41 @@ export default function MapScreen() {
         }
       />
 
-      {!picking && !anyCreating && (
+      {!picking && !anyCreating && !hunt.hunting && (
         <View style={styles.filterBar}>
           <MapFilterBar ref={filterBarRef} value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
       )}
 
-      <View style={[styles.locateButton, pickerLift]} pointerEvents="box-none">
-        <AimIcon
-          locked={isFollowing}
-          size={48}
-          colorCircle={theme.bgElement}
-          colorRing={theme.accent}
-          colorCircleLocked={Brand.pink}
-          colorRingLocked={theme.bgElement}
-          onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
-          onLongPress={() => setIsFollowing(true)}
-        />
-      </View>
+      {!hunt.hunting && (
+        <>
+          <View style={[styles.locateButton, pickerLift]} pointerEvents="box-none">
+            <AimIcon
+              locked={isFollowing}
+              size={48}
+              colorCircle={theme.bgElement}
+              colorRing={theme.accent}
+              colorCircleLocked={Brand.pink}
+              colorRingLocked={theme.bgElement}
+              onPress={() => { setIsFollowing(false); mapRef.current?.centerOnUser(); }}
+              onLongPress={() => setIsFollowing(true)}
+            />
+          </View>
 
-      <View style={[styles.compassButton, pickerLift]} pointerEvents="box-none">
-        <BoussoleIcon
-          onPress={() => mapRef.current?.resetNorth()}
-          size={48}
-          colorCircle={theme.bgElement}
-          colorNorth={theme.danger}
-          colorSouth={theme.text}
-        />
-      </View>
+          <View style={[styles.compassButton, pickerLift]} pointerEvents="box-none">
+            <BoussoleIcon
+              onPress={() => mapRef.current?.resetNorth()}
+              size={48}
+              colorCircle={theme.bgElement}
+              colorNorth={theme.danger}
+              colorSouth={theme.text}
+            />
+          </View>
+        </>
+      )}
 
       {/* News shortcut — top-right, routes to the shared /news screen (hidden while picking) */}
-      {!pickerBarShown && (
+      {!pickerBarShown && !hunt.hunting && (
         <TouchableOpacity
           style={[styles.newsButton, { top: insets.top + Spacing.two }]}
           onPress={() => { hapticTap(); router.push("/news"); }}
@@ -393,7 +404,7 @@ export default function MapScreen() {
       )}
 
       {/* Friends' maps — below the News shortcut, account holders only */}
-      {user && !isGuest && !picking && !anyCreating && (
+      {user && !isGuest && !picking && !anyCreating && !hunt.hunting && (
         <TouchableOpacity
           style={[styles.newsButton, { top: insets.top + Spacing.two + 48 + 6 }]}
           onPress={() => { hapticTap(); setFriendPickerOpen(true); }}
@@ -404,7 +415,7 @@ export default function MapScreen() {
         </TouchableOpacity>
       )}
 
-      {friendMapView && !picking && !anyCreating && (
+      {friendMapView && !picking && !anyCreating && !hunt.hunting && (
         <View style={[styles.friendBanner, { top: insets.top + Spacing.two }]}>
           <FriendMapBanner />
         </View>
@@ -481,8 +492,14 @@ export default function MapScreen() {
         <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} onGoTo={goToCoords} />
       )}
 
+      {/* ── Hunt view: Go once a route is drawn, then Recenter / Exit ── */}
+      {hunt.available && !hunt.hunting && !routing.sheetOpen && !picking && !anyCreating && !selectedInvader && (
+        <HuntGoButton onPress={() => { setIsFollowing(false); hunt.start(); }} />
+      )}
+      {hunt.hunting && <HuntBar paused={hunt.paused} onRecenter={hunt.recenter} onExit={hunt.stop} />}
+
       {/* ── Routing FAB ── */}
-      {!picking && !anyCreating && (
+      {!picking && !anyCreating && !hunt.hunting && (
         <View style={styles.routingFAB} pointerEvents="box-none">
           <RoutingFAB active={routing.sheetOpen} theme={theme} onPress={() => routing.setSheetOpen((v) => !v)} />
         </View>
