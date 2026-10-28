@@ -8,9 +8,9 @@ POST /flash-import/  — bulk-create user progress from a list of invader names
 GET  /flash-import/snapshot — the account's flashes (backup before a sync).
 POST /flash-import/restore  — put a snapshot back exactly (revert a failed sync).
 
-GET /flash-importer — the browser importer (WebUSB, no install), served from
-static/flash_import/web. Short public address (hintvaders.app/flash-importer);
-/flash-import/web is kept as an alias.
+GET /flash-importer/ — the browser importer (WebUSB, no install): static/flash_import/web,
+mounted in main.py (web_importer_files) so the public address stays short
+(hintvaders.app/flash-importer). /flash-importer and /flash-import/web redirect there.
 
 GET /static/flash_import/HintVaders-FlashImport.exe — the PC tool built for
 this backend's environment. Registered before the /static mount in main.py so
@@ -19,6 +19,7 @@ for app versions released before the rename.
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user
@@ -73,7 +74,10 @@ tool_router = APIRouter(tags=["Flash Import"])
 @tool_router.get("/flash-importer", include_in_schema=False)
 @tool_router.get("/flash-import/web", include_in_schema=False)
 def web_importer():
-    return RedirectResponse("/static/flash_import/web/index.html")
+    return RedirectResponse("/flash-importer/")
+
+
+web_importer_files = StaticFiles(directory=str(flash_import_service.WEB_IMPORTER_DIR), html=True)
 
 
 @tool_router.get("/static/flash_import/HintVaders-FlashImport.exe", include_in_schema=False)

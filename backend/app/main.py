@@ -42,6 +42,8 @@ app.include_router(friend_links.router)
 app.include_router(contact.router)
 app.include_router(avatar.router)
 
+app.mount("/flash-importer", flash_import.web_importer_files, name="flash-importer")
+
 # Serve the Flash Import PC script (and any future static assets) as downloads.
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 if _STATIC_DIR.exists():

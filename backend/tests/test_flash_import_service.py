@@ -35,3 +35,15 @@ def test_s_duplicate_images_fold_onto_their_flash(db):
     assert res["imported"] == 1
     assert res["unknown"] == ["PA_99"]
     assert db.query(UserProgress).filter_by(user_id=user.id).count() == 1
+
+
+def test_s_duplicate_of_a_non_city_name_folds_too(db):
+    user = User(username="u3", email="u3@test.com", hashed_password=hash_password("pw"))
+    db.add_all([user, Invader(name="SPACE2ISS", latitude=0, longitude=0, state="Good", points=100)])
+    db.flush()
+
+    # The ISS invader isn't CITY_NUMBER: its second image is SPACE2ISS_S
+    res = import_flashes(db, user.id, ["SPACE2ISS.jpg", "SPACE2ISS_S.jpg"])
+
+    assert res["imported"] == 1
+    assert res["unknown"] == []

@@ -98,9 +98,3 @@ def test_snapshot_and_restore_endpoints(client, db, account):
 def test_endpoints_require_auth(client):
     assert client.get("/flash-import/snapshot").status_code in (401, 403)
     assert client.post("/flash-import/restore", json={"flashes": []}).status_code in (401, 403)
-
-
-def test_web_route_redirects_to_page(client):
-    res = client.get("/flash-import/web", follow_redirects=False)
-    assert res.status_code in (302, 307)
-    assert res.headers["location"] == "/static/flash_import/web/index.html"

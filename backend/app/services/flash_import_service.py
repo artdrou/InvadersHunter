@@ -42,13 +42,15 @@ MIRROR_MIN_RATIO = 0.5
 # Matches the canonical "CITYCODE_NUMBER" pattern after normalize_name(); used to
 # strip leading zeros from the number part. The DB mixes both spellings
 # ("FTBL_4" but "ORLN_01"), so file names and DB names are compared on this key.
-# The official app stores a second image per flash named "CITY_NUMBER_S": the
-# optional "_S" folds it onto the same key, so it dedupes instead of showing up
-# as an unknown name.
-_CANONICAL_RE = re.compile(r"^([A-Z]{2,6})_0*(\d+)(?:_S)?$")
+# The official app stores a second image per flash named "<NAME>_S" (PA_123_S, and
+# SPACE2ISS_S for the ISS one): dropping the "_S" folds it onto the same key, so
+# it dedupes instead of showing up as an unknown name.
+_CANONICAL_RE = re.compile(r"^([A-Z]{2,6})_0*(\d+)$")
+_SECOND_IMAGE_RE = re.compile(r"_S$")
 
 
 def _match_key(normalized: str) -> str:
+    normalized = _SECOND_IMAGE_RE.sub("", normalized)
     m = _CANONICAL_RE.match(normalized)
     return f"{m.group(1)}_{m.group(2)}" if m else normalized
 
@@ -229,6 +231,8 @@ def restore(db: Session, user_id: int, flashes: Iterable[dict]) -> dict:
 
 # One exe per environment, each with its API URL baked in (see build_exes.ps1).
 _TOOL_BUILDS_DIR = Path(__file__).resolve().parents[2] / "static" / "flash_import" / "builds"
+# Browser importer (WebUSB page), served at /flash-importer/
+WEB_IMPORTER_DIR = Path(__file__).resolve().parents[2] / "static" / "flash_import" / "web"
 
 
 def tool_exe_for_host(host: str) -> Path:
