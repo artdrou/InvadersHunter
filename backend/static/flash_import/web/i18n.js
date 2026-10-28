@@ -1,12 +1,12 @@
 // UI strings (EN / FR). Static strings may contain trusted inline HTML;
 // {placeholders} are filled by t() and escaped.
 
-const EXE_URL = '../InvadersHunter-FlashImport.exe';
+const EXE_URL = '/static/flash_import/HintVaders-FlashImport.exe';
 
 export const STRINGS = {
   en: {
     subtitle: 'Flash import',
-    intro: 'Sync the flashes of the official <b>FlashInvaders</b> app on your Android phone into your InvadersHunter account. Everything runs in this page: nothing to install.',
+    intro: 'Sync the flashes of the official <b>FlashInvaders</b> app on your Android phone into your HintVaders account. Everything runs in this page: nothing to install.',
     'unsupported.title': 'This browser can’t talk to your phone',
     'unsupported.body': 'Open this page in <b>Chrome</b>, <b>Edge</b> or <b>Opera</b> on a computer (Windows, macOS or Linux). Firefox and Safari don’t support USB access from a web page.',
 
@@ -36,13 +36,13 @@ export const STRINGS = {
     'help.pickerBody': 'The list only shows phones with USB debugging turned on. Check the steps above, unlock the phone, and replug the cable.',
     'shot.picker': 'The browser’s device list',
     'help.busyTitle': '“The phone is used by another program”',
-    'help.busyBody': 'Only one program at a time can talk to the phone. Close Android Studio, other tabs with this page and the InvadersHunter Windows tool. If you used adb or the Windows tool before, its background process is probably still running: run <code>adb kill-server</code> in a terminal, or restart the computer.',
+    'help.busyBody': 'Only one program at a time can talk to the phone. Close Android Studio, other tabs with this page and the HintVaders Windows tool. If you used adb or the Windows tool before, its background process is probably still running: run <code>adb kill-server</code> in a terminal, or restart the computer.',
     'help.cableTitle': 'Nothing happens when I plug the phone',
     'help.cableBody': 'Some cables only charge: try another cable (ideally the one that came with the phone) and another USB port, directly on the computer rather than through a hub.',
     'help.windowsTitle': 'Windows: the phone is in the list but won’t connect',
-    'help.windowsBody': 'Some manufacturer drivers (Samsung in particular) block access from the browser. Use the <a href="' + EXE_URL + '">InvadersHunter Windows tool</a> instead.',
+    'help.windowsBody': 'Some manufacturer drivers (Samsung in particular) block access from the browser. Use the <a href="' + EXE_URL + '">HintVaders Windows tool</a> instead.',
 
-    'login.title': 'Log in to InvadersHunter',
+    'login.title': 'Log in to HintVaders',
     'login.body': 'With the account you want to sync your flashes into.',
     'login.username': 'Username',
     'login.password': 'Password',
@@ -98,7 +98,7 @@ export const STRINGS = {
     'chart.tip': '{city} · {label}: {count}',
 
     'warn.removeTitle': '{count} flashed invaders are not on the phone',
-    'warn.body': 'They are in your InvadersHunter account but FlashInvaders doesn’t list them on this phone (flashed on another phone, added by hand, or the phone folder is incomplete). <b>“Add only” keeps them.</b> “Full sync” deletes them from your account.',
+    'warn.body': 'They are in your HintVaders account but FlashInvaders doesn’t list them on this phone (flashed on another phone, added by hand, or the phone folder is incomplete). <b>“Add only” keeps them.</b> “Full sync” deletes them from your account.',
     'warn.unknownTitle': '{count} names not recognised',
     'warn.unknownBody': 'These files don’t match any invader in the database. They are ignored.',
 
@@ -123,7 +123,7 @@ export const STRINGS = {
     'done.title': 'Sync complete',
     'done.summary': 'The account {username} now has {total} flashes.',
     'done.appTitle': 'Last step, in the app',
-    'done.appBody': 'Open InvadersHunter on your phone, go to <b>Settings → Sync</b> and tap <b>Sync now</b> to see the new flashes.',
+    'done.appBody': 'Open HintVaders on your phone, go to <b>Settings → Sync</b> and tap <b>Sync now</b> to see the new flashes.',
     'done.undo': 'Undo this sync',
     'done.undoing': 'Restoring the backup…',
     'done.undone': 'Undone: the account is back to {total} flashes.',
@@ -133,7 +133,7 @@ export const STRINGS = {
     'fail.title': 'Sync failed',
     'fail.unchanged': 'Your account was not changed.',
     'fail.reverted': 'The changes were reverted: your account is back to its {total} flashes.',
-    'fail.revertFailed': 'The automatic revert failed. Your backup is safe: download it and click “Restore the backup”. If it keeps failing, send the file to the InvadersHunter team.',
+    'fail.revertFailed': 'The automatic revert failed. Your backup is safe: download it and click “Restore the backup”. If it keeps failing, send the file to the HintVaders team.',
     'fail.retryRestore': 'Restore the backup',
     'fail.restart': 'Start again',
 
@@ -147,19 +147,19 @@ export const STRINGS = {
     'err.auth': 'The phone didn’t allow the connection. Unlock it, replug the cable and tap “Allow”.',
     'err.no-folder': 'FlashInvaders folder not found. Make sure the FlashInvaders app is installed with at least one flash.',
     'err.not-connected': 'The phone is disconnected. Detect it again.',
-    'err.network': 'Can’t reach the InvadersHunter server. Check your internet connection.',
+    'err.network': 'Can’t reach the HintVaders server. Check your internet connection.',
     'err.verify': 'After the update, the account didn’t match what the analysis announced.',
     'err.http': 'Server error ({status}): {detail}',
     'err.generic': 'Unexpected error: {detail}',
 
     'footer.fallback': 'Not working? Use the <a href="' + EXE_URL + '">Windows tool</a> or paste a list of names in the app (Settings → Sync → Import flashes).',
-    'footer.credits': 'InvadersHunter is an unofficial fan tool. Space Invaders street art is the work of the artist Invader.',
+    'footer.credits': 'HintVaders is an unofficial fan tool. Space Invaders street art is the work of the artist Invader.',
     'footer.images': 'Some screenshots: <a href="https://developer.android.com/studio/debug/dev-options">Android Developers</a> (CC BY 2.5) and <a href="https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki/Enabling-Developer-Options">FIRST Tech Challenge</a>.',
   },
 
   fr: {
     subtitle: 'Import des flashes',
-    intro: 'Synchronisez les flashes de l’application officielle <b>FlashInvaders</b> de votre téléphone Android avec votre compte InvadersHunter. Tout se passe dans cette page : rien à installer.',
+    intro: 'Synchronisez les flashes de l’application officielle <b>FlashInvaders</b> de votre téléphone Android avec votre compte HintVaders. Tout se passe dans cette page : rien à installer.',
     'unsupported.title': 'Ce navigateur ne peut pas accéder à votre téléphone',
     'unsupported.body': 'Ouvrez cette page dans <b>Chrome</b>, <b>Edge</b> ou <b>Opera</b> sur un ordinateur (Windows, macOS ou Linux). Firefox et Safari ne permettent pas l’accès USB depuis une page web.',
 
@@ -189,13 +189,13 @@ export const STRINGS = {
     'help.pickerBody': 'La liste n’affiche que les téléphones dont le débogage USB est activé. Vérifiez les étapes ci-dessus, déverrouillez le téléphone et rebranchez le câble.',
     'shot.picker': 'La liste des appareils du navigateur',
     'help.busyTitle': '« Le téléphone est utilisé par un autre programme »',
-    'help.busyBody': 'Un seul programme à la fois peut accéder au téléphone. Fermez Android Studio, les autres onglets de cette page et l’outil Windows InvadersHunter. Si vous avez déjà utilisé adb ou l’outil Windows, son processus tourne sans doute encore en arrière-plan : lancez <code>adb kill-server</code> dans un terminal, ou redémarrez l’ordinateur.',
+    'help.busyBody': 'Un seul programme à la fois peut accéder au téléphone. Fermez Android Studio, les autres onglets de cette page et l’outil Windows HintVaders. Si vous avez déjà utilisé adb ou l’outil Windows, son processus tourne sans doute encore en arrière-plan : lancez <code>adb kill-server</code> dans un terminal, ou redémarrez l’ordinateur.',
     'help.cableTitle': 'Rien ne se passe quand je branche le téléphone',
     'help.cableBody': 'Certains câbles ne font que charger : essayez un autre câble (idéalement celui du téléphone) et un autre port USB, directement sur l’ordinateur plutôt que via un hub.',
     'help.windowsTitle': 'Windows : le téléphone est dans la liste mais ne se connecte pas',
-    'help.windowsBody': 'Certains pilotes de fabricant (Samsung notamment) bloquent l’accès depuis le navigateur. Utilisez plutôt l’<a href="' + EXE_URL + '">outil Windows InvadersHunter</a>.',
+    'help.windowsBody': 'Certains pilotes de fabricant (Samsung notamment) bloquent l’accès depuis le navigateur. Utilisez plutôt l’<a href="' + EXE_URL + '">outil Windows HintVaders</a>.',
 
-    'login.title': 'Connectez-vous à InvadersHunter',
+    'login.title': 'Connectez-vous à HintVaders',
     'login.body': 'Avec le compte dans lequel synchroniser vos flashes.',
     'login.username': 'Nom d’utilisateur',
     'login.password': 'Mot de passe',
@@ -251,7 +251,7 @@ export const STRINGS = {
     'chart.tip': '{city} · {label} : {count}',
 
     'warn.removeTitle': '{count} invaders flashés ne sont pas sur le téléphone',
-    'warn.body': 'Ils sont dans votre compte InvadersHunter mais FlashInvaders ne les liste pas sur ce téléphone (flashés sur un autre téléphone, ajoutés à la main, ou dossier du téléphone incomplet). <b>« Ajouter seulement » les conserve.</b> La « synchronisation complète » les supprime de votre compte.',
+    'warn.body': 'Ils sont dans votre compte HintVaders mais FlashInvaders ne les liste pas sur ce téléphone (flashés sur un autre téléphone, ajoutés à la main, ou dossier du téléphone incomplet). <b>« Ajouter seulement » les conserve.</b> La « synchronisation complète » les supprime de votre compte.',
     'warn.unknownTitle': '{count} noms non reconnus',
     'warn.unknownBody': 'Ces fichiers ne correspondent à aucun invader de la base. Ils sont ignorés.',
 
@@ -276,7 +276,7 @@ export const STRINGS = {
     'done.title': 'Synchronisation terminée',
     'done.summary': 'Le compte {username} a maintenant {total} flashes.',
     'done.appTitle': 'Dernière étape, dans l’application',
-    'done.appBody': 'Ouvrez InvadersHunter sur votre téléphone, allez dans <b>Réglages → Synchronisation</b> et appuyez sur <b>Synchroniser maintenant</b> pour voir les nouveaux flashes.',
+    'done.appBody': 'Ouvrez HintVaders sur votre téléphone, allez dans <b>Réglages → Synchronisation</b> et appuyez sur <b>Synchroniser maintenant</b> pour voir les nouveaux flashes.',
     'done.undo': 'Annuler cette synchronisation',
     'done.undoing': 'Restauration de la sauvegarde…',
     'done.undone': 'Annulé : le compte est revenu à {total} flashes.',
@@ -286,7 +286,7 @@ export const STRINGS = {
     'fail.title': 'Échec de la synchronisation',
     'fail.unchanged': 'Votre compte n’a pas été modifié.',
     'fail.reverted': 'Les modifications ont été annulées : votre compte est revenu à ses {total} flashes.',
-    'fail.revertFailed': 'L’annulation automatique a échoué. Votre sauvegarde est en sécurité : téléchargez-la et cliquez sur « Restaurer la sauvegarde ». Si l’échec persiste, envoyez le fichier à l’équipe InvadersHunter.',
+    'fail.revertFailed': 'L’annulation automatique a échoué. Votre sauvegarde est en sécurité : téléchargez-la et cliquez sur « Restaurer la sauvegarde ». Si l’échec persiste, envoyez le fichier à l’équipe HintVaders.',
     'fail.retryRestore': 'Restaurer la sauvegarde',
     'fail.restart': 'Recommencer',
 
@@ -300,13 +300,13 @@ export const STRINGS = {
     'err.auth': 'Le téléphone n’a pas autorisé la connexion. Déverrouillez-le, rebranchez le câble et appuyez sur « Autoriser ».',
     'err.no-folder': 'Dossier FlashInvaders introuvable. Vérifiez que l’application FlashInvaders est installée avec au moins un flash.',
     'err.not-connected': 'Le téléphone est déconnecté. Détectez-le à nouveau.',
-    'err.network': 'Impossible de joindre le serveur InvadersHunter. Vérifiez votre connexion internet.',
+    'err.network': 'Impossible de joindre le serveur HintVaders. Vérifiez votre connexion internet.',
     'err.verify': 'Après la mise à jour, le compte ne correspondait pas à ce que l’analyse annonçait.',
     'err.http': 'Erreur serveur ({status}) : {detail}',
     'err.generic': 'Erreur inattendue : {detail}',
 
     'footer.fallback': 'Ça ne fonctionne pas ? Utilisez l’<a href="' + EXE_URL + '">outil Windows</a> ou collez une liste de noms dans l’application (Réglages → Synchronisation → Importer mes flashes).',
-    'footer.credits': 'InvadersHunter est un outil de fan non officiel. Les Space Invaders sont l’œuvre de l’artiste Invader.',
+    'footer.credits': 'HintVaders est un outil de fan non officiel. Les Space Invaders sont l’œuvre de l’artiste Invader.',
     'footer.images': 'Certaines captures : <a href="https://developer.android.com/studio/debug/dev-options">Android Developers</a> (CC BY 2.5) et <a href="https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki/Enabling-Developer-Options">FIRST Tech Challenge</a>.',
   },
 };

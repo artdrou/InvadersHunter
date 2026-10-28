@@ -3,122 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>InvadersHunter · Flash Import</title>
-  <meta name="description" content="Sync your FlashInvaders flashes into InvadersHunter, straight from your browser.">
+  <title>HintVaders · Flash Import</title>
+  <meta name="description" content="Sync your FlashInvaders flashes into HintVaders, straight from your browser.">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
+<div class="streets" aria-hidden="true"></div>
 <div class="wrap">
 
   <header class="top">
-    <svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" shape-rendering="crispEdges">
-  <g class="inv inv-cyan">
-  <rect x="10" y="0" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="0" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="0" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="60" y="0" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="10" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="20" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="80" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="0" y="30" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="10" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="50" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="60" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="80" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="90" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="100" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="10" y="40" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="50" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="60" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="80" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="90" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="50" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="80" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="60" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="40" y="60" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="60" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="70" y="60" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="70" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="70" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="70" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="60" y="70" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="10" y="80" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="80" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="80" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="50" y="80" width="10" height="10" fill="#1CF0FF"/>
-  </g>
-  <g class="inv inv-red">
-  <rect x="220" y="0" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="0" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="10" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="10" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="190" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="200" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="190" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="170" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="160" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="200" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="190" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="170" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="160" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="150" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="190" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="150" y="70" width="10" height="10" fill="#FF0062"/>
-  </g>
-</svg>
-    <h1 class="brand">InvadersHunter</h1>
-    <p class="subtitle" data-i18n="subtitle"></p>
+    <picture class="logo">
+      <source srcset="img/logo-stacked-light.webp" media="(prefers-color-scheme: light)">
+      <img src="img/logo-stacked.webp" alt="HintVaders" width="840" height="949">
+    </picture>
+    <h1 class="arcade title" data-i18n="subtitle"></h1>
     <button id="lang" class="lang" type="button" aria-label="Language"></button>
   </header>
 
@@ -291,111 +191,8 @@
 
     <!-- 6. Result -------------------------------------------------------- -->
     <section id="result-ok" class="result ok" hidden>
-      <svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" shape-rendering="crispEdges">
-  <g class="inv inv-cyan">
-  <rect x="10" y="0" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="0" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="0" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="60" y="0" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="10" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="10" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="20" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="80" y="20" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="0" y="30" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="10" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="50" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="60" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="80" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="90" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="100" y="30" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="10" y="40" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="50" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="60" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="80" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="90" y="40" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="50" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="70" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="80" y="50" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="30" y="60" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="40" y="60" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="60" y="60" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="70" y="60" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="20" y="70" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="30" y="70" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="50" y="70" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="60" y="70" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="10" y="80" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="20" y="80" width="10" height="10" fill="#1CF0FF"/>
-  <rect x="40" y="80" width="10" height="10" fill="#0FA8B8"/>
-  <rect x="50" y="80" width="10" height="10" fill="#1CF0FF"/>
-  </g>
-  <g class="inv inv-red">
-  <rect x="220" y="0" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="0" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="10" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="10" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="190" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="20" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="200" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="190" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="170" y="30" width="10" height="10" fill="#ffffff"/>
-  <rect x="160" y="30" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="200" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="190" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="40" width="10" height="10" fill="#ffffff"/>
-  <rect x="170" y="40" width="10" height="10" fill="#0a0f1e"/>
-  <rect x="160" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="150" y="40" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="210" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="190" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="170" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="50" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="200" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="180" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="60" width="10" height="10" fill="#FF0062"/>
-  <rect x="230" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="220" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="160" y="70" width="10" height="10" fill="#FF0062"/>
-  <rect x="150" y="70" width="10" height="10" fill="#FF0062"/>
-  </g>
-</svg>
-      <h2 data-i18n="done.title"></h2>
+      <img class="result-logo" src="img/logo-stacked.webp" alt="" width="840" height="949">
+      <h2 class="arcade" data-i18n="done.title"></h2>
       <p id="done-summary"></p>
       <div class="tiles" id="done-tiles"></div>
       <div class="callout"><strong data-i18n="done.appTitle"></strong><br><span data-i18n="done.appBody"></span></div>
@@ -407,7 +204,7 @@
     </section>
 
     <section id="result-err" class="result err" hidden>
-      <h2 data-i18n="fail.title"></h2>
+      <h2 class="arcade danger" data-i18n="fail.title"></h2>
       <p id="fail-error"></p>
       <p id="fail-revert"></p>
       <div class="btn-row" style="justify-content:center">

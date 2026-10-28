@@ -1,4 +1,4 @@
-// InvadersHunter — Flash Import web page.
+// HintVaders — Flash Import web page.
 //
 // Flow: detect the phone (WebUSB adb, see phone.js) → log in → analyse (list the
 // FlashInvaders folder, preview against the account) → sync. A sync is
@@ -33,7 +33,11 @@ const tt = (key, vars) => {
 
 function applyStatic() {
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach((el) => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.innerHTML = t(el.dataset.i18n);
+    // Arcade titles draw their fill and shadow layers from a copy of the text (style.css)
+    if (el.classList.contains('arcade')) el.dataset.text = el.textContent;
+  });
   $('#lang').textContent = lang === 'fr' ? 'EN' : 'FR';
 }
 
@@ -628,7 +632,7 @@ function downloadBackup() {
   const blob = new Blob([JSON.stringify(state.backup, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `invadershunter-backup-${state.backup.username}-${stamp}.json`;
+  a.download = `hintvaders-backup-${state.backup.username}-${stamp}.json`;
   document.body.append(a);
   a.click();
   a.remove();
