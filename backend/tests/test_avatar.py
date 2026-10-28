@@ -44,8 +44,17 @@ def test_save_then_read_then_reset(client, alice):
     assert res.json() == {"avatar": None}
 
 
+def test_profile_only_shape_accepted(client, alice):
+    icon = {**ICON, "shape": "big-3"}
+    res = client.put("/avatar/me", json={"avatar": icon}, headers=auth_headers(alice))
+    assert res.status_code == 200
+    assert res.json()["avatar"] == icon
+
+
 @pytest.mark.parametrize("bad", [
     {**ICON, "shape": 15},
+    {**ICON, "shape": "20"},
+    {**ICON, "shape": "<script>"},
     {**ICON, "icon": "red"},
     {**ICON, "glow": "#12345"},
     {**ICON, "bloom": 9},

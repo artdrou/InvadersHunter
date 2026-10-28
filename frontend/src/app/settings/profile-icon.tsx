@@ -7,16 +7,17 @@ import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, hapticSuccess, ColorPickerModal } from '@/features/settings';
 import { useAuthStore } from '@/features/auth';
-import { useMyAvatar, useAvatarStore, PlayerAvatar, DEFAULT_AVATAR, sameAvatar, type Avatar } from '@/features/avatar';
-import { SHAPE_IDS } from '@/features/marker-customization/shapes';
-import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
-import type { TierPts } from '@/features/marker-customization/types';
+import {
+  useMyAvatar, useAvatarStore, PlayerAvatar, DEFAULT_AVATAR, AVATAR_SHAPES, sameAvatar, renderAvatarBase64,
+  type Avatar, type AvatarShape,
+} from '@/features/avatar';
+import { decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
 
 const PREVIEW = 120;
-const THUMB = 40;
+const THUMB = 30;  // 7 cells per line fit a 360pt-wide phone
 const THUMB_RENDER = 72;
 // Compact bloom read-out, same as the marker customization: size letter + intensity (1..3)
 const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
@@ -50,10 +51,11 @@ export default function ProfileIconScreen() {
 
   // Shape thumbnails in the chosen body color, without glow
   const thumbnails = useMemo(() => {
-    const map = {} as Record<TierPts, string | undefined>;
-    for (const shape of SHAPE_IDS) {
+    const map = new Map<AvatarShape, string>();
+    for (const shape of AVATAR_SHAPES) {
       try {
-        map[shape] = `data:image/png;base64,${renderMarkerBase64(shape, draft.icon, null, THUMB_RENDER)}`;
+        const base64 = renderAvatarBase64(shape, draft.icon, null, THUMB_RENDER);
+        if (base64) map.set(shape, `data:image/png;base64,${base64}`);
       } catch {}
     }
     return map;
@@ -87,7 +89,7 @@ export default function ProfileIconScreen() {
       {/* ── Forme ── */}
       <ArcadeSectionLabel title={t('avatar.sectionShape')} />
       <View style={styles.shapeRow}>
-        {SHAPE_IDS.map((shape) => {
+        {AVATAR_SHAPES.map((shape) => {
           const selected = shape === draft.shape;
           return (
             <Pressable
@@ -95,7 +97,7 @@ export default function ProfileIconScreen() {
               onPress={() => { hapticTap(); edit({ shape }); }}
               style={({ pressed }) => [styles.shapeCell, selected && { borderColor: theme.accent }, pressed && styles.pressed]}
             >
-              <Image source={{ uri: thumbnails[shape] }} style={styles.shapeThumb} />
+              <Image source={{ uri: thumbnails.get(shape) }} style={styles.shapeThumb} />
             </Pressable>
           );
         })}
@@ -182,7 +184,8 @@ function makeStyles(t: ThemeTokens) {
     disabled: { opacity: 0.25 },
     previewWrap: { alignItems: 'center', paddingVertical: Spacing.two },
 
-    shapeRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    // The 6 marker shapes, then the profile-only ones, over two lines
+    shapeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: Spacing.two },
     shapeCell: {
       width: THUMB + 8, height: THUMB + 8, alignItems: 'center', justifyContent: 'center',
       borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,

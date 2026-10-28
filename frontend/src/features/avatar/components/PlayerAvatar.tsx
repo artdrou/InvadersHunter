@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
-import { renderMarkerBase64 } from '@/features/marker-customization/generate-markers';
-import { type Avatar, DEFAULT_AVATAR, sameAvatar } from '../types';
+import { type Avatar, DEFAULT_AVATAR, sameAvatar, renderAvatarBase64 } from '../types';
 
-// The default icon is the bundled sprite: no drawing needed (and it works where Skia can't)
+// The default icon is the bundled sprite: no drawing needed (and it works where Skia can't).
+// Also shown for a shape this app version doesn't know yet.
 const DEFAULT_SPRITE = require('../../../../assets/images/marker-20pts-flash-captured.png');
 // Drawn once at this size, then scaled: crisp up to ~70pt
 const RENDER_SIZE = 144;
@@ -15,7 +15,8 @@ function avatarUri(a: Avatar): string | null {
   let uri = cache.get(key);
   if (uri === undefined) {
     try {
-      uri = `data:image/png;base64,${renderMarkerBase64(a.shape, a.icon, a.glow, RENDER_SIZE, a.bloom)}`;
+      const base64 = renderAvatarBase64(a.shape, a.icon, a.glow, RENDER_SIZE, a.bloom);
+      uri = base64 ? `data:image/png;base64,${base64}` : null;
     } catch {
       uri = null;  // Skia failed (memory pressure…): fall back to the default sprite
     }
