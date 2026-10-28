@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
@@ -15,14 +15,9 @@ import { decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
-import { PixelArrow } from '@/components/ui/PixelArrow';
+import { ShapePicker } from '@/features/settings/components/ShapePicker';
 
 const PREVIEW = 160;
-const ARROW_PIXEL = 5;
-// Shape grid: cells sized from the row's measured width, the silhouette fills most of each
-const COLUMNS = 7;
-const CELL_GAP = Spacing.two;
-const THUMB_FILL = 0.8;
 const THUMB_RENDER = 128;
 // Compact bloom read-out, same as the marker customization: size letter + intensity (1..3)
 const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
@@ -42,8 +37,6 @@ export default function ProfileIconScreen() {
   const [colorPicker, setColorPicker] = useState<'icon' | 'glow' | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
-  const [gridWidth, setGridWidth] = useState(0);
-  const cell = gridWidth > 0 ? Math.floor((gridWidth - CELL_GAP * (COLUMNS - 1)) / COLUMNS) : 0;
 
   // The saved icon may arrive after the screen opens: follow it until the user edits
   useEffect(() => {
@@ -68,13 +61,6 @@ export default function ProfileIconScreen() {
     return map;
   }, [draft.icon]);
 
-  // Preview arrows: previous / next shape, wrapping around at both ends
-  function stepShape(delta: number) {
-    hapticTap();
-    const i = Math.max(0, AVATAR_SHAPES.indexOf(draft.shape));
-    edit({ shape: AVATAR_SHAPES[(i + delta + AVATAR_SHAPES.length) % AVATAR_SHAPES.length] });
-  }
-
   const isDirty = !sameAvatar(draft, saved);
   const bloomDesc = decodeBloom(draft.bloom);
 
@@ -96,32 +82,13 @@ export default function ProfileIconScreen() {
 
   return (
     <SettingsShell title={t('avatar.title')}>
-      <View style={styles.previewRow}>
-        <Pressable onPress={() => stepShape(-1)} hitSlop={12} style={({ pressed }) => [styles.arrowBtn, pressed && styles.pressed]}>
-          <PixelArrow direction="left" color={theme.accent} shadowColor={theme.titleShadow} pixel={ARROW_PIXEL} />
-        </Pressable>
-        <PlayerAvatar avatar={draft} size={PREVIEW} />
-        <Pressable onPress={() => stepShape(1)} hitSlop={12} style={({ pressed }) => [styles.arrowBtn, pressed && styles.pressed]}>
-          <PixelArrow direction="right" color={theme.accent} shadowColor={theme.titleShadow} pixel={ARROW_PIXEL} />
-        </Pressable>
-      </View>
-
-      {/* ── Forme ── */}
-      <ArcadeSectionLabel title={t('avatar.sectionShape')} />
-      <View style={styles.shapeRow} onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}>
-        {cell > 0 && AVATAR_SHAPES.map((shape) => {
-          const selected = shape === draft.shape;
-          return (
-            <Pressable
-              key={shape}
-              onPress={() => { hapticTap(); edit({ shape }); }}
-              style={({ pressed }) => [styles.shapeCell, { width: cell, height: cell }, selected && { borderColor: theme.accent }, pressed && styles.pressed]}
-            >
-              <Image source={{ uri: thumbnails.get(shape) }} style={{ width: cell * THUMB_FILL, height: cell * THUMB_FILL }} />
-            </Pressable>
-          );
-        })}
-      </View>
+      <ShapePicker
+        selected={draft.shape}
+        onSelect={(shape) => edit({ shape })}
+        thumbnail={(shape) => thumbnails.get(shape)}
+        preview={<PlayerAvatar avatar={draft} size={PREVIEW} />}
+        between={<ArcadeSectionLabel title={t('avatar.sectionShape')} />}
+      />
 
       {/* ── Couleurs ── */}
       <ArcadeSectionLabel title={t('avatar.sectionColors')} />
@@ -202,15 +169,6 @@ function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     pressed: { opacity: 0.6 },
     disabled: { opacity: 0.25 },
-    previewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing.two },
-    arrowBtn: { padding: Spacing.two },
-
-    // The 6 marker shapes, then the profile-only ones, COLUMNS per line
-    shapeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: CELL_GAP },
-    shapeCell: {
-      alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,
-    },
 
     encart: {
       flexDirection: 'row', justifyContent: 'space-between',

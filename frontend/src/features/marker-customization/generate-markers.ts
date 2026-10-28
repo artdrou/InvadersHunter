@@ -6,9 +6,9 @@
 // visual result matches the bundled assets when nothing is customized.
 import { Skia, TileMode, BlendMode, ImageFormat, ColorType, AlphaType, type SkImage, type SkRect } from '@shopify/react-native-skia';
 import * as FileSystem from 'expo-file-system';
-import { SHAPE_SVG } from './shapes';
+import { shapeSvg, isAnchoredShape } from './shapes';
 import { tintSvg } from './tint';
-import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from './types';
+import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from './types';
 
 const SIZE = 128;
 const ICON_FRACTION = 0.7;
@@ -208,12 +208,13 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number, bl
 // customization screen's shape thumbnails and live preview can call it
 // directly (no file I/O) — `size` defaults to the final on-map asset size and
 // `bloomIndex` (0..8) picks the glow size/intensity preset.
-export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
-  return renderShapeBase64(SHAPE_SVG[shapeId], iconHex, glowHex, size, bloomIndex);
+export function renderMarkerBase64(shapeId: ShapeId, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
+  const svg = shapeSvg(shapeId);
+  if (!svg) throw new Error(`Unknown marker shape ${shapeId}`);
+  return renderShapeBase64(svg, iconHex, glowHex, size, bloomIndex, isAnchoredShape(shapeId));
 }
 
-// Same, for any pixel-art silhouette (e.g. the profile icon shapes, which are
-// not map marker tiers). `anchored`: see tintSvg.
+// Same, from the SVG itself. `anchored`: see tintSvg.
 export function renderShapeBase64(
   svg: string, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX, anchored = false,
 ): string {
@@ -280,7 +281,7 @@ function yieldToUi(): Promise<void> {
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
 export async function generateMarkerSet(
-  shapeForTier: Record<TierPts, TierPts>,
+  shapeForTier: Record<TierPts, ShapeId>,
   colors: MarkerColorPrefs,
   bloom: Record<CustomizableState, number>,
 ): Promise<GenerationResult> {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from '@/features/marker-customization/types';
+import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from '@/features/marker-customization/types';
+import { ALL_SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { generateMarkerSet, clearMarkerSet, resolveMarkerSet, DEFAULT_BLOOM_INDEX, BLOOM_LEVEL_COUNT, type GeneratedMarkerSet, type GenerationResult } from '@/features/marker-customization/generate-markers';
 
 const SHAPE_FOR_TIER_KEY = 'app-marker-shape-for-tier';
@@ -12,7 +13,7 @@ const BLOOM_KEY = 'app-marker-bloom';
 // on iOS, so absolute URIs would dangle. The live URIs are rebuilt on hydrate.
 const GENERATION_DIR_KEY = 'app-marker-generation-dir';
 
-export const DEFAULT_SHAPE_FOR_TIER: Record<TierPts, TierPts> = { 10: 10, 20: 20, 30: 30, 40: 40, 50: 50, 100: 100 };
+export const DEFAULT_SHAPE_FOR_TIER: Record<TierPts, ShapeId> = { 10: 10, 20: 20, 30: 30, 40: 40, 50: 50, 100: 100 };
 
 export const DEFAULT_MARKER_COLORS: MarkerColorPrefs = {
   flashCaptured: { icon: '#1CF0FF', glow: '#002FA7' },
@@ -44,7 +45,7 @@ export const DEFAULT_MARKER_BLOOM: Record<CustomizableState, number> = {
 const CUSTOMIZABLE_STATES: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
 
 type MarkerCustomizationState = {
-  shapeForTier: Record<TierPts, TierPts>;
+  shapeForTier: Record<TierPts, ShapeId>;
   colors: MarkerColorPrefs;
   opacity: Record<CustomizableState, number>;
   bloom: Record<CustomizableState, number>;
@@ -58,7 +59,7 @@ type MarkerCustomizationState = {
   isGenerating: boolean;
   isDirty: boolean; // true when shapeForTier/colors/bloom changed since the last successful regenerate()
 
-  setShapeForTier: (tier: TierPts, shapeId: TierPts) => void;
+  setShapeForTier: (tier: TierPts, shapeId: ShapeId) => void;
   setColor: (state: keyof MarkerColorPrefs, kind: 'icon' | 'glow', hex: string) => void;
   setOpacity: (state: CustomizableState, v: number) => void;
   setBloom: (state: CustomizableState, index: number) => void;
@@ -205,11 +206,11 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
   },
 }));
 
-function sanitizeShapeForTier(raw: Record<string, number>): Record<TierPts, TierPts> {
+function sanitizeShapeForTier(raw: Record<string, unknown>): Record<TierPts, ShapeId> {
   const out = { ...DEFAULT_SHAPE_FOR_TIER };
   for (const tier of TIER_VALUES) {
     const v = raw[String(tier)];
-    if (v != null && TIER_VALUES.includes(v as TierPts)) out[tier] = v as TierPts;
+    if (ALL_SHAPE_IDS.includes(v as ShapeId)) out[tier] = v as ShapeId;
   }
   return out;
 }
