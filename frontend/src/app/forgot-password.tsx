@@ -7,6 +7,7 @@ import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 type Step = 'request' | 'verify' | 'new-password';
 
@@ -130,15 +131,14 @@ export default function ForgotPasswordScreen() {
       {step === 'new-password' && (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{t('auth.forgot.newPasswordTitle')}</Text>
-          <TextInput
+          <PasswordInput
             style={styles.input}
             placeholder={t('auth.forgot.newPassword')}
             placeholderTextColor={theme.textMuted}
-            secureTextEntry
             value={newPassword}
             onChangeText={setNewPassword}
           />
-          <TextInput
+          <PasswordInput
             style={[
               styles.input,
               confirmPassword.length > 0 && (
@@ -149,7 +149,6 @@ export default function ForgotPasswordScreen() {
             ]}
             placeholder={t('auth.forgot.confirmPassword')}
             placeholderTextColor={theme.textMuted}
-            secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
           />

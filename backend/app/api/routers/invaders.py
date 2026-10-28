@@ -6,14 +6,17 @@ from datetime import datetime
 from app.schemas.space_invader import InvaderCreate, InvaderOut, InvaderUpdate
 from app.schemas.admin_request import InvaderContributorsOut
 from app.schemas.comment import CommentSummaryOut, InvaderOverviewOut
-from app.dependencies import get_db, get_current_user_optional, require_admin
+from app.dependencies import get_db, get_current_user_optional, require_admin, require_catalog_access
 from app.services import invader_service, admin_request_service, comment_service, deletion_service
 from app.services.invader_service import InvaderAlreadyExists, InvaderMissing
 
 router = APIRouter(prefix="/invaders", tags=["Invaders"])
 
+# Read routes need a signed-in user or a guest pass (the catalog isn't public)
+_catalog = [Depends(require_catalog_access)]
 
-@router.get("/deleted")
+
+@router.get("/deleted", dependencies=_catalog)
 def list_deleted_invaders(
     updated_since: Optional[datetime] = Query(default=None),
     db: Session = Depends(get_db),
@@ -22,13 +25,13 @@ def list_deleted_invaders(
     return {"ids": invader_service.list_deleted_ids(db, updated_since)}
 
 
-@router.get("/ids")
+@router.get("/ids", dependencies=_catalog)
 def list_invader_ids(db: Session = Depends(get_db)):
     """Return the IDs of all existing invaders (client-side cache reconciliation)."""
     return {"ids": invader_service.list_ids(db)}
 
 
-@router.get("/", response_model=List[InvaderOut])
+@router.get("/", response_model=List[InvaderOut], dependencies=_catalog)
 def list_invaders(
     updated_since: Optional[datetime] = Query(default=None, description="Return only invaders updated after this ISO timestamp"),
     db: Session = Depends(get_db),
@@ -36,7 +39,7 @@ def list_invaders(
     return invader_service.list_all(db, updated_since)
 
 
-@router.get("/{invader_id}", response_model=InvaderOut)
+@router.get("/{invader_id}", response_model=InvaderOut, dependencies=_catalog)
 def get_invader(invader_id: int, db: Session = Depends(get_db)):
     try:
         return invader_service.get_by_id(db, invader_id)
@@ -44,7 +47,7 @@ def get_invader(invader_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Invader not found")
 
 
-@router.get("/{invader_id}/contributors", response_model=InvaderContributorsOut)
+@router.get("/{invader_id}/contributors", response_model=InvaderContributorsOut, dependencies=_catalog)
 def get_invader_contributors(invader_id: int, db: Session = Depends(get_db)):
     try:
         invader_service.get_by_id(db, invader_id)
@@ -53,7 +56,7 @@ def get_invader_contributors(invader_id: int, db: Session = Depends(get_db)):
     return admin_request_service.get_invader_contributors(db, invader_id)
 
 
-@router.get("/{invader_id}/overview", response_model=InvaderOverviewOut)
+@router.get("/{invader_id}/overview", response_model=InvaderOverviewOut, dependencies=_catalog)
 def get_invader_overview(
     invader_id: int,
     db: Session = Depends(get_db),

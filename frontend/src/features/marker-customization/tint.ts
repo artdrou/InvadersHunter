@@ -87,11 +87,41 @@ function buildShadeMap(uniqueSources: string[], targetHex: string): Map<string, 
   return map;
 }
 
+// Body and shade greys of the pixel-art sources (dev/markers/normalize_avatars.py palette)
+const BODY_LIGHTNESS = rgbToHsl(hexToRgb('#808080')).l;
+const SHADE_LIGHTNESS = rgbToHsl(hexToRgb('#4f4f4f')).l;
+// Where the marker shapes put their shading once colored (4-tone 50 / 100 pts): the
+// outline 2/3 of the spread below the body
+const SHADE_OFFSET = -(2 / 3) * SHADE_SPREAD;
+
+// Lightness offset from the body for an anchored source grey: black → -SPREAD (eyes,
+// as the 30 pts), #4f4f4f → SHADE_OFFSET (outline, as 50 / 100 pts), white → +SPREAD
+// (eye whites, as the 30 pts); greys in between are interpolated.
+function anchoredOffset(l: number): number {
+  if (l >= BODY_LIGHTNESS) return ((l - BODY_LIGHTNESS) / (1 - BODY_LIGHTNESS)) * SHADE_SPREAD;
+  if (l >= SHADE_LIGHTNESS) return ((BODY_LIGHTNESS - l) / (BODY_LIGHTNESS - SHADE_LIGHTNESS)) * SHADE_OFFSET;
+  return SHADE_OFFSET - ((SHADE_LIGHTNESS - l) / SHADE_LIGHTNESS) * (SHADE_SPREAD + SHADE_OFFSET);
+}
+
+// Anchored variant: the body grey becomes exactly the target color, so a 2-tone
+// shape's body matches a single-color one instead of being pushed lighter. The other
+// greys get the same contrast as on the marker shapes (anchoredOffset).
+function buildAnchoredShadeMap(uniqueSources: string[], targetHex: string): Map<string, string> {
+  const target = rgbToHsl(hexToRgb(targetHex));
+  const map = new Map<string, string>();
+  for (const src of uniqueSources) {
+    const l = Math.max(0, Math.min(1, target.l + anchoredOffset(rgbToHsl(hexToRgb(src)).l)));
+    map.set(src, rgbToHex(hslToRgb({ h: target.h, s: target.s, l })));
+  }
+  return map;
+}
+
 // Recolors a pixel-art SVG by mapping each unique source fill to a shade of
 // the target color, ranked by luminance (preserves the shape's shading).
-export function tintSvg(svg: string, hex: string): string {
+// `anchored` = body grey → exactly the target color (profile icon shapes).
+export function tintSvg(svg: string, hex: string, anchored = false): string {
   const sources = extractUniqueFills(svg);
-  const shadeMap = buildShadeMap(sources, hex);
+  const shadeMap = anchored ? buildAnchoredShadeMap(sources, hex) : buildShadeMap(sources, hex);
 
   let out = svg;
   for (const [src, shade] of shadeMap) {

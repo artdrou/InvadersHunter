@@ -15,6 +15,7 @@ if not SECRET_KEY:
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
+GUEST_PASS_EXPIRE_DAYS = 30
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -27,6 +28,12 @@ def create_access_token(data: dict) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def create_guest_pass() -> str:
+    """Anonymous token for guest mode: opens the invader catalog, nothing else
+    (its `sub` isn't a user id, so get_current_user rejects it)."""
+    expire = datetime.now(timezone.utc) + timedelta(days=GUEST_PASS_EXPIRE_DAYS)
+    return jwt.encode({"sub": "guest", "guest": True, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_refresh_token() -> tuple[str, datetime]:
     token = secrets.token_urlsafe(48)

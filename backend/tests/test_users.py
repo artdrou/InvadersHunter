@@ -44,6 +44,22 @@ def test_register_stays_public(client):
     assert res.status_code == 200
 
 
+def test_register_is_limited_per_ip(client, user):
+    from app.services import user_service
+    def signup(i, ip="1.2.3.4"):
+        return client.post("/users/", headers={"X-Forwarded-For": ip},
+                           json={"username": f"bot{i}", "email": f"bot{i}@test.com", "password": "pass1234"})
+    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+        # Refused attempts (name taken) don't count
+        client.post("/users/", headers={"X-Forwarded-For": "1.2.3.4"},
+                    json={"username": "alice", "email": "x@test.com", "password": "pass1234"})
+        for i in range(user_service.SIGNUP_LIMIT.max_hits):
+            assert signup(i).status_code == 200
+        res = signup(99)
+        assert res.status_code == 429 and res.json()["detail"] == "too_many"
+        assert signup(100, ip="5.6.7.8").status_code == 200  # other IPs unaffected
+
+
 def test_register_duplicate_username(client, user):
     with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "alice", "email": "other@test.com", "password": "pass1234"})

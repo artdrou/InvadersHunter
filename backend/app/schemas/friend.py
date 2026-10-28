@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional
 
+from .avatar import Avatar
+
 
 class FriendRequestCreate(BaseModel):
     """`username` also takes a friend code ("K7QM-3XPA", any case, dash optional)."""
@@ -20,6 +22,9 @@ class FriendEntry(BaseModel):
     username: str
     flashed_count: int
     since: Optional[datetime] = None
+    avatar: Optional[Avatar] = None
+    # Friends only (empty for invites): the app computes score / cities from it
+    flashed_invader_ids: List[int] = []
 
 
 class FriendsOverview(BaseModel):
@@ -42,6 +47,7 @@ class FriendLookupOut(BaseModel):
     user_id: int
     username: str
     relation: str
+    avatar: Optional[Avatar] = None
 
 
 class FriendProfileOut(BaseModel):

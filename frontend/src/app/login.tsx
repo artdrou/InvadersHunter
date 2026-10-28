@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
 import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 
 export default function LoginScreen() {
@@ -29,8 +30,9 @@ export default function LoginScreen() {
     try {
       const { accessToken, refreshToken } = await loginUser(username, password);
       login(accessToken, refreshToken);
-    } catch {
-      setError(t('auth.login.invalid'));
+    } catch (e) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      setError(t(status === 429 ? 'auth.login.tooMany' : 'auth.login.invalid'));
     } finally {
       setLoading(false);
     }
@@ -48,11 +50,10 @@ export default function LoginScreen() {
           value={username}
           onChangeText={setUsername}
         />
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder={t('auth.password')}
           placeholderTextColor={theme.textMuted}
-          secureTextEntry
           value={password}
           onChangeText={setPassword}
         />

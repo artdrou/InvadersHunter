@@ -59,6 +59,19 @@ def get_current_user_optional(
     return db.query(User).filter(User.id == user_id).first()
 
 
+def require_catalog_access(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> None:
+    """The invader catalog isn't public: a signed-in user's token or a guest pass
+    (POST /auth/guest) is required. Signature + expiry only, no DB lookup."""
+    if not credentials:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("guest") is not True:
+            int(payload.get("sub"))
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+
 def require_admin(current_user=Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")

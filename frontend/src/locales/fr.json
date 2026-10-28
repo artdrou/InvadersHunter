@@ -261,10 +261,13 @@
     "appTitle": "HINTVADERS",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "email": "E-mail",
     "login": {
       "button": "Connexion",
       "invalid": "Identifiant ou mot de passe invalide",
+      "tooMany": "Trop de tentatives. Réessayez dans 15 minutes.",
       "noAccount": "Pas de compte ?",
       "createOne": "En créer un",
       "forgotPassword": "Mot de passe oublié ?",
@@ -273,6 +276,7 @@
     "register": {
       "button": "Créer un compte",
       "failed": "Inscription échouée",
+      "tooMany": "Trop de comptes créés depuis ce réseau. Réessayez dans une heure.",
       "alreadyAccount": "Déjà un compte ?",
       "loginLink": "Connexion"
     },
@@ -310,7 +314,6 @@
   },
   "appearance": {
     "sectionTheme": "Theme",
-    "sectionHunt": "Chasse",
     "sectionMap": "Carte",
     "routeGlow": "Lueur de l'itineraire",
     "routeGlowSubtitle": "Effet de lumiere anime sur le trace",
@@ -615,20 +618,22 @@
     "exportDataSubtitle": "Requêtes, historique, logs au format CSV"
   },
   "flashImport": {
-    "title": "Importer mes flashes",
-    "intro": "Récupérez automatiquement vos flashes depuis l'application officielle FlashInvaders installée sur votre téléphone Android, via votre PC.",
-    "step1Title": "Connectez-vous à HintVaders",
-    "step1Body": "Avec le compte sur lequel vous voulez importer vos flashes.",
-    "step2Title": "Branchez votre téléphone au PC",
-    "step2Body": "Câble USB. Autorisez le transfert de données si demandé.",
-    "step3Title": "Activez le débogage USB",
-    "step3Body": "Réglages → À propos → tapez 7 fois sur \"Numéro de build\" pour activer les options développeur, puis activez \"Débogage USB\". Acceptez la demande sur le téléphone.",
-    "step4Title": "Téléchargez et lancez l'application",
-    "step4Body": "Sur votre PC Windows, double-cliquez sur le .exe téléchargé. Windows SmartScreen affichera un avertissement (application non signée) : cliquez \"Informations complémentaires\" → \"Exécuter quand même\". Saisissez vos identifiants HintVaders quand demandé. Choisissez ensuite [1] pour ajouter seulement les flashes manquants, ou [2] pour une synchronisation complète qui retire aussi les flashes absents du téléphone (aperçu du compte et des totaux, puis confirmation).",
-    "step5Title": "IMPORTANT : synchronisez l'app",
-    "step5Body": "Une fois l'import terminé, revenez sur l'écran Profil et appuyez sur \"Synchroniser\" pour récupérer les flashes importés dans l'application.",
-    "downloadBtn": "Télécharger l'application (Windows)",
-    "downloadNote": "Aucun prérequis : le script télécharge automatiquement les outils Android nécessaires (~10 Mo, une seule fois). Windows uniquement pour le moment.",
+    "title": "Importer mes flashs",
+    "intro": "Copie les flashs de l'app officielle FlashInvaders (Android) dans HintVaders, depuis un ordinateur. Rien à installer.",
+    "addressLabel": "Sur ton ordinateur, ouvre :",
+    "copyBtn": "Copier",
+    "copied": "Lien copié !",
+    "shareBtn": "Envoyer",
+    "shareMessage": "Importer mes flashs dans HintVaders : {{link}}",
+    "step1Title": "Ouvre la page sur ton ordinateur",
+    "step1Body": "Avec Chrome, Edge ou Opera, sur Windows, Mac ou Linux. « Envoyer » te permet de t'envoyer le lien.",
+    "step2Title": "Branche ton téléphone et suis la page",
+    "step2Body": "Elle t'explique comment activer le débogage USB, puis te montre tes flashs avant de synchroniser. Une sauvegarde est faite automatiquement.",
+    "step3Title": "Synchronise l'app",
+    "step3Body": "Une fois terminé, va dans Options → Synchronisation et appuie sur « Synchroniser maintenant ».",
+    "windowsTitle": "La page ne marche pas ?",
+    "windowsNote": "Certains téléphones (Samsung notamment) bloquent le navigateur. Utilise alors l'outil Windows : SmartScreen préviendra que l'app n'est pas signée, clique « Informations complémentaires » → « Exécuter quand même ».",
+    "downloadBtn": "Télécharger l'outil Windows",
     "alternativeTitle": "Alternative : coller une liste",
     "alternativeNote": "Si l'ADB ne fonctionne pas, collez une liste de noms d'invaders (un par ligne ou séparés par des virgules). Les extensions de fichier sont ignorées.",
     "importBtn": "Importer la liste",
@@ -752,7 +757,9 @@
     "gotIt": "Compris !"
   },
   "social": {
+    "seeProfile": "Voir son profil",
     "title": "Social",
+    "tabFriends": "Amis",
     "addTitle": "Ajouter un ami",
     "myCode": "Mon code ami",
     "codeCopy": "Copier",
@@ -778,7 +785,6 @@
     "decline": "Refuser",
     "cancel": "Annuler",
     "pending": "En attente de réponse",
-    "flashedCount": "Invaders flashés : {{count}}",
     "noFriends": "Pas encore d'amis. Partage ton code ami, ou ajoute quelqu'un avec son code ou son nom d'utilisateur.",
     "loadFailed": "Chargement impossible. Touche pour réessayer.",
     "guestMessage": "Crée un compte pour ajouter des amis et comparer vos cartes.",
@@ -814,5 +820,12 @@
     "all": "Tout",
     "count": "{{count}} à compléter",
     "empty": "Rien à compléter avec ce filtre."
+  },
+  "avatar": {
+    "title": "Icône de profil",
+    "edit": "Modifier l'icône",
+    "sectionShape": "Forme",
+    "sectionColors": "Couleurs",
+    "saveFailed": "Impossible d'enregistrer l'icône. Vérifie ta connexion."
   }
 }

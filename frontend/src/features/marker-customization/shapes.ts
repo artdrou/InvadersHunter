@@ -1,7 +1,8 @@
 // Pixel-art silhouettes, one per point tier. Copied verbatim from
 // dev/markers/src/shape-*.svg (the offline build pipeline's source of truth)
 // so the on-device generator can recolor/rasterize the exact same shapes.
-import type { TierPts } from './types';
+import type { TierPts, ShapeId } from './types';
+import { EXTRA_SHAPE_IDS, EXTRA_SHAPE_SVG } from './extra-shapes';
 
 export const SHAPE_SVG: Record<TierPts, string> = {
   10: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150" shape-rendering="crispEdges">
@@ -304,3 +305,16 @@ export const SHAPE_SVG: Record<TierPts, string> = {
 };
 
 export const SHAPE_IDS: TierPts[] = [10, 20, 30, 40, 50, 100];
+
+/** Every silhouette users can pick (markers and profile icon): the 6 tier shapes, then the extras. */
+export const ALL_SHAPE_IDS: ShapeId[] = [...SHAPE_IDS, ...EXTRA_SHAPE_IDS];
+
+/** SVG of a silhouette; undefined for an id this app version doesn't know. */
+export function shapeSvg(id: ShapeId): string | undefined {
+  return typeof id === 'number' ? SHAPE_SVG[id] : EXTRA_SHAPE_SVG[id];
+}
+
+/** Extra shapes keep their body exactly the chosen color (see tintSvg `anchored`). */
+export function isAnchoredShape(id: ShapeId): boolean {
+  return typeof id === 'string';
+}

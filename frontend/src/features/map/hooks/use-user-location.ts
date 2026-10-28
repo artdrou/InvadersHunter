@@ -1,36 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import * as Location from "expo-location";
+import { PositionFilter, approxDistanceM, smoothAngle, angleDiff } from "../location-filter";
 
 export type UserLocation = {
   coords: [number, number];
   heading: number | null;
 };
 
-function smoothAngle(prev: number, next: number, alpha: number): number {
-  const delta = ((next - prev + 540) % 360) - 180;
-  return (prev + alpha * delta + 360) % 360;
-}
-
-function smoothCoords(
-  prev: [number, number],
-  next: [number, number],
-  alpha: number
-): [number, number] {
-  return [
-    prev[0] + alpha * (next[0] - prev[0]),
-    prev[1] + alpha * (next[1] - prev[1]),
-  ];
-}
-
-const INTERVAL_MS = 16; // ~60fps smoothing loop
-const POSITION_ALPHA = 0.2; // position smoothing factor toward the (possibly dead-reckoned) target
+const INTERVAL_MS = 16; // ~60fps prediction loop
 const MIN_RELIABLE_SPEED_MPS = 0.3; // below this, GPS speed/course are noise, not real motion
 const MAX_SPEED_MPS = 20; // sanity clamp against occasional GPS glitches (~72 km/h)
-const METERS_PER_DEG_LAT = 111_320;
-
-function metersPerDegLon(latDeg: number): number {
-  return METERS_PER_DEG_LAT * Math.cos((latDeg * Math.PI) / 180);
-}
+const STOPPED_SPEED_ACCURACY_MPS = 0.15; // trust "stopped" a lot, so the dot doesn't overshoot when we halt
+// Skip React updates below these changes: the map re-renders on every setState,
+// and standing still would otherwise repaint it 60×/s for sub-centimetre drift.
+const MIN_MOVE_M = 0.05;
+const MIN_TURN_DEG = 0.3;
+const MAX_PREDICT_DT_S = 1; // after the app was paused, don't extrapolate the velocity for seconds
 
 /**
  * @param headingAlpha  Smoothing factor 0–1 for the compass heading. Lower = smoother but laggier. Default 0.15.
@@ -39,17 +24,15 @@ export function useUserLocation(headingAlpha = 0.15) {
   const [coords, setCoords]   = useState<[number, number] | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
 
-  // `rawCoords` is the filter's current target: it snaps to each authoritative GPS fix,
-  // then dead-reckons forward every tick using the device's reported speed/course so it
-  // keeps moving between fixes instead of sitting still and then jumping on the next one
-  // (the "saccadé" behaviour at low speed, where distanceInterval fixes are seconds apart).
-  const rawCoords              = useRef<[number, number] | null>(null);
-  const smoothedCoords         = useRef<[number, number] | null>(null);
-  const speedMps               = useRef(0);
-  const courseRad              = useRef<number | null>(null);
+  // The Kalman filter predicts the position every tick from its estimated
+  // velocity, so the dot keeps moving between GPS fixes instead of sitting
+  // still and then jumping (the "saccadé" behaviour at walking speed).
+  const filter                 = useRef(new PositionFilter());
+  const emittedCoords          = useRef<[number, number] | null>(null);
   const lastTickAt             = useRef<number | null>(null);
   const rawHeading             = useRef<number | null>(null);
   const smoothedHeading        = useRef<number | null>(null);
+  const emittedHeading         = useRef<number | null>(null);
 
   useEffect(() => {
     let positionSub: Location.LocationSubscription | null = null;
@@ -64,26 +47,24 @@ export function useUserLocation(headingAlpha = 0.15) {
       // (which can take several seconds on cold start with Accuracy.High).
       try {
         const last = await Location.getLastKnownPositionAsync();
-        if (last) {
-          rawCoords.current = [last.coords.longitude, last.coords.latitude];
+        if (last && !filter.current.hasFix) {
+          filter.current.updatePosition(last.coords.longitude, last.coords.latitude, last.coords.accuracy);
         }
       } catch {}
 
       positionSub = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 1, timeInterval: 1000 },
         (loc) => {
-          // Authoritative correction: re-anchor the dead-reckoning target to the real fix.
-          rawCoords.current = [loc.coords.longitude, loc.coords.latitude];
+          const f = filter.current;
+          f.updatePosition(loc.coords.longitude, loc.coords.latitude, loc.coords.accuracy);
 
           const speed = loc.coords.speed;
-          speedMps.current =
-            speed !== null && speed > MIN_RELIABLE_SPEED_MPS
-              ? Math.min(speed, MAX_SPEED_MPS)
-              : 0;
-          courseRad.current =
-            loc.coords.heading !== null && loc.coords.heading >= 0
-              ? (loc.coords.heading * Math.PI) / 180
-              : null;
+          const course = loc.coords.heading;
+          if (speed !== null && speed >= 0 && speed <= MIN_RELIABLE_SPEED_MPS) {
+            f.updateVelocity(0, 0, STOPPED_SPEED_ACCURACY_MPS); // OS says we're stopped: kill drift
+          } else if (speed !== null && speed > MIN_RELIABLE_SPEED_MPS && course !== null && course >= 0) {
+            f.updateVelocity(Math.min(speed, MAX_SPEED_MPS), course);
+          }
         }
       );
 
@@ -94,24 +75,15 @@ export function useUserLocation(headingAlpha = 0.15) {
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const dt = lastTickAt.current === null ? 0 : (now - lastTickAt.current) / 1000;
+      const dt = lastTickAt.current === null ? 0 : Math.min((now - lastTickAt.current) / 1000, MAX_PREDICT_DT_S);
       lastTickAt.current = now;
 
-      if (rawCoords.current !== null) {
-        if (speedMps.current > 0 && courseRad.current !== null && dt > 0) {
-          const distMeters = speedMps.current * dt;
-          const dLat = (distMeters * Math.cos(courseRad.current)) / METERS_PER_DEG_LAT;
-          const dLon =
-            (distMeters * Math.sin(courseRad.current)) /
-            metersPerDegLon(rawCoords.current[1]);
-          rawCoords.current = [rawCoords.current[0] + dLon, rawCoords.current[1] + dLat];
-        }
-
-        smoothedCoords.current =
-          smoothedCoords.current === null
-            ? rawCoords.current
-            : smoothCoords(smoothedCoords.current, rawCoords.current, POSITION_ALPHA);
-        setCoords(smoothedCoords.current);
+      const f = filter.current;
+      f.predict(dt);
+      const pos = f.position();
+      if (pos !== null && (emittedCoords.current === null || approxDistanceM(emittedCoords.current, pos) >= MIN_MOVE_M)) {
+        emittedCoords.current = pos;
+        setCoords(pos);
       }
 
       if (rawHeading.current !== null) {
@@ -119,7 +91,10 @@ export function useUserLocation(headingAlpha = 0.15) {
           smoothedHeading.current === null
             ? rawHeading.current
             : smoothAngle(smoothedHeading.current, rawHeading.current, headingAlpha);
-        setHeading(smoothedHeading.current);
+        if (emittedHeading.current === null || angleDiff(emittedHeading.current, smoothedHeading.current) >= MIN_TURN_DEG) {
+          emittedHeading.current = smoothedHeading.current;
+          setHeading(smoothedHeading.current);
+        }
       }
     }, INTERVAL_MS);
 

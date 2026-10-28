@@ -4,7 +4,7 @@
  * setting controls.
  */
 import { ReactNode } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -23,9 +23,12 @@ type Props = {
   // nestedScrollEnabled is a no-op. Content that overflows is clipped, so only
   // opt out when the layout genuinely fits.
   scrollable?: boolean;
+  // When false, content starts at the top instead of being centered: for screens
+  // with tabs, so the tab bar doesn't jump when the tabs differ in height.
+  centered?: boolean;
 };
 
-export function SettingsShell({ title, children, scrollable = true }: Props) {
+export function SettingsShell({ title, children, scrollable = true, centered = true }: Props) {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -33,7 +36,9 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
   const styles = makeStyles(theme);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + Spacing.three }]}>
+    // Edge-to-edge Android no longer resizes the window for the keyboard: pad it ourselves
+    // so a focused field stays above it.
+    <KeyboardAvoidingView style={[styles.container, { paddingTop: insets.top + Spacing.three }]} behavior="padding">
       <StreetsBackground intensity="faint" />
       <View style={styles.header}>
         <Pressable
@@ -45,13 +50,13 @@ export function SettingsShell({ title, children, scrollable = true }: Props) {
         <ArcadeTitle text={title} />
       </View>
       {scrollable ? (
-        <ScrollView contentContainerStyle={styles.body}>
+        <ScrollView contentContainerStyle={[styles.body, !centered && styles.top]}>
           {children}
         </ScrollView>
       ) : (
-        <View style={styles.body}>{children}</View>
+        <View style={[styles.body, !centered && styles.top]}>{children}</View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -81,6 +86,7 @@ function makeStyles(t: ThemeTokens) {
       paddingBottom: Spacing.six,
       gap: Spacing.three,
     },
+    top: { justifyContent: 'flex-start' },
     pressed: { opacity: 0.6 },
   });
 }

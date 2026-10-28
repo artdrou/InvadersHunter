@@ -1,4 +1,9 @@
+import type { ExtraShapeId } from './extra-shapes';
+
 export type TierPts = 10 | 20 | 30 | 40 | 50 | 100;
+
+/** Any silhouette of the pool: a tier's own shape, or an extra one ("big-3"…). */
+export type ShapeId = TierPts | ExtraShapeId;
 
 export const TIER_VALUES: TierPts[] = [10, 20, 30, 40, 50, 100];
 

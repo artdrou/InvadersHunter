@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from app.models.space_invader import Invader
 from app.models.user import User
 from app.core.security import hash_password
-from tests.conftest import auth_headers
+from tests.conftest import auth_headers, guest_headers
 
 
 @pytest.fixture()
@@ -41,16 +41,49 @@ def inv2(db):
     return i
 
 
+# ── catalog access (signed-in user or guest pass) ─────────────────────────────
+
+@pytest.mark.parametrize("path", ["/invaders/", "/invaders/ids", "/invaders/deleted"])
+def test_catalog_is_not_public(client, inv, path):
+    assert client.get(path).status_code == 401
+    assert client.get(path, headers={"Authorization": "Bearer forged"}).status_code == 401
+
+
+def test_catalog_open_to_users_and_guests(client, inv, user_h):
+    assert client.get(f"/invaders/{inv.id}", headers=user_h).status_code == 200
+    assert client.get(f"/invaders/{inv.id}", headers=guest_headers()).status_code == 200
+
+
+def test_guest_pass_opens_nothing_else(client):
+    assert client.get("/friends/", headers=guest_headers()).status_code == 401
+    assert client.post("/progress/", headers=guest_headers(), json={"user_id": 1, "invader_id": 1}).status_code == 401
+
+
+def test_guest_endpoint_gives_a_working_pass(client, inv):
+    res = client.post("/auth/guest")
+    assert res.status_code == 200
+    token = res.json()["access_token"]
+    assert client.get("/invaders/", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+
+def test_guest_passes_are_limited_per_ip(client):
+    from app.services import auth_service
+    for _ in range(auth_service.GUEST_PASS_LIMIT.max_hits):
+        client.post("/auth/guest", headers={"X-Forwarded-For": "9.9.9.9"})
+    assert client.post("/auth/guest", headers={"X-Forwarded-For": "9.9.9.9"}).status_code == 429
+    assert client.post("/auth/guest", headers={"X-Forwarded-For": "8.8.8.8"}).status_code == 200
+
+
 # ── list (GET /invaders/) ─────────────────────────────────────────────────────
 
 def test_list_invaders_returns_all(client, inv, inv2):
-    res = client.get("/invaders/")
+    res = client.get("/invaders/", headers=guest_headers())
     assert res.status_code == 200
     assert len(res.json()) == 2
 
 
 def test_list_invaders_empty(client):
-    res = client.get("/invaders/")
+    res = client.get("/invaders/", headers=guest_headers())
     assert res.status_code == 200
     assert res.json() == []
 
@@ -64,7 +97,7 @@ def test_list_invaders_delta_sync(client, db, inv, inv2):
     db.flush()
 
     cutoff = (datetime.utcnow() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
-    res = client.get(f"/invaders/?updated_since={cutoff}")
+    res = client.get(f"/invaders/?updated_since={cutoff}", headers=guest_headers())
     assert res.status_code == 200
     ids = [i["id"] for i in res.json()]
     assert inv2.id in ids
@@ -77,7 +110,7 @@ def test_list_invaders_delta_sync_no_results(client, db, inv):
     db.flush()
 
     cutoff = (datetime.utcnow() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
-    res = client.get(f"/invaders/?updated_since={cutoff}")
+    res = client.get(f"/invaders/?updated_since={cutoff}", headers=guest_headers())
     assert res.status_code == 200
     assert res.json() == []
 
@@ -85,7 +118,7 @@ def test_list_invaders_delta_sync_no_results(client, db, inv):
 # ── get (GET /invaders/{id}) ──────────────────────────────────────────────────
 
 def test_get_invader_returns_correct_data(client, inv):
-    res = client.get(f"/invaders/{inv.id}")
+    res = client.get(f"/invaders/{inv.id}", headers=guest_headers())
     assert res.status_code == 200
     body = res.json()
     assert body["name"] == "PA_10"
@@ -94,7 +127,7 @@ def test_get_invader_returns_correct_data(client, inv):
 
 
 def test_get_invader_not_found(client):
-    res = client.get("/invaders/9999")
+    res = client.get("/invaders/9999", headers=guest_headers())
     assert res.status_code == 404
 
 
@@ -127,7 +160,7 @@ def test_create_invader_with_all_fields(client, admin_h):
 
 def test_created_invader_appears_in_list(client, admin_h):
     client.post("/invaders/", json={"name": "LYO_1", "latitude": 45.74, "longitude": 4.83}, headers=admin_h)
-    res = client.get("/invaders/")
+    res = client.get("/invaders/", headers=guest_headers())
     assert any(i["name"] == "LYO_1" for i in res.json())
 
 
@@ -175,7 +208,7 @@ def test_delete_invader_not_found(client, admin_h):
 
 def test_delete_invader_no_longer_in_list(client, db, inv, admin_h):
     client.delete(f"/invaders/{inv.id}", headers=admin_h)
-    res = client.get("/invaders/")
+    res = client.get("/invaders/", headers=guest_headers())
     assert not any(i["id"] == inv.id for i in res.json())
 
 
@@ -187,7 +220,7 @@ def test_invader_writes_are_admin_only(client, inv, user_h):
 
 
 def test_list_ids_returns_every_existing_invader(client, inv, inv2):
-    res = client.get("/invaders/ids")
+    res = client.get("/invaders/ids", headers=guest_headers())
     assert res.status_code == 200
     assert sorted(res.json()["ids"]) == sorted([inv.id, inv2.id])
 
@@ -196,5 +229,5 @@ def test_list_ids_excludes_invader_deleted_without_tombstone(client, db, inv, in
     # Simulates a manual DELETE in the DB console: no deleted_invaders row
     db.delete(inv)
     db.flush()
-    res = client.get("/invaders/ids")
+    res = client.get("/invaders/ids", headers=guest_headers())
     assert res.json()["ids"] == [inv2.id]

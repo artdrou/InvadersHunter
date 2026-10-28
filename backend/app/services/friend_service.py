@@ -23,7 +23,7 @@ from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 from ..models.friendship import Friendship
 from ..models.user import User
 from ..models.user_progress import UserProgress
-from . import notification_service, user_service
+from . import avatar_service, notification_service, user_service
 
 PENDING = "pending"
 ACCEPTED = "accepted"
@@ -133,6 +133,20 @@ def _flash_counts(db: Session, user_ids: List[int]) -> Dict[int, int]:
     return dict(rows)
 
 
+def _flashed_ids(db: Session, user_ids: List[int]) -> Dict[int, List[int]]:
+    out: Dict[int, List[int]] = {uid: [] for uid in user_ids}
+    if not user_ids:
+        return out
+    rows = (
+        db.query(UserProgress.user_id, UserProgress.invader_id)
+        .filter(UserProgress.user_id.in_(user_ids))
+        .all()
+    )
+    for uid, inv_id in rows:
+        out[uid].append(inv_id)
+    return out
+
+
 def are_friends(db: Session, a: int, b: int) -> bool:
     link = _pair(db, a, b)
     return link is not None and link.status == ACCEPTED
@@ -146,21 +160,26 @@ def overview(db: Session, me: User) -> dict:
         Friendship.requester_id == me.id, Friendship.addressee_id == me.id,
     )).all()
     other_ids = [l.addressee_id if l.requester_id == me.id else l.requester_id for l in links]
-    names = dict(db.query(User.id, User.username).filter(User.id.in_(other_ids)).all()) if other_ids else {}
+    users = {u.id: u for u in db.query(User).filter(User.id.in_(other_ids)).all()} if other_ids else {}
     counts = _flash_counts(db, other_ids)
+    friend_ids = [o for l, o in zip(links, other_ids) if l.status == ACCEPTED]
+    flashed = _flashed_ids(db, friend_ids)
 
     result = {"friends": [], "incoming": [], "outgoing": []}
     for link, other_id in zip(links, other_ids):
-        if other_id not in names:
+        other = users.get(other_id)
+        if other is None:
             continue  # the other account is gone
         entry = {
             "id": link.id,
             "user_id": other_id,
-            "username": names[other_id],
+            "username": other.username,
+            "avatar": avatar_service.parse(other.avatar),
             "flashed_count": counts.get(other_id, 0),
             "since": link.accepted_at if link.status == ACCEPTED else link.created_at,
         }
         if link.status == ACCEPTED:
+            entry["flashed_invader_ids"] = flashed.get(other_id, [])
             result["friends"].append(entry)
         elif link.addressee_id == me.id:
             result["incoming"].append(entry)
@@ -201,7 +220,10 @@ def lookup(db: Session, me: User, username: str) -> dict:
             relation = "friends"
         else:
             relation = "sent" if link.requester_id == me.id else "received"
-    return {"user_id": target.id, "username": target.username, "relation": relation}
+    return {
+        "user_id": target.id, "username": target.username, "relation": relation,
+        "avatar": avatar_service.parse(target.avatar),
+    }
 
 
 def send_request(db: Session, me: User, username: str) -> dict:

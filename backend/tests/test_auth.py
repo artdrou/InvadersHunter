@@ -282,3 +282,40 @@ def test_change_password_limits_attempts(client, user, _no_change_limit):
         _change(client, user, "nope", "newpass")
     res = _change(client, user, "secret", "newpass")
     assert res.status_code == 429
+
+
+# ── rate limits ───────────────────────────────────────────────────────────────
+
+def test_login_limits_attempts_per_username(client, user):
+    from app.services import auth_service
+    for _ in range(auth_service.LOGIN_LIMIT.max_hits):
+        client.post("/auth/login", json={"username": "alice", "password": "nope"})
+    res = client.post("/auth/login", json={"username": "ALICE", "password": "secret"})
+    assert res.status_code == 429
+    assert res.json()["detail"] == "too_many"
+    # Another account isn't affected
+    assert client.post("/auth/login", json={"username": "bob", "password": "x"}).status_code == 401
+
+
+def test_reset_code_guessing_is_limited(client, db, user):
+    from app.services import auth_service
+    user.reset_code = "123456"
+    user.reset_code_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
+    db.flush()
+    for _ in range(auth_service.RESET_CODE_LIMIT.max_hits):
+        client.post("/auth/verify-reset-code", json={"email": "alice@test.com", "token": "000000"})
+    # Even the right code is refused once the cap is hit, on both routes
+    res = client.post("/auth/verify-reset-code", json={"email": "alice@test.com", "token": "123456"})
+    assert res.status_code == 429
+    res = client.post("/auth/reset-password",
+                      json={"email": "alice@test.com", "token": "123456", "new_password": "newpass"})
+    assert res.status_code == 429
+
+
+def test_reset_emails_are_capped_silently(client, user):
+    from app.services import auth_service
+    body = {"username": "alice", "email": "alice@test.com"}
+    with patch("app.services.auth_service.send_reset_password_email", new_callable=AsyncMock) as mail:
+        for _ in range(auth_service.RESET_EMAIL_LIMIT.max_hits + 2):
+            assert client.post("/auth/forgot-password", json=body).status_code == 200
+    assert mail.await_count == auth_service.RESET_EMAIL_LIMIT.max_hits

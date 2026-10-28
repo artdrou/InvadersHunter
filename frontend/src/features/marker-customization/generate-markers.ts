@@ -6,9 +6,9 @@
 // visual result matches the bundled assets when nothing is customized.
 import { Skia, TileMode, BlendMode, ImageFormat, ColorType, AlphaType, type SkImage, type SkRect } from '@shopify/react-native-skia';
 import * as FileSystem from 'expo-file-system';
-import { SHAPE_SVG } from './shapes';
+import { shapeSvg, isAnchoredShape } from './shapes';
 import { tintSvg } from './tint';
-import { TIER_VALUES, type TierPts, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from './types';
+import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from './types';
 
 const SIZE = 128;
 const ICON_FRACTION = 0.7;
@@ -106,16 +106,16 @@ function fitCenteredRect(bbox: { width: number; height: number }, boxPx: number,
 
 // tintSvg only ever rewrites `fill` colors — it never touches which pixels are
 // opaque — and the SVG is always rasterized at the fixed SVG_RASTER size, so the
-// trimmed bounding box is a pure function of shapeId (independent of tint color
+// trimmed bounding box is a pure function of the source SVG (independent of tint color
 // and output size). Caching it means the 5 states sharing a tier's shape only
 // pay for one full pixel scan instead of 5.
-const bboxCache = new Map<TierPts, { x: number; y: number; width: number; height: number }>();
+const bboxCache = new Map<string, { x: number; y: number; width: number; height: number }>();
 
-function shapeBBox(shapeId: TierPts): { x: number; y: number; width: number; height: number } {
-  const cached = bboxCache.get(shapeId);
+function shapeBBox(svg: string): { x: number; y: number; width: number; height: number } {
+  const cached = bboxCache.get(svg);
   if (cached) return cached;
 
-  const dom = Skia.SVG.MakeFromString(SHAPE_SVG[shapeId]);
+  const dom = Skia.SVG.MakeFromString(svg);
   if (!dom) throw new Error('Failed to parse marker SVG');
   const surface = Skia.Surface.Make(SVG_RASTER, SVG_RASTER);
   if (!surface) { disposeSkia(dom); throw new Error('Failed to allocate Skia surface'); }
@@ -127,7 +127,7 @@ function shapeBBox(shapeId: TierPts): { x: number; y: number; width: number; hei
   disposeSkia(snapshot);
   disposeSkia(surface);
   disposeSkia(dom);
-  bboxCache.set(shapeId, bbox);
+  bboxCache.set(svg, bbox);
   return bbox;
 }
 
@@ -136,7 +136,7 @@ function shapeBBox(shapeId: TierPts): { x: number; y: number; width: number; hei
 // fraction of the final canvas — this normalizes visible icon size across
 // shapes with different amounts of empty space, matching dev/markers/
 // build.mjs's NORMALIZE_ICON_SIZE step.
-function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkImage {
+function rasterizeIcon(svg: string, tintedSvg: string, size: number): SkImage {
   const dom = Skia.SVG.MakeFromString(tintedSvg);
   if (!dom) throw new Error('Failed to parse marker SVG');
 
@@ -147,7 +147,7 @@ function rasterizeIcon(shapeId: TierPts, tintedSvg: string, size: number): SkIma
   largeCanvas.drawSvg(dom, SVG_RASTER, SVG_RASTER);
   const largeImage = largeSurface.makeImageSnapshot();
 
-  const bbox = shapeBBox(shapeId);
+  const bbox = shapeBBox(svg);
   const iconBoxPx = size * ICON_FRACTION;
   const dstRect = fitCenteredRect(bbox, iconBoxPx, size);
 
@@ -208,9 +208,18 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number, bl
 // customization screen's shape thumbnails and live preview can call it
 // directly (no file I/O) — `size` defaults to the final on-map asset size and
 // `bloomIndex` (0..8) picks the glow size/intensity preset.
-export function renderMarkerBase64(shapeId: TierPts, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
-  const tinted = tintSvg(SHAPE_SVG[shapeId], iconHex);
-  const icon = rasterizeIcon(shapeId, tinted, size);
+export function renderMarkerBase64(shapeId: ShapeId, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
+  const svg = shapeSvg(shapeId);
+  if (!svg) throw new Error(`Unknown marker shape ${shapeId}`);
+  return renderShapeBase64(svg, iconHex, glowHex, size, bloomIndex, isAnchoredShape(shapeId));
+}
+
+// Same, from the SVG itself. `anchored`: see tintSvg.
+export function renderShapeBase64(
+  svg: string, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX, anchored = false,
+): string {
+  const tinted = tintSvg(svg, iconHex, anchored);
+  const icon = rasterizeIcon(svg, tinted, size);
   let final = icon;
   try {
     if (glowHex) final = compositeWithGlow(icon, glowHex, size, bloomFromIndex(bloomIndex));
@@ -272,7 +281,7 @@ function yieldToUi(): Promise<void> {
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
 export async function generateMarkerSet(
-  shapeForTier: Record<TierPts, TierPts>,
+  shapeForTier: Record<TierPts, ShapeId>,
   colors: MarkerColorPrefs,
   bloom: Record<CustomizableState, number>,
 ): Promise<GenerationResult> {
