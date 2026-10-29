@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, registerUser, AuthLayout } from '@/features/auth';
+import { useAuthStore, registerUser, isEmailNotVerified, AuthLayout } from '@/features/auth';
 import { apiErrorDetail } from '@/services/api-client';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
@@ -18,7 +18,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, appFont, fontScale } = useTheme();
   const styles = makeStyles(theme, appFont, fontScale);
 
@@ -28,9 +28,13 @@ export default function RegisterScreen() {
     setLoading(true);
     setError(null);
     try {
-      const { accessToken, refreshToken } = await registerUser(username, email, password);
+      const { accessToken, refreshToken } = await registerUser(username, email, password, i18n.language);
       login(accessToken, refreshToken);
     } catch (err) {
+      if (isEmailNotVerified(err)) {
+        router.replace({ pathname: '/verify-email', params: { username } });
+        return;
+      }
       const detail = apiErrorDetail(err);
       setError(detail === 'too_many' ? t('auth.register.tooMany') : detail ?? t('auth.register.failed'));
     } finally {

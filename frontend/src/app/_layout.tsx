@@ -91,7 +91,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!hasHydrated) return;
-    const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password';
+    const inPublicScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'forgot-password'
+      || segments[0] === 'verify-email';
     // Guests bypass the login wall; they can still visit the public screens
     // (that's how they create an account later — see useRequireAccount).
     if (!token && !isGuest && !inPublicScreen) {

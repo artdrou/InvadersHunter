@@ -1,13 +1,14 @@
 """
 Business logic for the User entity: registration, profile updates, deletion.
 
-Account creation triggers a background welcome email — the router schedules the
-task, the service hands back the email address (and the function reference) so
-nothing is sent before the row is committed.
+Account creation sends the email-check code (auth_service.new_verify_code) — the
+router schedules the email, the service hands it back so nothing is sent before
+the row is committed. The welcome email follows once the address is confirmed.
 """
+from datetime import datetime, timedelta
 from functools import partial
 from typing import List, Optional, Tuple, Callable
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from ..models.user import User
@@ -18,11 +19,12 @@ from ..models.invader_comment import InvaderComment
 from ..models.refresh_token import RefreshToken
 from ..core.security import hash_password
 from ..core.email import (
-    send_account_created_email, send_admin_role_email, send_password_changed_email,
+    send_admin_role_email, send_password_changed_email,
     send_username_changed_email,
 )
 from ..core.db_utils import safe_commit
 from ..core.rate_limit import SlidingWindowLimiter, RateLimited
+from . import auth_service
 
 
 # ── Domain exceptions ────────────────────────────────────────────────────────
@@ -36,6 +38,21 @@ class TooManySignups(Exception): ...
 # Accounts created per IP (stops scripted sign-ups). Not lower: mobile carriers
 # put many phones behind one IP.
 SIGNUP_LIMIT = SlidingWindowLimiter(10, 60 * 60)
+# An unverified account holds its username / email this long, then a new sign-up
+# can take them (someone signed up with an address that isn't theirs)
+UNVERIFIED_HOLD = timedelta(hours=24)
+
+
+def _drop_stale_unverified(db: Session, username: str, email: str) -> None:
+    stale = db.query(User).filter(
+        or_(User.username == username, User.email == email),
+        User.email_verified.is_(False),
+        User.created_at < datetime.utcnow() - UNVERIFIED_HOLD,
+    ).all()
+    for user in stale:
+        db.delete(user)
+    if stale:
+        db.flush()
 
 
 # ── Public service API ───────────────────────────────────────────────────────
@@ -92,10 +109,11 @@ def get_admin_profile(db: Session, user_id: int) -> dict:
 
 
 def register(db: Session, username: str, email: str, password: str,
-             client_ip: str = "?") -> Tuple[User, Callable, str]:
-    """Create a new user. Returns (user, welcome_email_fn, email_address) so the
-    router can schedule the welcome email as a background task post-commit.
+             client_ip: str = "?", language: Optional[str] = None) -> Tuple[User, Optional[Callable]]:
+    """Create a new, unverified user. Returns (user, verification_email) so the
+    router can schedule the email as a background task post-commit.
     Only accounts actually created count toward the per-IP limit."""
+    _drop_stale_unverified(db, username, email)
     if db.query(User).filter(User.username == username).first():
         raise UsernameTaken()
     if db.query(User).filter(User.email == email).first():
@@ -109,12 +127,14 @@ def register(db: Session, username: str, email: str, password: str,
         username=username,
         email=email,
         hashed_password=hash_password(password),
+        email_verified=False,
+        language=language if language in ("fr", "en") else "fr",
     )
+    send_code = auth_service.new_verify_code(user)
     db.add(user)
     safe_commit(db)
     db.refresh(user)
-    welcome = partial(send_account_created_email, username=user.username, language=user.language)
-    return user, welcome, user.email
+    return user, send_code
 
 
 def update(

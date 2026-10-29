@@ -7,6 +7,8 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=4)
+    # The app's language: the verification email is sent in it
+    language: Optional[str] = Field(None, max_length=10)
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)

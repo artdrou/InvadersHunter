@@ -40,8 +40,9 @@ async def create_user(
 ):
     # Public: this is the registration endpoint
     try:
-        new_user, welcome_email_fn, email_address = user_service.register(
-            db, user.username, user.email, user.password, client_ip=client_ip(request),
+        new_user, send_code = user_service.register(
+            db, user.username, user.email, user.password,
+            client_ip=client_ip(request), language=user.language,
         )
     except UsernameTaken:
         raise HTTPException(status_code=400, detail="Username already exists")
@@ -50,7 +51,8 @@ async def create_user(
     except TooManySignups:
         raise HTTPException(status_code=429, detail="too_many")
 
-    background_tasks.add_task(welcome_email_fn, email_address)
+    if send_code:
+        background_tasks.add_task(send_code)
     return new_user
 
 
