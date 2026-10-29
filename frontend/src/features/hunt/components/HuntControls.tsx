@@ -1,27 +1,13 @@
 import { Pressable, Text, View, StyleSheet } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, FontSize, Spacing, ZIndex } from "@/constants/theme";
 import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from "@/constants/arcade-button";
 
-/** "Go": enters the hunt view once a route is drawn. */
-export function HuntGoButton({ onPress }: { onPress: () => void }) {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-  return (
-    <View style={styles.goWrap} pointerEvents="box-none">
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [styles.btn, arcadeButton(theme), pressed && styles.pressed]}
-      >
-        <MaterialCommunityIcons name="walk" size={20} color={arcadeLabelColor(theme)} />
-        <Text style={[styles.label, arcadeButtonLabel(theme)]}>{t("hunt.go")}</Text>
-      </Pressable>
-    </View>
-  );
-}
+/** Height the hunt bar takes above the bottom inset (button + its bottom margin + a gap). */
+export const HUNT_BAR_HEIGHT = 48 + Spacing.four + Spacing.two;
 
 type BarProps = {
   /** The user moved the map: offer to follow again. */
@@ -58,14 +44,6 @@ export function HuntBar({ paused, onRecenter, onExit }: BarProps) {
 }
 
 const styles = StyleSheet.create({
-  goWrap: {
-    position: "absolute",
-    bottom: 140, // level with the routing button
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: ZIndex.map,
-  },
   bar: {
     position: "absolute",
     bottom: 0,

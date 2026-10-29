@@ -77,9 +77,9 @@ export function useMapRouting(mapRef: RefObject<WebMapHandle | null>) {
     if (route) clearRoute();
   }
 
+  // The panel stays open: once the route is drawn, its Start button (hunt view) shows there
   function onCompute(params: RoutingParams) {
     computeRoute(params);
-    setSheetOpen(false);
     setMultiInvaders([]);
   }
 

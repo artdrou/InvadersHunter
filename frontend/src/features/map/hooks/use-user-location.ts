@@ -18,9 +18,10 @@ const MIN_TURN_DEG = 0.3;
 const MAX_PREDICT_DT_S = 1; // after the app was paused, don't extrapolate the velocity for seconds
 
 /**
- * @param headingAlpha  Smoothing factor 0–1 for the compass heading. Lower = smoother but laggier. Default 0.15.
+ * @param headingAlpha  Smoothing factor 0–1 for the compass heading. Lower = smoother but laggier. Default 0.06
+ *                      (0.15 still let the phone's compass jitter show).
  */
-export function useUserLocation(headingAlpha = 0.15) {
+export function useUserLocation(headingAlpha = 0.06) {
   const [coords, setCoords]   = useState<[number, number] | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
 

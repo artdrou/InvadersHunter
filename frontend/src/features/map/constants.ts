@@ -34,8 +34,8 @@ export const CENTER_PADDING_FACTOR = 2.25;
 /** Hunt view: how often the camera steps toward the user (ms). */
 export const HUNT_INTERVAL_MS = 200;
 
-/** Hunt view: camera tilt (degrees, 0 = flat). */
-export const HUNT_PITCH = 55;
+/** Hunt view: camera tilt (degrees, 0 = flat). 60 is MapLibre Native's maximum. */
+export const HUNT_PITCH = 60;
 
 /** Hunt view: share of the map height left above the user, so the dot sits in the lower third. */
 export const HUNT_TOP_PADDING_RATIO = 0.45;

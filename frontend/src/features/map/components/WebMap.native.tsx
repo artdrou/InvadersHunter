@@ -1,7 +1,7 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle, memo } from "react";
 import type { ReactNode, RefObject } from "react";
-import { StyleSheet } from "react-native";
-import type { LayoutChangeEvent } from "react-native";
+import { StyleSheet, View } from "react-native";
+import type { GestureResponderEvent, LayoutChangeEvent } from "react-native";
 import { MapView, Camera, Images, Logger } from "@maplibre/maplibre-react-native";
 import type { CameraRef, MapViewRef } from "@maplibre/maplibre-react-native";
 import type { InvaderWithState } from "@/features/invaders";
@@ -163,6 +163,22 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     };
   }, [hunting, huntPaused]);
 
+  // Hunt view: dragging, pinching or rotating the map unlocks the camera (Recenter
+  // locks it again). Watched on the raw touches: the map's isUserInteraction flag
+  // misses gestures while the following camera keeps moving, so the map could not
+  // be moved at all. A tap (tiny move) doesn't count.
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: GestureResponderEvent) => {
+    touchStartRef.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+  };
+  const onTouchMove = (e: GestureResponderEvent) => {
+    if (!hunting || huntPaused) return;
+    const n = e.nativeEvent;
+    const start = touchStartRef.current;
+    const dragged = start !== null && Math.hypot(n.pageX - start.x, n.pageY - start.y) > HUNT_DRAG_THRESHOLD_PX;
+    if (n.touches.length > 1 || dragged) onHuntInterrupt?.();
+  };
+
   // Leaving the hunt view: back to the flat, north-up map around the same spot
   const wasHunting = useRef(false);
   useEffect(() => {
@@ -209,6 +225,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
   }), []);
 
   return (
+    <View style={styles.map} onTouchStart={onTouchStart} onTouchMove={onTouchMove}>
     <MapView
       ref={mapViewRef}
       key={themeName}
@@ -253,10 +270,14 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       )}
       {children}
     </MapView>
+    </View>
   );
 });
 
 export default WebMap;
+
+// Finger travel (px) before a touch counts as moving the map in the hunt view
+const HUNT_DRAG_THRESHOLD_PX = 10;
 
 const styles = StyleSheet.create({
   map: { flex: 1 },
