@@ -54,6 +54,8 @@ type Props = {
   invaders: InvaderWithState[];
   onInvaderClick: (invader: InvaderWithState) => void;
   onLongPress?: (lat: number, lon: number) => void;
+  /** Tap on the map itself (not on a marker). */
+  onMapPress?: () => void;
   isFollowing?: boolean;
   headingAlpha?: number;
   onHeadingChange?: (heading: number) => void;
@@ -65,7 +67,7 @@ type Props = {
   children?: ReactNode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, routeLayer, children }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, onMapPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, routeLayer, children }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -156,6 +158,7 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
         const { width, height } = e.nativeEvent.layout;
         mapSizeRef.current = { width, height };
       } } as { onLayout?: (e: LayoutChangeEvent) => void })}
+      onPress={() => onMapPress?.()}
       onLongPress={(feature) => {
         if (feature.geometry.type !== "Point") return;
         const [lon, lat] = feature.geometry.coordinates;

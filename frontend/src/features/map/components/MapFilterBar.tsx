@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useImperativeHandle, type Ref } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,13 @@ import { isFilterActive } from "../filter";
 
 const POINTS_OPTIONS = [10, 20, 30, 40, 50, 100];
 
+export type MapFilterBarHandle = {
+  /** Close the filter / palette panels. */
+  closePanels: () => void;
+};
+
 type Props = {
+  ref?: Ref<MapFilterBarHandle>;
   value: MapFilter;
   onChange: (filter: MapFilter) => void;
   greyMode: GreyMode;
@@ -25,7 +31,7 @@ type Props = {
   onColorModeChange: (v: ColorMode) => void;
 };
 
-export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colorMode, onColorModeChange }: Props) {
+export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange, colorMode, onColorModeChange }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const STATUS_OPTIONS: { key: FlashStatusFilter; label: string }[] = [
@@ -55,6 +61,10 @@ export function MapFilterBar({ value, onChange, greyMode, onGreyModeChange, colo
   const [greyOpen, setGreyOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const [filterTutVisible, setFilterTutVisible] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    closePanels: () => { setFilterOpen(false); setGreyOpen(false); },
+  }), []);
 
   const filterPages = useMemo<TutorialPage[]>(() => [
     {
