@@ -13,6 +13,16 @@ export const MapZoom = {
   hunt: 18,                  // hunt view: street level
 } as const;
 
+/**
+ * Invader markers shrink when zooming out: full size from `fullZoom` up, then smaller
+ * and smaller below it, never under `minScale` of their size (reached at `minZoom`).
+ */
+export const MarkerZoomScale = {
+  fullZoom: 14,
+  minZoom: 11,
+  minScale: 0.4,
+} as const;
+
 /** Camera animation durations (ms). */
 export const MapAnim = {
   none: 0,
