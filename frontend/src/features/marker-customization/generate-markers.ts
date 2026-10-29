@@ -10,9 +10,9 @@ import * as FileSystem from 'expo-file-system';
 import { shapeSvg, isAnchoredShape } from './shapes';
 import { tintSvg } from './tint';
 import {
-  TIER_VALUES, STATE_GROUPS, MARKER_DISPLAYS, markerKey,
+  TIER_VALUES, STATE_GROUPS, MARKER_DISPLAYS, STATE_SHAPE_SCALE, markerKey,
   type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette,
-  type RarityColorPrefs, type ShapeForState, type StateGroup, type MarkerDisplay,
+  type RarityColorPrefs, type StateColorPrefs, type ShapeForState, type StateGroup, type MarkerDisplay,
 } from './types';
 
 const SIZE = 128;
@@ -130,7 +130,7 @@ function shapeBBox(svg: string): { x: number; y: number; width: number; height: 
 // fraction of the final canvas — this normalizes visible icon size across
 // shapes with different amounts of empty space, matching dev/markers/
 // build.mjs's NORMALIZE_ICON_SIZE step.
-function rasterizeIcon(svg: string, tintedSvg: string, size: number): SkImage {
+function rasterizeIcon(svg: string, tintedSvg: string, size: number, iconScale = 1): SkImage {
   const dom = Skia.SVG.MakeFromString(tintedSvg);
   if (!dom) throw new Error('Failed to parse marker SVG');
 
@@ -142,7 +142,7 @@ function rasterizeIcon(svg: string, tintedSvg: string, size: number): SkImage {
   const largeImage = largeSurface.makeImageSnapshot();
 
   const bbox = shapeBBox(svg);
-  const iconBoxPx = size * ICON_FRACTION;
+  const iconBoxPx = size * ICON_FRACTION * iconScale;
   const dstRect = fitCenteredRect(bbox, iconBoxPx, size);
 
   const iconSurface = Skia.Surface.Make(size, size);
@@ -201,19 +201,22 @@ function compositeWithGlow(iconImage: SkImage, glowHex: string, size: number, bl
 // halo in `glowHex`) to a base64-encoded PNG. Exported standalone so the
 // customization screen's shape thumbnails and live preview can call it
 // directly (no file I/O) — `size` defaults to the final on-map asset size and
-// `bloomIndex` (0..8) picks the glow size/intensity preset.
-export function renderMarkerBase64(shapeId: ShapeId, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX): string {
+// `bloomIndex` (0..8) picks the glow size/intensity preset; `iconScale` shrinks
+// the silhouette inside the canvas (STATE_SHAPE_SCALE for state silhouettes).
+export function renderMarkerBase64(
+  shapeId: ShapeId, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX, iconScale = 1,
+): string {
   const svg = shapeSvg(shapeId);
   if (!svg) throw new Error(`Unknown marker shape ${shapeId}`);
-  return renderShapeBase64(svg, iconHex, glowHex, size, bloomIndex, isAnchoredShape(shapeId));
+  return renderShapeBase64(svg, iconHex, glowHex, size, bloomIndex, isAnchoredShape(shapeId), iconScale);
 }
 
 // Same, from the SVG itself. `anchored`: see tintSvg.
 export function renderShapeBase64(
-  svg: string, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX, anchored = false,
+  svg: string, iconHex: string, glowHex: string | null, size: number = SIZE, bloomIndex: number = DEFAULT_BLOOM_INDEX, anchored = false, iconScale = 1,
 ): string {
   const tinted = tintSvg(svg, iconHex, anchored);
-  const icon = rasterizeIcon(svg, tinted, size);
+  const icon = rasterizeIcon(svg, tinted, size, iconScale);
   let final = icon;
   try {
     if (glowHex) final = compositeWithGlow(icon, glowHex, size, bloomFromIndex(bloomIndex));
@@ -238,12 +241,13 @@ export type MarkerPrefs = {
   shapeForState: ShapeForState;
   colors: MarkerColorPrefs;
   rarityColors: RarityColorPrefs;
+  stateColors: StateColorPrefs;
   bloom: Record<CustomizableState, number>;
 };
 
-// Colors + bloom of one marker look. Rarity keeps the default bloom (no bloom
-// setting for it); the friend colors take the "not flashed" bloom, as their
-// bundled sprites are hue shifts of it.
+// Colors + bloom of one marker look. Points (rarity) and state palettes keep the
+// default bloom (no bloom setting for them); the friend colors take the "not
+// flashed" bloom, as their bundled sprites are hue shifts of it.
 function lookFor(display: MarkerDisplay, tier: TierPts, prefs: MarkerPrefs): { palette: MarkerPalette; bloom: number } {
   const { colors, bloom } = prefs;
   switch (display) {
@@ -254,6 +258,11 @@ function lookFor(display: MarkerDisplay, tier: TierPts, prefs: MarkerPrefs): { p
     case 'flash-friend': return { palette: FRIEND_PALETTE[display], bloom: bloom.flashUncaptured };
     case 'highlight': return { palette: colors.highlight, bloom: bloom.highlight };
     case 'grey': return { palette: colors.grey, bloom: bloom.grey };
+    case 'state-good': return { palette: prefs.stateColors.good, bloom: DEFAULT_BLOOM_INDEX };
+    case 'state-damaged': return { palette: prefs.stateColors.damaged, bloom: DEFAULT_BLOOM_INDEX };
+    case 'state-reactivated': return { palette: prefs.stateColors.reactivated, bloom: DEFAULT_BLOOM_INDEX };
+    case 'state-destroyed': return { palette: prefs.stateColors.destroyed, bloom: DEFAULT_BLOOM_INDEX };
+    case 'state-not-visible': return { palette: prefs.stateColors.notVisible, bloom: DEFAULT_BLOOM_INDEX };
   }
 }
 
@@ -313,11 +322,13 @@ export async function generateMarkerSet(prefs: MarkerPrefs): Promise<GenerationR
       for (const display of MARKER_DISPLAYS) {
         const { palette, bloom } = lookFor(display, tier, prefs);
         for (const group of GROUP_SLOTS) {
-          const shapeId = (group && prefs.shapeForState[group]) || tierShape;
-          const look = `${shapeId}|${palette.icon}|${palette.glow}|${bloom}`;
+          const stateShape = group ? prefs.shapeForState[group] : null;
+          const shapeId = stateShape ?? tierShape;
+          const scale = stateShape ? STATE_SHAPE_SCALE : 1;
+          const look = `${shapeId}|${palette.icon}|${palette.glow}|${bloom}|${scale}`;
           let base64 = rendered.get(look);
           if (!base64) {
-            base64 = renderMarkerBase64(shapeId, palette.icon, palette.glow, SIZE, bloom);
+            base64 = renderMarkerBase64(shapeId, palette.icon, palette.glow, SIZE, bloom, scale);
             rendered.set(look, base64);
           }
           const name = markerKey(tier, display, group);

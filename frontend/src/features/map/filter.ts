@@ -7,7 +7,8 @@ import { isNonFlashable } from "@/features/invaders/types";
 export type FlashStatusFilter = "all" | "flashed" | "unflashed";
 export type FlashableFilter = "any" | "flashable" | "unflashable";
 export type GreyMode = "none" | "all" | "unflashed";
-export type ColorMode = "flash" | "rarity";
+// "rarity" is shown as "Points" (color per point value); "state" colors by condition.
+export type ColorMode = "flash" | "rarity" | "state";
 
 export type MapFilter = {
   status: FlashStatusFilter;

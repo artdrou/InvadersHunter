@@ -34,10 +34,32 @@ export const STATE_GROUP_SUFFIX: Record<StateGroup, string> = {
   notVisible: 'not-visible',
 };
 
+// "State" color mode: one palette per invader condition. Damaged = the 3 degraded
+// levels; reactivated = back to Good after Destroyed / Not visible, during
+// REACTIVATED_DAYS (features/reactivations).
+export type StateColorKey = 'good' | 'damaged' | 'destroyed' | 'notVisible' | 'reactivated';
+
+export const STATE_COLOR_KEYS: StateColorKey[] = ['good', 'damaged', 'reactivated', 'destroyed', 'notVisible'];
+
+export type StateColorPrefs = Record<StateColorKey, MarkerPalette>;
+
+export const STATE_COLOR_DISPLAY = {
+  good: 'state-good',
+  damaged: 'state-damaged',
+  destroyed: 'state-destroyed',
+  notVisible: 'state-not-visible',
+  reactivated: 'state-reactivated',
+} as const satisfies Record<StateColorKey, string>;
+
 // Every marker look of one tier, as used in iconKeys: `marker-30pts-${display}`.
 export const MARKER_DISPLAYS = [
   'rarity', 'flash-captured', 'flash-uncaptured', 'flash-mine', 'flash-friend', 'highlight', 'grey',
+  'state-good', 'state-damaged', 'state-reactivated', 'state-destroyed', 'state-not-visible',
 ] as const;
+
+// State silhouettes (the ghost…) are drawn a bit smaller than the points' shapes:
+// square-ish, they look bigger than the wide tier invaders at the same box size.
+export const STATE_SHAPE_SCALE = 0.8;
 
 export type MarkerDisplay = (typeof MARKER_DISPLAYS)[number];
 

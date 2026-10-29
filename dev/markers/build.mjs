@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 import {
-  RARITIES, SHAPE_SVG, STATE_SHAPES, COLORS, BLOOM, SIZE, TINT_MODE, SHADE_SPREAD,
+  RARITIES, SHAPE_SVG, STATE_SHAPES, STATE_SHAPE_SCALE, COLORS, BLOOM, SIZE, TINT_MODE, SHADE_SPREAD,
   NORMALIZE_ICON_SIZE, ICON_FRACTION, outputName, stateOutputName,
 } from './markers.config.mjs';
 
@@ -176,7 +176,7 @@ async function rasterize(svg, px) {
     .toBuffer();
 }
 
-async function buildMarker(svgRaw, palette, anchored = false) {
+async function buildMarker(svgRaw, palette, anchored = false, iconScale = 1) {
   // Accept either a string (icon color, bloom auto-derived) or { icon, bloom }.
   const iconColor  = typeof palette === 'string' ? palette : palette.icon;
   const bloomColor = typeof palette === 'string' ? null    : palette.bloom;
@@ -185,7 +185,7 @@ async function buildMarker(svgRaw, palette, anchored = false) {
 
   // Target box for the icon content (excluding bloom padding).
   const iconBoxPx = NORMALIZE_ICON_SIZE
-    ? Math.round(SIZE * ICON_FRACTION)
+    ? Math.round(SIZE * ICON_FRACTION * iconScale)
     : Math.round(SIZE / BLOOM.spread);
 
   // Rasterize the SVG large, then optionally trim transparent borders and
@@ -283,18 +283,26 @@ async function main() {
   // (loop body uses each rarity's palette object; bloom color comes from the config)
   }
 
+  // "State" color mode on the tier shapes (destroyed is always the ghost below)
+  for (const rarity of RARITIES) {
+    const svg = await loadShape(SHAPE_SVG[rarity]);
+    for (const [key, palette] of Object.entries(COLORS.state)) {
+      if (key === 'destroyed') continue;
+      await emit(`marker-${rarity}pts-state-${key}`, await buildMarker(svg, palette));
+    }
+  }
+
   for (const [group, file] of Object.entries(STATE_SHAPES)) {
     const svg = await loadShape(file);
+    const ghost = (palette) => buildMarker(svg, palette, true, STATE_SHAPE_SCALE);
     for (const rarity of RARITIES) {
-      await emit(stateOutputName(group, rarity, 'rarity', null),
-        await buildMarker(svg, COLORS.rarity[rarity], true));
+      await emit(stateOutputName(group, rarity, 'rarity', null), await ghost(COLORS.rarity[rarity]));
     }
     for (const state of ['uncaptured', 'captured']) {
-      await emit(stateOutputName(group, null, 'flash', state),
-        await buildMarker(svg, COLORS.flash[state], true));
+      await emit(stateOutputName(group, null, 'flash', state), await ghost(COLORS.flash[state]));
     }
-    await emit(stateOutputName(group, null, 'grey', null),
-      await buildMarker(svg, COLORS.grey, true));
+    await emit(stateOutputName(group, null, 'grey', null), await ghost(COLORS.grey));
+    await emit(stateOutputName(group, null, 'state', group), await ghost(COLORS.state[group]));
   }
 
   console.log(`\nDone. Output: ${OUT_DIR}`);

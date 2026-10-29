@@ -11,6 +11,13 @@ const rarity30   = require('../../../../assets/images/marker-30pts-rarity.png');
 const rarity40   = require('../../../../assets/images/marker-40pts-rarity.png');
 const rarity50   = require('../../../../assets/images/marker-50pts-rarity.png');
 const rarity100  = require('../../../../assets/images/marker-100pts-rarity.png');
+const STATE_ROWS = [
+  { key: 'good',        src: require('../../../../assets/images/marker-30pts-state-good.png') },
+  { key: 'damaged',     src: require('../../../../assets/images/marker-30pts-state-damaged.png') },
+  { key: 'reactivated', src: require('../../../../assets/images/marker-30pts-state-reactivated.png') },
+  { key: 'destroyed',   src: require('../../../../assets/images/marker-destroyed-state-destroyed.png') },
+  { key: 'notVisible',  src: require('../../../../assets/images/marker-30pts-state-not-visible.png') },
+] as const;
 
 export function ColorModeIllustration() {
   const { theme } = useTheme();
@@ -55,6 +62,16 @@ export function ColorModeIllustration() {
         <Image source={rarity100} style={s.marker} resizeMode="contain" />
         <Text style={[s.caption, { color: theme.text }]}>100 pts</Text>
       </View>
+
+      <View style={[s.hDivider, { backgroundColor: theme.border }]} />
+
+      <Text style={[s.modeLabel, { color: theme.accent }]}>{t('invaders.colorState')}</Text>
+      {STATE_ROWS.map((row) => (
+        <View key={row.key} style={s.markerRow}>
+          <Image source={row.src} style={s.marker} resizeMode="contain" />
+          <Text style={[s.caption, { color: theme.text }]}>{t(`markerCustomization.statePalette.${row.key}`)}</Text>
+        </View>
+      ))}
     </View>
   );
 }

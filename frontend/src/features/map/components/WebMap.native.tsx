@@ -10,6 +10,7 @@ import { useInvaderGeojson } from "../hooks/use-invader-geojson";
 import { useUserLocation } from "../hooks/use-user-location";
 import { InvaderClusterSource } from "./InvaderClusterSource";
 import { UserLocationLayer } from "./UserLocationLayer";
+import { useReactivatedIds } from "@/features/reactivations";
 import { useMarkerImages, useMarkerImagesVersion } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/ISSMarker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
@@ -91,7 +92,8 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     lite: mapLiteEnabled,
     show3d: mapLiteEnabled ? false : map3dBuildings,
   });
-  const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
+  const reactivatedIds = useReactivatedIds();
+  const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds, reactivatedIds);
   const rawLocation   = useUserLocation(headingAlpha);
   // While hunting: snapped onto the route and facing its direction
   const userLocation  = useHuntPosition(rawLocation, huntRoute);

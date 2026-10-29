@@ -4,7 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, BorderRadius, ButtonFont, Spacing, FontSize } from "@/constants/theme";
+import { type ThemeTokens, ButtonFont, Spacing, FontSize } from "@/constants/theme";
+import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel, arcadeCard, arcadeRowDivider, arcadeSectionLabel } from "@/constants/arcade-button";
 import { PixelButton } from "@/components/ui/PixelButton";
 import { InfoButton, TutorialModal } from "@/features/tutorial";
 import type { TutorialPage } from "@/features/tutorial";
@@ -56,10 +57,12 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
   const COLOR_MODE_OPTIONS: { key: ColorMode; label: string }[] = [
     { key: "flash", label: t('invaders.colorFlash') },
     { key: "rarity", label: t('invaders.colorRarity') },
+    { key: "state", label: t('invaders.colorState') },
   ];
   const [filterOpen, setFilterOpen] = useState(false);
   const [greyOpen, setGreyOpen] = useState(false);
-  const [tutorialVisible, setTutorialVisible] = useState(false);
+  const [colorTutVisible, setColorTutVisible] = useState(false);
+  const [greyTutVisible, setGreyTutVisible] = useState(false);
   const [filterTutVisible, setFilterTutVisible] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -80,16 +83,20 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
     },
   ], [t]);
 
-  const tutorialPages = useMemo<TutorialPage[]>(() => [
+  const colorPages = useMemo<TutorialPage[]>(() => [
     {
       key: 'colorMode',
       tab: t('tutorial.colorMode.title'),
       items: [
-        { type: 'section', label: 'Flash', body: t('tutorial.colorMode.flashBody') },
+        { type: 'section', label: t('invaders.colorFlash'), body: t('tutorial.colorMode.flashBody') },
         { type: 'section', label: t('invaders.colorRarity'), body: t('tutorial.colorMode.rarityBody') },
+        { type: 'section', label: t('invaders.colorState'), body: t('tutorial.colorMode.stateBody') },
         { type: 'node', content: <ColorModeIllustration /> },
       ],
     },
+  ], [t]);
+
+  const greyPages = useMemo<TutorialPage[]>(() => [
     {
       key: 'greyMode',
       tab: t('tutorial.greyMode.title'),
@@ -132,7 +139,7 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
         <View style={styles.panel}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionLabelText}>{t('invaders.colorMode')}</Text>
-            <InfoButton size={14} onPress={() => setTutorialVisible(true)} color={theme.accent} showLabel={false} />
+            <InfoButton size={14} onPress={() => setColorTutVisible(true)} color={theme.accent} showLabel={false} />
           </View>
           <View style={styles.optionGroup}>
             {COLOR_MODE_OPTIONS.map((o) => {
@@ -149,8 +156,13 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
             })}
           </View>
 
+          {/* State mode already colors destroyed / not visible invaders: nothing to dim */}
+          {colorMode !== "state" && (<>
           <View style={styles.divider} />
-          <Text style={styles.sectionLabel}>{t('invaders.greyOut')}</Text>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionLabelText}>{t('invaders.greyOut')}</Text>
+            <InfoButton size={14} onPress={() => setGreyTutVisible(true)} color={theme.accent} showLabel={false} />
+          </View>
           <View style={styles.optionGroup}>
             {(colorMode === "flash" ? GREY_OPTIONS_FLASH : GREY_OPTIONS_RARITY).map((o) => {
               const selected = greyMode === o.key;
@@ -165,6 +177,7 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
               );
             })}
           </View>
+          </>)}
         </View>
       )}
 
@@ -248,10 +261,16 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
       </Pressable>
     </View>
     <TutorialModal
-      visible={tutorialVisible}
-      onClose={() => setTutorialVisible(false)}
+      visible={colorTutVisible}
+      onClose={() => setColorTutVisible(false)}
       title={t('tutorial.colorMode.title')}
-      pages={tutorialPages}
+      pages={colorPages}
+    />
+    <TutorialModal
+      visible={greyTutVisible}
+      onClose={() => setGreyTutVisible(false)}
+      title={t('tutorial.greyMode.title')}
+      pages={greyPages}
     />
     <TutorialModal
       visible={filterTutVisible}
@@ -263,6 +282,8 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
   );
 }
 
+// Arcade look (settings screens): thick-bordered card with a hard shadow, accent
+// capital section titles, dotted dividers, selection = filled arcade button.
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     wrapper: {
@@ -275,43 +296,39 @@ function makeStyles(t: ThemeTokens) {
       justifyContent: "center",
     },
     panel: {
-      marginBottom: 6,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.sm,
-      overflow: "hidden",
-      minWidth: 140,
+      ...arcadeCard(t),
+      marginBottom: 6 + ARCADE_SHADOW,
+      paddingBottom: Spacing.two,
+      minWidth: 170,
     },
     sectionLabel: {
-      color: t.textMuted,
-      fontSize: FontSize.md,
-      fontFamily: ButtonFont,
+      ...arcadeSectionLabel(t),
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
-      paddingBottom: 4,
+      paddingBottom: 6,
     },
     sectionRow: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'space-between' as const,
+      gap: Spacing.two,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
-      paddingBottom: 4,
+      paddingBottom: 6,
     },
-    sectionLabelText: {
-      color: t.textMuted,
-      fontSize: FontSize.md,
-      fontFamily: ButtonFont,
+    sectionLabelText: arcadeSectionLabel(t),
+    optionGroup: {
+      paddingHorizontal: Spacing.two,
+      gap: 4,
     },
-    optionGroup: {},
     option: {
-      paddingHorizontal: Spacing.three,
-      paddingVertical: 9,
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 7,
+      borderRadius: 4,
+      // Room for the selected option's offset shadow
+      marginRight: ARCADE_SHADOW,
     },
-    optionSelected: {
-      backgroundColor: t.accent,
-    },
+    optionSelected: arcadeButton(t),
     optionPressed: {
       opacity: 0.7,
     },
@@ -320,30 +337,29 @@ function makeStyles(t: ThemeTokens) {
       fontSize: FontSize.lg,
       fontFamily: ButtonFont,
     },
-    optionTextSelected: {
-      color: t.bg,
-    },
+    optionTextSelected: arcadeButtonLabel(t),
     divider: {
-      height: 1,
-      backgroundColor: t.bgDivider,
-      marginTop: 6,
+      ...arcadeRowDivider(t),
+      marginTop: Spacing.two,
+      marginHorizontal: Spacing.two,
     },
     pointsGroup: {
       flexDirection: "row",
       flexWrap: "wrap",
       paddingHorizontal: Spacing.three,
-      paddingBottom: 10,
-      gap: 6,
+      gap: 8,
     },
     pointChip: {
       paddingHorizontal: 10,
       paddingVertical: 6,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
+      borderRadius: 4,
+      borderWidth: 2,
       borderColor: t.border,
     },
     pointChipSelected: {
-      backgroundColor: t.accent,
+      ...arcadeButton(t),
+      // keep the outline's footprint so chips don't shift when toggled
+      borderWidth: 2,
       borderColor: t.accent,
     },
     gap: {

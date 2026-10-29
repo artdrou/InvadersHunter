@@ -19,6 +19,7 @@ import {
 } from '@/features/app-update';
 import { useAppearanceStore, useMarkerCustomizationStore } from '@/features/settings';
 import { useNewsStore } from '@/features/news';
+import { useReactivationsStore } from '@/features/reactivations';
 import { WhatsNewModal } from '@/features/changelog';
 import { usePushRegistration, syncNotificationLanguage } from '@/features/notifications';
 
@@ -69,7 +70,11 @@ export default function RootLayout() {
   // Keep the unread-news badge fresh once in the app (feed is small, few/day).
   // GET /news/ is public, so guests get it too.
   useEffect(() => {
-    if (token || isGuest) useNewsStore.getState().refreshRecent();
+    if (token || isGuest) {
+      useNewsStore.getState().refreshRecent();
+      // Same public data source (approved state changes): the map's "Reactivated" color
+      useReactivationsStore.getState().refresh();
+    }
   }, [token, isGuest]);
 
   // Offer OTAs on foreground for users who never cold-start the app.

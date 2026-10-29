@@ -7,7 +7,10 @@ import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, Fo
 import { SettingsShell, hapticTap, ColorPickerModal, ArcadeSegmented, useMarkerCustomizationStore } from '@/features/settings';
 import { ALL_SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
-import { TIER_VALUES, STATE_GROUPS, type TierPts, type ShapeId, type CustomizableState, type StateGroup } from '@/features/marker-customization/types';
+import {
+  TIER_VALUES, STATE_GROUPS, STATE_COLOR_KEYS,
+  type TierPts, type ShapeId, type CustomizableState, type StateGroup, type StateColorKey,
+} from '@/features/marker-customization/types';
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
@@ -26,9 +29,9 @@ const DEFAULT_PREVIEW_SHAPE_IDX = Math.max(0, ALL_SHAPE_IDS.indexOf(30 as TierPt
 const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
 
 const STATE_ORDER: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
-// Color slots: the 4 states, then the per-tier palette of the "rarity" color mode
-type ColorSlot = CustomizableState | 'rarity';
-const COLOR_SLOTS: ColorSlot[] = [...STATE_ORDER, 'rarity'];
+// Color slots: the 4 states, then the palettes of the "Points" (rarity) and "State" color modes
+type ColorSlot = CustomizableState | 'rarity' | 'stateMode';
+const COLOR_SLOTS: ColorSlot[] = [...STATE_ORDER, 'rarity', 'stateMode'];
 
 function dataUri(base64: string): string {
   return `data:image/png;base64,${base64}`;
@@ -59,6 +62,8 @@ export default function MarkerCustomizationScreen() {
   const setColor        = useMarkerCustomizationStore((s) => s.setColor);
   const rarityColors    = useMarkerCustomizationStore((s) => s.rarityColors);
   const setRarityColor  = useMarkerCustomizationStore((s) => s.setRarityColor);
+  const stateColors     = useMarkerCustomizationStore((s) => s.stateColors);
+  const setStateColor   = useMarkerCustomizationStore((s) => s.setStateColor);
   const opacity         = useMarkerCustomizationStore((s) => s.opacity);
   const setOpacity      = useMarkerCustomizationStore((s) => s.setOpacity);
   const bloom           = useMarkerCustomizationStore((s) => s.bloom);
@@ -71,10 +76,12 @@ export default function MarkerCustomizationScreen() {
   // Two tabs over one set of changes: Validate (below both) applies shapes and colors together
   const [tab, setTab] = useState<'shapes' | 'colors'>('shapes');
   const [activeTier, setActiveTier] = useState<TierPts>(TIER_VALUES[0]);
-  // Shapes tab edits a tier, or a state group whose shape then replaces the tiers' one
+  // Shapes tab edits a tier, or (advanced panel) a state group whose shape replaces the tiers' one
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<StateGroup | null>(null);
   const [activeState, setActiveState] = useState<ColorSlot>('flashUncaptured');
   const [activeRarityTier, setActiveRarityTier] = useState<TierPts>(TIER_VALUES[0]);
+  const [activeStateKey, setActiveStateKey] = useState<StateColorKey>(STATE_COLOR_KEYS[0]);
   const [previewShapeIdx, setPreviewShapeIdx] = useState(DEFAULT_PREVIEW_SHAPE_IDX);
   // The picker edits the selected color slot (it can't change while the modal is open)
   const [colorPicker, setColorPicker] = useState<'icon' | 'glow' | null>(null);
@@ -110,19 +117,30 @@ export default function MarkerCustomizationScreen() {
     }
     const r = rarityColors[activeRarityTier];
     map.rarity = safeMarkerUri(previewShape, r.icon, r.glow, STATE_PREVIEW);
+    const st = stateColors[activeStateKey];
+    map.stateMode = safeMarkerUri(previewShape, st.icon, st.glow, STATE_PREVIEW);
     return map;
-  }, [colors, rarityColors, activeRarityTier, previewShape, bloom]);
+  }, [colors, rarityColors, activeRarityTier, stateColors, activeStateKey, previewShape, bloom]);
 
-  // Rarity has body / glow per tier only: opacity follows flashed / not flashed, bloom is the default
-  const activeCustom = activeState === 'rarity' ? null : activeState;
-  const activePalette = activeCustom ? colors[activeCustom] : rarityColors[activeRarityTier];
+  // Points and State palettes have body / glow per entry only: opacity follows
+  // flashed / not flashed, bloom is the default
+  const activeCustom = activeState === 'rarity' || activeState === 'stateMode' ? null : activeState;
+  const activePalette = activeCustom ? colors[activeCustom]
+    : activeState === 'rarity' ? rarityColors[activeRarityTier] : stateColors[activeStateKey];
   const activeOpacity = activeCustom ? opacity[activeCustom] : 1;
   const activeBloom = activeCustom ? bloom[activeCustom] : 0;
   const bloomDesc = decodeBloom(activeBloom);
 
   const applyColor = (kind: 'icon' | 'glow', hex: string) => {
     if (activeCustom) setColor(activeCustom, kind, hex);
-    else setRarityColor(activeRarityTier, kind, hex);
+    else if (activeState === 'rarity') setRarityColor(activeRarityTier, kind, hex);
+    else setStateColor(activeStateKey, kind, hex);
+  };
+
+  const toggleAdvanced = () => {
+    hapticTap();
+    if (advancedOpen) setActiveGroup(null);
+    setAdvancedOpen(!advancedOpen);
   };
 
   const cyclePreviewShape = (delta: number) => {
@@ -163,7 +181,12 @@ export default function MarkerCustomizationScreen() {
             );
           })}
         </View>
-        {/* States whose shape replaces the points' one (Destroyed → ghost by default) */}
+        {/* Advanced: states whose shape replaces the points' one (Destroyed → ghost by default) */}
+        <Pressable onPress={toggleAdvanced} style={({ pressed }) => [styles.advancedHeader, pressed && styles.pressed]}>
+          <View style={advancedOpen ? styles.arrowDown : styles.arrowRight} />
+          <Text style={styles.advancedLabel}>{t('markerCustomization.advanced')}</Text>
+        </Pressable>
+        {advancedOpen && (<>
         <Text style={styles.sectionSubtitle}>{t('markerCustomization.sectionStateShapesSubtitle')}</Text>
         <View style={styles.tierRow}>
           {STATE_GROUPS.map((group) => {
@@ -185,6 +208,7 @@ export default function MarkerCustomizationScreen() {
             );
           })}
         </View>
+        </>)}
         <ShapePicker
           selected={activeGroup ? groupShape : activeTierShape}
           onSelect={(shape) => (activeGroup ? setShapeForState(activeGroup, shape) : setShapeForTier(activeTier, shape))}
@@ -228,7 +252,7 @@ export default function MarkerCustomizationScreen() {
                 onPress={() => { hapticTap(); setActiveState(state); }}
                 style={({ pressed }) => [styles.statePreview, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
               >
-                <Image source={{ uri: statePreviews[state] }} style={[styles.statePreviewImg, { opacity: state === 'rarity' ? 1 : opacity[state] }]} />
+                <Image source={{ uri: statePreviews[state] }} style={[styles.statePreviewImg, { opacity: state === 'rarity' || state === 'stateMode' ? 1 : opacity[state] }]} />
                 <Text style={[styles.statePreviewLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
                   {t(`markerCustomization.state.${state}`)}
                 </Text>
@@ -240,8 +264,8 @@ export default function MarkerCustomizationScreen() {
         {/* ── Encart: paramètres de l'état sélectionné ── */}
         <View style={styles.encart}>
           <Text style={styles.encartTitle}>{t(`markerCustomization.state.${activeState}`)}</Text>
-          {/* Rarity: one palette per point value */}
-          {!activeCustom && (
+          {/* Points: one palette per point value */}
+          {activeState === 'rarity' && (
             <View style={styles.tierRow}>
               {TIER_VALUES.map((tier) => {
                 const isActive = tier === activeRarityTier;
@@ -253,6 +277,26 @@ export default function MarkerCustomizationScreen() {
                   >
                     <View style={[styles.raritySwatch, { backgroundColor: rarityColors[tier].icon, borderColor: rarityColors[tier].glow }]} />
                     <Text style={[styles.tierLabel, isActive && { color: theme.accent }]}>{tier}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+          {/* State: one palette per invader condition */}
+          {activeState === 'stateMode' && (
+            <View style={styles.tierRow}>
+              {STATE_COLOR_KEYS.map((key) => {
+                const isActive = key === activeStateKey;
+                return (
+                  <Pressable
+                    key={key}
+                    onPress={() => { hapticTap(); setActiveStateKey(key); }}
+                    style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                  >
+                    <View style={[styles.raritySwatch, { backgroundColor: stateColors[key].icon, borderColor: stateColors[key].glow }]} />
+                    <Text style={[styles.tierLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
+                      {t(`markerCustomization.statePalette.${key}`)}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -399,6 +443,14 @@ function makeStyles(t: ThemeTokens) {
       borderTopWidth: 6, borderBottomWidth: 6, borderRightWidth: 8,
       borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: t.text,
     },
+    arrowDown: {
+      width: 0, height: 0, backgroundColor: 'transparent',
+      borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 8,
+      borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: t.text,
+    },
+    // Collapsible "Advanced" header of the Shapes tab
+    advancedHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.one },
+    advancedLabel: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
     arrowRight: {
       width: 0, height: 0, backgroundColor: 'transparent',
       borderTopWidth: 6, borderBottomWidth: 6, borderLeftWidth: 8,

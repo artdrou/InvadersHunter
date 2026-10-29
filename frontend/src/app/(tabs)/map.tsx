@@ -12,6 +12,7 @@ import {
   applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon,
 } from "@/features/map";
 import type { MapFilter, MapFilterBarHandle } from "@/features/map";
+import type { ColorMode } from "@/features/map/filter";
 import type { WebMapHandle } from "@/features/map/components/WebMap.native";
 import { MapLocationPicker, PICKER_BAR_HEIGHT } from "@/features/map/components/MapLocationPicker";
 import { CreateHerePopup } from "@/features/map/components/CreateHerePopup";
@@ -43,7 +44,7 @@ export default function MapScreen() {
   const [selectedInvader, setSelectedInvader] = useState<InvaderWithState | null>(null);
   const [filter, setFilter] = useState<MapFilter>(DEFAULT_FILTER);
   const [greyMode, setGreyMode] = useState<"none" | "all" | "unflashed">("all");
-  const [colorMode, setColorMode] = useState<"flash" | "rarity">("flash");
+  const [colorMode, setColorMode] = useState<ColorMode>("flash");
   const [isFollowing, setIsFollowing] = useState(false);
   // Modify-invader location picker
   const [picking, setPicking] = useState<{ invader: InvaderWithState; startLat: number; startLon: number } | null>(null);
