@@ -35,6 +35,14 @@ on:
         required: true
         default: 'OTA update'
 
+# One OTA at a time per target, queued in push order: two merges a few seconds apart
+# used to run side by side, and the older commit's update (without the newer merge)
+# could finish last and become the live one. A queued run is replaced by a newer one,
+# which contains it. Never cancel a run mid-publish.
+concurrency:
+  group: ota-${{ inputs.target || 'preview' }}
+  cancel-in-progress: false
+
 jobs:
   update:
     name: EAS Update
