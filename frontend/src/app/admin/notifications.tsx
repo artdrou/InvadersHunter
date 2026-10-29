@@ -8,7 +8,7 @@ import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
 import { arcadeCard } from '@/constants/arcade-button';
-import { ArcadeSegmented } from '@/features/settings/components/ArcadeSegmented';
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
 import { fetchGlobalNotificationSettings, updateGlobalNotificationSettings } from '@/features/notifications';
 import type { GlobalNotificationSettings } from '@/features/notifications';
 

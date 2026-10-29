@@ -11,7 +11,8 @@ import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
 import { useAuthStore, useRequireAccount } from '@/features/auth';
-import { hapticTap, hapticSuccess, ArcadeSegmented } from '@/features/settings';
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
+import { hapticTap, hapticSuccess } from '@/features/settings';
 import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
 import {
   useFriendsStore, useUsernameLookup, sendFriendRequest, acceptFriendRequest, removeFriendship, friendRequestError,

@@ -1,3 +1,4 @@
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +7,7 @@ import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, Fo
 import { arcadeRowDivider } from '@/constants/arcade-button';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import {
-  SettingsShell, SettingsSection, SettingsToggleRow, ThemePicker, ArcadeSegmented,
+  SettingsShell, SettingsSection, SettingsToggleRow, ThemePicker,
   hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX,
 } from '@/features/settings';
 import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
