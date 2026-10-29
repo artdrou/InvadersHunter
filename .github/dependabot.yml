@@ -1,0 +1,34 @@
+# Dependabot only opens security updates here (version updates are off: limit 0).
+# Expo / React Native packages must match the Expo SDK and only move together
+# with an SDK upgrade: a security fix once bumped expo-router 55 -> 58 (#167),
+# which broke the OTA bundle and the tests. Majors of these are never proposed.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-native-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@react-native/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@react-navigation/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "maplibre-gl"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@maplibre/*"
+        update-types: ["version-update:semver-major"]
