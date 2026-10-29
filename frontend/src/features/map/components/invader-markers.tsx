@@ -74,6 +74,7 @@ import type { SymbolLayerStyle, Expression } from '@maplibre/maplibre-react-nati
 import type { ImageSourcePropType } from 'react-native';
 import { useMemo } from 'react';
 import { useMarkerCustomizationStore } from '@/features/settings';
+import { MarkerZoomScale } from '../constants';
 import { TIER_VALUES, MARKER_DISPLAYS, markerKey, type TierPts, type MarkerDisplay } from '@/features/marker-customization/types';
 
 const TIER_MARKER_IMAGES: Record<string, ImageSourcePropType> = {
@@ -217,7 +218,12 @@ export function useMarkerLayerStyle(): SymbolLayerStyle {
   const opacity = useMarkerCustomizationStore((s) => s.opacity);
   return useMemo(() => ({
     iconImage: ["get", "iconKey"] as Expression,
-    iconSize: ["get", "iconSize"] as Expression,
+    // Smaller when zoomed out (see MarkerZoomScale); `zoom` must be the input of a
+    // top-level interpolate, so each stop scales the feature's own size.
+    iconSize: ["interpolate", ["linear"], ["zoom"],
+      MarkerZoomScale.minZoom, ["*", ["get", "iconSize"], MarkerZoomScale.minScale],
+      MarkerZoomScale.fullZoom, ["get", "iconSize"],
+    ] as Expression,
     // Each customizable state carries its own opacity (set on the customization
     // screen). Order mirrors resolveIconKey's precedence: a highlighted marker
     // wins over everything, pending stays a fixed sync-in-progress dim, then
