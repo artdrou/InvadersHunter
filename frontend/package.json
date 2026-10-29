@@ -50,7 +50,7 @@
     "expo-updates": "~55.0.20",
     "expo-web-browser": "~55.0.10",
     "i18next": "^26.2.0",
-    "maplibre-gl": "^5.20.2",
+    "maplibre-gl": "^6.4.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-i18next": "^17.0.8",
