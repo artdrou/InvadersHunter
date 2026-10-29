@@ -43,7 +43,7 @@ export const DEFAULT_STATE_COLORS: StateColorPrefs = {
   damaged: { icon: '#FF9F1C', glow: '#B35400' },
   reactivated: { icon: '#FF2BD6', glow: '#7A0099' },
   destroyed: { icon: '#9A9A9A', glow: '#555555' },
-  notVisible: { icon: '#A06BFF', glow: '#5A2DB3' },
+  notVisible: { icon: '#9A9A9A', glow: '#555555' },
 };
 
 export const DEFAULT_MARKER_COLORS: MarkerColorPrefs = {

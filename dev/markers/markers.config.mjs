@@ -49,7 +49,7 @@ export const COLORS = {
     damaged:       { icon: '#FF9F1C', bloom: '#B35400' },
     reactivated:   { icon: '#FF2BD6', bloom: '#7A0099' },
     destroyed:     { icon: '#9A9A9A', bloom: '#555555' },
-    'not-visible': { icon: '#A06BFF', bloom: '#5A2DB3' },
+    'not-visible': { icon: '#9A9A9A', bloom: '#555555' },
   },
 };
 
