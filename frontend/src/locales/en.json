@@ -462,7 +462,6 @@
     "compute": "Route"
   },
   "hunt": {
-    "go": "Go!",
     "start": "Start",
     "recenter": "Recenter",
     "exit": "Exit"

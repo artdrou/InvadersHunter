@@ -463,7 +463,6 @@
   },
   "hunt": {
     "start": "Démarrer",
-    "go": "Go !",
     "recenter": "Recentrer",
     "exit": "Quitter"
   },

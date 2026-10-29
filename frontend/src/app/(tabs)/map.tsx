@@ -33,7 +33,7 @@ import { hapticSuccess, hapticDisappoint, hapticTap } from "@/features/settings"
 import { RoutingFAB } from "@/features/routing/components/RoutingFAB";
 import { RoutingSheet } from "@/features/routing/components/RoutingSheet";
 import { RouteLayer } from "@/features/routing/components/RouteLayer";
-import { useHunt, HuntGoButton, HuntBar } from "@/features/hunt";
+import { useHunt, HuntBar, HUNT_BAR_HEIGHT } from "@/features/hunt";
 
 const MAP_TAP_GUARD_MS = 400;
 
@@ -326,6 +326,8 @@ export default function MapScreen() {
   // Locate / compass buttons move above the pickers' Cancel / Validate bar.
   const pickerBarShown = picking !== null || create.pickLoc !== null || routing.pickerTarget !== null;
   const pickerLift = pickerBarShown ? { transform: [{ translateY: -(PICKER_BAR_HEIGHT + Spacing.two) }] } : null;
+  // Hunt view: the filters and itinerary buttons stay usable, above the Recenter / Exit bar
+  const huntLift = hunt.hunting ? { transform: [{ translateY: -(insets.bottom + HUNT_BAR_HEIGHT) }] } : null;
 
   // Pickers take the full screen: no tab bar (the News button is hidden below).
   const setPickerActive = usePickerChromeStore((s) => s.setPickerActive);
@@ -360,8 +362,8 @@ export default function MapScreen() {
         }
       />
 
-      {!picking && !anyCreating && !hunt.hunting && (
-        <View style={styles.filterBar}>
+      {!picking && !anyCreating && (
+        <View style={[styles.filterBar, huntLift]}>
           <MapFilterBar ref={filterBarRef} value={filter} onChange={setFilter} greyMode={greyMode} onGreyModeChange={setGreyMode} colorMode={colorMode} onColorModeChange={setColorMode} />
         </View>
       )}
@@ -499,15 +501,12 @@ export default function MapScreen() {
         <MapLocationPicker onCancel={create.cancelPickLoc} onValidate={create.validatePickLoc} onGoTo={goToCoords} />
       )}
 
-      {/* ── Hunt view: Go once a route is drawn, then Recenter / Exit ── */}
-      {hunt.available && !hunt.hunting && !routing.sheetOpen && !picking && !anyCreating && !selectedInvader && (
-        <HuntGoButton onPress={startHunt} />
-      )}
+      {/* ── Hunt view: started from the itinerary panel (Start), then Recenter / Exit ── */}
       {hunt.hunting && <HuntBar paused={hunt.paused} onRecenter={hunt.recenter} onExit={hunt.stop} />}
 
       {/* ── Routing FAB ── */}
-      {!picking && !anyCreating && !hunt.hunting && (
-        <View style={styles.routingFAB} pointerEvents="box-none">
+      {!picking && !anyCreating && (
+        <View style={[styles.routingFAB, huntLift]} pointerEvents="box-none">
           <RoutingFAB active={routing.sheetOpen} theme={theme} onPress={() => routing.setSheetOpen((v) => !v)} />
         </View>
       )}

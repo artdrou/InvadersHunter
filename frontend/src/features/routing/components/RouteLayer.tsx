@@ -191,6 +191,8 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             textField: ['get', 'label'] as Expression,
             textSize: 12,
             textColor: theme.bg,
+            // A font the map's glyph server has (MapLibre's default stack 404s), as the clusters
+            textFont: ['Noto Sans Bold'],
             textAnchor: 'center',
           }}
         />
@@ -212,6 +214,8 @@ export function RouteLayer({ route, fromCoords, toCoords, fromIsUserLocation, on
             textField: ['get', 'label'] as Expression,
             textSize: 12,
             textColor: theme.bg,
+            // A font the map's glyph server has (MapLibre's default stack 404s), as the clusters
+            textFont: ['Noto Sans Bold'],
             textAnchor: 'center',
           }}
         />
