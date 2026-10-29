@@ -365,6 +365,9 @@
     "sectionPreview": "Apercu",
     "sectionShapes": "Formes",
     "sectionShapesSubtitle": "Choisis quelle silhouette represente chaque nombre de points",
+    "sectionStateShapesSubtitle": "Donne a un etat sa propre silhouette, quels que soient ses points",
+    "pointsShape": "Meme forme que ses points",
+    "pointsShapeShort": "PTS",
     "sectionColors": "Couleurs",
     "sectionOpacity": "Opacite",
     "opacity": "Opacite des markers",
@@ -381,7 +384,12 @@
       "flashCaptured": "Flashe",
       "flashUncaptured": "Pas flashe",
       "highlight": "Highlighte",
-      "grey": "Grise"
+      "grey": "Grise",
+      "rarity": "Rarete"
+    },
+    "group": {
+      "destroyed": "Detruit",
+      "notVisible": "Invisible"
     }
   },
   "themeNames": {

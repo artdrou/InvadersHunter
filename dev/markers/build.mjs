@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 import {
-  RARITIES, SHAPE_SVG, COLORS, BLOOM, SIZE, TINT_MODE, SHADE_SPREAD,
-  NORMALIZE_ICON_SIZE, ICON_FRACTION, outputName,
+  RARITIES, SHAPE_SVG, STATE_SHAPES, COLORS, BLOOM, SIZE, TINT_MODE, SHADE_SPREAD,
+  NORMALIZE_ICON_SIZE, ICON_FRACTION, outputName, stateOutputName,
 } from './markers.config.mjs';
 
 // ---- color utils ---------------------------------------------------------
@@ -119,7 +119,29 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(HERE, 'src');
 const OUT_DIR = join(HERE, 'out');
 
-function tintSvg(svg, hex) {
+// Anchored tint (same as the app's tint.ts, used for the extra shapes): the body grey
+// becomes exactly the target color, the other greys keep a fixed offset from it.
+const BODY_L = rgbToHsl(hexToRgb('#808080')).l;
+const SHADE_L = rgbToHsl(hexToRgb('#4f4f4f')).l;
+const SHADE_OFFSET = -(2 / 3) * SHADE_SPREAD;
+
+function anchoredOffset(l) {
+  if (l >= BODY_L) return ((l - BODY_L) / (1 - BODY_L)) * SHADE_SPREAD;
+  if (l >= SHADE_L) return ((BODY_L - l) / (BODY_L - SHADE_L)) * SHADE_OFFSET;
+  return SHADE_OFFSET - ((SHADE_L - l) / SHADE_L) * (SHADE_SPREAD + SHADE_OFFSET);
+}
+
+function buildAnchoredShadeMap(uniqueSources, targetHex) {
+  const target = rgbToHsl(hexToRgb(targetHex));
+  const map = new Map();
+  for (const src of uniqueSources) {
+    const l = Math.max(0, Math.min(1, target.l + anchoredOffset(rgbToHsl(hexToRgb(src)).l)));
+    map.set(src, rgbToHex(hslToRgb({ h: target.h, s: target.s, l })));
+  }
+  return map;
+}
+
+function tintSvg(svg, hex, anchored = false) {
   if (TINT_MODE === 'currentColor') {
     return svg.replaceAll('currentColor', hex);
   }
@@ -134,7 +156,7 @@ function tintSvg(svg, hex) {
   // TINT_MODE === 'shades': preserve shading by mapping each unique source fill
   // to a shade of the target color, ranked by luminance.
   const sources = extractUniqueFills(svg);
-  const shadeMap = buildShadeMap(sources, hex);
+  const shadeMap = anchored ? buildAnchoredShadeMap(sources, hex) : buildShadeMap(sources, hex);
 
   let out = svg.replaceAll('currentColor', hex);
   for (const [src, shade] of shadeMap) {
@@ -154,12 +176,12 @@ async function rasterize(svg, px) {
     .toBuffer();
 }
 
-async function buildMarker(svgRaw, palette) {
+async function buildMarker(svgRaw, palette, anchored = false) {
   // Accept either a string (icon color, bloom auto-derived) or { icon, bloom }.
   const iconColor  = typeof palette === 'string' ? palette : palette.icon;
   const bloomColor = typeof palette === 'string' ? null    : palette.bloom;
 
-  const tinted = tintSvg(svgRaw, iconColor);
+  const tinted = tintSvg(svgRaw, iconColor, anchored);
 
   // Target box for the icon content (excluding bloom padding).
   const iconBoxPx = NORMALIZE_ICON_SIZE
@@ -259,6 +281,20 @@ async function main() {
     await emit(outputName(rarity, 'grey', null),
       await buildMarker(svg, COLORS.grey));
   // (loop body uses each rarity's palette object; bloom color comes from the config)
+  }
+
+  for (const [group, file] of Object.entries(STATE_SHAPES)) {
+    const svg = await loadShape(file);
+    for (const rarity of RARITIES) {
+      await emit(stateOutputName(group, rarity, 'rarity', null),
+        await buildMarker(svg, COLORS.rarity[rarity], true));
+    }
+    for (const state of ['uncaptured', 'captured']) {
+      await emit(stateOutputName(group, null, 'flash', state),
+        await buildMarker(svg, COLORS.flash[state], true));
+    }
+    await emit(stateOutputName(group, null, 'grey', null),
+      await buildMarker(svg, COLORS.grey, true));
   }
 
   console.log(`\nDone. Output: ${OUT_DIR}`);

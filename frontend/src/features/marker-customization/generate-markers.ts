@@ -1,6 +1,7 @@
 // On-device marker rasterizer: takes the user's shape/color/opacity choices
-// and produces the same 42 PNG variants (6 point tiers x 7 states) the app
-// ships with by default, but generated with Skia instead of the offline
+// and produces the same PNG variants (6 point tiers x every look, plus the
+// destroyed / not visible silhouettes) the app ships with by default, but
+// generated with Skia instead of the offline
 // sharp/Node pipeline in dev/markers/. Mirrors dev/markers/build.mjs's
 // buildMarker() (trim + normalize + center + gaussian-blur glow) so the
 // visual result matches the bundled assets when nothing is customized.
@@ -8,7 +9,11 @@ import { Skia, TileMode, BlendMode, ImageFormat, ColorType, AlphaType, type SkIm
 import * as FileSystem from 'expo-file-system';
 import { shapeSvg, isAnchoredShape } from './shapes';
 import { tintSvg } from './tint';
-import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from './types';
+import {
+  TIER_VALUES, STATE_GROUPS, MARKER_DISPLAYS, markerKey,
+  type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette,
+  type RarityColorPrefs, type ShapeForState, type StateGroup, type MarkerDisplay,
+} from './types';
 
 const SIZE = 128;
 const ICON_FRACTION = 0.7;
@@ -64,17 +69,6 @@ function disposeSkia(obj: unknown): void {
   }
 }
 
-// Fixed per-tier palette used by "rarity" color mode — not user-customizable
-// today (only the silhouette follows the user's shape reassignment).
-const RARITY_PALETTE: Record<TierPts, MarkerPalette> = {
-  10: { icon: '#1AE34A', glow: '#0F8C30' },
-  20: { icon: '#1AE34A', glow: '#0F8C30' },
-  30: { icon: '#2E7BFF', glow: '#002FA7' },
-  40: { icon: '#2E7BFF', glow: '#002FA7' },
-  50: { icon: '#FF00B0', glow: '#7A0099' },
-  100: { icon: '#FFC107', glow: '#FF7A00' },
-};
-
 function alphaBBox(image: SkImage): { x: number; y: number; width: number; height: number } | null {
   const w = image.width();
   const h = image.height();
@@ -107,7 +101,7 @@ function fitCenteredRect(bbox: { width: number; height: number }, boxPx: number,
 // tintSvg only ever rewrites `fill` colors — it never touches which pixels are
 // opaque — and the SVG is always rasterized at the fixed SVG_RASTER size, so the
 // trimmed bounding box is a pure function of the source SVG (independent of tint color
-// and output size). Caching it means the 7 states sharing a tier's shape only
+// and output size). Caching it means the 5 states sharing a tier's shape only
 // pay for one full pixel scan instead of 5.
 const bboxCache = new Map<string, { x: number; y: number; width: number; height: number }>();
 
@@ -232,46 +226,43 @@ export function renderShapeBase64(
   }
 }
 
-// Shared map with a friend: only I flashed it (green) / only my friend did
-// (orange). Not user-colored — same hues as the bundled sprites and the legend
-// (FriendMarkerColor) — but drawn with the user's shapes.
-type SharedMapState = 'flashMine' | 'flashFriend';
-type GeneratedState = 'rarity' | SharedMapState | CustomizableState;
-
-const SHARED_MAP_PALETTE: Record<SharedMapState, MarkerPalette> = {
-  flashMine: { icon: '#1FFF5A', glow: '#00B32D' },
-  flashFriend: { icon: '#FF7A00', glow: '#B35400' },
+// Shared map with a friend: fixed colors (FriendMarkerColor in features/friends,
+// same as the bundled sprites of scripts/gen-marker-variants.py), not customizable.
+const FRIEND_PALETTE: Record<'flash-mine' | 'flash-friend', MarkerPalette> = {
+  'flash-mine': { icon: '#1FFF5A', glow: '#00B32D' },
+  'flash-friend': { icon: '#FF7A00', glow: '#B35400' },
 };
 
-function outputName(tier: TierPts, state: GeneratedState): string {
-  if (state === 'grey') return `marker-${tier}pts-grey`;
-  if (state === 'rarity') return `marker-${tier}pts-rarity`;
-  if (state === 'highlight') return `marker-${tier}pts-highlight`;
-  if (state === 'flashMine') return `marker-${tier}pts-flash-mine`;
-  if (state === 'flashFriend') return `marker-${tier}pts-flash-friend`;
-  return `marker-${tier}pts-flash-${state === 'flashCaptured' ? 'captured' : 'uncaptured'}`;
+export type MarkerPrefs = {
+  shapeForTier: Record<TierPts, ShapeId>;
+  shapeForState: ShapeForState;
+  colors: MarkerColorPrefs;
+  rarityColors: RarityColorPrefs;
+  bloom: Record<CustomizableState, number>;
+};
+
+// Colors + bloom of one marker look. Rarity keeps the default bloom (no bloom
+// setting for it); the friend colors take the "not flashed" bloom, as their
+// bundled sprites are hue shifts of it.
+function lookFor(display: MarkerDisplay, tier: TierPts, prefs: MarkerPrefs): { palette: MarkerPalette; bloom: number } {
+  const { colors, bloom } = prefs;
+  switch (display) {
+    case 'rarity': return { palette: prefs.rarityColors[tier], bloom: DEFAULT_BLOOM_INDEX };
+    case 'flash-captured': return { palette: colors.flashCaptured, bloom: bloom.flashCaptured };
+    case 'flash-uncaptured': return { palette: colors.flashUncaptured, bloom: bloom.flashUncaptured };
+    case 'flash-mine':
+    case 'flash-friend': return { palette: FRIEND_PALETTE[display], bloom: bloom.flashUncaptured };
+    case 'highlight': return { palette: colors.highlight, bloom: bloom.highlight };
+    case 'grey': return { palette: colors.grey, bloom: bloom.grey };
+  }
 }
 
-const STATE_KEYS: GeneratedState[] = ['rarity', 'flashCaptured', 'flashUncaptured', 'highlight', 'grey', 'flashMine', 'flashFriend'];
+const GROUP_SLOTS: Array<StateGroup | null> = [null, ...STATE_GROUPS];
 
 // The deterministic set of iconKeys / file basenames a full generation writes.
 export const GENERATED_MARKER_NAMES: string[] = TIER_VALUES.flatMap((tier) =>
-  STATE_KEYS.map((state) => outputName(tier, state)),
+  MARKER_DISPLAYS.flatMap((display) => GROUP_SLOTS.map((group) => markerKey(tier, display, group))),
 );
-
-function paletteFor(state: GeneratedState, tier: TierPts, colors: MarkerColorPrefs): MarkerPalette {
-  if (state === 'rarity') return RARITY_PALETTE[tier];
-  if (state === 'flashMine' || state === 'flashFriend') return SHARED_MAP_PALETTE[state];
-  return colors[state];
-}
-
-function bloomIndexFor(state: GeneratedState, bloom: Record<CustomizableState, number>): number {
-  // "rarity" isn't user-customizable — keep it at the default bloom.
-  if (state === 'rarity') return DEFAULT_BLOOM_INDEX;
-  // The bundled shared-map sprites are recolored uncaptured ones: same glow.
-  if (state === 'flashMine' || state === 'flashFriend') return bloom.flashUncaptured;
-  return bloom[state];
-}
 
 export type GeneratedMarkerSet = Record<string, string>; // iconKey -> file:// uri
 export type GenerationResult = { dirName: string; markers: GeneratedMarkerSet };
@@ -302,30 +293,38 @@ function yieldToUi(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-// Regenerates all 42 marker PNGs from the user's prefs and writes them to a
+// Regenerates every marker PNG from the user's prefs and writes them to a
 // fresh, timestamped subfolder. Older generations are only pruned *after*
 // the new one fully succeeds, so a failure partway through (e.g. a Skia
 // allocation failure) never leaves the app pointing at deleted files.
-export async function generateMarkerSet(
-  shapeForTier: Record<TierPts, ShapeId>,
-  colors: MarkerColorPrefs,
-  bloom: Record<CustomizableState, number>,
-): Promise<GenerationResult> {
+// Many keys share a look (a state silhouette is the same for every tier, a
+// state left on its points' shape repeats the tier marker): each distinct look
+// is rendered once and its PNG written under every name that uses it.
+export async function generateMarkerSet(prefs: MarkerPrefs): Promise<GenerationResult> {
   if (!MARKERS_ROOT.exists) MARKERS_ROOT.create({ intermediates: true });
   const dir = new FileSystem.Directory(MARKERS_ROOT, `v${Date.now()}`);
   dir.create({ intermediates: true });
 
   try {
     const markers: GeneratedMarkerSet = {};
+    const rendered = new Map<string, string>(); // look -> base64
     for (const tier of TIER_VALUES) {
-      const shapeId = shapeForTier[tier] ?? tier;
-      for (const state of STATE_KEYS) {
-        const { icon, glow } = paletteFor(state, tier, colors);
-        const base64 = renderMarkerBase64(shapeId, icon, glow, SIZE, bloomIndexFor(state, bloom));
-        const name = outputName(tier, state);
-        const file = new FileSystem.File(dir, `${name}.png`);
-        file.write(base64, { encoding: 'base64' });
-        markers[name] = file.uri;
+      const tierShape = prefs.shapeForTier[tier] ?? tier;
+      for (const display of MARKER_DISPLAYS) {
+        const { palette, bloom } = lookFor(display, tier, prefs);
+        for (const group of GROUP_SLOTS) {
+          const shapeId = (group && prefs.shapeForState[group]) || tierShape;
+          const look = `${shapeId}|${palette.icon}|${palette.glow}|${bloom}`;
+          let base64 = rendered.get(look);
+          if (!base64) {
+            base64 = renderMarkerBase64(shapeId, palette.icon, palette.glow, SIZE, bloom);
+            rendered.set(look, base64);
+          }
+          const name = markerKey(tier, display, group);
+          const file = new FileSystem.File(dir, `${name}.png`);
+          file.write(base64, { encoding: 'base64' });
+          markers[name] = file.uri;
+        }
       }
       await yieldToUi();
     }

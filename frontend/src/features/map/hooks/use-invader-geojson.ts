@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import type { GreyMode, ColorMode } from "../filter";
-import { isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
+import { InvaderState, isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
+import { STATE_GROUP_SUFFIX, type StateGroup } from "@/features/marker-customization/types";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 const BASE_ICON_SIZE = 0.25;
@@ -30,18 +31,33 @@ function flashSuffix(invader: InvaderWithState): string {
   return "uncaptured";
 }
 
+// States with their own silhouette (marker customization: Destroyed → ghost by
+// default). Tolerant of legacy lowercase values, like isNonFlashable.
+function stateGroup(state: string | null | undefined): StateGroup | null {
+  const s = state?.toLowerCase();
+  if (s === InvaderState.Destroyed.toLowerCase()) return "destroyed";
+  if (s === InvaderState.NotVisible.toLowerCase()) return "notVisible";
+  return null;
+}
+
+// Every key exists for both groups (a group left on its points' shape repeats the tier sprite).
+function withStateSuffix(key: string, invader: InvaderWithState): string {
+  const group = stateGroup(invader.state);
+  return group ? `${key}-${STATE_GROUP_SUFFIX[group]}` : key;
+}
+
 export function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
   const rarity = resolveRarity(invader.points);
-  if (isDimmed(invader, colorMode, greyMode)) return `marker-${rarity}pts-grey`;
-  if (colorMode === "rarity") return `marker-${rarity}pts-rarity`;
-  return `marker-${rarity}pts-flash-${flashSuffix(invader)}`;
+  if (isDimmed(invader, colorMode, greyMode)) return withStateSuffix(`marker-${rarity}pts-grey`, invader);
+  if (colorMode === "rarity") return withStateSuffix(`marker-${rarity}pts-rarity`, invader);
+  return withStateSuffix(`marker-${rarity}pts-flash-${flashSuffix(invader)}`, invader);
 }
 
 // When building a multi-stop itinerary, tapped invaders are shown with a golden
 // marker (per tier, so each keeps its own silhouette) to stand out against the
 // red/blue markers.
-function highlightIconKey(points: number | null | undefined): string {
-  return `marker-${resolveRarity(points)}pts-highlight`;
+function highlightIconKey(invader: InvaderWithState): string {
+  return withStateSuffix(`marker-${resolveRarity(invader.points)}pts-highlight`, invader);
 }
 
 export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMode, colorMode: ColorMode, highlightedIds?: number[]) {
@@ -53,7 +69,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
       const size = invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12;
       const iconSize = (size / 12) * BASE_ICON_SIZE;
       const highlighted = highlightSet?.has(invader.id) ?? false;
-      const iconKey = highlighted ? highlightIconKey(invader.points) : resolveIconKey(invader, colorMode, greyMode);
+      const iconKey = highlighted ? highlightIconKey(invader) : resolveIconKey(invader, colorMode, greyMode);
       const grey = !highlighted && isDimmed(invader, colorMode, greyMode) ? 1 : 0;
       return {
         type: "Feature" as const,

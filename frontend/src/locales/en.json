@@ -365,6 +365,9 @@
     "sectionPreview": "Preview",
     "sectionShapes": "Shapes",
     "sectionShapesSubtitle": "Choose which silhouette represents each point value",
+    "sectionStateShapesSubtitle": "Give a state its own silhouette, whatever its points",
+    "pointsShape": "Same shape as its points",
+    "pointsShapeShort": "PTS",
     "sectionColors": "Colors",
     "sectionOpacity": "Opacity",
     "opacity": "Marker opacity",
@@ -381,7 +384,12 @@
       "flashCaptured": "Flashed",
       "flashUncaptured": "Not flashed",
       "highlight": "Highlighted",
-      "grey": "Greyed out"
+      "grey": "Greyed out",
+      "rarity": "Rarity"
+    },
+    "group": {
+      "destroyed": "Destroyed",
+      "notVisible": "Not visible"
     }
   },
   "themeNames": {

@@ -54,12 +54,28 @@ import marker40ptsFlashFriend  from '../../../../assets/images/marker-40pts-flas
 import marker50ptsFlashFriend  from '../../../../assets/images/marker-50pts-flash-friend.png';
 import marker100ptsFlashFriend from '../../../../assets/images/marker-100pts-flash-friend.png';
 
+// Destroyed invaders: ghost silhouette, the same for every tier except in rarity
+// mode (per-tier color). Built by dev/markers (STATE_SHAPES) + gen-marker-variants.py.
+import markerDestroyed10ptsRarity  from '../../../../assets/images/marker-destroyed-10pts-rarity.png';
+import markerDestroyed20ptsRarity  from '../../../../assets/images/marker-destroyed-20pts-rarity.png';
+import markerDestroyed30ptsRarity  from '../../../../assets/images/marker-destroyed-30pts-rarity.png';
+import markerDestroyed40ptsRarity  from '../../../../assets/images/marker-destroyed-40pts-rarity.png';
+import markerDestroyed50ptsRarity  from '../../../../assets/images/marker-destroyed-50pts-rarity.png';
+import markerDestroyed100ptsRarity from '../../../../assets/images/marker-destroyed-100pts-rarity.png';
+import markerDestroyedFlashCaptured   from '../../../../assets/images/marker-destroyed-flash-captured.png';
+import markerDestroyedFlashUncaptured from '../../../../assets/images/marker-destroyed-flash-uncaptured.png';
+import markerDestroyedFlashMine       from '../../../../assets/images/marker-destroyed-flash-mine.png';
+import markerDestroyedFlashFriend     from '../../../../assets/images/marker-destroyed-flash-friend.png';
+import markerDestroyedHighlight       from '../../../../assets/images/marker-destroyed-highlight.png';
+import markerDestroyedGrey            from '../../../../assets/images/marker-destroyed-grey.png';
+
 import type { SymbolLayerStyle, Expression } from '@maplibre/maplibre-react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { useMemo } from 'react';
 import { useMarkerCustomizationStore } from '@/features/settings';
+import { TIER_VALUES, MARKER_DISPLAYS, markerKey, type TierPts, type MarkerDisplay } from '@/features/marker-customization/types';
 
-export const BUNDLED_MARKER_IMAGES = {
+const TIER_MARKER_IMAGES: Record<string, ImageSourcePropType> = {
   'marker-10pts-rarity':           marker10ptsRarity,
   'marker-10pts-flash-captured':   marker10ptsFlashCaptured,
   'marker-10pts-flash-uncaptured': marker10ptsFlashUncaptured,
@@ -110,6 +126,35 @@ export const BUNDLED_MARKER_IMAGES = {
   'marker-50pts-flash-friend':  marker50ptsFlashFriend,
   'marker-100pts-flash-friend': marker100ptsFlashFriend,
 };
+
+const DESTROYED_RARITY_IMAGES: Record<TierPts, ImageSourcePropType> = {
+  10: markerDestroyed10ptsRarity,
+  20: markerDestroyed20ptsRarity,
+  30: markerDestroyed30ptsRarity,
+  40: markerDestroyed40ptsRarity,
+  50: markerDestroyed50ptsRarity,
+  100: markerDestroyed100ptsRarity,
+};
+
+const DESTROYED_IMAGES: Record<Exclude<MarkerDisplay, 'rarity'>, ImageSourcePropType> = {
+  'flash-captured':   markerDestroyedFlashCaptured,
+  'flash-uncaptured': markerDestroyedFlashUncaptured,
+  'flash-mine':       markerDestroyedFlashMine,
+  'flash-friend':     markerDestroyedFlashFriend,
+  'highlight':        markerDestroyedHighlight,
+  'grey':             markerDestroyedGrey,
+};
+
+// Default state silhouettes (DEFAULT_SHAPE_FOR_STATE): destroyed → ghost, not
+// visible → same sprite as its tier.
+export const BUNDLED_MARKER_IMAGES: Record<string, ImageSourcePropType> = { ...TIER_MARKER_IMAGES };
+for (const tier of TIER_VALUES) {
+  for (const display of MARKER_DISPLAYS) {
+    BUNDLED_MARKER_IMAGES[markerKey(tier, display, 'destroyed')] =
+      display === 'rarity' ? DESTROYED_RARITY_IMAGES[tier] : DESTROYED_IMAGES[display];
+    BUNDLED_MARKER_IMAGES[markerKey(tier, display, 'notVisible')] = TIER_MARKER_IMAGES[markerKey(tier, display)];
+  }
+}
 
 // Merges the bundled default sprites with any user-generated marker PNGs
 // (@/features/settings/marker-customization-store) — custom entries override
