@@ -1,7 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { BorderRadius, Spacing, ButtonFont, FontSize } from "@/constants/theme";
+import { Spacing, ButtonFont, FontSize } from "@/constants/theme";
+import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel } from "@/constants/arcade-button";
 import type { MapFilter, FlashStatusFilter, FlashableFilter } from "@/features/map/filter";
 
 type Props = {
@@ -55,10 +56,11 @@ function PillRow({ options, selected, onSelect }: {
         return (
           <Pressable
             key={o.key}
-            style={[styles.pill, { borderColor: active ? theme.accent : theme.border, backgroundColor: active ? theme.accent : "transparent" }]}
+            // Same chips as the map filter window: outlined, the selected one a filled arcade button
+            style={[styles.pill, { borderColor: theme.border }, active && [arcadeButton(theme), { borderWidth: 2, borderColor: theme.accent }]]}
             onPress={() => onSelect(o.key)}
           >
-            <Text style={[styles.pillText, { color: active ? theme.bg : theme.textMuted, fontFamily: ButtonFont, fontSize: FontSize.lg }]}>
+            <Text style={[styles.pillText, { color: theme.textMuted, fontFamily: ButtonFont, fontSize: FontSize.lg }, active && arcadeButtonLabel(theme)]}>
               {o.label}
             </Text>
           </Pressable>
@@ -79,12 +81,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.one,
     marginTop: Spacing.one,
+    paddingBottom: ARCADE_SHADOW,   // room for the selected chip's offset shadow
   },
   pill: {
     paddingHorizontal: Spacing.two,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 2,
   },
   pillText: {},
 });

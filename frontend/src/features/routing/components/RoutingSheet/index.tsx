@@ -115,7 +115,7 @@ export function RoutingSheet({
     <>
       {/* ── Top overlay card ─────────────────────────────────── */}
       <View
-        style={[s.overlay, { top: insets.top + 8, backgroundColor: theme.bgElement, borderColor: theme.border }]}
+        style={[s.overlay, { top: insets.top + 8 }]}
         pointerEvents="box-none"
       >
         <View pointerEvents="auto">

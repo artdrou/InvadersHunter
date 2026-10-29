@@ -7,12 +7,12 @@ import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { useTranslation } from 'react-i18next';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize, Fonts } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize, Fonts } from '@/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 
 export type StepItem    = { type: 'step';    title: string; body?: string };
 export type SectionItem = { type: 'section'; label: string; body: string };
@@ -220,10 +220,7 @@ function makeStyles(t: ThemeTokens) {
       width: '100%',
       maxWidth: 380,
       height: MAX_CARD_HEIGHT,
-      backgroundColor: t.bgElement,
-      borderRadius: BorderRadius.lg,
-      borderWidth: 1,
-      borderColor: t.border,
+      ...arcadeCard(t),
       overflow: 'hidden',
     },
 
@@ -237,7 +234,7 @@ function makeStyles(t: ThemeTokens) {
       borderBottomWidth: 1,
     },
     titleText: {
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
       fontSize: FontSize.xl,
       color: t.accent,
       letterSpacing: 1,

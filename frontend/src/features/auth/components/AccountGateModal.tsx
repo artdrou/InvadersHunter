@@ -2,9 +2,9 @@ import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
 import { useAccountGateStore } from '../gate-store';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 /**
@@ -76,17 +76,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     card: {
       width: '100%',
       maxWidth: 360,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.four,
       gap: Spacing.two,
     },
     title: {
       color: t.accent,
       fontSize: sz(FontSize.lg),
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
       letterSpacing: 1,
       marginBottom: Spacing.one,
     },

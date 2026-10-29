@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { BorderRadius, ButtonFont, Spacing, Overlay, FontSize } from "@/constants/theme";
+import { ARCADE_SHADOW } from "@/constants/arcade-button";
 
 // Layout is theme-independent (colors are applied inline via `theme.*` in each
 // component), so the sheet can be built once at module load and shared.
@@ -54,15 +55,17 @@ export const toolbarStyles = StyleSheet.create({
     chipsRow: {
       paddingTop: Spacing.two,
       paddingBottom: Spacing.one,
+      paddingRight: Spacing.one,   // room for the last chip's offset shadow
       gap: Spacing.one,
     },
+    // Active filter chips: filled arcade buttons (colours applied inline)
     chip: {
       flexDirection: "row",
       alignItems: "center",
       gap: 4,
       paddingHorizontal: Spacing.two,
       paddingVertical: 4,
-      borderRadius: BorderRadius.sm,
+      borderRadius: 4,
     },
     chipText: {
       fontSize: FontSize.xs,
@@ -101,9 +104,12 @@ export const toolbarStyles = StyleSheet.create({
       ...StyleSheet.absoluteFillObject,
       backgroundColor: Overlay.scrimSoft,
     },
+    // Arcade panel frame (border colour inline): thick border, small radius
     sheet: {
-      borderTopLeftRadius: BorderRadius.lg,
-      borderTopRightRadius: BorderRadius.lg,
+      borderTopLeftRadius: 6,
+      borderTopRightRadius: 6,
+      borderWidth: 2,
+      borderBottomWidth: 0,
     },
     handleRow: {
       alignItems: "center",
@@ -127,11 +133,14 @@ export const toolbarStyles = StyleSheet.create({
       alignItems: "center",
       justifyContent: "center",
     },
-    sheetTitle: {
+    sheetTitleWrap: {
       flex: 1,
+      alignItems: "center",
+    },
+    sheetTitle: {
       textAlign: "center",
       fontSize: FontSize.lg,
-      fontFamily: ButtonFont,
+      letterSpacing: 1,
     },
     panelArea: {
       // height is animated inline (MAIN_MENU_HEIGHT for the menu, taller for sub-sheets)
@@ -173,7 +182,7 @@ export const toolbarStyles = StyleSheet.create({
       fontFamily: ButtonFont,
       flexShrink: 1,
     },
-    // Filter sub-sheet — categories side-by-side in columns (text options, not buttons)
+    // Filter sub-sheet — categories side-by-side in columns; the selected option is a filled arcade button
     filterColumns: {
       flexDirection: "row",
       paddingHorizontal: Spacing.two,
@@ -182,23 +191,30 @@ export const toolbarStyles = StyleSheet.create({
     },
     filterColumn: {
       flex: 1,
+      gap: 4,
     },
+    // Colour / font from arcadeSectionLabel, applied inline
     columnLabel: {
       fontSize: FontSize.sm,
-      fontFamily: ButtonFont,
-      letterSpacing: 0.5,
-      textTransform: "uppercase",
-      marginBottom: 4,
       paddingHorizontal: 6,
     },
     colOption: {
       paddingVertical: 9,
       paddingHorizontal: 6,
-      borderRadius: BorderRadius.sm,
+      borderRadius: 4,
+      marginRight: ARCADE_SHADOW,   // room for the selected option's offset shadow
+    },
+    // Sort / group options: the selected one is a filled arcade button
+    optionList: {
+      paddingVertical: 4,
+      gap: 4,
     },
     option: {
-      paddingHorizontal: Spacing.three,
+      paddingHorizontal: Spacing.two,
       paddingVertical: 12,
+      marginLeft: Spacing.two,
+      marginRight: Spacing.two + ARCADE_SHADOW,
+      borderRadius: 4,
     },
     optionPressed: { opacity: 0.7 },
     optionText: {
@@ -210,27 +226,13 @@ export const toolbarStyles = StyleSheet.create({
       alignItems: "center",
       justifyContent: "space-between",
     },
+    // Colour / font from arcadeSectionLabel, applied inline
     sectionLabel: {
-      fontSize: FontSize.md,
-      fontFamily: ButtonFont,
       paddingHorizontal: Spacing.three,
       paddingTop: 10,
       paddingBottom: 4,
     },
-    divider: { height: 1, marginVertical: 4 },
-    pointsGroup: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      paddingHorizontal: Spacing.three,
-      paddingBottom: 10,
-      gap: 6,
-    },
-    pointChip: {
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
-    },
+    sectionLabelSize: { fontSize: FontSize.md },
     // Sheet bottom: view toggle + grid slider
     sheetBottom: {
       paddingHorizontal: Spacing.three,
@@ -243,18 +245,20 @@ export const toolbarStyles = StyleSheet.create({
       gap: Spacing.three,
       marginTop: Spacing.one,
     },
+    // Arcade segmented: accent-framed, neighbours share one border, shadow on the group
     segmented: {
       flexDirection: "row",
-      gap: Spacing.one,
+      borderRadius: 4,
     },
     segBtn: {
       width: 52,
       height: 36,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderRadius: BorderRadius.sm,
+      borderWidth: 2,
     },
+    segFirst: { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 },
+    segLast: { borderTopRightRadius: 4, borderBottomRightRadius: 4, marginLeft: -2 },
     sheetSliderWrap: {
       flex: 1,
       flexDirection: "row",

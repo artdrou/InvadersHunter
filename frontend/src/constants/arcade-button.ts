@@ -79,6 +79,20 @@ export function arcadeButton(t: ThemeTokens, kind: ArcadeButtonKind = 'filled'):
   return { borderWidth: 2, borderColor: t.accent, backgroundColor: 'transparent', boxShadow: arcadeShadow(t) };
 }
 
+/**
+ * Pixel-art icon buttons (components/ui/PixelButton + components/ShadowIcon): idle = border
+ * outline, muted icon; active = accent outline and icon, both with the hard shadow (never filled).
+ * The idle icon keeps a transparent shadow so it doesn't move when the state changes.
+ */
+export function arcadePixelButton(t: ThemeTokens, active: boolean): {
+  button: { fill: string; stroke: string; shadow?: string };
+  icon: string;
+  iconShadow: string;
+} {
+  if (active) return { button: { fill: t.bgElement, stroke: t.accent, shadow: t.titleShadow }, icon: t.accent, iconShadow: t.titleShadow };
+  return { button: { fill: t.bgElement, stroke: t.border }, icon: t.textMuted, iconShadow: 'transparent' };
+}
+
 export function arcadeLabelColor(t: ThemeTokens, kind: ArcadeButtonKind = 'filled'): string {
   if (kind === 'filled') return t.isLight ? t.bg : t.titleShadow;
   return kind === 'danger' ? t.danger : t.accent;

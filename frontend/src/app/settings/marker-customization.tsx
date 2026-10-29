@@ -12,10 +12,11 @@ import {
   TIER_VALUES, STATE_GROUPS, STATE_COLOR_KEYS,
   type TierPts, type ShapeId, type CustomizableState, type StateGroup, type StateColorKey,
 } from '@/features/marker-customization/types';
-import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor, arcadeShadow } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShapePicker } from '@/features/settings/components/ShapePicker';
+import { StepButton } from '@/features/settings/components/StepButton';
 
 // Thumbnails are rasterized larger (THUMB_RENDER) then scaled down so they stay crisp.
 const THUMB_RENDER = 128;
@@ -174,7 +175,7 @@ export default function MarkerCustomizationScreen() {
               <Pressable
                 key={tier}
                 onPress={() => { hapticTap(); setActiveTier(tier); setActiveGroup(null); }}
-                style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.tierTab, isActive && styles.tileActive, pressed && styles.pressed]}
               >
                 <Image source={{ uri: thumbnails[shapeForTier[tier] ?? tier] }} style={styles.tierThumb} />
                 <Text style={[styles.tierLabel, isActive && { color: theme.accent }]}>{tier}</Text>
@@ -197,7 +198,7 @@ export default function MarkerCustomizationScreen() {
               <Pressable
                 key={group}
                 onPress={() => { hapticTap(); setActiveGroup(group); }}
-                style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.tierTab, isActive && styles.tileActive, pressed && styles.pressed]}
               >
                 {shape !== null
                   ? <Image source={{ uri: thumbnails[shape] }} style={styles.tierThumb} />
@@ -218,9 +219,9 @@ export default function MarkerCustomizationScreen() {
           between={activeGroup ? (
             <Pressable
               onPress={() => { hapticTap(); setShapeForState(activeGroup, null); }}
-              style={({ pressed }) => [styles.pointsShapeBtn, groupShape === null && { borderColor: theme.accent }, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.pointsShapeBtn, groupShape === null && styles.pointsShapeBtnOn, pressed && styles.pressed]}
             >
-              <Text style={[styles.pointsShapeLabel, groupShape === null && { color: theme.accent }]}>
+              <Text style={[styles.pointsShapeLabel, groupShape === null && styles.pointsShapeLabelOn]}>
                 {t('markerCustomization.pointsShape')}
               </Text>
             </Pressable>
@@ -274,7 +275,7 @@ export default function MarkerCustomizationScreen() {
                   <Pressable
                     key={tier}
                     onPress={() => { hapticTap(); setActiveRarityTier(tier); }}
-                    style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.tierTab, isActive && styles.tileActive, pressed && styles.pressed]}
                   >
                     <View style={[styles.raritySwatch, { backgroundColor: rarityColors[tier].icon, borderColor: rarityColors[tier].glow }]} />
                     <Text style={[styles.tierLabel, isActive && { color: theme.accent }]}>{tier}</Text>
@@ -292,7 +293,7 @@ export default function MarkerCustomizationScreen() {
                   <Pressable
                     key={key}
                     onPress={() => { hapticTap(); setActiveStateKey(key); }}
-                    style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.tierTab, isActive && styles.tileActive, pressed && styles.pressed]}
                   >
                     <View style={[styles.raritySwatch, { backgroundColor: stateColors[key].icon, borderColor: stateColors[key].glow }]} />
                     <Text style={[styles.tierLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
@@ -327,20 +328,16 @@ export default function MarkerCustomizationScreen() {
             <View style={styles.param}>
               <Text style={styles.stepperValue}>{Math.round(activeOpacity * 100)}%</Text>
               <View style={styles.stepper}>
-                <Pressable
-                  style={({ pressed }) => [styles.stepperBtn, activeOpacity <= 0 && styles.arrowDisabled, pressed && styles.pressed]}
+                <StepButton
+                  label="−"
                   disabled={activeOpacity <= 0}
                   onPress={() => { hapticTap(); setOpacity(activeCustom, activeOpacity - OPACITY_STEP); }}
-                >
-                  <Text style={styles.stepperBtnText}>−</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [styles.stepperBtn, activeOpacity >= 1 && styles.arrowDisabled, pressed && styles.pressed]}
+                />
+                <StepButton
+                  label="+"
                   disabled={activeOpacity >= 1}
                   onPress={() => { hapticTap(); setOpacity(activeCustom, activeOpacity + OPACITY_STEP); }}
-                >
-                  <Text style={styles.stepperBtnText}>+</Text>
-                </Pressable>
+                />
               </View>
               <Text style={styles.paramLabel}>{t('markerCustomization.opacityLabel')}</Text>
             </View>
@@ -349,20 +346,16 @@ export default function MarkerCustomizationScreen() {
             <View style={styles.param}>
               <Text style={styles.stepperValue}>{BLOOM_SIZE_LABELS[bloomDesc.size]}·{bloomDesc.intensity + 1}</Text>
               <View style={styles.stepper}>
-                <Pressable
-                  style={({ pressed }) => [styles.stepperBtn, activeBloom <= 0 && styles.arrowDisabled, pressed && styles.pressed]}
+                <StepButton
+                  label="−"
                   disabled={activeBloom <= 0}
                   onPress={() => { hapticTap(); setBloom(activeCustom, activeBloom - 1); }}
-                >
-                  <Text style={styles.stepperBtnText}>−</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [styles.stepperBtn, activeBloom >= BLOOM_LEVEL_COUNT - 1 && styles.arrowDisabled, pressed && styles.pressed]}
+                />
+                <StepButton
+                  label="+"
                   disabled={activeBloom >= BLOOM_LEVEL_COUNT - 1}
                   onPress={() => { hapticTap(); setBloom(activeCustom, activeBloom + 1); }}
-                >
-                  <Text style={styles.stepperBtnText}>+</Text>
-                </Pressable>
+                />
               </View>
               <Text style={styles.paramLabel}>{t('markerCustomization.bloom')}</Text>
             </View>
@@ -384,13 +377,15 @@ export default function MarkerCustomizationScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.primaryBtn,
-            arcadeButton(theme),
-            (pressed || isGenerating || !isDirty) && styles.pressed,
+            isGenerating || isDirty ? arcadeButton(theme) : styles.primaryBtnOff,
+            (pressed || isGenerating) && styles.pressed,
           ]}
           disabled={isGenerating || !isDirty}
           onPress={() => { hapticTap(); regenerate().catch(() => {}); }}
         >
-          {isGenerating ? <ActivityIndicator color={arcadeLabelColor(theme)} /> : <Text style={styles.primaryBtnText}>{t('markerCustomization.validate')}</Text>}
+          {isGenerating
+            ? <ActivityIndicator color={arcadeLabelColor(theme)} />
+            : <Text style={isDirty ? styles.primaryBtnText : styles.primaryBtnOffText}>{t('markerCustomization.validate')}</Text>}
         </Pressable>
       </View>
 
@@ -420,19 +415,23 @@ function makeStyles(t: ThemeTokens) {
       flex: 1, alignItems: 'center', gap: 2, paddingVertical: Spacing.one,
       borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,
     },
+    // Selected tile: accent outline with the arcade shadow (no fill: it would hide the thumbnail)
+    tileActive: { borderColor: t.accent, boxShadow: arcadeShadow(t) },
     tierThumb: { width: TIER_THUMB, height: TIER_THUMB },
     tierLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
     tierPreview: { width: TIER_PREVIEW, height: TIER_PREVIEW },
     inheritedPreview: { opacity: 0.35 },
     // State tab left on its points' shape, and the button that sets it back
     pointsShapeMark: { flex: 1, textAlign: 'center', textAlignVertical: 'center', lineHeight: TIER_THUMB, color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xxs },
+    // Filter-chip look (map filter): outlined, filled arcade button once selected
     pointsShapeBtn: {
       alignSelf: 'center', paddingVertical: Spacing.two, paddingHorizontal: Spacing.three,
       borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,
     },
-    pointsShapeLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
+    pointsShapeBtnOn: { ...arcadeButton(t), borderWidth: 2, borderColor: t.accent },
+    pointsShapeLabel: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.xs },
+    pointsShapeLabelOn: arcadeButtonLabel(t),
     raritySwatch: { width: 22, height: 22, borderRadius: BorderRadius.sm, borderWidth: 3 },
-    arrowDisabled: { opacity: 0.25 },
 
     // ── Colors header + preview-shape switch ──
     colorsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
@@ -480,11 +479,6 @@ function makeStyles(t: ThemeTokens) {
     swatch: { width: 44, height: 44, borderRadius: BorderRadius.sm, borderWidth: 2 },
 
     stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    stepperBtn: {
-      width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bg,
-    },
-    stepperBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg, lineHeight: 22 },
     stepperValue: { minWidth: 42, textAlign: 'center', color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
 
     // ── Actions ──
@@ -497,5 +491,8 @@ function makeStyles(t: ThemeTokens) {
     secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     primaryBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: BorderRadius.sm },
     primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
+    // Nothing to apply: flat, muted, no shadow (as the routing Compute button)
+    primaryBtnOff: { backgroundColor: t.bgElement },
+    primaryBtnOffText: { color: t.textMuted, fontFamily: ButtonFontBold, fontSize: FontSize.md },
   });
 }

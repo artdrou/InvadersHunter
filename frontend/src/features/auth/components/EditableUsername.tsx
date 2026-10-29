@@ -100,7 +100,7 @@ export function EditableUsername() {
           onPress={save}
           disabled={saving}
         >
-          <ShadowText shadowColor={theme.titleShadow} style={styles.btnText}>{t('profile.usernameSave')}</ShadowText>
+          <Text style={[styles.btnText, styles.btnPrimaryText]}>{t('profile.usernameSave')}</Text>
         </Pressable>
       </View>
     </View>
@@ -129,8 +129,10 @@ function makeStyles(t: ThemeTokens) {
       ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
     },
-    btnPrimary: { borderColor: t.accent },
+    // keep the outline's footprint so both buttons are the same size
+    btnPrimary: { ...arcadeButton(t), borderWidth: 2, borderColor: t.accent },
     btnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.sm },
+    btnPrimaryText: arcadeButtonLabel(t),
     pressed: { opacity: 0.6 },
   });
 }

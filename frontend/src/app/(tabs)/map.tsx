@@ -7,6 +7,8 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { PixelButton } from "@/components/ui/PixelButton";
+import { ShadowIcon } from "@/components/ShadowIcon";
+import { arcadePixelButton } from "@/constants/arcade-button";
 import {
   WebMap, InvaderPopup, CreateInvaderModal, MapFilterBar,
   applyMapFilter, DEFAULT_FILTER, useLocateStore, BoussoleIcon, AimIcon,
@@ -402,8 +404,8 @@ export default function MapScreen() {
           onPress={() => { hapticTap(); router.push("/news"); }}
           activeOpacity={0.8}
         >
-          <PixelButton size={48} fill={theme.bgElement} stroke={newsUnread > 0 ? theme.accent : theme.border} />
-          <MaterialCommunityIcons name="newspaper-variant-outline" size={22} color={newsUnread > 0 ? theme.accent : theme.textMuted} />
+          <PixelButton size={48} {...arcadePixelButton(theme, newsUnread > 0).button} />
+          <ShadowIcon family="mci" name="newspaper-variant-outline" size={22} color={arcadePixelButton(theme, newsUnread > 0).icon} shadowColor={arcadePixelButton(theme, newsUnread > 0).iconShadow} />
           {newsUnread > 0 && (
             <View style={[styles.newsBadge, { backgroundColor: theme.danger, borderColor: theme.bg }]}>
               <Text style={styles.newsBadgeText}>{newsUnread > 9 ? "9+" : String(newsUnread)}</Text>
@@ -419,8 +421,8 @@ export default function MapScreen() {
           onPress={() => { hapticTap(); setFriendPickerOpen(true); }}
           activeOpacity={0.8}
         >
-          <PixelButton size={48} fill={theme.bgElement} stroke={friendMapView ? theme.accent : theme.border} />
-          <MaterialCommunityIcons name="account-group" size={22} color={friendMapView ? theme.accent : theme.textMuted} />
+          <PixelButton size={48} {...arcadePixelButton(theme, !!friendMapView).button} />
+          <ShadowIcon family="mci" name="account-group" size={22} color={arcadePixelButton(theme, !!friendMapView).icon} shadowColor={arcadePixelButton(theme, !!friendMapView).iconShadow} />
         </TouchableOpacity>
       )}
 

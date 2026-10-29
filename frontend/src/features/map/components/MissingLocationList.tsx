@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Modal, View, Text, TextInput, Pressable, FlatList, StyleSheet, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFontBold } from "@/constants/theme";
+import { arcadeCard } from "@/constants/arcade-button";
+import { ShadowText } from "@/components/ShadowText";
 import type { InvaderWithState } from "@/features/invaders/types";
 import { InvaderGridCell } from "@/features/invaders/components/InvaderGridCell";
 import { missingLocationGroups } from "../missing-location";
@@ -42,7 +44,9 @@ export function MissingLocationList({ visible, invaders, onSelect, onClose }: Pr
       <Pressable style={styles.overlay} onPress={close}>
         <Pressable style={[styles.card, { width: cardWidth }]} onPress={() => {}}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t("map.missingLocationTitle")}</Text>
+            <View style={styles.titleWrap}>
+              <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t("map.missingLocationTitle")}</ShadowText>
+            </View>
             <Pressable onPress={close} hitSlop={8}>
               <Text style={styles.close}>✕</Text>
             </Pressable>
@@ -104,15 +108,13 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     card: {
       height: "80%",
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.three,
       gap: Spacing.two,
     },
     header: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
-    title: { flex: 1, color: t.accent, fontFamily: font, fontSize: sz(FontSize.lg), letterSpacing: 1 },
+    titleWrap: { flex: 1 },
+    title: { color: t.accent, fontFamily: ButtonFontBold, fontSize: sz(FontSize.lg), letterSpacing: 1 },
     close: { color: t.textMuted, fontSize: sz(FontSize.lg) },
     search: {
       borderWidth: 1,

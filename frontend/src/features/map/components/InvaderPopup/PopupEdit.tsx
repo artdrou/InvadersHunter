@@ -3,6 +3,8 @@ import { View, Text, Pressable, ScrollView, Alert, useWindowDimensions } from "r
 import { isAxiosError } from "axios";
 import { apiErrorDetail } from "@/services/api-client";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/contexts/theme-context";
+import { ShadowText } from "@/components/ShadowText";
 import type { InvaderWithState } from "@/features/invaders";
 import type { ModifyRequestPayload } from "@/features/invaders/services/invaders.api";
 import { uploadRequestPhoto } from "@/features/invaders/services/invaders.api";
@@ -35,6 +37,7 @@ type Props = {
 /** Edit form: propose a new condition, position, and/or photo for an invader. */
 export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onRequestSent, onSubmitModifyRequest, initialField, styles }: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const formMaxHeight = Math.max(FORM_MIN_HEIGHT, windowHeight - POPUP_CHROME_HEIGHT);
 
@@ -100,7 +103,9 @@ export function PopupEdit({ invader, pendingCoords, onClose, onPickLocation, onR
     <>
       <View style={styles.scrollHandle} />
       <View style={styles.header}>
-        <Text style={styles.name}>{t('popup.updateTitle', { name: invader.name })}</Text>
+        <View style={styles.titleName}>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.name}>{t('popup.updateTitle', { name: invader.name })}</ShadowText>
+        </View>
         <Pressable onPress={onClose} style={styles.closeBtn}>
           <Text style={styles.closeText}>✕</Text>
         </Pressable>

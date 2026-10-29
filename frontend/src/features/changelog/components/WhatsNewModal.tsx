@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFontBold } from '@/constants/theme';
 import { useChangelogStore } from '../store';
 import { latestRelease, notesForLanguage } from '../releases';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 type Props = {
   /** Only show once the user is actually in the app (authenticated or guest). */
@@ -46,7 +47,7 @@ export function WhatsNewModal({ enabled }: Props) {
     <Modal transparent visible animationType="fade" onRequestClose={dismiss}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('changelog.whatsNewTitle')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t('changelog.whatsNewTitle')}</ShadowText>
           <Text style={styles.version}>{t('changelog.versionLabel', { version: latest.version })}</Text>
 
           <ScrollView style={styles.notes} contentContainerStyle={styles.notesContent}>
@@ -83,17 +84,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       width: '100%',
       maxWidth: 360,
       maxHeight: '75%',
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.four,
       gap: Spacing.two,
     },
+    // Arcade modal title (rendered with <ShadowText>), as in the colour picker
     title: {
       color: t.accent,
       fontSize: sz(FontSize.lg),
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
       letterSpacing: 1,
     },
     version: {

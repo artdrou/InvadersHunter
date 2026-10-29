@@ -14,13 +14,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFontBold } from '@/constants/theme';
 import { useAuthStore } from '@/features/auth/store';
 import { useAccountGateStore } from '@/features/auth/gate-store';
 import { useInvaderComments } from '../hooks/use-invader-comments';
 import { useCommentSeenStore } from '../seen-store';
 import type { Comment, ReactionValue } from '../types';
-import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 
 /**
  * Highest-liked comment, ties break newest-first. A lone comment is the top by
@@ -155,7 +156,7 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
       >
         <View style={styles.header}>
           <View style={styles.headerTitles}>
-            <Text style={styles.title} numberOfLines={1}>{invaderName}</Text>
+            <ShadowText shadowColor={theme.titleShadow} style={styles.title} numberOfLines={1}>{invaderName}</ShadowText>
             <Text style={styles.subtitle}>{t('comments.title')}</Text>
           </View>
           <Pressable onPress={onClose} hitSlop={10} accessibilityLabel={t('common.close')}
@@ -172,7 +173,7 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
           <View style={styles.center}>
             <Text style={styles.muted}>{t('comments.loadError')}</Text>
             <Pressable onPress={reload} style={({ pressed }) => [styles.retryBtn, pressed && styles.pressed]}>
-              <Text style={styles.retryText}>{t('common.ok')}</Text>
+              <ShadowText shadowColor={theme.titleShadow} style={styles.retryText}>{t('common.ok')}</ShadowText>
             </Pressable>
           </View>
         ) : comments.length === 0 ? (
@@ -240,8 +241,8 @@ export function InvaderCommentsModal({ visible, invaderId, invaderName, onClose 
               accessibilityLabel={t('comments.send')}
             >
               {sending
-                ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
-                : <Ionicons name="send" size={18} color={arcadeLabelColor(theme)} />}
+                ? <ActivityIndicator size="small" color={text.trim() && !sending ? arcadeLabelColor(theme) : theme.textMuted} />
+                : <Ionicons name="send" size={18} color={text.trim() && !sending ? arcadeLabelColor(theme) : theme.textMuted} />}
             </Pressable>
           </View>
         )}
@@ -355,7 +356,7 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     headerTitles: { flexShrink: 1, gap: 2 },
     title: {
       color: t.accent,
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
       fontSize: sz(FontSize.xl),
       letterSpacing: 1,
     },
@@ -367,19 +368,18 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four, gap: Spacing.two },
     muted: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm), textAlign: 'center' },
     retryBtn: {
-      borderWidth: 1,
-      borderColor: t.border,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.one,
     },
-    retryText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
+    retryText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     listContent: { padding: Spacing.three, gap: Spacing.three },
     row: { gap: 4 },
+    // Pinned top comment: arcade card framed in the accent
     rowTop: {
-      borderWidth: 1,
+      ...arcadeCard(t),
       borderColor: t.accent,
-      borderRadius: BorderRadius.sm,
       padding: Spacing.two,
     },
     topTag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -432,7 +432,8 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sendBtnDisabled: { opacity: 0.4 },
+    // Disabled arcade button: flat, no shadow (label / icon in textMuted)
+    sendBtnDisabled: { backgroundColor: t.bgElement, boxShadow: 'none' },
     guestBar: {
       flexDirection: 'row',
       alignItems: 'center',

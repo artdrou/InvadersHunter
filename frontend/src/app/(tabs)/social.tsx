@@ -217,13 +217,16 @@ export default function SocialScreen() {
                 {lookup.status === 'checking' ? <ActivityIndicator size="small" color={theme.textMuted} /> : null}
               </View>
               <Pressable
-                style={({ pressed }) => [styles.primaryBtn, styles.sendBtn, (!confirmed || sending) && styles.disabled, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  confirmed ? styles.primaryBtn : styles.btnOff, styles.sendBtn,
+                  sending && styles.disabled, pressed && styles.pressed,
+                ]}
                 onPress={send}
                 disabled={!confirmed || sending}
               >
                 {sending
                   ? <ActivityIndicator size="small" color={arcadeLabelColor(theme)} />
-                  : <Text style={styles.primaryBtnText}>{t('social.addButton')}</Text>}
+                  : <Text style={confirmed ? styles.primaryBtnText : styles.btnOffText}>{t('social.addButton')}</Text>}
               </Pressable>
             </View>
             {lookup.status === 'found' ? (() => {
@@ -353,6 +356,10 @@ export default function SocialScreen() {
 
 function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
   const sz = (n: number) => Math.round(n * fontScale);
+  const btnBox = {
+    borderRadius: BorderRadius.sm,
+    paddingVertical: 10, paddingHorizontal: Spacing.four, alignItems: 'center', justifyContent: 'center',
+  } as const;
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     centered: { alignItems: 'center', justifyContent: 'center', gap: Spacing.three, paddingHorizontal: Spacing.five },
@@ -367,10 +374,10 @@ function makeStyles(t: ThemeTokens, font: string, fontScale: number) {
     },
     input: { flex: 1, color: t.text, fontFamily: font, fontSize: sz(FontSize.sm), paddingVertical: 10 },
     suggestion: { borderColor: t.accent },
-    primaryBtn: {
-      ...arcadeButton(t), borderRadius: BorderRadius.sm,
-      paddingVertical: 10, paddingHorizontal: Spacing.four, alignItems: 'center', justifyContent: 'center',
-    },
+    primaryBtn: { ...btnBox, ...arcadeButton(t) },
+    // Disabled: flat, muted, no shadow (as the routing Compute button)
+    btnOff: { ...btnBox, backgroundColor: t.bgElement },
+    btnOffText: { color: t.textMuted, fontFamily: ButtonFontBold, fontSize: FontSize.md },
     sendBtn: { minWidth: 90 },
     primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
     feedback: { fontFamily: font, fontSize: sz(FontSize.xs), paddingHorizontal: Spacing.two },

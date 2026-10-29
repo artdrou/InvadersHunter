@@ -9,6 +9,7 @@ import { isNetworkError } from "@/services/sync";
 import { apiErrorDetail } from "@/services/api-client";
 import { isAxiosError } from "axios";
 import { useTheme } from "@/contexts/theme-context";
+import { ShadowText } from "@/components/ShadowText";
 import { makeStyles } from "./styles";
 import { cityNumberPadding, buildProposedName, findExistingInvader } from "./name";
 import { NameField } from "./NameField";
@@ -96,7 +97,7 @@ export function CreateInvaderModal({ lat, lon, onPickLocation, onRequestSent, on
       <View style={styles.scrollHandle} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>{t('popup.newInvader')}</Text>
+        <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t('popup.newInvader')}</ShadowText>
         <Pressable onPress={onClose} style={styles.closeBtn}>
           <Text style={styles.closeText}>✕</Text>
         </Pressable>

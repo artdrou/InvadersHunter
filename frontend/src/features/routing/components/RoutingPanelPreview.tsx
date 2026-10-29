@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/theme-context';
 import { BorderRadius, Spacing, ButtonFont, FontSize } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 
 type Props = {
   highlight?: number[];
@@ -21,6 +22,10 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   const badgeFg = (zone: number) =>
     !highlight || highlight.includes(zone) ? theme.bg : theme.textMuted;
 
+  // Selected chip: filled arcade button, outline footprint kept (as in the real panel)
+  const chipOn = [arcadeButton(theme), { borderWidth: 2, borderColor: theme.accent }];
+  const chipOnText = arcadeButtonLabel(theme);
+
   function Badge({ zone }: { zone: number }) {
     return (
       <View style={[s.badge, { backgroundColor: badgeBg(zone) }]}>
@@ -30,7 +35,7 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
   }
 
   return (
-    <View style={[s.panel, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+    <View style={[s.panel, arcadeCard(theme)]}>
 
       {/* ① Title bar */}
       <View style={[s.titleRow, { borderBottomColor: theme.bgDivider, opacity: opOf(1) }]}>
@@ -76,8 +81,8 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
               <View style={[s.chip, { borderColor: theme.border }]}>
                 <Text style={[s.chipText, { color: theme.textMuted }]}>Loop</Text>
               </View>
-              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
-                <Text style={[s.chipText, { color: theme.bg }]}>Uncaptured</Text>
+              <View style={[s.chip, chipOn]}>
+                <Text style={[s.chipText, chipOnText]}>Uncaptured</Text>
               </View>
               <View style={{ flex: 1 }} />
               <Text style={[s.detourText, { color: theme.textMuted }]}>+15 min</Text>
@@ -96,27 +101,27 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
                 <Ionicons name="refresh-circle-outline" size={10} color={theme.textMuted} />
                 <Text style={[s.chipText, { color: theme.textMuted }]}>Loop</Text>
               </View>
-              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
-                <Text style={[s.chipText, { color: theme.bg }]}>Uncaptured</Text>
+              <View style={[s.chip, chipOn]}>
+                <Text style={[s.chipText, chipOnText]}>Uncaptured</Text>
               </View>
-              <View style={[s.chip, { backgroundColor: theme.accent, borderColor: theme.accent }]}>
-                <Text style={[s.chipText, { color: theme.bg }]}>Flashable</Text>
+              <View style={[s.chip, chipOn]}>
+                <Text style={[s.chipText, chipOnText]}>Flashable</Text>
               </View>
             </View>
             {/* Stepper */}
             <View style={s.stepper}>
-              <View style={[s.stepBtn, { borderColor: theme.border }]}>
-                <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
+              <View style={[s.stepBtn, arcadeButton(theme, 'outline')]}>
+                <Text style={[s.stepBtnText, arcadeButtonLabel(theme, 'outline')]}>−</Text>
               </View>
               <Text style={[s.stepValue, { color: theme.text }]}>+15 min</Text>
-              <View style={[s.stepBtn, { borderColor: theme.border }]}>
-                <Text style={[s.stepBtnText, { color: theme.text }]}>+</Text>
+              <View style={[s.stepBtn, arcadeButton(theme, 'outline')]}>
+                <Text style={[s.stepBtnText, arcadeButtonLabel(theme, 'outline')]}>+</Text>
               </View>
             </View>
             {/* Start button */}
-            <View style={[s.startBtn, { backgroundColor: theme.accent }]}>
-              <Ionicons name="flag" size={11} color={theme.bg} />
-              <Text style={[s.startBtnText, { color: theme.bg }]}>Start</Text>
+            <View style={[s.startBtn, arcadeButton(theme)]}>
+              <Ionicons name="flag" size={11} color={arcadeLabelColor(theme)} />
+              <Text style={[s.startBtnText, arcadeButtonLabel(theme)]}>Start</Text>
             </View>
           </View>
         )}
@@ -127,9 +132,7 @@ export function RoutingPanelPreview({ highlight, expanded = false }: Props) {
 
 const styles = StyleSheet.create({
     panel: {
-      borderRadius: BorderRadius.md,
-      borderWidth: 1,
-      overflow: 'hidden',
+      overflow: 'visible',
     },
 
     badge: {
@@ -220,8 +223,8 @@ const styles = StyleSheet.create({
       gap: 3,
       paddingHorizontal: 7,
       paddingVertical: 3,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
+      borderRadius: 4,
+      borderWidth: 2,
     },
     chipText: {
       fontFamily: ButtonFont,
@@ -237,7 +240,6 @@ const styles = StyleSheet.create({
       width: 24,
       height: 24,
       borderRadius: BorderRadius.sm,
-      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
     },

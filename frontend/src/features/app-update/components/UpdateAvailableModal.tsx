@@ -1,6 +1,7 @@
 import { Modal, View, Text, Pressable, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { ShadowText } from '@/components/ShadowText';
 import { useAppUpdateStore } from '../store';
 import { makeUpdateModalStyles as makeStyles } from './update-modal-styles';
 import { resolveApkUrl, getCurrentVersion } from '../services/app-update.api';
@@ -25,7 +26,7 @@ export function UpdateAvailableModal() {
     <Modal transparent visible animationType="fade" onRequestClose={dismiss}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('appUpdate.title')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t('appUpdate.title')}</ShadowText>
           <Text style={styles.body}>
             {t('appUpdate.body', { latest: manifest.latestVersion, current: getCurrentVersion() })}
           </Text>

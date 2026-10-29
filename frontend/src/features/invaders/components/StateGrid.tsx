@@ -1,7 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { type ThemeTokens, FontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { type ThemeTokens, FontSize, Spacing } from "@/constants/theme";
+import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel } from "@/constants/arcade-button";
 import { STATE_OPTIONS, STATE_KEYS } from "../state-options";
 
 type Props = {
@@ -44,22 +45,26 @@ export function StateGrid({ value, onSelect }: Props) {
   );
 }
 
+// Same chips as the map filter window: outlined, the selected one a filled arcade button
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-    grid: { gap: 5 },
+    // Room for the selected chip's offset shadow
+    grid: { gap: 5, paddingBottom: ARCADE_SHADOW },
     row: { flexDirection: "row", gap: 5 },
     option: {
       flex: 1,
       paddingHorizontal: Spacing.two,
-      paddingVertical: 8,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
+      paddingVertical: 7,
+      borderRadius: 4,
+      borderWidth: 2,
       borderColor: t.border,
     },
+    // keep the outline's footprint so chips don't shift when toggled
     optionSelected: {
+      ...arcadeButton(t),
+      borderWidth: 2,
       borderColor: t.accent,
-      backgroundColor: t.bg,
     },
     optionText: {
       color: t.textMuted,
@@ -67,8 +72,8 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       fontFamily: font,
     },
     optionTextSelected: {
-      color: t.accent,
-      fontFamily: font,
+      ...arcadeButtonLabel(t),
+      fontSize: sz(FontSize.sm),
     },
   });
 }

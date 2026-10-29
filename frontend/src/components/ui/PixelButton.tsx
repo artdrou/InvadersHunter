@@ -25,6 +25,8 @@ type Props = {
   size: number;
   fill: string;
   stroke: string;
+  /** Arcade hard shadow: the same pixel shape drawn one cell down-right, in this colour. */
+  shadow?: string;
 };
 
 type Run = { x: number; y: number; w: number; color: string };
@@ -53,26 +55,33 @@ function buildRuns(fill: string, stroke: string): Run[] {
 // neighbours by 1 device pixel to mask the sub-pixel rounding gaps that
 // appear at fractional device-pixel ratios (e.g. 2.625). The parent clips
 // the overflow so the overlap doesn't extend the visible bounds.
-export function PixelButton({ size, fill, stroke }: Props) {
+export function PixelButton({ size, fill, stroke, shadow }: Props) {
   const cell = size / GRID;
   const overlap = 1 / PixelRatio.get();
   const runs = buildRuns(fill, stroke);
 
   return (
-    <View style={[StyleSheet.absoluteFill, { width: size, height: size, overflow: "hidden" }]}>
-      {runs.map((r, i) => (
-        <View
-          key={i}
-          style={{
-            position: "absolute",
-            left: r.x * cell,
-            top: r.y * cell,
-            width: r.w * cell + overlap,
-            height: cell + overlap,
-            backgroundColor: r.color,
-          }}
-        />
-      ))}
-    </View>
+    <>
+      {shadow && (
+        <View style={[StyleSheet.absoluteFill, { left: cell, top: cell }]}>
+          <PixelButton size={size} fill={shadow} stroke={shadow} />
+        </View>
+      )}
+      <View style={[StyleSheet.absoluteFill, { width: size, height: size, overflow: "hidden" }]}>
+        {runs.map((r, i) => (
+          <View
+            key={i}
+            style={{
+              position: "absolute",
+              left: r.x * cell,
+              top: r.y * cell,
+              width: r.w * cell + overlap,
+              height: cell + overlap,
+              backgroundColor: r.color,
+            }}
+          />
+        ))}
+      </View>
+    </>
   );
 }

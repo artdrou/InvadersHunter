@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { PixelButton } from '@/components/ui/PixelButton'
+import { ShadowIcon } from '@/components/ShadowIcon'
+import { arcadePixelButton } from '@/constants/arcade-button'
 import type { ThemeTokens } from '@/constants/theme'
 
 const SIZE = 54
@@ -19,13 +21,13 @@ export function RoutingFAB({ onPress, active, theme }: Props) {
     >
       <PixelButton
         size={SIZE}
-        fill={theme.bgElement}
-        stroke={active ? theme.accent : theme.border}
+        {...arcadePixelButton(theme, active).button}
       />
-      <Ionicons
+      <ShadowIcon
         name="navigate-outline"
         size={26}
-        color={active ? theme.accent : theme.textMuted}
+        color={arcadePixelButton(theme, active).icon}
+        shadowColor={arcadePixelButton(theme, active).iconShadow}
       />
     </Pressable>
   )

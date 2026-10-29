@@ -18,7 +18,7 @@ import { locateOnce } from '@/features/map/locate-once';
 import { MapZoom } from '@/features/map/constants';
 
 import type { AdminSubmission } from '@/features/admin/types';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 export default function AdminPickLocationScreen() {
@@ -187,7 +187,7 @@ export default function AdminPickLocationScreen() {
       </View>
 
       {/* Legend */}
-      <View style={[styles.legend, { top: insets.top + 64, backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+      <View style={[styles.legend, arcadeCard(theme), { top: insets.top + 64 }]}>
         {hasCurrentPos && (
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: theme.danger }]} />
@@ -254,9 +254,10 @@ const styles = StyleSheet.create({
   locate: {
     position: 'absolute', right: 16, width: 48, height: 48, zIndex: 20,
   },
+  // Arcade card (border / radius / shadow from arcadeCard, set inline)
   legend: {
     position: 'absolute', right: 16,
-    borderRadius: 8, borderWidth: 1, padding: 10, gap: 6, zIndex: 10,
+    padding: 10, gap: 6, zIndex: 10,
   },
   legendRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
   legendDot:  { width: 12, height: 12, borderRadius: 6 },

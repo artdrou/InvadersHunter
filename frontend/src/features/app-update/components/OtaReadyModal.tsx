@@ -2,6 +2,7 @@ import { Modal, View, Text, Pressable } from 'react-native';
 import * as Updates from 'expo-updates';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
+import { ShadowText } from '@/components/ShadowText';
 import { useAppUpdateStore } from '../store';
 import { makeUpdateModalStyles as makeStyles } from './update-modal-styles';
 
@@ -25,7 +26,7 @@ export function OtaReadyModal() {
     <Modal transparent visible animationType="fade" onRequestClose={dismissOta}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('appUpdate.otaTitle')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t('appUpdate.otaTitle')}</ShadowText>
           <Text style={styles.body}>{t('appUpdate.otaBody')}</Text>
 
           <Pressable

@@ -4,6 +4,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing } from "@/constants/theme";
+import { arcadeButton, arcadeButtonLabel } from "@/constants/arcade-button";
+import { ShadowText } from "@/components/ShadowText";
 
 type Props = {
   imageUri: string | null;
@@ -43,8 +45,8 @@ export function usePhotoPrompt(onPicked: (uri: string) => void): () => void {
 
 export function PhotoField({ imageUri, onChange }: Props) {
   const { t } = useTranslation();
-  const { theme, appFont, fontScale } = useTheme();
-  const styles = makeStyles(theme, appFont, fontScale);
+  const { theme, fontScale } = useTheme();
+  const styles = makeStyles(theme, fontScale);
   const handleAddPhoto = usePhotoPrompt(onChange);
 
   if (imageUri) {
@@ -66,12 +68,13 @@ export function PhotoField({ imageUri, onChange }: Props) {
       style={({ pressed }) => [styles.addBtn, pressed && styles.pressed]}
       onPress={handleAddPhoto}
     >
-      <Text style={styles.addText}>{t("popup.addPhoto")}</Text>
+      <ShadowText shadowColor={theme.titleShadow} style={styles.addText}>{t("popup.addPhoto")}</ShadowText>
     </Pressable>
   );
 }
 
-function makeStyles(t: ThemeTokens, font: string, scale: number) {
+// Arcade buttons: "Add photo" outline, "Remove" danger (destructive, always an outline)
+function makeStyles(t: ThemeTokens, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
     previewRow: {
@@ -86,28 +89,24 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     },
     removeBtn: {
       paddingHorizontal: Spacing.two,
-      paddingVertical: 6,
-      borderWidth: 1,
-      borderColor: t.border,
+      paddingVertical: 5,
       borderRadius: BorderRadius.sm,
+      ...arcadeButton(t, "danger"),
     },
     removeText: {
-      color: t.textMuted,
+      ...arcadeButtonLabel(t, "danger"),
       fontSize: sz(FontSize.xs),
-      fontFamily: font,
     },
     addBtn: {
-      paddingVertical: 10,
+      paddingVertical: 9,
       paddingHorizontal: Spacing.two,
-      borderWidth: 1,
-      borderColor: t.border,
       borderRadius: BorderRadius.sm,
       alignItems: "center",
+      ...arcadeButton(t, "outline"),
     },
     addText: {
-      color: t.accent,
+      ...arcadeButtonLabel(t, "outline"),
       fontSize: sz(FontSize.xs),
-      fontFamily: font,
     },
     pressed: {
       opacity: 0.7,

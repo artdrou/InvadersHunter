@@ -1,7 +1,7 @@
 /** Shared look of the app-update prompts (new APK, OTA ready to apply). */
 import { StyleSheet } from 'react-native';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 
 export function makeUpdateModalStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
@@ -16,17 +16,15 @@ export function makeUpdateModalStyles(t: ThemeTokens, font: string, scale: numbe
     card: {
       width: '100%',
       maxWidth: 360,
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.four,
       gap: Spacing.two,
     },
+    // Arcade modal title (rendered with <ShadowText>), as in the colour picker
     title: {
       color: t.accent,
       fontSize: sz(FontSize.lg),
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
       letterSpacing: 1,
       marginBottom: Spacing.one,
     },

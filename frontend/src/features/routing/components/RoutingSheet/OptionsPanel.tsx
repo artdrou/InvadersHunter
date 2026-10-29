@@ -3,6 +3,8 @@ import { View, Text, Pressable } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import type { ThemeTokens } from '@/constants/theme'
+import { arcadeLabelColor } from '@/constants/arcade-button'
+import { ShadowText } from '@/components/ShadowText'
 import type { RouteResult } from '../../types'
 import type { RoutingStyles } from './styles'
 import { fmtMin } from './format'
@@ -62,35 +64,35 @@ export function OptionsPanel({
     <View style={[s.optionsPanel, { borderTopColor: theme.bgDivider }]}>
       <View style={s.filterRow}>
         <Pressable
-          style={({ pressed }) => [s.chip, { borderColor: theme.border }, boucle && s.chipActive, pressed && s.btnPressed]}
+          style={({ pressed }) => [s.chip, boucle && s.chipActive, pressed && s.btnPressed]}
           onPress={() => setBoucle((v) => !v)}
         >
-          <Ionicons name={boucle ? 'refresh-circle' : 'refresh-circle-outline'} size={13} color={boucle ? theme.bg : theme.textMuted} />
-          <Text style={[s.chipText, { color: boucle ? theme.bg : theme.textMuted }]}>{t('routing.loop')}</Text>
+          <Ionicons name={boucle ? 'refresh-circle' : 'refresh-circle-outline'} size={13} color={boucle ? arcadeLabelColor(theme) : theme.textMuted} />
+          <Text style={[s.chipText, boucle && s.chipTextActive]}>{t('routing.loop')}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [s.chip, { borderColor: theme.border }, !includeCaptures && s.chipActive, pressed && s.btnPressed]}
+          style={({ pressed }) => [s.chip, !includeCaptures && s.chipActive, pressed && s.btnPressed]}
           onPress={() => setIncludeCaptures((v) => !v)}
         >
-          <Text style={[s.chipText, { color: !includeCaptures ? theme.bg : theme.textMuted }]}>{t('routing.filterUncaptured')}</Text>
+          <Text style={[s.chipText, !includeCaptures && s.chipTextActive]}>{t('routing.filterUncaptured')}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [s.chip, { borderColor: theme.border }, flashableOnly && s.chipActive, pressed && s.btnPressed]}
+          style={({ pressed }) => [s.chip, flashableOnly && s.chipActive, pressed && s.btnPressed]}
           onPress={() => setFlashableOnly((v) => !v)}
         >
-          <Text style={[s.chipText, { color: flashableOnly ? theme.bg : theme.textMuted }]}>{t('routing.filterFlashable')}</Text>
+          <Text style={[s.chipText, flashableOnly && s.chipTextActive]}>{t('routing.filterFlashable')}</Text>
         </Pressable>
       </View>
 
       <View style={s.stepper}>
-        <Pressable style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]} onPress={decrement}>
-          <Text style={[s.stepBtnText, { color: theme.text }]}>−</Text>
+        <Pressable style={({ pressed }) => [s.stepBtn, pressed && s.btnPressed]} onPress={decrement}>
+          <ShadowText shadowColor={theme.titleShadow} style={s.stepBtnText}>−</ShadowText>
         </Pressable>
         <Text style={[s.stepValue, { color: boucle || detourMin > 0 ? theme.text : theme.accent }]}>
           {boucle ? fmtMin(durationMin) : (detourMin === 0 ? t('routing.detourDirect') : fmtMin(detourMin))}
         </Text>
-        <Pressable style={({ pressed }) => [s.stepBtn, { borderColor: theme.border }, pressed && s.btnPressed]} onPress={increment}>
-          <Text style={[s.stepBtnText, { color: theme.text }]}>+</Text>
+        <Pressable style={({ pressed }) => [s.stepBtn, pressed && s.btnPressed]} onPress={increment}>
+          <ShadowText shadowColor={theme.titleShadow} style={s.stepBtnText}>+</ShadowText>
         </Pressable>
       </View>
 

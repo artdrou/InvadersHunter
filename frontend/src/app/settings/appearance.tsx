@@ -1,9 +1,9 @@
 import { ArcadeSegmented } from '@/components/ArcadeSegmented';
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
 import { arcadeRowDivider } from '@/constants/arcade-button';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import {
@@ -11,6 +11,7 @@ import {
   hapticTap, useAppearanceStore, CLUSTER_MAX_ZOOM_MIN, CLUSTER_MAX_ZOOM_MAX,
 } from '@/features/settings';
 import { SettingsRowIcon } from '@/features/settings/components/SettingsRow';
+import { StepButton } from '@/features/settings/components/StepButton';
 
 export default function AppearanceScreen() {
   const { t } = useTranslation();
@@ -81,29 +82,19 @@ export default function AppearanceScreen() {
                 <Text style={styles.subtitle}>{t('appearance.clusterZoomSubtitle')}</Text>
               </View>
               <View style={styles.stepper}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.stepperBtn,
-                    clusterMaxZoom <= CLUSTER_MAX_ZOOM_MIN && styles.stepperBtnDisabled,
-                    pressed && styles.pressed,
-                  ]}
+                <StepButton
+                  label="−"
+                  size="lg"
                   disabled={clusterMaxZoom <= CLUSTER_MAX_ZOOM_MIN}
                   onPress={() => { hapticTap(); setClusterMaxZoom(clusterMaxZoom - 1); }}
-                >
-                  <Text style={styles.stepperBtnText}>−</Text>
-                </Pressable>
+                />
                 <Text style={styles.stepperValue}>{clusterMaxZoom}</Text>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.stepperBtn,
-                    clusterMaxZoom >= CLUSTER_MAX_ZOOM_MAX && styles.stepperBtnDisabled,
-                    pressed && styles.pressed,
-                  ]}
+                <StepButton
+                  label="+"
+                  size="lg"
                   disabled={clusterMaxZoom >= CLUSTER_MAX_ZOOM_MAX}
                   onPress={() => { hapticTap(); setClusterMaxZoom(clusterMaxZoom + 1); }}
-                >
-                  <Text style={styles.stepperBtnText}>+</Text>
-                </Pressable>
+                />
               </View>
             </View>
           )}
@@ -146,7 +137,6 @@ function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     // Same label as SettingsSection's (the theme picker brings its own cards)
     section: { gap: Spacing.two },
-    pressed: { opacity: 0.6 },
 
     // Row matching SettingsToggleRow, with a stepper instead of a switch
     row: {
@@ -163,13 +153,6 @@ function makeStyles(t: ThemeTokens) {
 
     // Stepper (−/+ around a numeric value)
     stepper:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    stepperBtn: {
-      width: 36, height: 36, alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 2,
-      borderColor: t.border, backgroundColor: t.bg,
-    },
-    stepperBtnDisabled: { opacity: 0.35 },
-    stepperBtnText:     { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.xl, lineHeight: 24 },
     stepperValue: {
       minWidth: 24, textAlign: 'center',
       color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg,

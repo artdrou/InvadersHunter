@@ -16,7 +16,9 @@ import {
 import { ArcadeTitle } from '@/components/ArcadeTitle';
 import { tap } from '../haptics';
 import { ColorPickerModal } from './ColorPickerModal';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeShadow } from '@/constants/arcade-button';
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
+import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
 
 const PREVIEW_TEXT = 'ABC';
@@ -37,7 +39,7 @@ export function ThemePicker() {
             return (
               <Pressable
                 key={name}
-                style={({ pressed }) => [styles.themeCard, active && { borderColor: theme.accent }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.themeCard, active && styles.themeCardActive, pressed && styles.pressed]}
                 onPress={() => { tap(); setTheme(name); }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
@@ -104,22 +106,16 @@ function CustomThemeEditor() {
   );
 
   const segment = <K extends 'base' | 'titleStyle'>(key: K, options: [CustomThemeSettings[K], string][]) => (
-    <View style={styles.segment}>
-      {options.map(([value, label]) => {
-        const on = custom[key] === value;
-        return (
-          <Pressable key={value} onPress={() => { tap(); setCustom({ [key]: value } as Partial<CustomThemeSettings>); }}
-            style={[styles.segBtn, on && styles.segBtnOn]}>
-            <Text style={[styles.segText, on && styles.segTextOn]}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <ArcadeSegmented
+      options={options.map(([value, label]) => ({ value, label }))}
+      value={custom[key]}
+      onChange={(value) => { tap(); setCustom({ [key]: value } as Partial<CustomThemeSettings>); }}
+    />
   );
 
   return (
     <>
-      <Text style={styles.sectionLabel}>{t('appearance.customTheme')}</Text>
+      <ArcadeSectionLabel title={t('appearance.customTheme')} style={styles.sectionLabel} />
       <View style={styles.card}>
         <View style={styles.row}>
           <View style={styles.rowLabel}>
@@ -132,7 +128,7 @@ function CustomThemeEditor() {
         {colorRow('routePath', t('profile.routeColor'), t('appearance.routeSubtitle'))}
       </View>
 
-      <Text style={styles.sectionLabel}>{t('appearance.titles')}</Text>
+      <ArcadeSectionLabel title={t('appearance.titles')} style={styles.sectionLabel} />
       <View style={styles.card}>
         <View style={styles.row}>
           <View style={styles.rowLabel}>
@@ -161,15 +157,14 @@ function CustomThemeEditor() {
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     wrap: { gap: Spacing.two },
-    card: {
-      backgroundColor: t.bgElement, borderWidth: 1, borderColor: t.border,
-      borderRadius: BorderRadius.md, padding: Spacing.three, gap: Spacing.three,
-    },
+    card: { ...arcadeCard(t), padding: Spacing.three, gap: Spacing.three },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
     themeCard: {
       width: '31%', flexGrow: 1, borderWidth: 2, borderColor: t.border,
       borderRadius: BorderRadius.sm, padding: 6, alignItems: 'center', gap: 6,
     },
+    // Selected: accent outline with the arcade shadow
+    themeCardActive: { borderColor: t.accent, boxShadow: arcadeShadow(t) },
     mini: {
       alignSelf: 'stretch', borderRadius: 6, borderWidth: 1,
       paddingHorizontal: 6, paddingTop: 6, paddingBottom: 6, gap: 8,
@@ -191,10 +186,7 @@ function makeStyles(t: ThemeTokens) {
       shadowOpacity: 0.9, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 3,
     },
     note: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, lineHeight: 18, paddingHorizontal: Spacing.one },
-    sectionLabel: {
-      color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs,
-      letterSpacing: 1, textTransform: 'uppercase', marginTop: Spacing.three, paddingHorizontal: Spacing.two,
-    },
+    sectionLabel: { marginTop: Spacing.three },
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
     rowLabel: { flex: 1, gap: 2 },
     rowText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.md },
@@ -207,10 +199,5 @@ function makeStyles(t: ThemeTokens) {
       borderColor: t.textMuted, alignItems: 'center', justifyContent: 'center',
     },
     swatchMoreText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.md, lineHeight: 18 },
-    segment: { flexDirection: 'row', borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm, overflow: 'hidden' },
-    segBtn: { paddingVertical: 7, paddingHorizontal: 10 },
-    segBtnOn: { backgroundColor: t.accent },
-    segText: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.sm },
-    segTextOn: { color: t.bg },
   });
 }

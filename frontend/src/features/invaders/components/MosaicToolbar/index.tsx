@@ -7,7 +7,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
-import { Spacing, Motion } from "@/constants/theme";
+import { Spacing, Motion, ButtonFontBold } from "@/constants/theme";
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor, arcadeSectionLabel, arcadeShadow } from "@/constants/arcade-button";
+import { ShadowText } from "@/components/ShadowText";
 import { isFilterActive } from "@/features/map/filter";
 import type { SortOption, GroupMode } from "../../utils/invader-list";
 import { SORT_OPTIONS_BY_GROUP, SORT_DEFAULT_DIR } from "../../utils/invader-list";
@@ -213,9 +215,9 @@ export function MosaicToolbar({ state, onChange, newsUnreadCount = 0, onOpenNews
       {chips.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
           {chips.map((chip) => (
-            <Pressable key={chip.key} style={[styles.chip, { backgroundColor: theme.accent }]} onPress={chip.onDismiss}>
-              <Text style={[styles.chipText, { color: theme.bg }]}>{chip.label}</Text>
-              <Ionicons name="close-outline" size={11} color={theme.bg} />
+            <Pressable key={chip.key} style={({ pressed }) => [styles.chip, arcadeButton(theme), pressed && styles.optionPressed]} onPress={chip.onDismiss}>
+              <Text style={[styles.chipText, arcadeButtonLabel(theme)]}>{chip.label}</Text>
+              <Ionicons name="close-outline" size={11} color={arcadeLabelColor(theme)} />
             </Pressable>
           ))}
         </ScrollView>
@@ -225,7 +227,7 @@ export function MosaicToolbar({ state, onChange, newsUnreadCount = 0, onOpenNews
       <Modal visible={sheetOpen} transparent animationType="none" onRequestClose={closeSheet}>
         <View style={styles.modalRoot}>
           <Pressable style={styles.backdrop} onPress={closeSheet} />
-          <Animated.View style={[styles.sheet, { backgroundColor: theme.bg, transform: [{ translateY: sheetY }] }]}>
+          <Animated.View style={[styles.sheet, { backgroundColor: theme.bg, borderColor: theme.border, transform: [{ translateY: sheetY }] }]}>
 
             {/* Drag handle — drag up/down to resize the panel */}
             <View style={styles.handleRow} {...dragResponder.panHandlers}>
@@ -237,7 +239,11 @@ export function MosaicToolbar({ state, onChange, newsUnreadCount = 0, onOpenNews
               <Pressable onPress={activeSubSheet ? navigateBack : undefined} style={styles.headerSide} hitSlop={12}>
                 {activeSubSheet && <Ionicons name="chevron-back" size={18} color={theme.accent} />}
               </Pressable>
-              <Text style={[styles.sheetTitle, { color: theme.text }]}>{subSheetTitle}</Text>
+              <View style={styles.sheetTitleWrap}>
+                <ShadowText shadowColor={theme.titleShadow} style={[styles.sheetTitle, { color: theme.accent, fontFamily: ButtonFontBold }]} numberOfLines={1}>
+                  {subSheetTitle}
+                </ShadowText>
+              </View>
               <Pressable onPress={closeSheet} style={styles.headerSide} hitSlop={12}>
                 <Ionicons name="close" size={18} color={theme.textMuted} />
               </Pressable>
@@ -318,18 +324,25 @@ export function MosaicToolbar({ state, onChange, newsUnreadCount = 0, onOpenNews
 
             {/* View toggle + grid size slider — always visible at bottom of sheet */}
             <View style={[styles.sheetBottom, { borderTopColor: theme.bgDivider, paddingBottom: insets.bottom + Spacing.four }]}>
-              <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("invaders.viewMode")}</Text>
+              <Text style={[styles.sectionLabel, arcadeSectionLabel(theme), styles.sectionLabelSize]}>{t("invaders.viewMode")}</Text>
               <View style={styles.sheetBottomRow}>
-                <View style={styles.segmented}>
-                  {(["grid", "list"] as const).map((mode) => {
+                {/* Arcade segmented (icons, so drawn here rather than with ArcadeSegmented) */}
+                <View style={[styles.segmented, { backgroundColor: theme.bgElement, boxShadow: arcadeShadow(theme) }]}>
+                  {(["grid", "list"] as const).map((mode, i) => {
                     const sel = state.viewMode === mode;
                     return (
                       <Pressable
                         key={mode}
-                        style={[styles.segBtn, { borderColor: theme.border }, sel && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                        style={({ pressed }) => [
+                          styles.segBtn,
+                          i === 0 ? styles.segFirst : styles.segLast,
+                          { borderColor: theme.accent },
+                          sel && { backgroundColor: theme.accent, zIndex: 1 },
+                          pressed && styles.optionPressed,
+                        ]}
                         onPress={() => update({ viewMode: mode })}
                       >
-                        <Ionicons name={mode === "grid" ? "grid-outline" : "list-outline"} size={18} color={sel ? theme.bg : theme.textMuted} />
+                        <Ionicons name={mode === "grid" ? "grid-outline" : "list-outline"} size={18} color={sel ? arcadeLabelColor(theme) : theme.textMuted} />
                       </Pressable>
                     );
                   })}

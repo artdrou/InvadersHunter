@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
 import { ArcadeTitle } from '@/components/ArcadeTitle';
-import { type ThemeTokens, Spacing, FontSize, ButtonFont, BorderRadius } from '@/constants/theme';
+import { type ThemeTokens, Spacing, FontSize, ButtonFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 import { useInvaderData, mapInvadersWithProgress, cityOf } from '@/features/invaders';
 import type { InvaderWithState } from '@/features/invaders';
 import { EDIT_FIELDS, groupIncomplete, type EditField } from '@/features/invaders/edit-fields';
@@ -213,13 +214,15 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
     // (giant chips) or gets squeezed by a long one (clipped labels): keep its height.
     filtersBar: { flexGrow: 0, flexShrink: 0 },
     filters: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three, gap: Spacing.two, alignItems: 'center' },
+    // Same chips as the map filter's points: outlined, the selected ones filled arcade buttons
     chip: {
-      borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
+      borderWidth: 2, borderColor: t.border, borderRadius: 4,
       paddingHorizontal: Spacing.two, paddingVertical: 6,
     },
-    chipSelected: { borderColor: t.accent, backgroundColor: t.bgElement },
-    chipText: { color: t.textMuted, fontSize: sz(FontSize.xs), fontFamily: font },
-    chipTextSelected: { color: t.accent },
+    // keep the outline's footprint so chips don't shift when toggled
+    chipSelected: { ...arcadeButton(t), borderWidth: 2, borderColor: t.accent },
+    chipText: { color: t.text, fontSize: sz(FontSize.xs), fontFamily: ButtonFont },
+    chipTextSelected: arcadeButtonLabel(t),
     listContent: { flexGrow: 1 },
     cityHeader: {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
