@@ -90,3 +90,7 @@ CLAUDE.md
 # APK builds — too large for git, hosted on GitHub Releases
 # ========================
 backend/static/apk/*.apk
+# ========================
+# Marker sprite builder output (dev/markers: npm run build) — copied into frontend/assets/images
+# ========================
+dev/markers/out/
