@@ -860,5 +860,12 @@
     "sectionShape": "Shape",
     "sectionColors": "Colors",
     "saveFailed": "Couldn't save the icon. Check your connection."
+  },
+  "colorPicker": {
+    "basic": "Basic",
+    "advanced": "Advanced",
+    "hue": "Hue",
+    "saturation": "Saturation",
+    "brightness": "Brightness"
   }
 }

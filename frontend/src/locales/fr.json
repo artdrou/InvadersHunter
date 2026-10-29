@@ -860,5 +860,12 @@
     "sectionShape": "Forme",
     "sectionColors": "Couleurs",
     "saveFailed": "Impossible d'enregistrer l'icône. Vérifie ta connexion."
+  },
+  "colorPicker": {
+    "basic": "Simple",
+    "advanced": "Avance",
+    "hue": "Teinte",
+    "saturation": "Saturation",
+    "brightness": "Luminosite"
   }
 }
