@@ -10,7 +10,7 @@ import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, ButtonFontBold, Spacing, FontSize } from '@/constants/theme';
 import { arcadeRowDivider } from '@/constants/arcade-button';
 import { SettingsRowIcon } from './SettingsRow';
-import { ArcadeSegmented } from './ArcadeSegmented';
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
 
 type Props = {
   label: string;

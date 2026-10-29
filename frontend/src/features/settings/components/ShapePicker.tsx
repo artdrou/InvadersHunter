@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, BorderRadius, Spacing } from '@/constants/theme';
 import { PixelArrow } from '@/components/ui/PixelArrow';
+import { arcadeShadow } from '@/constants/arcade-button';
 import { ALL_SHAPE_IDS } from '@/features/marker-customization/shapes';
 import type { ShapeId } from '@/features/marker-customization/types';
 import { tap as hapticTap } from '../haptics';
@@ -69,7 +70,7 @@ export function ShapePicker({ selected, onSelect, thumbnail, preview, between }:
             onPress={() => { hapticTap(); onSelect(shape); }}
             style={({ pressed }) => [
               styles.cell, { width: cell, height: cell },
-              shape === selected && { borderColor: theme.accent },
+              shape === selected && styles.cellActive,
               pressed && styles.pressed,
             ]}
           >
@@ -91,6 +92,8 @@ function makeStyles(t: ThemeTokens) {
       alignItems: 'center', justifyContent: 'center',
       borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,
     },
+    // Selected: accent outline with the arcade shadow (no fill: it would hide the silhouette)
+    cellActive: { borderColor: t.accent, boxShadow: arcadeShadow(t) },
     pressed: { opacity: 0.6 },
   });
 }

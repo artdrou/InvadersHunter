@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { useThemedStyles } from '@/hooks/use-themed-styles';
 import { type ThemeTokens, ButtonFont, Spacing, FontSize } from "@/constants/theme";
-import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel, arcadeCard, arcadeRowDivider, arcadeSectionLabel } from "@/constants/arcade-button";
+import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel, arcadeCard, arcadeRowDivider, arcadeSectionLabel, arcadePixelButton } from "@/constants/arcade-button";
 import { PixelButton } from "@/components/ui/PixelButton";
+import { ShadowIcon } from "@/components/ShadowIcon";
 import { InfoButton, TutorialModal } from "@/features/tutorial";
 import type { TutorialPage } from "@/features/tutorial";
 import { ColorModeIllustration } from "./ColorModeIllustration";
@@ -184,10 +185,9 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
       <Pressable style={styles.btn} onPress={toggleGreyOpen}>
         <PixelButton
           size={48}
-          fill={theme.bgElement}
-          stroke={paletteActive ? theme.accent : theme.border}
+          {...arcadePixelButton(theme, paletteActive).button}
         />
-        <Ionicons name="color-palette-outline" size={22} color={paletteActive ? theme.accent : theme.textMuted} />
+        <ShadowIcon name="color-palette-outline" size={22} color={arcadePixelButton(theme, paletteActive).icon} shadowColor={arcadePixelButton(theme, paletteActive).iconShadow} />
       </Pressable>
 
       <View style={styles.gap} />
@@ -254,10 +254,9 @@ export function MapFilterBar({ ref, value, onChange, greyMode, onGreyModeChange,
       <Pressable style={styles.btn} onPress={toggleFilterOpen}>
         <PixelButton
           size={48}
-          fill={theme.bgElement}
-          stroke={filterActive ? theme.accent : theme.border}
+          {...arcadePixelButton(theme, filterActive).button}
         />
-        <Ionicons name="options-outline" size={22} color={filterActive ? theme.accent : theme.textMuted} />
+        <ShadowIcon name="options-outline" size={22} color={arcadePixelButton(theme, filterActive).icon} shadowColor={arcadePixelButton(theme, filterActive).iconShadow} />
       </Pressable>
     </View>
     <TutorialModal

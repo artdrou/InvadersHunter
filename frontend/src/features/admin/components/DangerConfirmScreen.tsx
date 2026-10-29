@@ -6,7 +6,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { ButtonFont, FontSize, Spacing, BorderRadius } from '@/constants/theme';
+import { ButtonFontBold, FontSize, Spacing, BorderRadius } from '@/constants/theme';
+import { arcadeDangerShadow } from '@/constants/arcade-button';
 
 // Deliberately loud: used for irreversible admin actions (deleting an invader / a user).
 export const DANGER_RED = '#C8102E';
@@ -74,24 +75,24 @@ export function DangerConfirmScreen({ title, body, confirmLabel, failedLabel, on
 
         <View style={styles.actions}>
           <Pressable
-            style={({ pressed }) => [styles.confirmBtn, !armed && styles.disabled, pressed && armed && styles.pressed]}
+            style={({ pressed }) => [styles.confirmBtn, armed ? styles.shadow : styles.disabled, pressed && armed && styles.pressed]}
             onPress={handleConfirm}
             disabled={!armed}
           >
             {busy ? (
               <ActivityIndicator color={DANGER_RED} />
             ) : (
-              <Text style={[styles.confirmText, { fontFamily: ButtonFont, fontSize: sz(FontSize.md) }]}>
+              <Text style={[styles.confirmText, { fontFamily: ButtonFontBold, fontSize: sz(FontSize.md) }]}>
                 {confirmLabel}
               </Text>
             )}
           </Pressable>
           <Pressable
-            style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.cancelBtn, styles.shadow, pressed && styles.pressed]}
             onPress={onCancel}
             disabled={busy}
           >
-            <Text style={[white(FontSize.md), { fontFamily: ButtonFont }]}>{t('common.cancel')}</Text>
+            <Text style={[white(FontSize.md), { fontFamily: ButtonFontBold }]}>{t('common.cancel')}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -122,7 +123,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 4,
   },
+  // Arcade buttons in white on the red screen: hard dark-red shadow (none while disarmed)
   actions: { gap: Spacing.two },
+  shadow: { boxShadow: arcadeDangerShadow(DANGER_RED) },
   confirmBtn: {
     backgroundColor: '#FFFFFF',
     borderRadius: BorderRadius.sm,

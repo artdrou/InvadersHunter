@@ -6,7 +6,8 @@ import { useAuthStore, loginUser, isEmailNotVerified, AuthLayout } from '@/featu
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeLabelColor } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 
 
@@ -69,7 +70,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}>
           {loading ? (
-            <ActivityIndicator color={theme.bg} />
+            <ActivityIndicator color={arcadeLabelColor(theme)} />
           ) : (
             <Text style={styles.buttonText}>{t('auth.login.button')}</Text>
           )}
@@ -85,9 +86,9 @@ export default function LoginScreen() {
 
         <Pressable
           onPress={() => { hapticTap(); enterGuestMode(); router.replace('/(tabs)/map'); }}
-          style={styles.guestLink}
+          style={({ pressed }) => [styles.guestLink, pressed && styles.buttonPressed]}
         >
-          <Text style={styles.registerText}><Text style={styles.registerHighlight}>{t('auth.login.guestMode')}</Text></Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.guestText}>{t('auth.login.guestMode')}</ShadowText>
         </Pressable>
       </View>
     </AuthLayout>
@@ -140,11 +141,14 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignItems: 'center',
       marginTop: Spacing.three,
       alignSelf: 'center',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.border,
+      ...arcadeButton(t, 'outline'),
       borderRadius: BorderRadius.sm,
       paddingVertical: 10,
       paddingHorizontal: Spacing.four,
+    },
+    guestText: {
+      ...arcadeButtonLabel(t, 'outline'),
+      fontSize: sz(FontSize.sm),
     },
     registerText: {
       color: t.textMuted,

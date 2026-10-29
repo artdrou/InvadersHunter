@@ -27,7 +27,7 @@ import { apiErrorDetail } from '@/services/api-client';
 import { copyToClipboard } from '@/services/clipboard';
 import { tap as hapticTap, success as hapticSuccess } from '@/features/settings/haptics';
 import { useInvaderStore } from '@/features/invaders';
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 const COPIED_MS = 1500;
@@ -209,17 +209,12 @@ function makeStyles(t: ThemeTokens, _appFont: string, scale: number, top: number
     step: {
       flexDirection: 'row',
       gap: Spacing.three,
-      backgroundColor: t.bgElement,
-      borderColor: t.border,
-      borderWidth: 1,
-      borderRadius: BorderRadius.sm,
+      ...arcadeCard(t),
       padding: Spacing.three,
     },
     addressCard: {
-      backgroundColor: t.bgElement,
+      ...arcadeCard(t),
       borderColor: t.accent,
-      borderWidth: 1,
-      borderRadius: BorderRadius.sm,
       padding: Spacing.three,
       gap: Spacing.two,
     },
@@ -264,8 +259,8 @@ function makeStyles(t: ThemeTokens, _appFont: string, scale: number, top: number
     },
     pressed: { opacity: 0.7 },
     resultBox: {
-      borderWidth: 1, borderColor: t.success ?? t.accent,
-      borderRadius: BorderRadius.sm, padding: Spacing.three, gap: 4,
+      ...arcadeCard(t), borderColor: t.success ?? t.accent,
+      padding: Spacing.three, gap: 4,
     },
     resultLine: { color: t.text, fontFamily: font, fontSize: sz(FontSize.sm) },
     resultStrong: { color: t.accent, fontFamily: AppFont },

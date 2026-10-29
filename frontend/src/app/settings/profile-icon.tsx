@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { useThemedStyles } from '@/hooks/use-themed-styles';
-import { type ThemeTokens, ButtonFont, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import { SettingsShell, hapticTap, hapticSuccess, ColorPickerModal } from '@/features/settings';
 import { useAuthStore } from '@/features/auth';
 import {
@@ -16,6 +16,7 @@ import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
 import { ShadowText } from '@/components/ShadowText';
 import { ShapePicker } from '@/features/settings/components/ShapePicker';
+import { StepButton } from '@/features/settings/components/StepButton';
 
 const PREVIEW = 160;
 const THUMB_RENDER = 128;
@@ -112,20 +113,16 @@ export default function ProfileIconScreen() {
         <View style={styles.param}>
           <Text style={styles.stepperValue}>{BLOOM_SIZE_LABELS[bloomDesc.size]}·{bloomDesc.intensity + 1}</Text>
           <View style={styles.stepper}>
-            <Pressable
-              style={({ pressed }) => [styles.stepperBtn, draft.bloom <= 0 && styles.disabled, pressed && styles.pressed]}
+            <StepButton
+              label="−"
               disabled={draft.bloom <= 0}
               onPress={() => { hapticTap(); edit({ bloom: draft.bloom - 1 }); }}
-            >
-              <Text style={styles.stepperBtnText}>−</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.stepperBtn, draft.bloom >= BLOOM_LEVEL_COUNT - 1 && styles.disabled, pressed && styles.pressed]}
+            />
+            <StepButton
+              label="+"
               disabled={draft.bloom >= BLOOM_LEVEL_COUNT - 1}
               onPress={() => { hapticTap(); edit({ bloom: draft.bloom + 1 }); }}
-            >
-              <Text style={styles.stepperBtnText}>+</Text>
-            </Pressable>
+            />
           </View>
           <Text style={styles.paramLabel}>{t('markerCustomization.bloom')}</Text>
         </View>
@@ -142,13 +139,17 @@ export default function ProfileIconScreen() {
           <ShadowText shadowColor={theme.titleShadow} style={styles.secondaryBtnText} numberOfLines={1}>{t('markerCustomization.reset')}</ShadowText>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.primaryBtn, arcadeButton(theme), (pressed || saving || !isDirty) && styles.pressed]}
+          style={({ pressed }) => [
+            styles.primaryBtn,
+            saving || isDirty ? arcadeButton(theme) : styles.primaryBtnOff,
+            (pressed || saving) && styles.pressed,
+          ]}
           disabled={saving || !isDirty}
           onPress={handleSave}
         >
           {saving
             ? <ActivityIndicator color={arcadeLabelColor(theme)} />
-            : <Text style={styles.primaryBtnText}>{t('markerCustomization.validate')}</Text>}
+            : <Text style={isDirty ? styles.primaryBtnText : styles.primaryBtnOffText}>{t('markerCustomization.validate')}</Text>}
         </Pressable>
       </View>
 
@@ -168,7 +169,6 @@ export default function ProfileIconScreen() {
 function makeStyles(t: ThemeTokens) {
   return StyleSheet.create({
     pressed: { opacity: 0.6 },
-    disabled: { opacity: 0.25 },
 
     encart: {
       flexDirection: 'row', justifyContent: 'space-between',
@@ -178,11 +178,6 @@ function makeStyles(t: ThemeTokens) {
     paramLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs, textAlign: 'center' },
     swatch: { width: 44, height: 44, borderRadius: BorderRadius.sm, borderWidth: 2 },
     stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-    stepperBtn: {
-      width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
-      borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bg,
-    },
-    stepperBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.lg, lineHeight: 22 },
     stepperValue: { minWidth: 42, textAlign: 'center', color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
 
     error: { color: t.danger, fontFamily: ButtonFont, fontSize: FontSize.sm, textAlign: 'center' },
@@ -196,5 +191,8 @@ function makeStyles(t: ThemeTokens) {
     secondaryBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.md },
     primaryBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: BorderRadius.sm },
     primaryBtnText: { ...arcadeButtonLabel(t), fontSize: FontSize.md },
+    // Nothing to save: flat, muted, no shadow (as the routing Compute button)
+    primaryBtnOff: { backgroundColor: t.bgElement },
+    primaryBtnOffText: { color: t.textMuted, fontFamily: ButtonFontBold, fontSize: FontSize.md },
   });
 }

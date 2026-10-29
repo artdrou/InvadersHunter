@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native'
 import type { ThemeTokens } from '@/constants/theme'
 import { BorderRadius, Spacing, ButtonFont, FontSize, ZIndex } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button'
 
 /** Shared stylesheet for the RoutingSheet and its sub-parts. */
 export function makeStyles(t: ThemeTokens, font: string, scale: number) {
@@ -14,14 +15,9 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       // Sit above the map FABs (news/locate/compass at ZIndex.map) so the open
       // Hunt panel hides them instead of letting the news button bleed on top.
       zIndex: ZIndex.control,
-      borderRadius: BorderRadius.md,
-      borderWidth: 1,
+      // Arcade panel frame (thick border, hard shadow), as the map filter windows
+      ...arcadeCard(t),
       overflow: 'visible',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.22,
-      shadowRadius: 6,
-      elevation: 8,
     },
 
     // Panel title
@@ -83,20 +79,22 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingBottom: Spacing.one,
     },
 
-    // Chips
+    // Chips (map filter look: 2px outline, selected = filled arcade button)
     filterRow: { flexDirection: 'row', gap: Spacing.one, flexWrap: 'wrap' },
     chip: {
       flexDirection: 'row', alignItems: 'center', gap: 4,
       paddingHorizontal: Spacing.two, paddingVertical: 5,
-      borderRadius: BorderRadius.sm, borderWidth: 1,
+      borderRadius: 4, borderWidth: 2, borderColor: t.border,
     },
-    chipActive: { backgroundColor: t.accent, borderColor: t.accent },
-    chipText:   { fontFamily: ButtonFont, fontSize: FontSize.xs },
+    // keep the outline's footprint so chips don't shift when toggled
+    chipActive: { ...arcadeButton(t), borderWidth: 2, borderColor: t.accent },
+    chipText:   { fontFamily: ButtonFont, fontSize: FontSize.xs, color: t.textMuted },
+    chipTextActive: arcadeButtonLabel(t),
 
-    // Stepper
+    // Stepper (outline arcade buttons)
     stepper:     { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-    stepBtn:     { width: 32, height: 32, borderRadius: BorderRadius.sm, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    stepBtnText: { fontFamily: ButtonFont, fontSize: FontSize.xl },
+    stepBtn:     { width: 32, height: 32, borderRadius: BorderRadius.sm, ...arcadeButton(t, 'outline'), alignItems: 'center', justifyContent: 'center' },
+    stepBtnText: { ...arcadeButtonLabel(t, 'outline'), fontSize: FontSize.xl },
     stepValue:   { fontFamily: font, fontSize: sz(FontSize.md), minWidth: 72, textAlign: 'center' },
 
     // Mandatory stops row

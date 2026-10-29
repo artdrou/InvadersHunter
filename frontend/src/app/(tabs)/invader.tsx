@@ -17,6 +17,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { StreetsBackground } from "@/components/StreetsBackground";
 import { hapticSuccess, hapticDisappoint } from "@/features/settings";
 import { Spacing, FontSize } from "@/constants/theme";
+import { ARCADE_SHADOW, arcadeCard } from "@/constants/arcade-button";
 
 const GRID_GAP = 4;
 
@@ -230,12 +231,11 @@ export default function InvadersScreen() {
         );
 
       case "grid-info":
+        // Arcade card under the grid row (room below for its offset shadow)
         return renderPanel(item.invader, {
+          ...arcadeCard(theme),
           marginHorizontal: GRID_GAP,
-          marginBottom: GRID_GAP,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: theme.border,
+          marginBottom: GRID_GAP + ARCADE_SHADOW,
         }, { showTitle: true });
     }
   }, [toggleCity, toggleInvader, renderPanel, theme, cellSize, expandedInvaderId]);

@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from "@/constants/theme";
-import { arcadeButton, arcadeButtonLabel, arcadeFlashed, flashedColors } from "@/constants/arcade-button";
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeFlashed, flashedColors } from "@/constants/arcade-button";
 
 /** Fixed popup card width (px). */
 export const POPUP_WIDTH = 300;
@@ -18,10 +18,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
       alignSelf: "center",
     },
     container: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.four,
       width: POPUP_WIDTH,
       gap: 14,
@@ -34,7 +31,7 @@ export function makeStyles(t: ThemeTokens, font: string, scale: number) {
     name: {
       color: t.accent,
       fontSize: sz(FontSize.xl),
-      fontFamily: font,
+      fontFamily: ButtonFontBold,
       letterSpacing: 1,
       flexShrink: 1,
     },

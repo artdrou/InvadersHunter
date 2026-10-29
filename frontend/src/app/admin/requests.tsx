@@ -9,8 +9,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { StreetsBackground } from '@/components/StreetsBackground';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold, Brand } from '@/constants/theme';
-import { arcadeCard } from '@/constants/arcade-button';
+import { type ThemeTokens, FontSize, Spacing, ButtonFont, ButtonFontBold, Brand } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor, arcadeShadow } from '@/constants/arcade-button';
 import { fetchAdminRequests } from '@/features/admin/services/admin.api';
 import { logger } from '@/services/logger';
 import type { AdminRequest } from '@/features/admin/types';
@@ -134,10 +134,17 @@ export default function RequestsScreen() {
       {/* Status filter — segmented control */}
       <View style={styles.segmentedWrapper}>
         <View style={styles.segmentedContainer}>
-          {STATUS_TABS.map((s) => (
+          {STATUS_TABS.map((s, i) => (
             <Pressable
               key={s}
-              style={[styles.segmentedTab, statusFilter === s && styles.segmentedTabActive]}
+              style={({ pressed }) => [
+                styles.segmentedTab,
+                i === 0 && styles.segmentedTabFirst,
+                i === STATUS_TABS.length - 1 && styles.segmentedTabLast,
+                i > 0 && styles.segmentedTabNotFirst,
+                statusFilter === s && styles.segmentedTabActive,
+                pressed && styles.pressed,
+              ]}
               onPress={() => setStatusFilter(s)}
             >
               <Text
@@ -157,24 +164,21 @@ export default function RequestsScreen() {
         <View style={styles.typeFilterRow}>
           {TYPE_TABS.map((typ) => {
             const isActive = typeFilter === typ;
-            const color    = typ !== 'all' ? TYPE_COLOR[typ as AdminRequestType] : theme.accent;
+            const color    = typ !== 'all' ? TYPE_COLOR[typ as AdminRequestType] : theme.textMuted;
             return (
               <Pressable
                 key={typ}
-                style={[
-                  styles.typeChip,
-                  isActive && { borderColor: color, backgroundColor: color + '22' },
-                ]}
+                style={({ pressed }) => [styles.typeChip, isActive && styles.typeChipActive, pressed && styles.pressed]}
                 onPress={() => setTypeFilter(typ)}
               >
                 {typ !== 'all' && (
                   <Ionicons
                     name={TYPE_ICON[typ as AdminRequestType]}
                     size={12}
-                    color={isActive ? color : theme.textMuted}
+                    color={isActive ? arcadeLabelColor(theme) : color}
                   />
                 )}
-                <Text style={[styles.typeChipText, isActive && { color }]}>
+                <Text style={[styles.typeChipText, isActive && styles.typeChipTextActive]}>
                   {t(`admin.filter${typ.charAt(0).toUpperCase()}${typ.slice(1)}`)}
                 </Text>
               </Pressable>
@@ -232,28 +236,35 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
 
     segmentedWrapper: {
       paddingHorizontal: Spacing.three,
-      paddingBottom: Spacing.two,
+      // room for the tab bar's shadow
+      paddingRight: Spacing.three + 3,
+      paddingBottom: Spacing.two + 3,
     },
+    // Arcade tabs: accent-framed, neighbours share one border, active = accent fill
     segmentedContainer: {
       flexDirection: 'row',
       backgroundColor: t.bgElement,
-      borderRadius: 10,
-      padding: 3,
-      gap: 2,
+      borderRadius: 4,
+      boxShadow: arcadeShadow(t),
     },
     segmentedTab: {
       flex: 1,
       paddingVertical: 7,
-      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: t.accent,
       alignItems: 'center',
     },
-    segmentedTabActive: { backgroundColor: t.text },
+    segmentedTabFirst: { borderTopLeftRadius: 4, borderBottomLeftRadius: 4 },
+    segmentedTabLast: { borderTopRightRadius: 4, borderBottomRightRadius: 4 },
+    segmentedTabNotFirst: { marginLeft: -2 },
+    segmentedTabActive: { backgroundColor: t.accent, zIndex: 1 },
     segmentedText: {
       color: t.textMuted,
       fontSize: sz(FontSize.xs),
-      fontFamily: ButtonFont,
+      fontFamily: ButtonFontBold,
     },
-    segmentedTextActive: { color: t.bg },
+    segmentedTextActive: { color: arcadeLabelColor(t) },
+    pressed: { opacity: 0.6 },
 
     typeFilterRow: {
       flexDirection: 'row',
@@ -261,21 +272,29 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       paddingHorizontal: Spacing.three,
       paddingBottom: Spacing.two,
     },
+    // Chips as in the map filter: bordered, selected = filled arcade button
     typeChip: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
       paddingVertical: 5,
       paddingHorizontal: Spacing.two,
-      borderRadius: BorderRadius.sm,
-      borderWidth: 1,
+      borderRadius: 4,
+      borderWidth: 2,
       borderColor: t.border,
+    },
+    typeChipActive: {
+      ...arcadeButton(t),
+      // keep the outline's footprint so chips don't shift when toggled
+      borderWidth: 2,
+      borderColor: t.accent,
     },
     typeChipText: {
       color: t.textMuted,
       fontSize: sz(FontSize.xs),
       fontFamily: ButtonFont,
     },
+    typeChipTextActive: arcadeButtonLabel(t),
 
     list: { padding: Spacing.three, gap: Spacing.two },
 

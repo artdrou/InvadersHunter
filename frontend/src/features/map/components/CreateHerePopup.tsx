@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/theme-context";
 import { Spacing, BorderRadius, FontSize, ZIndex } from "@/constants/theme";
 import { CenterPin } from "./CenterPin";
-import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
+import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 
 type Props = {
@@ -25,7 +25,7 @@ export function CreateHerePopup({ onCreate, onAddLocation, onCancel }: Props) {
     <>
       <CenterPin />
       <View style={styles.wrapper} pointerEvents="box-none">
-        <View style={[styles.card, { backgroundColor: theme.bgElement, borderColor: theme.border }]}>
+        <View style={[styles.card, arcadeCard(theme)]}>
           <Text style={[styles.label, { color: theme.text }]}>{t("map.createHere")}</Text>
           <TouchableOpacity style={[styles.btn, arcadeButton(theme)]} onPress={onCreate}>
             <Text style={[styles.btnText, arcadeButtonLabel(theme)]}>{t("map.createBtn")}</Text>
@@ -52,8 +52,6 @@ const styles = StyleSheet.create({
     zIndex: ZIndex.overlay,
   },
   card: {
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: Spacing.two,
     gap: Spacing.one,

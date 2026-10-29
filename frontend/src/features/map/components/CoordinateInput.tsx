@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/theme-context";
 import { BorderRadius, FontSize, Spacing } from "@/constants/theme";
+import { arcadeButton, arcadeLabelColor } from "@/constants/arcade-button";
 import { hapticTap } from "@/features/settings";
 import { parseCoordinates } from "../coordinates";
 
@@ -51,8 +52,8 @@ export function CoordinateInput({ onGoTo }: Props) {
             <MaterialCommunityIcons name="close" size={18} color={theme.textMuted} />
           </Pressable>
         )}
-        <Pressable onPress={submit} hitSlop={6} style={[styles.goBtn, { backgroundColor: theme.accent }]}>
-          <MaterialCommunityIcons name="crosshairs-gps" size={18} color={theme.bg} />
+        <Pressable onPress={submit} hitSlop={6} style={({ pressed }) => [styles.goBtn, arcadeButton(theme), pressed && styles.pressed]}>
+          <MaterialCommunityIcons name="crosshairs-gps" size={18} color={arcadeLabelColor(theme)} />
         </Pressable>
       </View>
       {invalid && (
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, paddingVertical: Spacing.two },
   iconBtn: { padding: Spacing.one },
   goBtn: { padding: Spacing.two, borderRadius: BorderRadius.sm },
+  pressed: { opacity: 0.7 },
   error: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.two,

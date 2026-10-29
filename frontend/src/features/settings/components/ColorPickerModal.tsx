@@ -8,7 +8,7 @@ import { arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-
 import { ShadowText } from '@/components/ShadowText';
 import { tap as hapticTap } from '../haptics';
 import { HsvMap, HsvSliders } from './HsvSliders';
-import { ArcadeSegmented } from './ArcadeSegmented';
+import { ArcadeSegmented } from '@/components/ArcadeSegmented';
 import { hexToHsv, hsvToHex, type Hsv } from '../hsv';
 
 // 5x5 neon palette — rows follow the visible spectrum — then a row of greys.

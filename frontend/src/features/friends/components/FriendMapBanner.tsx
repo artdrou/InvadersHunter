@@ -2,7 +2,8 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, Spacing, ButtonFont } from '@/constants/theme';
+import { arcadeCard } from '@/constants/arcade-button';
 import { useFriendsStore } from '../store';
 import { FriendMarkerColor } from '../constants';
 
@@ -66,11 +67,10 @@ export function FriendMapBanner() {
 function makeStyles(t: ThemeTokens, font: string, scale: number) {
   const sz = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
+    // Arcade card, accent-framed: the map shows someone else's flashes
     card: {
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
+      ...arcadeCard(t),
       borderColor: t.accent,
-      borderRadius: BorderRadius.md,
       paddingHorizontal: Spacing.three,
       paddingVertical: Spacing.two,
       gap: Spacing.one,

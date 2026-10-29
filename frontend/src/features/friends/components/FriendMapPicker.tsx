@@ -3,7 +3,9 @@ import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator, StyleSheet
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
-import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
+import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont, ButtonFontBold } from '@/constants/theme';
+import { ARCADE_SHADOW, arcadeButton, arcadeButtonLabel, arcadeCard } from '@/constants/arcade-button';
+import { ShadowText } from '@/components/ShadowText';
 import { useFriendsStore } from '../store';
 import { fetchFriendProfile } from '../services/friends.api';
 import type { FriendEntry, FriendMapMode } from '../types';
@@ -78,7 +80,7 @@ export function FriendMapPicker({ visible, onClose }: Props) {
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.card} onPress={() => {}}>
-          <Text style={styles.title}>{t('social.mapPickerTitle')}</Text>
+          <ShadowText shadowColor={theme.titleShadow} style={styles.title}>{t('social.mapPickerTitle')}</ShadowText>
 
           <Pressable
             style={({ pressed }) => [styles.mineRow, !mapView && styles.modeBtnActive, pressed && styles.pressed]}
@@ -91,8 +93,8 @@ export function FriendMapPicker({ visible, onClose }: Props) {
             loaded ? (
               <View style={styles.empty}>
                 <Text style={styles.muted}>{t('social.noFriendsMap')}</Text>
-                <Pressable style={({ pressed }) => [styles.modeBtn, pressed && styles.pressed]} onPress={goToSocial}>
-                  <Text style={styles.modeBtnText}>{t('social.goToSocial')}</Text>
+                <Pressable style={({ pressed }) => [styles.modeBtn, styles.socialBtn, pressed && styles.pressed]} onPress={goToSocial}>
+                  <ShadowText shadowColor={theme.titleShadow} style={[styles.modeBtnText, styles.socialBtnText]}>{t('social.goToSocial')}</ShadowText>
                 </Pressable>
               </View>
             ) : (
@@ -131,30 +133,33 @@ function makeStyles(t: ThemeTokens, font: string, scale: number) {
       width: '100%',
       maxWidth: 400,
       maxHeight: '75%',
-      backgroundColor: t.bgElement,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: BorderRadius.lg,
+      ...arcadeCard(t),
       padding: Spacing.four,
       gap: Spacing.three,
     },
-    title: { color: t.accent, fontFamily: font, fontSize: sz(FontSize.lg), letterSpacing: 1 },
+    title: { color: t.accent, fontFamily: ButtonFontBold, fontSize: sz(FontSize.lg), letterSpacing: 1 },
+    // Choices: map filter chip look (2px outline, selected = filled arcade button)
     mineRow: {
-      borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
+      borderWidth: 2, borderColor: t.border, borderRadius: 4, marginRight: ARCADE_SHADOW,
       paddingVertical: 10, alignItems: 'center',
     },
     list: { flexGrow: 0 },
-    listContent: { gap: Spacing.two },
+    // Room for the selected button's offset shadow inside the scroll view
+    listContent: { gap: Spacing.two, paddingRight: ARCADE_SHADOW, paddingBottom: ARCADE_SHADOW },
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
     name: { flex: 1, color: t.text, fontFamily: font, fontSize: sz(FontSize.md) },
     modeBtn: {
       minWidth: 84, alignItems: 'center',
-      borderWidth: 1, borderColor: t.border, borderRadius: BorderRadius.sm,
+      borderWidth: 2, borderColor: t.border, borderRadius: 4,
       paddingVertical: 8, paddingHorizontal: Spacing.two,
     },
-    modeBtnActive: { borderColor: t.accent, backgroundColor: t.accent },
+    // keep the outline's footprint so buttons don't shift when selected
+    modeBtnActive: { ...arcadeButton(t), borderWidth: 2, borderColor: t.accent },
     modeBtnText: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
-    modeBtnTextActive: { color: t.bg },
+    modeBtnTextActive: arcadeButtonLabel(t),
+    // "Go to Social": a plain action, outline arcade button
+    socialBtn: { ...arcadeButton(t, 'outline'), borderRadius: BorderRadius.sm },
+    socialBtnText: arcadeButtonLabel(t, 'outline'),
     empty: { alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.two },
     muted: { color: t.textMuted, fontFamily: font, fontSize: sz(FontSize.sm), textAlign: 'center' },
     error: { color: t.danger, fontFamily: font, fontSize: sz(FontSize.xs), textAlign: 'center' },

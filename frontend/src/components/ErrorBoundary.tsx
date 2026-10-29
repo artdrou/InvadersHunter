@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { darkTheme, Brand, White, Spacing, BorderRadius, FontSize, AppFont } from '@/constants/theme';
+import { darkTheme, White, Spacing, BorderRadius, FontSize, AppFont } from '@/constants/theme';
+import { arcadeButton, arcadeButtonLabel } from '@/constants/arcade-button';
 import { logger } from '@/services/logger';
 
 type Props = { children: ReactNode };
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <View style={styles.container}>
         <Text style={styles.title}>Something went wrong</Text>
         <Text style={styles.message}>The app hit an unexpected error. You can try again.</Text>
-        <Pressable style={styles.button} onPress={this.reset}>
+        <Pressable style={({ pressed }) => [styles.button, pressed && styles.pressed]} onPress={this.reset}>
           <Text style={styles.buttonText}>Try again</Text>
         </Pressable>
       </View>
@@ -60,16 +61,17 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     textAlign: 'center',
   },
+  // Arcade filled button in the static dark theme
   button: {
     marginTop: Spacing.three,
-    backgroundColor: Brand.yellow,
+    ...arcadeButton(darkTheme),
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.sm,
   },
   buttonText: {
-    color: darkTheme.bg,
-    fontFamily: AppFont,
+    ...arcadeButtonLabel(darkTheme),
     fontSize: FontSize.md,
   },
+  pressed: { opacity: 0.7 },
 });
