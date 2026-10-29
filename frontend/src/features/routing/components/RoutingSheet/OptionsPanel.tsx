@@ -31,6 +31,7 @@ type Props = {
   loading: boolean
   onCompute: () => void
   onCancel: () => void
+  onStart?: () => void
   theme: ThemeTokens
   s: RoutingStyles
 }
@@ -43,7 +44,7 @@ export function OptionsPanel({
   flashableOnly, setFlashableOnly,
   detourMin, setDetourMin,
   durationMin, setDurationMin,
-  route, canCompute, loading, onCompute, onCancel,
+  route, canCompute, loading, onCompute, onCancel, onStart,
   theme, s,
 }: Props) {
   const { t } = useTranslation()
@@ -95,7 +96,7 @@ export function OptionsPanel({
 
       <ComputeButton
         route={route} canCompute={canCompute} loading={loading}
-        onCompute={onCompute} onCancel={onCancel}
+        onCompute={onCompute} onCancel={onCancel} onStart={onStart}
         alignStart theme={theme} s={s}
       />
     </View>

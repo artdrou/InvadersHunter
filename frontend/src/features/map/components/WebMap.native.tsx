@@ -13,8 +13,11 @@ import { UserLocationLayer } from "./UserLocationLayer";
 import { useMarkerImages, useMarkerImagesVersion } from "./invader-markers";
 import { ISSMarker } from "@/features/iss/components/ISSMarker";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
+import { useHuntPosition } from "@/features/hunt/hooks/use-hunt-position";
+import type { PreparedRoute } from "@/features/hunt/route-snap";
 import {
   DEFAULT_CENTER, MapZoom, MapAnim, FOLLOW_INTERVAL_MS, CENTER_PADDING_FACTOR,
+  HUNT_INTERVAL_MS, HUNT_PITCH, HUNT_TOP_PADDING_RATIO,
 } from "../constants";
 import { resolveMapStyle } from "../styles";
 import { useAppearanceStore } from "@/features/settings";
@@ -64,10 +67,16 @@ type Props = {
   highlightedIds?: number[];
   /** Rendered before invader markers — use for route/path layers. */
   routeLayer?: ReactNode;
+  /** Hunt view: the route to follow (null = off). Tilted camera behind the user, dot glued to the route. */
+  huntRoute?: PreparedRoute | null;
+  /** Hunt view: the camera stops following (the user moved the map). */
+  huntPaused?: boolean;
+  /** The user moved the map by hand during the hunt view. */
+  onHuntInterrupt?: () => void;
   children?: ReactNode;
 };
 
-const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, onMapPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, routeLayer, children }, ref) {
+const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInvaderClick, onLongPress, onMapPress, isFollowing = false, headingAlpha, onHeadingChange, greyMode = "none", colorMode = "flash", highlightedIds, routeLayer, huntRoute = null, huntPaused = false, onHuntInterrupt, children }, ref) {
   const cameraRef     = useRef<CameraRef>(null);
   const mapViewRef    = useRef<MapViewRef>(null);
   const userCoordsRef = useRef<[number, number] | null>(null);
@@ -83,12 +92,17 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
     show3d: mapLiteEnabled ? false : map3dBuildings,
   });
   const geojson       = useInvaderGeojson(invaders, greyMode, colorMode, highlightedIds);
-  const userLocation  = useUserLocation(headingAlpha);
+  const rawLocation   = useUserLocation(headingAlpha);
+  // While hunting: snapped onto the route and facing its direction
+  const userLocation  = useHuntPosition(rawLocation, huntRoute);
+  const userLocationRef = useRef(userLocation);
+  userLocationRef.current = userLocation;
+  const hunting = huntRoute !== null;
   const issInvader    = invaders.find((i) => i.name === ISS_INVADER_NAME);
   const markerImages  = useMarkerImages();
   const markerImagesVersion = useMarkerImagesVersion();
 
-  userCoordsRef.current = userLocation?.coords ?? null;
+  userCoordsRef.current = rawLocation?.coords ?? null;
 
   // Follow mode: update camera every 300ms toward user position
   useEffect(() => {
@@ -115,6 +129,53 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
       camera?.setCamera({});
     };
   }, [isFollowing]);
+
+  // Hunt view: tilted camera behind the user, turned the way the route goes. Each step
+  // starts before the previous one ends (linearTo), so they blend into one movement.
+  useEffect(() => {
+    if (!hunting || huntPaused) return;
+    const camera = cameraRef.current;
+    const step = (animationDuration: number) => {
+      const loc = userLocationRef.current;
+      if (!loc) return;
+      camera?.setCamera({
+        centerCoordinate: loc.coords,
+        ...(loc.heading !== null && { heading: loc.heading }),
+        pitch: HUNT_PITCH,
+        zoomLevel: MapZoom.hunt,
+        padding: { paddingTop: mapSizeRef.current.height * HUNT_TOP_PADDING_RATIO, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
+        animationDuration,
+        animationMode: animationDuration === MapAnim.hunt ? "linearTo" : "easeTo",
+      });
+    };
+    step(MapAnim.huntEnter);
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const startTimer = setTimeout(() => {
+      interval = setInterval(() => step(MapAnim.hunt), HUNT_INTERVAL_MS);
+    }, MapAnim.huntEnter);
+
+    return () => {
+      clearTimeout(startTimer);
+      if (interval) clearInterval(interval);
+      camera?.setCamera({});
+    };
+  }, [hunting, huntPaused]);
+
+  // Leaving the hunt view: back to the flat, north-up map around the same spot
+  const wasHunting = useRef(false);
+  useEffect(() => {
+    if (hunting) { wasHunting.current = true; return; }
+    if (!wasHunting.current) return;
+    wasHunting.current = false;
+    cameraRef.current?.setCamera({
+      pitch: 0,
+      heading: 0,
+      padding: { paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
+      animationDuration: MapAnim.recenter,
+    });
+    const t = setTimeout(() => cameraRef.current?.setCamera({}), MapAnim.releaseDelay);
+    return () => clearTimeout(t);
+  }, [hunting]);
 
   useImperativeHandle(ref, () => ({
     centerOn: (lat, lon, offsetY, zoomLevel) => {
@@ -164,7 +225,10 @@ const WebMap = forwardRef<WebMapHandle, Props>(function WebMap({ invaders, onInv
         const [lon, lat] = feature.geometry.coordinates;
         onLongPress?.(lat, lon);
       }}
-      onRegionIsChanging={(e) => onHeadingChange?.(e.properties.heading)}
+      onRegionIsChanging={(e) => {
+        onHeadingChange?.(e.properties.heading);
+        if (hunting && !huntPaused && e.properties.isUserInteraction) onHuntInterrupt?.();
+      }}
       onRegionDidChange={(e) => onHeadingChange?.(e.properties.heading)}
     >
       <StableCamera cameraRef={cameraRef} />
