@@ -28,3 +28,10 @@ class ResetPasswordRequest(BaseModel):
     email: EmailStr
     token: str
     new_password: str = Field(..., min_length=4)
+
+class VerifyEmailRequest(BaseModel):
+    username: str
+    code: str = Field(..., max_length=12)
+
+class ResendVerificationRequest(BaseModel):
+    username: str

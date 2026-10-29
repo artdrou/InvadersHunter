@@ -4,5 +4,8 @@ export { GUEST_USER_ID } from './guest';
 export { useRequireAccount } from './hooks/use-require-account';
 export { AccountGateModal } from './components/AccountGateModal';
 export { AuthLayout } from './components/AuthLayout';
-export { loginUser, registerUser, logoutUser, forgotPassword, verifyResetCode, resetPassword } from './services/auth.api';
+export {
+  loginUser, registerUser, logoutUser, forgotPassword, verifyResetCode, resetPassword,
+  isEmailNotVerified, verifyEmail, resendVerification,
+} from './services/auth.api';
 export { claimCaptures, requestMyDataExport, deleteMyAccount, changeMyPassword } from './services/account.api';

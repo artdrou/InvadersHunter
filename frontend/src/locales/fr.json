@@ -294,6 +294,14 @@
       "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
       "invalidCode": "Code invalide ou expiré",
       "somethingWrong": "Une erreur est survenue, veuillez réessayer"
+    },
+    "verify": {
+      "title": "Confirmez votre e-mail",
+      "body": "Entrez le code à 6 chiffres reçu par e-mail. Vous pouvez aussi toucher le bouton de l'e-mail, puis vous connecter.",
+      "invalidCode": "Code invalide ou expiré",
+      "tooMany": "Trop d'essais. Réessayez dans 15 minutes.",
+      "resend": "Renvoyer un code",
+      "resent": "Nouveau code envoyé. Pensez à vérifier vos spams."
     }
   },
   "profile": {

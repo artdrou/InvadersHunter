@@ -1,4 +1,4 @@
-"""Transactional emails, sent through Brevo's HTTP API: reset code, welcome,
+"""Transactional emails, sent through Brevo's HTTP API: email check, reset code, welcome,
 account deleted, admin role granted / revoked, username / password changed,
 personal data, and the in-app contact form (to the team).
 
@@ -22,7 +22,8 @@ SENDER = {"name": BRAND, "email": "noreply@hintvaders.app"}
 
 # Railway sets RAILWAY_PUBLIC_DOMAIN on each service; locally, fall back to prod.
 _HOST = os.getenv("RAILWAY_PUBLIC_DOMAIN") or "invader-hunter-production.up.railway.app"
-HEADER_URL = f"https://{_HOST}/static/email/header.jpg"
+BASE_URL = f"https://{_HOST}"
+HEADER_URL = f"{BASE_URL}/static/email/header.jpg"
 
 # Website colours (dark theme)
 BG, CARD, BORDER = "#0a0f1e", "#111827", "#1e3a5f"
@@ -36,6 +37,13 @@ TEXTS = {
         "reset_intro": "Voici votre code pour choisir un nouveau mot de passe :",
         "reset_expiry": "Il expire dans 15 minutes.",
         "reset_ignore": "Vous n'avez rien demandé ? Ignorez cet email, votre mot de passe reste inchangé.",
+        "verify_subject": f"Confirmez votre email - {BRAND}",
+        "verify_title": "Confirmez votre email",
+        "verify_intro": "Pour activer votre compte, entrez ce code dans l'app :",
+        "verify_button": "Confirmer mon email",
+        "verify_or": "Ou cliquez sur le bouton ci-dessous, puis connectez-vous dans l'app.",
+        "verify_expiry": "Le code et le lien expirent dans 24 heures.",
+        "verify_ignore": "Vous n'avez pas créé de compte ? Ignorez cet email.",
         "welcome_subject": f"Bienvenue sur {BRAND} !",
         "welcome_title": "Bienvenue, chasseur !",
         "welcome_body": "Votre compte est prêt. Ouvrez la carte, partez à la chasse et flashez votre premier invader.",
@@ -80,6 +88,13 @@ TEXTS = {
         "reset_intro": "Here is your code to choose a new password:",
         "reset_expiry": "It expires in 15 minutes.",
         "reset_ignore": "Didn't ask for this? Ignore this email, your password stays the same.",
+        "verify_subject": f"Confirm your email - {BRAND}",
+        "verify_title": "Confirm your email",
+        "verify_intro": "To activate your account, enter this code in the app:",
+        "verify_button": "Confirm my email",
+        "verify_or": "Or tap the button below, then log in from the app.",
+        "verify_expiry": "The code and the link expire in 24 hours.",
+        "verify_ignore": "Didn't create an account? Ignore this email.",
         "welcome_subject": f"Welcome to {BRAND}!",
         "welcome_title": "Welcome, hunter!",
         "welcome_body": "Your account is ready. Open the map, go hunting and flash your first invader.",
@@ -204,6 +219,21 @@ def reset_password_email(token: str, username: str, language: str = "fr") -> tup
     return t["reset_subject"], text, _layout(t["reset_title"], body, f'{t["reset_intro"]} {token}', t)
 
 
+def verification_email(code: str, link: str, username: str, language: str = "fr") -> tuple[str, str, str]:
+    t = _texts(language)
+    hello = t["hello"].format(username=escape(username))
+    box = _box(escape(code), "text-align:center;font-family:Consolas,Menlo,monospace;font-size:34px;"
+                             f"font-weight:bold;letter-spacing:10px;color:{ACCENT};")
+    button = (f'<p style="margin:0 0 20px;text-align:center;"><a href="{escape(link)}" style="display:inline-block;'
+              f'padding:12px 22px;background:{ACCENT};color:{BG};font-weight:bold;text-decoration:none;'
+              f'border-radius:8px;">{t["verify_button"]}</a></p>')
+    body = (_p(hello) + _p(t["verify_intro"]) + box + _p(t["verify_or"], TEXT_SOFT, 14) + button
+            + _p(t["verify_expiry"], TEXT_SOFT, 14) + _p(t["verify_ignore"], TEXT_MUTED, 13))
+    text = (f'{t["hello"].format(username=username)}\n\n{t["verify_intro"]} {code}\n\n'
+            f'{t["verify_or"]}\n{link}\n\n{t["verify_expiry"]}\n{t["verify_ignore"]}')
+    return t["verify_subject"], text, _layout(t["verify_title"], body, f'{t["verify_intro"]} {code}', t)
+
+
 def welcome_email(username: str, language: str = "fr") -> tuple[str, str, str]:
     t = _texts(language)
     hello = t["hello"].format(username=escape(username))
@@ -313,6 +343,10 @@ def _safe_send(to_email: str, built: tuple[str, str, str], attachments: list | N
 
 async def send_reset_password_email(email: str, token: str, username: str = "", language: str = "fr"):
     _safe_send(email, reset_password_email(token, username, language))
+
+
+async def send_verification_email(email: str, code: str, link: str, username: str = "", language: str = "fr"):
+    _safe_send(email, verification_email(code, link, username, language))
 
 
 async def send_account_created_email(email: str, username: str = "", language: str = "fr"):

@@ -13,6 +13,11 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     reset_code = Column(String, nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
+    # Email check at sign-up (user_service.register starts it at False): unverified
+    # accounts can't log in until auth_service.verify_email
+    email_verified = Column(Boolean, nullable=False, default=True)
+    verify_code = Column(String, nullable=True)
+    verify_code_expires = Column(DateTime, nullable=True)
     notifications_enabled = Column(Boolean, nullable=False, default=True)
     # Friend code (e.g. "K7QM-3XPA", stored without the dash): shared to be added as a
     # friend. Given on first request (friend_service.get_friend_code)

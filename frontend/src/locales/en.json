@@ -294,6 +294,14 @@
       "passwordsDoNotMatch": "Passwords do not match",
       "invalidCode": "Invalid or expired code",
       "somethingWrong": "Something went wrong, please try again"
+    },
+    "verify": {
+      "title": "Confirm your email",
+      "body": "Enter the 6-digit code we emailed you. You can also tap the button in the email, then log in.",
+      "invalidCode": "Invalid or expired code",
+      "tooMany": "Too many tries. Try again in 15 minutes.",
+      "resend": "Send a new code",
+      "resent": "New code sent. Check your spam folder too."
     }
   },
   "profile": {

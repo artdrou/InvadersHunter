@@ -27,7 +27,7 @@ def admin(db):
 # ── registration (POST /users/) ───────────────────────────────────────────────
 
 def test_register_creates_user(client):
-    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_verification_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "bob", "email": "bob@test.com", "password": "pass1234"})
     assert res.status_code == 200
     body = res.json()
@@ -39,7 +39,7 @@ def test_register_creates_user(client):
 
 def test_register_stays_public(client):
     # Registration must NOT require a token — guests create accounts with it
-    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_verification_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "guest1", "email": "g1@test.com", "password": "pass1234"})
     assert res.status_code == 200
 
@@ -49,7 +49,7 @@ def test_register_is_limited_per_ip(client, user):
     def signup(i, ip="1.2.3.4"):
         return client.post("/users/", headers={"X-Forwarded-For": ip},
                            json={"username": f"bot{i}", "email": f"bot{i}@test.com", "password": "pass1234"})
-    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_verification_email", new_callable=AsyncMock):
         # Refused attempts (name taken) don't count
         client.post("/users/", headers={"X-Forwarded-For": "1.2.3.4"},
                     json={"username": "alice", "email": "x@test.com", "password": "pass1234"})
@@ -61,14 +61,14 @@ def test_register_is_limited_per_ip(client, user):
 
 
 def test_register_duplicate_username(client, user):
-    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_verification_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "alice", "email": "other@test.com", "password": "pass1234"})
     assert res.status_code == 400
     assert "Username" in res.json()["detail"]
 
 
 def test_register_duplicate_email(client, user):
-    with patch("app.services.user_service.send_account_created_email", new_callable=AsyncMock):
+    with patch("app.services.auth_service.send_verification_email", new_callable=AsyncMock):
         res = client.post("/users/", json={"username": "newguy", "email": "alice@test.com", "password": "pass1234"})
     assert res.status_code == 400
     assert "Email" in res.json()["detail"]

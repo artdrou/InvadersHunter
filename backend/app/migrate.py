@@ -212,6 +212,12 @@ MIGRATIONS = [
     # Profile icon (avatar_service): JSON text, NULL = default icon
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT",
 
+    # Email check at sign-up: accounts that existed before count as verified,
+    # new ones start unverified (the ORM always sends the value)
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_code VARCHAR",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS verify_code_expires TIMESTAMP WITHOUT TIME ZONE",
+
     # Scheduled jobs' memory (e.g. InvaderQuest sync: last data versions seen).
     """CREATE TABLE IF NOT EXISTS sync_state (
         key        VARCHAR PRIMARY KEY,

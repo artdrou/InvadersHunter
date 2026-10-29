@@ -1,13 +1,17 @@
 """
 Business logic for authentication: login, refresh-token rotation, logout,
-the password-reset flow (request code, verify code, set new password) and
-changing the password while signed in (checks the current one).
+the email check after sign-up (code or link, resend), the password-reset flow
+(request code, verify code, set new password) and changing the password while
+signed in (checks the current one).
 
 Routers handle HTTP and translate the domain exceptions below.
 """
 import random
+import secrets
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from typing import Callable, Optional, Tuple
+from urllib.parse import urlencode
 from sqlalchemy.orm import Session
 
 from ..models.user import User
@@ -15,7 +19,10 @@ from ..models.refresh_token import RefreshToken
 from ..core.security import (
     verify_password, create_access_token, create_refresh_token, create_guest_pass, hash_password,
 )
-from ..core.email import send_password_changed_email, send_reset_password_email
+from ..core.email import (
+    BASE_URL, send_account_created_email, send_password_changed_email, send_reset_password_email,
+    send_verification_email,
+)
 from ..core.rate_limit import SlidingWindowLimiter, RateLimited
 
 
@@ -25,6 +32,9 @@ class InvalidCredentials(Exception): ...
 class InvalidRefreshToken(Exception): ...
 class InvalidResetCode(Exception): ...
 class TooManyAttempts(Exception): ...
+class EmailNotVerified(Exception): ...
+class InvalidVerifyCode(Exception): ...
+class AlreadyVerified(Exception): ...
 
 
 # Wrong current passwords allowed per account before a pause (stops guessing it
@@ -38,10 +48,18 @@ RESET_CODE_LIMIT = SlidingWindowLimiter(10, 15 * 60)
 # Reset emails per address (stops flooding someone's inbox)
 RESET_EMAIL_LIMIT = SlidingWindowLimiter(3, 60 * 60)
 
+# Email-check codes tried per username, code and link together (6 digits, 24 h)
+VERIFY_CODE_LIMIT = SlidingWindowLimiter(10, 15 * 60)
+# Email-check emails per username (sign-up + resends: stops flooding an inbox)
+VERIFY_EMAIL_LIMIT = SlidingWindowLimiter(3, 60 * 60)
+# Long enough to open the email the next day
+VERIFY_CODE_TTL = timedelta(hours=24)
+
 # Guest passes per IP (a pass lasts 30 days: the app only asks again when it expires)
 GUEST_PASS_LIMIT = SlidingWindowLimiter(20, 60 * 60)
 
-AUTH_LIMITS = (CHANGE_PASSWORD_LIMIT, LOGIN_LIMIT, RESET_CODE_LIMIT, RESET_EMAIL_LIMIT, GUEST_PASS_LIMIT)
+AUTH_LIMITS = (CHANGE_PASSWORD_LIMIT, LOGIN_LIMIT, RESET_CODE_LIMIT, RESET_EMAIL_LIMIT, GUEST_PASS_LIMIT,
+               VERIFY_CODE_LIMIT, VERIFY_EMAIL_LIMIT)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -68,14 +86,7 @@ def _issue_token_pair(db: Session, user: User) -> Tuple[str, str]:
     return access_token, refresh_token_value
 
 
-# ── Public service API ───────────────────────────────────────────────────────
-
-def login(db: Session, username: str, password: str) -> dict:
-    _limit(LOGIN_LIMIT, f"user:{username.strip().lower()}")
-    user = db.query(User).filter(User.username == username).first()
-    if not user or not verify_password(password, user.hashed_password):
-        raise InvalidCredentials()
-
+def _token_response(db: Session, user: User) -> dict:
     access_token, refresh_token_value = _issue_token_pair(db, user)
     db.commit()
     return {
@@ -83,6 +94,98 @@ def login(db: Session, username: str, password: str) -> dict:
         "refresh_token": refresh_token_value,
         "token_type": "bearer",
     }
+
+
+def _check_verify_code(db: Session, username: str, code: str) -> User:
+    """Mark the account verified if `code` is its current email-check code (not committed)."""
+    _limit(VERIFY_CODE_LIMIT, f"user:{username.strip().lower()}")
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise InvalidVerifyCode()
+    if user.email_verified:
+        raise AlreadyVerified()
+    if (
+        not user.verify_code
+        or not secrets.compare_digest(user.verify_code, code.strip())
+        or not user.verify_code_expires
+        or _is_expired(user.verify_code_expires)
+    ):
+        raise InvalidVerifyCode()
+    user.email_verified = True
+    user.verify_code = None
+    user.verify_code_expires = None
+    return user
+
+
+def _welcome(user: User) -> Callable:
+    return partial(send_account_created_email, user.email, username=user.username, language=user.language)
+
+
+# ── Public service API ───────────────────────────────────────────────────────
+
+def login(db: Session, username: str, password: str) -> dict:
+    _limit(LOGIN_LIMIT, f"user:{username.strip().lower()}")
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.hashed_password):
+        raise InvalidCredentials()
+    if not user.email_verified:
+        raise EmailNotVerified()  # after the password check: tells strangers nothing
+    return _token_response(db, user)
+
+
+def new_verify_code(user: User) -> Optional[Callable]:
+    """Give the account a fresh email-check code (the caller commits). Returns the
+    email to send after the commit, or None when this username got too many already."""
+    try:
+        VERIFY_EMAIL_LIMIT.hit(f"user:{user.username.strip().lower()}")
+    except RateLimited:
+        return None
+    code = str(100000 + secrets.randbelow(900000))
+    user.verify_code = code
+    user.verify_code_expires = datetime.now(timezone.utc) + VERIFY_CODE_TTL
+    link = f"{BASE_URL}/auth/verify-email?{urlencode({'username': user.username, 'code': code})}"
+    return partial(send_verification_email, user.email, code, link, user.username, user.language)
+
+
+def resend_verification(db: Session, username: str) -> Optional[Callable]:
+    """New email-check code for an unverified account. Silent (None) otherwise, so
+    callers give the same reply whether the account exists or not."""
+    user = db.query(User).filter(User.username == username).first()
+    if not user or user.email_verified:
+        return None
+    send = new_verify_code(user)
+    db.commit()
+    return send
+
+
+def verify_email(db: Session, username: str, code: str, schedule: Optional[Callable] = None) -> dict:
+    """Code typed in the app: verifies the account and logs it in.
+    `schedule` receives the welcome email."""
+    user = _check_verify_code(db, username, code)
+    tokens = _token_response(db, user)
+    if schedule:
+        schedule(_welcome(user))
+    return tokens
+
+
+def verify_email_link(db: Session, username: str, code: str,
+                      schedule: Optional[Callable] = None) -> Tuple[str, str]:
+    """Link in the email (opened in a browser, no login). Returns (outcome, language)
+    with outcome "ok" | "already" | "invalid" | "too_many"."""
+    user = db.query(User).filter(User.username == username).first()
+    language = user.language if user else "fr"
+    try:
+        user = _check_verify_code(db, username, code)
+    except AlreadyVerified:
+        return "already", language
+    except InvalidVerifyCode:
+        return "invalid", language
+    except TooManyAttempts:
+        return "too_many", language
+    db.commit()
+    if schedule:
+        schedule(_welcome(user))
+    return "ok", language
 
 
 def guest_pass(client_ip: str) -> dict:

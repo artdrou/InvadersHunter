@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore, loginUser, AuthLayout } from '@/features/auth';
+import { useAuthStore, loginUser, isEmailNotVerified, AuthLayout } from '@/features/auth';
 import { useTheme } from '@/contexts/theme-context';
 import { hapticTap } from '@/features/settings';
 import { type ThemeTokens, FontSize, BorderRadius, Spacing, ButtonFont } from '@/constants/theme';
@@ -31,6 +31,10 @@ export default function LoginScreen() {
       const { accessToken, refreshToken } = await loginUser(username, password);
       login(accessToken, refreshToken);
     } catch (e) {
+      if (isEmailNotVerified(e)) {
+        router.push({ pathname: '/verify-email', params: { username } });
+        return;
+      }
       const status = (e as { response?: { status?: number } })?.response?.status;
       setError(t(status === 429 ? 'auth.login.tooMany' : 'auth.login.invalid'));
     } finally {
