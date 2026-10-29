@@ -1,10 +1,17 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette } from '@/features/marker-customization/types';
+import {
+  TIER_VALUES, STATE_GROUPS, STATE_COLOR_KEYS,
+  type TierPts, type ShapeId, type CustomizableState, type MarkerColorPrefs, type MarkerPalette,
+  type RarityColorPrefs, type StateColorPrefs, type StateColorKey, type ShapeForState, type StateGroup,
+} from '@/features/marker-customization/types';
 import { ALL_SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { generateMarkerSet, clearMarkerSet, resolveMarkerSet, GENERATED_MARKER_NAMES, DEFAULT_BLOOM_INDEX, BLOOM_LEVEL_COUNT, type GeneratedMarkerSet, type GenerationResult } from '@/features/marker-customization/generate-markers';
 
 const SHAPE_FOR_TIER_KEY = 'app-marker-shape-for-tier';
+const SHAPE_FOR_STATE_KEY = 'app-marker-shape-for-state';
+const RARITY_COLORS_KEY = 'app-marker-rarity-colors';
+const STATE_COLORS_KEY = 'app-marker-state-colors';
 const COLORS_KEY = 'app-marker-colors';
 const OPACITY_KEY = 'app-marker-opacity';
 const BLOOM_KEY = 'app-marker-bloom';
@@ -14,6 +21,30 @@ const BLOOM_KEY = 'app-marker-bloom';
 const GENERATION_DIR_KEY = 'app-marker-generation-dir';
 
 export const DEFAULT_SHAPE_FOR_TIER: Record<TierPts, ShapeId> = { 10: 10, 20: 20, 30: 30, 40: 40, 50: 50, 100: 100 };
+
+// Destroyed invaders are ghosts (bundled sprites: dev/markers STATE_SHAPES), not
+// visible ones keep their points' shape. Keep in sync with those sprites.
+export const DEFAULT_SHAPE_FOR_STATE: ShapeForState = { destroyed: 'medium-3', notVisible: null };
+
+// Per-tier palette of the "rarity" color mode (dev/markers/markers.config.mjs COLORS.rarity).
+export const DEFAULT_RARITY_COLORS: RarityColorPrefs = {
+  10: { icon: '#1AE34A', glow: '#0F8C30' },
+  20: { icon: '#1AE34A', glow: '#0F8C30' },
+  30: { icon: '#2E7BFF', glow: '#002FA7' },
+  40: { icon: '#2E7BFF', glow: '#002FA7' },
+  50: { icon: '#FF00B0', glow: '#7A0099' },
+  100: { icon: '#FFC107', glow: '#FF7A00' },
+};
+
+// "State" color mode (dev/markers/markers.config.mjs COLORS.state). Reactivated =
+// the News feed's magenta.
+export const DEFAULT_STATE_COLORS: StateColorPrefs = {
+  good: { icon: '#1AE34A', glow: '#0F8C30' },
+  damaged: { icon: '#FF9F1C', glow: '#B35400' },
+  reactivated: { icon: '#FF2BD6', glow: '#7A0099' },
+  destroyed: { icon: '#9A9A9A', glow: '#555555' },
+  notVisible: { icon: '#9A9A9A', glow: '#555555' },
+};
 
 export const DEFAULT_MARKER_COLORS: MarkerColorPrefs = {
   flashCaptured: { icon: '#1CF0FF', glow: '#002FA7' },
@@ -46,7 +77,10 @@ const CUSTOMIZABLE_STATES: CustomizableState[] = ['flashCaptured', 'flashUncaptu
 
 type MarkerCustomizationState = {
   shapeForTier: Record<TierPts, ShapeId>;
+  shapeForState: ShapeForState;
   colors: MarkerColorPrefs;
+  rarityColors: RarityColorPrefs;
+  stateColors: StateColorPrefs;
   opacity: Record<CustomizableState, number>;
   bloom: Record<CustomizableState, number>;
   customIconUris: GeneratedMarkerSet | null;
@@ -57,10 +91,13 @@ type MarkerCustomizationState = {
   // without it, a re-customization would never reach an already-mounted map.
   generationVersion: number;
   isGenerating: boolean;
-  isDirty: boolean; // true when shapeForTier/colors/bloom changed since the last successful regenerate()
+  isDirty: boolean; // true when shapes/colors/bloom changed since the last successful regenerate()
 
   setShapeForTier: (tier: TierPts, shapeId: ShapeId) => void;
+  setShapeForState: (group: StateGroup, shapeId: ShapeId | null) => void;
   setColor: (state: keyof MarkerColorPrefs, kind: 'icon' | 'glow', hex: string) => void;
+  setRarityColor: (tier: TierPts, kind: 'icon' | 'glow', hex: string) => void;
+  setStateColor: (key: StateColorKey, kind: 'icon' | 'glow', hex: string) => void;
   setOpacity: (state: CustomizableState, v: number) => void;
   setBloom: (state: CustomizableState, index: number) => void;
   regenerate: () => Promise<void>;
@@ -82,7 +119,10 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 
 export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set, get) => ({
   shapeForTier: DEFAULT_SHAPE_FOR_TIER,
+  shapeForState: DEFAULT_SHAPE_FOR_STATE,
   colors: DEFAULT_MARKER_COLORS,
+  rarityColors: DEFAULT_RARITY_COLORS,
+  stateColors: DEFAULT_STATE_COLORS,
   opacity: DEFAULT_MARKER_OPACITY,
   bloom: DEFAULT_MARKER_BLOOM,
   customIconUris: null,
@@ -94,9 +134,27 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     set((s) => ({ shapeForTier: { ...s.shapeForTier, [tier]: shapeId }, isDirty: true }));
   },
 
+  setShapeForState: (group, shapeId) => {
+    set((s) => ({ shapeForState: { ...s.shapeForState, [group]: shapeId }, isDirty: true }));
+  },
+
   setColor: (state, kind, hex) => {
     set((s) => ({
       colors: { ...s.colors, [state]: { ...s.colors[state], [kind]: hex } },
+      isDirty: true,
+    }));
+  },
+
+  setRarityColor: (tier, kind, hex) => {
+    set((s) => ({
+      rarityColors: { ...s.rarityColors, [tier]: { ...s.rarityColors[tier], [kind]: hex } },
+      isDirty: true,
+    }));
+  },
+
+  setStateColor: (key, kind, hex) => {
+    set((s) => ({
+      stateColors: { ...s.stateColors, [key]: { ...s.stateColors[key], [kind]: hex } },
       isDirty: true,
     }));
   },
@@ -118,12 +176,12 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
   },
 
   regenerate: () => enqueue(async () => {
-    const { shapeForTier, colors, bloom } = get();
+    const { shapeForTier, shapeForState, colors, rarityColors, stateColors, bloom } = get();
     set({ isGenerating: true });
 
     let generated: GenerationResult;
     try {
-      generated = await generateMarkerSet(shapeForTier, colors, bloom);
+      generated = await generateMarkerSet({ shapeForTier, shapeForState, colors, rarityColors, stateColors, bloom });
     } catch (err) {
       set({ isGenerating: false });
       throw err;
@@ -132,7 +190,10 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     try {
       await Promise.all([
         AsyncStorage.setItem(SHAPE_FOR_TIER_KEY, JSON.stringify(shapeForTier)),
+        AsyncStorage.setItem(SHAPE_FOR_STATE_KEY, JSON.stringify(shapeForState)),
         AsyncStorage.setItem(COLORS_KEY, JSON.stringify(colors)),
+        AsyncStorage.setItem(RARITY_COLORS_KEY, JSON.stringify(rarityColors)),
+        AsyncStorage.setItem(STATE_COLORS_KEY, JSON.stringify(stateColors)),
         AsyncStorage.setItem(BLOOM_KEY, JSON.stringify(bloom)),
         AsyncStorage.setItem(GENERATION_DIR_KEY, generated.dirName),
       ]);
@@ -150,7 +211,10 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     await clearMarkerSet();
     set((s) => ({
       shapeForTier: DEFAULT_SHAPE_FOR_TIER,
+      shapeForState: DEFAULT_SHAPE_FOR_STATE,
       colors: DEFAULT_MARKER_COLORS,
+      rarityColors: DEFAULT_RARITY_COLORS,
+      stateColors: DEFAULT_STATE_COLORS,
       opacity: DEFAULT_MARKER_OPACITY,
       bloom: DEFAULT_MARKER_BLOOM,
       customIconUris: null,
@@ -160,7 +224,10 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     }));
     await Promise.all([
       AsyncStorage.removeItem(SHAPE_FOR_TIER_KEY),
+      AsyncStorage.removeItem(SHAPE_FOR_STATE_KEY),
       AsyncStorage.removeItem(COLORS_KEY),
+      AsyncStorage.removeItem(RARITY_COLORS_KEY),
+      AsyncStorage.removeItem(STATE_COLORS_KEY),
       AsyncStorage.removeItem(OPACITY_KEY),
       AsyncStorage.removeItem(BLOOM_KEY),
       AsyncStorage.removeItem(GENERATION_DIR_KEY),
@@ -171,14 +238,20 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
     // Each key is parsed independently so a single corrupt/legacy entry
     // (e.g. after a schema change) can't silently discard the others.
     let shapeForTierRaw: string | null = null;
+    let shapeForStateRaw: string | null = null;
     let colorsRaw: string | null = null;
+    let rarityColorsRaw: string | null = null;
+    let stateColorsRaw: string | null = null;
     let opacityRaw: string | null = null;
     let bloomRaw: string | null = null;
     let dirName: string | null = null;
     try {
-      [shapeForTierRaw, colorsRaw, opacityRaw, bloomRaw, dirName] = await Promise.all([
+      [shapeForTierRaw, shapeForStateRaw, colorsRaw, rarityColorsRaw, stateColorsRaw, opacityRaw, bloomRaw, dirName] = await Promise.all([
         AsyncStorage.getItem(SHAPE_FOR_TIER_KEY),
+        AsyncStorage.getItem(SHAPE_FOR_STATE_KEY),
         AsyncStorage.getItem(COLORS_KEY),
+        AsyncStorage.getItem(RARITY_COLORS_KEY),
+        AsyncStorage.getItem(STATE_COLORS_KEY),
         AsyncStorage.getItem(OPACITY_KEY),
         AsyncStorage.getItem(BLOOM_KEY),
         AsyncStorage.getItem(GENERATION_DIR_KEY),
@@ -189,7 +262,10 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
 
     const patch: Partial<MarkerCustomizationState> = {};
     try { if (shapeForTierRaw) patch.shapeForTier = sanitizeShapeForTier(JSON.parse(shapeForTierRaw)); } catch {}
+    try { if (shapeForStateRaw) patch.shapeForState = sanitizeShapeForState(JSON.parse(shapeForStateRaw)); } catch {}
     try { if (colorsRaw) patch.colors = sanitizeColors(JSON.parse(colorsRaw)); } catch {}
+    try { if (rarityColorsRaw) patch.rarityColors = sanitizeRarityColors(JSON.parse(rarityColorsRaw)); } catch {}
+    try { if (stateColorsRaw) patch.stateColors = sanitizeStateColors(JSON.parse(stateColorsRaw)); } catch {}
     try { if (opacityRaw !== null) patch.opacity = sanitizeOpacity(JSON.parse(opacityRaw)); } catch {}
     try { if (bloomRaw !== null) patch.bloom = sanitizeBloom(JSON.parse(bloomRaw)); } catch {}
     // Rebuild the live file:// URIs from the persisted folder name against the
@@ -208,7 +284,7 @@ export const useMarkerCustomizationStore = create<MarkerCustomizationState>((set
 
     if (Object.keys(patch).length) set(patch);
     // Generated by an older version, without the newer variants (e.g. the
-    // shared-map ones): redo it from the saved prefs so they match too.
+    // shared-map, ghost or state ones): redo it from the saved prefs so they match too.
     if (incomplete) get().regenerate().catch(() => {});
   },
 }));
@@ -218,6 +294,15 @@ function sanitizeShapeForTier(raw: Record<string, unknown>): Record<TierPts, Sha
   for (const tier of TIER_VALUES) {
     const v = raw[String(tier)];
     if (ALL_SHAPE_IDS.includes(v as ShapeId)) out[tier] = v as ShapeId;
+  }
+  return out;
+}
+
+function sanitizeShapeForState(raw: Record<string, unknown>): ShapeForState {
+  const out = { ...DEFAULT_SHAPE_FOR_STATE };
+  for (const group of STATE_GROUPS) {
+    const v = raw[group];
+    if (v === null || ALL_SHAPE_IDS.includes(v as ShapeId)) out[group] = v as ShapeId | null;
   }
   return out;
 }
@@ -235,6 +320,24 @@ function sanitizeColors(raw: Partial<Record<CustomizableState, unknown>>): Marke
   for (const state of CUSTOMIZABLE_STATES) {
     const v = raw[state];
     if (isValidPalette(v)) out[state] = v;
+  }
+  return out;
+}
+
+function sanitizeRarityColors(raw: Record<string, unknown>): RarityColorPrefs {
+  const out = { ...DEFAULT_RARITY_COLORS };
+  for (const tier of TIER_VALUES) {
+    const v = raw[String(tier)];
+    if (isValidPalette(v)) out[tier] = v;
+  }
+  return out;
+}
+
+function sanitizeStateColors(raw: Record<string, unknown>): StateColorPrefs {
+  const out = { ...DEFAULT_STATE_COLORS };
+  for (const key of STATE_COLOR_KEYS) {
+    const v = raw[key];
+    if (isValidPalette(v)) out[key] = v;
   }
   return out;
 }

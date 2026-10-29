@@ -54,12 +54,29 @@ import marker40ptsFlashFriend  from '../../../../assets/images/marker-40pts-flas
 import marker50ptsFlashFriend  from '../../../../assets/images/marker-50pts-flash-friend.png';
 import marker100ptsFlashFriend from '../../../../assets/images/marker-100pts-flash-friend.png';
 
+// Destroyed invaders: ghost silhouette, the same for every tier except in rarity
+// mode (per-tier color). Built by dev/markers (STATE_SHAPES) + gen-marker-variants.py.
+import markerDestroyed10ptsRarity  from '../../../../assets/images/marker-destroyed-10pts-rarity.png';
+import markerDestroyed20ptsRarity  from '../../../../assets/images/marker-destroyed-20pts-rarity.png';
+import markerDestroyed30ptsRarity  from '../../../../assets/images/marker-destroyed-30pts-rarity.png';
+import markerDestroyed40ptsRarity  from '../../../../assets/images/marker-destroyed-40pts-rarity.png';
+import markerDestroyed50ptsRarity  from '../../../../assets/images/marker-destroyed-50pts-rarity.png';
+import markerDestroyed100ptsRarity from '../../../../assets/images/marker-destroyed-100pts-rarity.png';
+import markerDestroyedFlashCaptured   from '../../../../assets/images/marker-destroyed-flash-captured.png';
+import markerDestroyedFlashUncaptured from '../../../../assets/images/marker-destroyed-flash-uncaptured.png';
+import markerDestroyedFlashMine       from '../../../../assets/images/marker-destroyed-flash-mine.png';
+import markerDestroyedFlashFriend     from '../../../../assets/images/marker-destroyed-flash-friend.png';
+import markerDestroyedHighlight       from '../../../../assets/images/marker-destroyed-highlight.png';
+import markerDestroyedGrey            from '../../../../assets/images/marker-destroyed-grey.png';
+import markerDestroyedStateDestroyed  from '../../../../assets/images/marker-destroyed-state-destroyed.png';
+
 import type { SymbolLayerStyle, Expression } from '@maplibre/maplibre-react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { useMemo } from 'react';
 import { useMarkerCustomizationStore } from '@/features/settings';
+import { TIER_VALUES, MARKER_DISPLAYS, markerKey, type TierPts, type MarkerDisplay } from '@/features/marker-customization/types';
 
-export const BUNDLED_MARKER_IMAGES = {
+const TIER_MARKER_IMAGES: Record<string, ImageSourcePropType> = {
   'marker-10pts-rarity':           marker10ptsRarity,
   'marker-10pts-flash-captured':   marker10ptsFlashCaptured,
   'marker-10pts-flash-uncaptured': marker10ptsFlashUncaptured,
@@ -109,7 +126,69 @@ export const BUNDLED_MARKER_IMAGES = {
   'marker-40pts-flash-friend':  marker40ptsFlashFriend,
   'marker-50pts-flash-friend':  marker50ptsFlashFriend,
   'marker-100pts-flash-friend': marker100ptsFlashFriend,
+
+  // "State" color mode (dev/markers COLORS.state). Destroyed is always a state
+  // silhouette, so it has no tier sprite.
+  'marker-10pts-state-good':         require('../../../../assets/images/marker-10pts-state-good.png'),
+  'marker-10pts-state-damaged':      require('../../../../assets/images/marker-10pts-state-damaged.png'),
+  'marker-10pts-state-reactivated':  require('../../../../assets/images/marker-10pts-state-reactivated.png'),
+  'marker-10pts-state-not-visible':  require('../../../../assets/images/marker-10pts-state-not-visible.png'),
+  'marker-20pts-state-good':         require('../../../../assets/images/marker-20pts-state-good.png'),
+  'marker-20pts-state-damaged':      require('../../../../assets/images/marker-20pts-state-damaged.png'),
+  'marker-20pts-state-reactivated':  require('../../../../assets/images/marker-20pts-state-reactivated.png'),
+  'marker-20pts-state-not-visible':  require('../../../../assets/images/marker-20pts-state-not-visible.png'),
+  'marker-30pts-state-good':         require('../../../../assets/images/marker-30pts-state-good.png'),
+  'marker-30pts-state-damaged':      require('../../../../assets/images/marker-30pts-state-damaged.png'),
+  'marker-30pts-state-reactivated':  require('../../../../assets/images/marker-30pts-state-reactivated.png'),
+  'marker-30pts-state-not-visible':  require('../../../../assets/images/marker-30pts-state-not-visible.png'),
+  'marker-40pts-state-good':         require('../../../../assets/images/marker-40pts-state-good.png'),
+  'marker-40pts-state-damaged':      require('../../../../assets/images/marker-40pts-state-damaged.png'),
+  'marker-40pts-state-reactivated':  require('../../../../assets/images/marker-40pts-state-reactivated.png'),
+  'marker-40pts-state-not-visible':  require('../../../../assets/images/marker-40pts-state-not-visible.png'),
+  'marker-50pts-state-good':         require('../../../../assets/images/marker-50pts-state-good.png'),
+  'marker-50pts-state-damaged':      require('../../../../assets/images/marker-50pts-state-damaged.png'),
+  'marker-50pts-state-reactivated':  require('../../../../assets/images/marker-50pts-state-reactivated.png'),
+  'marker-50pts-state-not-visible':  require('../../../../assets/images/marker-50pts-state-not-visible.png'),
+  'marker-100pts-state-good':        require('../../../../assets/images/marker-100pts-state-good.png'),
+  'marker-100pts-state-damaged':     require('../../../../assets/images/marker-100pts-state-damaged.png'),
+  'marker-100pts-state-reactivated': require('../../../../assets/images/marker-100pts-state-reactivated.png'),
+  'marker-100pts-state-not-visible': require('../../../../assets/images/marker-100pts-state-not-visible.png'),
 };
+
+const DESTROYED_RARITY_IMAGES: Record<TierPts, ImageSourcePropType> = {
+  10: markerDestroyed10ptsRarity,
+  20: markerDestroyed20ptsRarity,
+  30: markerDestroyed30ptsRarity,
+  40: markerDestroyed40ptsRarity,
+  50: markerDestroyed50ptsRarity,
+  100: markerDestroyed100ptsRarity,
+};
+
+const DESTROYED_IMAGES: Partial<Record<MarkerDisplay, ImageSourcePropType>> = {
+  'flash-captured':   markerDestroyedFlashCaptured,
+  'flash-uncaptured': markerDestroyedFlashUncaptured,
+  'flash-mine':       markerDestroyedFlashMine,
+  'flash-friend':     markerDestroyedFlashFriend,
+  'highlight':        markerDestroyedHighlight,
+  'grey':             markerDestroyedGrey,
+  'state-destroyed':  markerDestroyedStateDestroyed,
+};
+
+// Default state silhouettes (DEFAULT_SHAPE_FOR_STATE): destroyed → ghost, not
+// visible → same sprite as its tier. In State mode a destroyed invader is always
+// "state-destroyed" (other state colors never meet the -destroyed suffix), so the
+// remaining combinations just get a valid image.
+export const BUNDLED_MARKER_IMAGES: Record<string, ImageSourcePropType> = { ...TIER_MARKER_IMAGES };
+for (const tier of TIER_VALUES) {
+  for (const display of MARKER_DISPLAYS) {
+    const ghost = display === 'rarity'
+      ? DESTROYED_RARITY_IMAGES[tier]
+      : DESTROYED_IMAGES[display] ?? markerDestroyedStateDestroyed;
+    BUNDLED_MARKER_IMAGES[markerKey(tier, display)] ??= ghost;
+    BUNDLED_MARKER_IMAGES[markerKey(tier, display, 'destroyed')] = ghost;
+    BUNDLED_MARKER_IMAGES[markerKey(tier, display, 'notVisible')] = BUNDLED_MARKER_IMAGES[markerKey(tier, display)];
+  }
+}
 
 // Merges the bundled default sprites with any user-generated marker PNGs
 // (@/features/settings/marker-customization-store) — custom entries override

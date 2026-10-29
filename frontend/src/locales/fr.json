@@ -365,6 +365,9 @@
     "sectionPreview": "Apercu",
     "sectionShapes": "Formes",
     "sectionShapesSubtitle": "Choisis quelle silhouette represente chaque nombre de points",
+    "sectionStateShapesSubtitle": "Donne a un etat sa propre silhouette, quels que soient ses points",
+    "pointsShape": "Meme forme que ses points",
+    "pointsShapeShort": "PTS",
     "sectionColors": "Couleurs",
     "sectionOpacity": "Opacite",
     "opacity": "Opacite des markers",
@@ -381,8 +384,22 @@
       "flashCaptured": "Flashe",
       "flashUncaptured": "Pas flashe",
       "highlight": "Highlighte",
-      "grey": "Grise"
-    }
+      "grey": "Grise",
+      "rarity": "Points",
+      "stateMode": "Etat"
+    },
+    "group": {
+      "destroyed": "Detruit",
+      "notVisible": "Invisible"
+    },
+    "statePalette": {
+      "good": "Bon etat",
+      "damaged": "Abime",
+      "reactivated": "Reactive",
+      "destroyed": "Detruit",
+      "notVisible": "Invisible"
+    },
+    "advanced": "Personnalisation avancee"
   },
   "themeNames": {
     "dark": "Sombre",
@@ -482,11 +499,12 @@
     "condUnflashable": "Non flashable",
     "colorMode": "Mode couleur",
     "colorFlash": "Flash",
-    "colorRarity": "Rareté",
-    "greyOut": "Griser",
+    "colorRarity": "Points",
+    "greyOut": "Griser les détruits",
     "greyAll": "Tous",
-    "greyFlashed": "Flashés",
-    "greyOff": "Off"
+    "greyFlashed": "Non flashés seulement",
+    "greyOff": "Aucun",
+    "colorState": "État"
   },
   "popup": {
     "updateTitle": "Mettre à jour {{name}}",
@@ -678,12 +696,13 @@
     "colorMode": {
       "title": "Mode couleur",
       "flashBody": "La couleur du marqueur reflete ton statut flash. Les marqueurs rouges ne sont pas encore flashes, les captures ont une couleur differente.",
-      "rarityBody": "Chaque niveau de rarete (en points) a sa propre teinte, independamment du statut flash.",
+      "rarityBody": "Chaque valeur de points a sa propre couleur, independamment du statut flash.",
       "labelUnflashed": "Non flashe",
-      "labelFlashed": "Flashe"
+      "labelFlashed": "Flashe",
+      "stateBody": "La couleur montre l'etat de l'invader : bon etat, abime, detruit (fantome), invisible, ou reactive ces 60 derniers jours (magenta)."
     },
     "greyMode": {
-      "title": "Griser",
+      "title": "Griser les detruits",
       "allBody": "Tous les invaders detruits ou invisibles sont grises sur la carte, qu'ils soient captures ou non.",
       "flashedBody": "Les invaders detruits que tu as deja captures gardent leur couleur. Seuls les non-captures sont grises.",
       "offBody": "Rien n'est grise. Chaque marqueur s'affiche en couleur quelle que soit son etat.",
@@ -695,7 +714,7 @@
       "title": "Filtres",
       "statusBody": "Affiche tous les invaders, seulement ceux que tu as deja flashes, ou seulement ceux que tu n'as pas encore captures.",
       "condBody": "'Flashable' montre les invaders encore en etat d'etre flashes. 'Non flashable' montre uniquement ceux detruits ou invisibles.",
-      "pointsBody": "Restreint a un ou plusieurs niveaux de rarete. Selectionne plusieurs valeurs pour les combiner.",
+      "pointsBody": "Restreint a une ou plusieurs valeurs de points. Selectionne plusieurs valeurs pour les combiner.",
       "combineTip": "Les trois filtres se combinent. Exemple : Non flashe + Flashable + 50pts affiche uniquement les invaders 50pts que tu n'as pas captures et qui peuvent encore etre flashes."
     },
     "routing": {
@@ -841,5 +860,12 @@
     "sectionShape": "Forme",
     "sectionColors": "Couleurs",
     "saveFailed": "Impossible d'enregistrer l'icône. Vérifie ta connexion."
+  },
+  "colorPicker": {
+    "basic": "Simple",
+    "advanced": "Avance",
+    "hue": "Teinte",
+    "saturation": "Saturation",
+    "brightness": "Luminosite"
   }
 }

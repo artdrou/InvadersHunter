@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/theme-context';
 import { Fonts, FontSize, BorderRadius, Spacing } from '@/constants/theme';
 
-const markerGrey  = require('../../../../assets/images/marker-50pts-grey.png');
-const markerUncap = require('../../../../assets/images/marker-50pts-flash-uncaptured.png');
-const markerCap   = require('../../../../assets/images/marker-50pts-flash-captured.png');
+// Grey mode only concerns destroyed / not visible invaders: shown as the default destroyed ghost
+const markerGrey  = require('../../../../assets/images/marker-destroyed-grey.png');
+const markerUncap = require('../../../../assets/images/marker-destroyed-flash-uncaptured.png');
+const markerCap   = require('../../../../assets/images/marker-destroyed-flash-captured.png');
 
 export function GreyModeIllustration() {
   const { theme } = useTheme();

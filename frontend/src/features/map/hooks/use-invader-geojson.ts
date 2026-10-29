@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import type { InvaderWithState } from "@/features/invaders";
 import type { GreyMode, ColorMode } from "../filter";
-import { isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
+import { InvaderState, isNonFlashable as isStateNonFlashable } from "@/features/invaders/types";
+import { STATE_GROUP_SUFFIX, STATE_COLOR_DISPLAY, type StateGroup, type StateColorKey } from "@/features/marker-customization/types";
 import { ISS_INVADER_NAME } from "@/features/iss/constants";
 
 const BASE_ICON_SIZE = 0.25;
@@ -13,7 +14,9 @@ function resolveRarity(points: number | null | undefined): number {
   return points != null && RARITY_VALUES.has(points) ? points : FALLBACK_RARITY;
 }
 
+// State mode already colors destroyed / not visible invaders: never greyed there.
 function isDimmed(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): boolean {
+  if (colorMode === "state") return false;
   const isNonFlashable = isStateNonFlashable(invader.state);
   const flashedByAnyone = invader.isCaptured || invader.friendCaptured === true;
   return (greyMode === "all" && isNonFlashable) ||
@@ -30,21 +33,54 @@ function flashSuffix(invader: InvaderWithState): string {
   return "uncaptured";
 }
 
-export function resolveIconKey(invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode): string {
+// States with their own silhouette (marker customization: Destroyed → ghost by
+// default). Tolerant of legacy lowercase values, like isNonFlashable.
+function stateGroup(state: string | null | undefined): StateGroup | null {
+  const s = state?.toLowerCase();
+  if (s === InvaderState.Destroyed.toLowerCase()) return "destroyed";
+  if (s === InvaderState.NotVisible.toLowerCase()) return "notVisible";
+  return null;
+}
+
+// Every key exists for both groups (a group left on its points' shape repeats the tier sprite).
+function withStateSuffix(key: string, invader: InvaderWithState): string {
+  const group = stateGroup(invader.state);
+  return group ? `${key}-${STATE_GROUP_SUFFIX[group]}` : key;
+}
+
+const DAMAGED_STATES = new Set<string>([InvaderState.SlightlyDegraded, InvaderState.Degraded, InvaderState.BadlyDegraded].map((s) => s.toLowerCase()));
+
+// "State" color mode palette of an invader. Unknown / missing state counts as Good.
+export function stateColorKey(invader: InvaderWithState, reactivatedIds?: ReadonlySet<number>): StateColorKey {
+  const group = stateGroup(invader.state);
+  if (group) return group;
+  if (reactivatedIds?.has(invader.id)) return "reactivated";
+  if (invader.state && DAMAGED_STATES.has(invader.state.toLowerCase())) return "damaged";
+  return "good";
+}
+
+export function resolveIconKey(
+  invader: InvaderWithState, colorMode: ColorMode, greyMode: GreyMode, reactivatedIds?: ReadonlySet<number>,
+): string {
   const rarity = resolveRarity(invader.points);
-  if (isDimmed(invader, colorMode, greyMode)) return `marker-${rarity}pts-grey`;
-  if (colorMode === "rarity") return `marker-${rarity}pts-rarity`;
-  return `marker-${rarity}pts-flash-${flashSuffix(invader)}`;
+  if (isDimmed(invader, colorMode, greyMode)) return withStateSuffix(`marker-${rarity}pts-grey`, invader);
+  if (colorMode === "rarity") return withStateSuffix(`marker-${rarity}pts-rarity`, invader);
+  if (colorMode === "state") {
+    return withStateSuffix(`marker-${rarity}pts-${STATE_COLOR_DISPLAY[stateColorKey(invader, reactivatedIds)]}`, invader);
+  }
+  return withStateSuffix(`marker-${rarity}pts-flash-${flashSuffix(invader)}`, invader);
 }
 
 // When building a multi-stop itinerary, tapped invaders are shown with a golden
 // marker (per tier, so each keeps its own silhouette) to stand out against the
 // red/blue markers.
-function highlightIconKey(points: number | null | undefined): string {
-  return `marker-${resolveRarity(points)}pts-highlight`;
+function highlightIconKey(invader: InvaderWithState): string {
+  return withStateSuffix(`marker-${resolveRarity(invader.points)}pts-highlight`, invader);
 }
 
-export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMode, colorMode: ColorMode, highlightedIds?: number[]) {
+export function useInvaderGeojson(
+  invaders: InvaderWithState[], greyMode: GreyMode, colorMode: ColorMode, highlightedIds?: number[], reactivatedIds?: ReadonlySet<number>,
+) {
   return useMemo(() => {
     const highlightSet = highlightedIds && highlightedIds.length > 0 ? new Set(highlightedIds) : null;
     return {
@@ -53,7 +89,7 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
       const size = invader.points ? Math.min(24, 10 * Math.log10(invader.points)) : 12;
       const iconSize = (size / 12) * BASE_ICON_SIZE;
       const highlighted = highlightSet?.has(invader.id) ?? false;
-      const iconKey = highlighted ? highlightIconKey(invader.points) : resolveIconKey(invader, colorMode, greyMode);
+      const iconKey = highlighted ? highlightIconKey(invader) : resolveIconKey(invader, colorMode, greyMode, reactivatedIds);
       const grey = !highlighted && isDimmed(invader, colorMode, greyMode) ? 1 : 0;
       return {
         type: "Feature" as const,
@@ -75,5 +111,5 @@ export function useInvaderGeojson(invaders: InvaderWithState[], greyMode: GreyMo
       };
     }),
     };
-  }, [invaders, greyMode, colorMode, highlightedIds]);
+  }, [invaders, greyMode, colorMode, highlightedIds, reactivatedIds]);
 }

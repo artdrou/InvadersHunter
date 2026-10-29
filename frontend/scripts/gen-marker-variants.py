@@ -7,6 +7,7 @@ Generate hue-shifted marker variants from the red/pink *uncaptured* sprites:
 
 Each point tier (10/20/30/40/50/100) has its own invader silhouette, so every
 tier is shifted separately, preserving the silhouette, shading and glow.
+State silhouettes (the destroyed ghost) are shifted the same way.
 
 Run: backend/venv/Scripts/python.exe frontend/scripts/gen-marker-variants.py
 """
@@ -15,6 +16,7 @@ import colorsys
 from PIL import Image
 
 TIERS = [10, 20, 30, 40, 50, 100]
+STATE_GROUPS = ["destroyed"]
 HERE = os.path.dirname(os.path.abspath(__file__))
 IMG_DIR = os.path.join(HERE, "..", "assets", "images")
 
@@ -59,10 +61,12 @@ def main():
     gold = gold_hue_from_reference()
     print(f"gold hue = {gold * 360:.1f} deg")
     variants = {"highlight": gold, "flash-mine": GREEN_HUE, "flash-friend": ORANGE_HUE}
-    for pts in TIERS:
-        src = os.path.join(IMG_DIR, f"marker-{pts}pts-flash-uncaptured.png")
+    # Per tier, then the state silhouettes (one sprite for every tier, see dev/markers STATE_SHAPES)
+    prefixes = [f"marker-{pts}pts" for pts in TIERS] + [f"marker-{group}" for group in STATE_GROUPS]
+    for prefix in prefixes:
+        src = os.path.join(IMG_DIR, f"{prefix}-flash-uncaptured.png")
         for suffix, hue in variants.items():
-            dst = os.path.join(IMG_DIR, f"marker-{pts}pts-{suffix}.png")
+            dst = os.path.join(IMG_DIR, f"{prefix}-{suffix}.png")
             hue_shift(src, dst, hue)
             print(f"wrote {os.path.basename(dst)}")
 

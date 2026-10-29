@@ -17,7 +17,7 @@ from ..models.user_request import UserRequest
 from ..models.user import User
 from ..models.space_invader import Invader
 from ..models.announcement import Announcement
-from ..schemas.news import NewsItemOut, AnnouncementCreate
+from ..schemas.news import NewsItemOut, AnnouncementCreate, ReactivationOut
 
 DEFAULT_WINDOW_DAYS = 30
 SCRAPER_LABEL = "invader-spotter.art"
@@ -232,6 +232,36 @@ def is_state_refinement(
         .first()
     )
     return last is not None and last[0] == "invaderquest"
+
+
+REACTIVATION_WINDOW_DAYS = 60  # how long the map shows an invader as "Reactivated" (app REACTIVATED_DAYS)
+
+
+def list_reactivations(db: Session, days: int = REACTIVATION_WINDOW_DAYS) -> List[ReactivationOut]:
+    """Invaders reactivated in the last `days` days (latest per invader, newest first).
+
+    Same rule as the News `reactivated` kind: an approved change from Destroyed /
+    Not visible back to Good. Rows approved before `previous_state` was recorded are
+    not counted (the spotter full sync backfills the recent ones).
+    """
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    rows = (
+        db.query(AdminRequest.invader_id, AdminRequest.reviewed_at)
+        .filter(
+            AdminRequest.status == "approved",
+            AdminRequest.invader_id.isnot(None),
+            AdminRequest.reviewed_at >= cutoff,
+            AdminRequest.previous_state.in_((DESTROYED_STATE, HIDDEN_STATE)),
+            AdminRequest.proposed_state == WEAR_ORDER[0],
+            or_(AdminRequest.refines_state.is_(None), AdminRequest.refines_state.is_(False)),
+        )
+        .order_by(AdminRequest.reviewed_at.desc())
+        .all()
+    )
+    latest: Dict[int, datetime] = {}
+    for invader_id, reviewed_at in rows:
+        latest.setdefault(invader_id, reviewed_at)
+    return [ReactivationOut(invader_id=i, date=d) for i, d in latest.items()]
 
 
 def classify_event(

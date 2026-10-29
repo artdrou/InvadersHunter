@@ -7,7 +7,10 @@ import { type ThemeTokens, ButtonFont, ButtonFontBold, BorderRadius, Spacing, Fo
 import { SettingsShell, hapticTap, ColorPickerModal, ArcadeSegmented, useMarkerCustomizationStore } from '@/features/settings';
 import { ALL_SHAPE_IDS } from '@/features/marker-customization/shapes';
 import { renderMarkerBase64, decodeBloom, BLOOM_LEVEL_COUNT } from '@/features/marker-customization/generate-markers';
-import { TIER_VALUES, type TierPts, type ShapeId, type CustomizableState } from '@/features/marker-customization/types';
+import {
+  TIER_VALUES, STATE_GROUPS, STATE_COLOR_KEYS,
+  type TierPts, type ShapeId, type CustomizableState, type StateGroup, type StateColorKey,
+} from '@/features/marker-customization/types';
 import { arcadeButton, arcadeButtonLabel, arcadeCard, arcadeLabelColor } from '@/constants/arcade-button';
 import { ShadowText } from '@/components/ShadowText';
 import { ArcadeSectionLabel } from '@/components/ArcadeSectionLabel';
@@ -26,6 +29,9 @@ const DEFAULT_PREVIEW_SHAPE_IDX = Math.max(0, ALL_SHAPE_IDS.indexOf(30 as TierPt
 const BLOOM_SIZE_LABELS = ['S', 'M', 'L'];
 
 const STATE_ORDER: CustomizableState[] = ['flashCaptured', 'flashUncaptured', 'highlight', 'grey'];
+// Color slots: the 4 states, then the palettes of the "Points" (rarity) and "State" color modes
+type ColorSlot = CustomizableState | 'rarity' | 'stateMode';
+const COLOR_SLOTS: ColorSlot[] = [...STATE_ORDER, 'rarity', 'stateMode'];
 
 function dataUri(base64: string): string {
   return `data:image/png;base64,${base64}`;
@@ -50,8 +56,14 @@ export default function MarkerCustomizationScreen() {
 
   const shapeForTier    = useMarkerCustomizationStore((s) => s.shapeForTier);
   const setShapeForTier = useMarkerCustomizationStore((s) => s.setShapeForTier);
+  const shapeForState    = useMarkerCustomizationStore((s) => s.shapeForState);
+  const setShapeForState = useMarkerCustomizationStore((s) => s.setShapeForState);
   const colors          = useMarkerCustomizationStore((s) => s.colors);
   const setColor        = useMarkerCustomizationStore((s) => s.setColor);
+  const rarityColors    = useMarkerCustomizationStore((s) => s.rarityColors);
+  const setRarityColor  = useMarkerCustomizationStore((s) => s.setRarityColor);
+  const stateColors     = useMarkerCustomizationStore((s) => s.stateColors);
+  const setStateColor   = useMarkerCustomizationStore((s) => s.setStateColor);
   const opacity         = useMarkerCustomizationStore((s) => s.opacity);
   const setOpacity      = useMarkerCustomizationStore((s) => s.setOpacity);
   const bloom           = useMarkerCustomizationStore((s) => s.bloom);
@@ -64,9 +76,15 @@ export default function MarkerCustomizationScreen() {
   // Two tabs over one set of changes: Validate (below both) applies shapes and colors together
   const [tab, setTab] = useState<'shapes' | 'colors'>('shapes');
   const [activeTier, setActiveTier] = useState<TierPts>(TIER_VALUES[0]);
-  const [activeState, setActiveState] = useState<CustomizableState>('flashUncaptured');
+  // Shapes tab edits a tier, or (advanced panel) a state group whose shape replaces the tiers' one
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<StateGroup | null>(null);
+  const [activeState, setActiveState] = useState<ColorSlot>('flashUncaptured');
+  const [activeRarityTier, setActiveRarityTier] = useState<TierPts>(TIER_VALUES[0]);
+  const [activeStateKey, setActiveStateKey] = useState<StateColorKey>(STATE_COLOR_KEYS[0]);
   const [previewShapeIdx, setPreviewShapeIdx] = useState(DEFAULT_PREVIEW_SHAPE_IDX);
-  const [colorPicker, setColorPicker] = useState<{ state: CustomizableState; kind: 'icon' | 'glow' } | null>(null);
+  // The picker edits the selected color slot (it can't change while the modal is open)
+  const [colorPicker, setColorPicker] = useState<'icon' | 'glow' | null>(null);
 
   // Shape thumbnails tinted with the "not flashed" colour so the picker reads
   // like the real map markers. One per silhouette of the pool, reused across all 6 tiers.
@@ -77,29 +95,53 @@ export default function MarkerCustomizationScreen() {
     return map;
   }, [thumbTint]);
 
-  // Big preview of the selected tier's shape, as a "not flashed" marker
+  // Big preview of the selected tier's (or state's) shape, as a "not flashed" marker.
+  // A state left on its points' shape previews the selected tier, faded.
   const activeTierShape = shapeForTier[activeTier] ?? activeTier;
+  const groupShape = activeGroup ? shapeForState[activeGroup] : null;
+  const previewShapeId = groupShape ?? activeTierShape;
   const tierPreview = useMemo(() => {
     const p = colors.flashUncaptured;
-    return safeMarkerUri(activeTierShape, p.icon, p.glow, THUMB_RENDER, bloom.flashUncaptured);
-  }, [activeTierShape, colors.flashUncaptured, bloom.flashUncaptured]);
+    return safeMarkerUri(previewShapeId, p.icon, p.glow, THUMB_RENDER, bloom.flashUncaptured);
+  }, [previewShapeId, colors.flashUncaptured, bloom.flashUncaptured]);
 
   // One colored preview per state on the user-selected preview silhouette; the
   // baked bloom (size/intensity) is reflected live here even though it only
   // reaches the map on the next regenerate().
   const previewShape = ALL_SHAPE_IDS[previewShapeIdx];
   const statePreviews = useMemo(() => {
-    const map = {} as Record<CustomizableState, string | undefined>;
+    const map = {} as Record<ColorSlot, string | undefined>;
     for (const state of STATE_ORDER) {
       const p = colors[state];
       map[state] = safeMarkerUri(previewShape, p.icon, p.glow, STATE_PREVIEW, bloom[state]);
     }
+    const r = rarityColors[activeRarityTier];
+    map.rarity = safeMarkerUri(previewShape, r.icon, r.glow, STATE_PREVIEW);
+    const st = stateColors[activeStateKey];
+    map.stateMode = safeMarkerUri(previewShape, st.icon, st.glow, STATE_PREVIEW);
     return map;
-  }, [colors, previewShape, bloom]);
+  }, [colors, rarityColors, activeRarityTier, stateColors, activeStateKey, previewShape, bloom]);
 
-  const activeOpacity = opacity[activeState];
-  const activeBloom = bloom[activeState];
+  // Points and State palettes have body / glow per entry only: opacity follows
+  // flashed / not flashed, bloom is the default
+  const activeCustom = activeState === 'rarity' || activeState === 'stateMode' ? null : activeState;
+  const activePalette = activeCustom ? colors[activeCustom]
+    : activeState === 'rarity' ? rarityColors[activeRarityTier] : stateColors[activeStateKey];
+  const activeOpacity = activeCustom ? opacity[activeCustom] : 1;
+  const activeBloom = activeCustom ? bloom[activeCustom] : 0;
   const bloomDesc = decodeBloom(activeBloom);
+
+  const applyColor = (kind: 'icon' | 'glow', hex: string) => {
+    if (activeCustom) setColor(activeCustom, kind, hex);
+    else if (activeState === 'rarity') setRarityColor(activeRarityTier, kind, hex);
+    else setStateColor(activeStateKey, kind, hex);
+  };
+
+  const toggleAdvanced = () => {
+    hapticTap();
+    if (advancedOpen) setActiveGroup(null);
+    setAdvancedOpen(!advancedOpen);
+  };
 
   const cyclePreviewShape = (delta: number) => {
     hapticTap();
@@ -126,11 +168,11 @@ export default function MarkerCustomizationScreen() {
         {/* Which tier is being edited: each tab shows that tier's current shape */}
         <View style={styles.tierRow}>
           {TIER_VALUES.map((tier) => {
-            const isActive = tier === activeTier;
+            const isActive = !activeGroup && tier === activeTier;
             return (
               <Pressable
                 key={tier}
-                onPress={() => { hapticTap(); setActiveTier(tier); }}
+                onPress={() => { hapticTap(); setActiveTier(tier); setActiveGroup(null); }}
                 style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
               >
                 <Image source={{ uri: thumbnails[shapeForTier[tier] ?? tier] }} style={styles.tierThumb} />
@@ -139,11 +181,49 @@ export default function MarkerCustomizationScreen() {
             );
           })}
         </View>
+        {/* Advanced: states whose shape replaces the points' one (Destroyed → ghost by default) */}
+        <Pressable onPress={toggleAdvanced} style={({ pressed }) => [styles.advancedHeader, pressed && styles.pressed]}>
+          <View style={advancedOpen ? styles.arrowDown : styles.arrowRight} />
+          <Text style={styles.advancedLabel}>{t('markerCustomization.advanced')}</Text>
+        </Pressable>
+        {advancedOpen && (<>
+        <Text style={styles.sectionSubtitle}>{t('markerCustomization.sectionStateShapesSubtitle')}</Text>
+        <View style={styles.tierRow}>
+          {STATE_GROUPS.map((group) => {
+            const isActive = group === activeGroup;
+            const shape = shapeForState[group];
+            return (
+              <Pressable
+                key={group}
+                onPress={() => { hapticTap(); setActiveGroup(group); }}
+                style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+              >
+                {shape !== null
+                  ? <Image source={{ uri: thumbnails[shape] }} style={styles.tierThumb} />
+                  : <View style={styles.tierThumb}><Text style={styles.pointsShapeMark}>{t('markerCustomization.pointsShapeShort')}</Text></View>}
+                <Text style={[styles.tierLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
+                  {t(`markerCustomization.group.${group}`)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        </>)}
         <ShapePicker
-          selected={activeTierShape}
-          onSelect={(shape) => setShapeForTier(activeTier, shape)}
+          selected={activeGroup ? groupShape : activeTierShape}
+          onSelect={(shape) => (activeGroup ? setShapeForState(activeGroup, shape) : setShapeForTier(activeTier, shape))}
           thumbnail={(shape) => thumbnails[shape]}
-          preview={<Image source={{ uri: tierPreview }} style={styles.tierPreview} />}
+          preview={<Image source={{ uri: tierPreview }} style={[styles.tierPreview, activeGroup && groupShape === null && styles.inheritedPreview]} />}
+          between={activeGroup ? (
+            <Pressable
+              onPress={() => { hapticTap(); setShapeForState(activeGroup, null); }}
+              style={({ pressed }) => [styles.pointsShapeBtn, groupShape === null && { borderColor: theme.accent }, pressed && styles.pressed]}
+            >
+              <Text style={[styles.pointsShapeLabel, groupShape === null && { color: theme.accent }]}>
+                {t('markerCustomization.pointsShape')}
+              </Text>
+            </Pressable>
+          ) : undefined}
         />
       </View>
 
@@ -164,7 +244,7 @@ export default function MarkerCustomizationScreen() {
         </View>
 
         <View style={styles.stateRow}>
-          {STATE_ORDER.map((state) => {
+          {COLOR_SLOTS.map((state) => {
             const isActive = state === activeState;
             return (
               <Pressable
@@ -172,7 +252,7 @@ export default function MarkerCustomizationScreen() {
                 onPress={() => { hapticTap(); setActiveState(state); }}
                 style={({ pressed }) => [styles.statePreview, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
               >
-                <Image source={{ uri: statePreviews[state] }} style={[styles.statePreviewImg, { opacity: opacity[state] }]} />
+                <Image source={{ uri: statePreviews[state] }} style={[styles.statePreviewImg, { opacity: state === 'rarity' || state === 'stateMode' ? 1 : opacity[state] }]} />
                 <Text style={[styles.statePreviewLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
                   {t(`markerCustomization.state.${state}`)}
                 </Text>
@@ -184,40 +264,79 @@ export default function MarkerCustomizationScreen() {
         {/* ── Encart: paramètres de l'état sélectionné ── */}
         <View style={styles.encart}>
           <Text style={styles.encartTitle}>{t(`markerCustomization.state.${activeState}`)}</Text>
+          {/* Points: one palette per point value */}
+          {activeState === 'rarity' && (
+            <View style={styles.tierRow}>
+              {TIER_VALUES.map((tier) => {
+                const isActive = tier === activeRarityTier;
+                return (
+                  <Pressable
+                    key={tier}
+                    onPress={() => { hapticTap(); setActiveRarityTier(tier); }}
+                    style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                  >
+                    <View style={[styles.raritySwatch, { backgroundColor: rarityColors[tier].icon, borderColor: rarityColors[tier].glow }]} />
+                    <Text style={[styles.tierLabel, isActive && { color: theme.accent }]}>{tier}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+          {/* State: one palette per invader condition */}
+          {activeState === 'stateMode' && (
+            <View style={styles.tierRow}>
+              {STATE_COLOR_KEYS.map((key) => {
+                const isActive = key === activeStateKey;
+                return (
+                  <Pressable
+                    key={key}
+                    onPress={() => { hapticTap(); setActiveStateKey(key); }}
+                    style={({ pressed }) => [styles.tierTab, isActive && { borderColor: theme.accent }, pressed && styles.pressed]}
+                  >
+                    <View style={[styles.raritySwatch, { backgroundColor: stateColors[key].icon, borderColor: stateColors[key].glow }]} />
+                    <Text style={[styles.tierLabel, isActive && { color: theme.accent }]} numberOfLines={1}>
+                      {t(`markerCustomization.statePalette.${key}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
           <View style={styles.encartParams}>
             {/* Corps (couleur de l'icône) */}
             <Pressable
-              onPress={() => { hapticTap(); setColorPicker({ state: activeState, kind: 'icon' }); }}
+              onPress={() => { hapticTap(); setColorPicker('icon'); }}
               style={({ pressed }) => [styles.param, pressed && styles.pressed]}
             >
-              <View style={[styles.swatch, { backgroundColor: colors[activeState].icon, borderColor: theme.border }]} />
+              <View style={[styles.swatch, { backgroundColor: activePalette.icon, borderColor: theme.border }]} />
               <Text style={styles.paramLabel}>{t('markerCustomization.body')}</Text>
             </Pressable>
 
             {/* Lueur (couleur du halo) */}
             <Pressable
-              onPress={() => { hapticTap(); setColorPicker({ state: activeState, kind: 'glow' }); }}
+              onPress={() => { hapticTap(); setColorPicker('glow'); }}
               style={({ pressed }) => [styles.param, pressed && styles.pressed]}
             >
-              <View style={[styles.swatch, { backgroundColor: colors[activeState].glow, borderColor: theme.border }]} />
+              <View style={[styles.swatch, { backgroundColor: activePalette.glow, borderColor: theme.border }]} />
               <Text style={styles.paramLabel}>{t('markerCustomization.gloom')}</Text>
             </Pressable>
 
             {/* Opacité (appliquée en direct) */}
+            {activeCustom && (<>
             <View style={styles.param}>
               <Text style={styles.stepperValue}>{Math.round(activeOpacity * 100)}%</Text>
               <View style={styles.stepper}>
                 <Pressable
                   style={({ pressed }) => [styles.stepperBtn, activeOpacity <= 0 && styles.arrowDisabled, pressed && styles.pressed]}
                   disabled={activeOpacity <= 0}
-                  onPress={() => { hapticTap(); setOpacity(activeState, activeOpacity - OPACITY_STEP); }}
+                  onPress={() => { hapticTap(); setOpacity(activeCustom, activeOpacity - OPACITY_STEP); }}
                 >
                   <Text style={styles.stepperBtnText}>−</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [styles.stepperBtn, activeOpacity >= 1 && styles.arrowDisabled, pressed && styles.pressed]}
                   disabled={activeOpacity >= 1}
-                  onPress={() => { hapticTap(); setOpacity(activeState, activeOpacity + OPACITY_STEP); }}
+                  onPress={() => { hapticTap(); setOpacity(activeCustom, activeOpacity + OPACITY_STEP); }}
                 >
                   <Text style={styles.stepperBtnText}>+</Text>
                 </Pressable>
@@ -232,20 +351,21 @@ export default function MarkerCustomizationScreen() {
                 <Pressable
                   style={({ pressed }) => [styles.stepperBtn, activeBloom <= 0 && styles.arrowDisabled, pressed && styles.pressed]}
                   disabled={activeBloom <= 0}
-                  onPress={() => { hapticTap(); setBloom(activeState, activeBloom - 1); }}
+                  onPress={() => { hapticTap(); setBloom(activeCustom, activeBloom - 1); }}
                 >
                   <Text style={styles.stepperBtnText}>−</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [styles.stepperBtn, activeBloom >= BLOOM_LEVEL_COUNT - 1 && styles.arrowDisabled, pressed && styles.pressed]}
                   disabled={activeBloom >= BLOOM_LEVEL_COUNT - 1}
-                  onPress={() => { hapticTap(); setBloom(activeState, activeBloom + 1); }}
+                  onPress={() => { hapticTap(); setBloom(activeCustom, activeBloom + 1); }}
                 >
                   <Text style={styles.stepperBtnText}>+</Text>
                 </Pressable>
               </View>
               <Text style={styles.paramLabel}>{t('markerCustomization.bloom')}</Text>
             </View>
+            </>)}
           </View>
         </View>
 
@@ -276,10 +396,10 @@ export default function MarkerCustomizationScreen() {
       {colorPicker && (
         <ColorPickerModal
           visible
-          title={t(`markerCustomization.${colorPicker.kind}Color`)}
-          currentColor={colors[colorPicker.state][colorPicker.kind]}
+          title={t(`markerCustomization.${colorPicker}Color`)}
+          currentColor={activePalette[colorPicker]}
           onClose={() => setColorPicker(null)}
-          onValidate={(hex) => setColor(colorPicker.state, colorPicker.kind, hex)}
+          onValidate={(hex) => applyColor(colorPicker, hex)}
         />
       )}
     </SettingsShell>
@@ -302,6 +422,15 @@ function makeStyles(t: ThemeTokens) {
     tierThumb: { width: TIER_THUMB, height: TIER_THUMB },
     tierLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
     tierPreview: { width: TIER_PREVIEW, height: TIER_PREVIEW },
+    inheritedPreview: { opacity: 0.35 },
+    // State tab left on its points' shape, and the button that sets it back
+    pointsShapeMark: { flex: 1, textAlign: 'center', textAlignVertical: 'center', lineHeight: TIER_THUMB, color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xxs },
+    pointsShapeBtn: {
+      alignSelf: 'center', paddingVertical: Spacing.two, paddingHorizontal: Spacing.three,
+      borderRadius: BorderRadius.sm, borderWidth: 2, borderColor: t.border, backgroundColor: t.bgElement,
+    },
+    pointsShapeLabel: { color: t.textMuted, fontFamily: ButtonFont, fontSize: FontSize.xs },
+    raritySwatch: { width: 22, height: 22, borderRadius: BorderRadius.sm, borderWidth: 3 },
     arrowDisabled: { opacity: 0.25 },
 
     // ── Colors header + preview-shape switch ──
@@ -314,6 +443,14 @@ function makeStyles(t: ThemeTokens) {
       borderTopWidth: 6, borderBottomWidth: 6, borderRightWidth: 8,
       borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: t.text,
     },
+    arrowDown: {
+      width: 0, height: 0, backgroundColor: 'transparent',
+      borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 8,
+      borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: t.text,
+    },
+    // Collapsible "Advanced" header of the Shapes tab
+    advancedHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.one },
+    advancedLabel: { color: t.text, fontFamily: ButtonFont, fontSize: FontSize.sm },
     arrowRight: {
       width: 0, height: 0, backgroundColor: 'transparent',
       borderTopWidth: 6, borderBottomWidth: 6, borderLeftWidth: 8,

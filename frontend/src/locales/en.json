@@ -365,6 +365,9 @@
     "sectionPreview": "Preview",
     "sectionShapes": "Shapes",
     "sectionShapesSubtitle": "Choose which silhouette represents each point value",
+    "sectionStateShapesSubtitle": "Give a state its own silhouette, whatever its points",
+    "pointsShape": "Same shape as its points",
+    "pointsShapeShort": "PTS",
     "sectionColors": "Colors",
     "sectionOpacity": "Opacity",
     "opacity": "Marker opacity",
@@ -381,8 +384,22 @@
       "flashCaptured": "Flashed",
       "flashUncaptured": "Not flashed",
       "highlight": "Highlighted",
-      "grey": "Greyed out"
-    }
+      "grey": "Greyed out",
+      "rarity": "Points",
+      "stateMode": "State"
+    },
+    "group": {
+      "destroyed": "Destroyed",
+      "notVisible": "Not visible"
+    },
+    "statePalette": {
+      "good": "Good",
+      "damaged": "Damaged",
+      "reactivated": "Reactivated",
+      "destroyed": "Destroyed",
+      "notVisible": "Not visible"
+    },
+    "advanced": "Advanced customization"
   },
   "themeNames": {
     "dark": "Dark",
@@ -482,11 +499,12 @@
     "condUnflashable": "Unflashable",
     "colorMode": "Color mode",
     "colorFlash": "Flash",
-    "colorRarity": "Rarity",
-    "greyOut": "Grey out",
+    "colorRarity": "Points",
+    "greyOut": "Dim destroyed",
     "greyAll": "All",
-    "greyFlashed": "Flashed",
-    "greyOff": "Off"
+    "greyFlashed": "Not flashed only",
+    "greyOff": "None",
+    "colorState": "State"
   },
   "popup": {
     "updateTitle": "Update {{name}}",
@@ -678,12 +696,13 @@
     "colorMode": {
       "title": "Color mode",
       "flashBody": "Marker color reflects your flash status. Red markers are not yet flashed, captured ones show in a different color.",
-      "rarityBody": "Each rarity tier (by points value) has its own distinct hue, regardless of flash status.",
+      "rarityBody": "Each point value has its own color, regardless of flash status.",
       "labelUnflashed": "Not flashed",
-      "labelFlashed": "Flashed"
+      "labelFlashed": "Flashed",
+      "stateBody": "Color shows the invader's condition: good, damaged, destroyed (ghost), not visible, or reactivated in the last 60 days (magenta)."
     },
     "greyMode": {
-      "title": "Grey out",
+      "title": "Dim destroyed",
       "allBody": "All destroyed or not-visible invaders are greyed on the map, whether captured or not.",
       "flashedBody": "Destroyed invaders you already captured keep their color. Only uncaptured ones are greyed.",
       "offBody": "No greying. Every marker shows in full color regardless of its state.",
@@ -695,7 +714,7 @@
       "title": "Filters",
       "statusBody": "Show all invaders, only those you've already flashed, or only those you haven't captured yet.",
       "condBody": "'Flashable' shows invaders in a state that can still be flashed. 'Unflashable' shows destroyed or not-visible ones only.",
-      "pointsBody": "Restrict to one or more rarity tiers. Select multiple values to combine them.",
+      "pointsBody": "Restrict to one or more point values. Select multiple values to combine them.",
       "combineTip": "All three filters combine. Example: Unflashed + Flashable + 50pts shows only 50-point invaders you haven't captured that can still be flashed."
     },
     "routing": {
@@ -841,5 +860,12 @@
     "sectionShape": "Shape",
     "sectionColors": "Colors",
     "saveFailed": "Couldn't save the icon. Check your connection."
+  },
+  "colorPicker": {
+    "basic": "Basic",
+    "advanced": "Advanced",
+    "hue": "Hue",
+    "saturation": "Saturation",
+    "brightness": "Brightness"
   }
 }

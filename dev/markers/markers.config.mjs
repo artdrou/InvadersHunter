@@ -42,7 +42,28 @@ export const COLORS = {
     captured:   { icon: '#1CF0FF', bloom: '#002FA7' }, // cyan     + Klein blue       (matches cluster)
   },
   grey: { icon: '#C8C8C8', bloom: '#888888' }, // brighter — pairs with layer-level opacity dimming
+  // "State" color mode (frontend DEFAULT_STATE_COLORS). Destroyed only exists as the
+  // ghost; the others use the tier shapes.
+  state: {
+    good:          { icon: '#1AE34A', bloom: '#0F8C30' },
+    damaged:       { icon: '#FF9F1C', bloom: '#B35400' },
+    reactivated:   { icon: '#FF2BD6', bloom: '#7A0099' },
+    destroyed:     { icon: '#9A9A9A', bloom: '#555555' },
+    'not-visible': { icon: '#9A9A9A', bloom: '#555555' },
+  },
 };
+
+// Invader states drawn with their own silhouette instead of their points' one
+// (frontend: DEFAULT_SHAPE_FOR_STATE). Shape files come from src/avatars/ and are
+// tinted "anchored" like the app's extra shapes (body = exactly the target color).
+// Highlight / flash-mine / flash-friend are hue-shifted afterwards by
+// frontend/scripts/gen-marker-variants.py, like the tier sprites.
+export const STATE_SHAPES = {
+  destroyed: 'avatars/avatar-medium-3.svg', // ghost
+};
+// State silhouettes are drawn smaller (frontend STATE_SHAPE_SCALE): square-ish,
+// they look bigger than the wide tier invaders at the same box size.
+export const STATE_SHAPE_SCALE = 0.8;
 
 // Bloom (outer glow). Set enabled:false to skip.
 export const BLOOM = {
@@ -91,4 +112,12 @@ export function outputName(rarity, mode, state) {
   //   marker-10pts-flash-uncaptured
   //   marker-10pts-flash-captured
   //   marker-10pts-grey
+}
+
+// State silhouettes don't depend on points, except in rarity mode (per-tier color).
+export function stateOutputName(group, rarity, mode, state) {
+  if (mode === 'grey')   return `marker-${group}-grey`;
+  if (mode === 'state')  return `marker-${group}-state-${state}`;
+  if (mode === 'rarity') return `marker-${group}-${rarity}pts-rarity`;
+  return `marker-${group}-flash-${state}`;
 }

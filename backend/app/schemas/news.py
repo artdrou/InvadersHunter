@@ -54,3 +54,9 @@ class AnnouncementOut(BaseModel):
 
     class Config:
         from_attributes = True  # remplace orm_mode en Pydantic V2
+
+
+class ReactivationOut(BaseModel):
+    """An invader back to Good after being Destroyed / Not visible (News kind "reactivated")."""
+    invader_id: int
+    date: datetime

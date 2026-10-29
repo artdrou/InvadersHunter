@@ -20,7 +20,8 @@ const CELL_GAP = Spacing.two;
 const THUMB_FILL = 0.8;
 
 type Props = {
-  selected: ShapeId;
+  /** null: nothing picked (a marker state left on its points' shape); arrows start from the first shape. */
+  selected: ShapeId | null;
   onSelect: (shape: ShapeId) => void;
   /** Image URI of a shape's thumbnail (drawn by the screen, in its colors). */
   thumbnail: (shape: ShapeId) => string | undefined;
@@ -38,7 +39,8 @@ export function ShapePicker({ selected, onSelect, thumbnail, preview, between }:
 
   function step(delta: number) {
     hapticTap();
-    const i = Math.max(0, ALL_SHAPE_IDS.indexOf(selected));
+    const i = selected === null ? -1 : ALL_SHAPE_IDS.indexOf(selected);
+    if (i < 0) { onSelect(ALL_SHAPE_IDS[delta > 0 ? 0 : ALL_SHAPE_IDS.length - 1]); return; }
     onSelect(ALL_SHAPE_IDS[(i + delta + ALL_SHAPE_IDS.length) % ALL_SHAPE_IDS.length]);
   }
 
